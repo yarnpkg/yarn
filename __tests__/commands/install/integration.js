@@ -357,12 +357,7 @@ test('install file: protocol with relative paths', (): Promise<void> =>
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'root-a', 'index.js'))).toEqual('foobar;\n');
   }));
 
-test('install file: protocol without force retains installed package', async (): Promise<void> => {
-  const fixturesLoc = path.join(__dirname, '..', '..', 'fixtures', 'install');
-  const compLoc = path.join(fixturesLoc, 'install-file-without-cache', 'comp', 'index.js');
-
-  await fs.writeFile(compLoc, 'foo\n');
-  await runInstall({}, 'install-file-without-cache', async (config, reporter) => {
+test('install file: protocol without force retains installed package', (): Promise<void> => runInstall({}, 'install-file-without-cache', async (config, reporter) => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'comp', 'index.js'))).toEqual('foo\n');
 
     await fs.writeFile(path.join(config.cwd, 'comp', 'index.js'), 'bar\n');
@@ -371,15 +366,9 @@ test('install file: protocol without force retains installed package', async ():
     await reinstall.init();
 
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'comp', 'index.js'))).not.toEqual('bar\n');
-  });
-});
+  }));
 
-test('install file: protocol with force re-installs local package', async (): Promise<void> => {
-  const fixturesLoc = path.join(__dirname, '..', '..', 'fixtures', 'install');
-  const compLoc = path.join(fixturesLoc, 'install-file-without-cache', 'comp', 'index.js');
-
-  await fs.writeFile(compLoc, 'foo\n');
-  await runInstall({}, 'install-file-without-cache', async (config, reporter) => {
+test('install file: protocol with force re-installs local package', (): Promise<void> => runInstall({}, 'install-file-without-cache', async (config, reporter) => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'comp', 'index.js'))).toEqual('foo\n');
 
     await fs.writeFile(path.join(config.cwd, 'comp', 'index.js'), 'bar\n');
@@ -388,8 +377,7 @@ test('install file: protocol with force re-installs local package', async (): Pr
     await reinstall.init();
 
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'comp', 'index.js'))).toEqual('bar\n');
-  });
-});
+  }));
 
 test('install file: local packages with local dependencies', (): Promise<void> =>
   runInstall({}, 'install-file-local-dependency', async (config, reporter) => {
