@@ -1,7 +1,7 @@
 /* @flow */
 
-import {explodeHostedGitFragment} from '../../../src/resolvers/exotics/hosted-git-resolver.js';
-import type {ExplodedFragment} from '../../../src/resolvers/exotics/hosted-git-resolver.js';
+import { explodeHostedGitFragment } from '../../../src/resolvers/exotics/hosted-git-resolver.js';
+import type { ExplodedFragment } from '../../../src/resolvers/exotics/hosted-git-resolver.js';
 import * as reporters from '../../../src/reporters/index.js';
 const reporter = new reporters.NoopReporter({});
 
@@ -50,6 +50,18 @@ test('explodeHostedGitFragment should allow the project name to contain .git', (
     user: 'jure',
     repo: 'lens.github',
     hash: '',
+  };
+
+  expect(explodeHostedGitFragment(fragmentString, reporter)).toEqual(expectedFragment);
+});
+
+test('explodeHostedGitFragment should allow the hash to contain semver', () => {
+  const fragmentString = 'jure/lens#semver:^3.0.0';
+
+  const expectedFragment: ExplodedFragment = {
+    user: 'jure',
+    repo: 'lens',
+    hash: 'semver:^3.0.0',
   };
 
   expect(explodeHostedGitFragment(fragmentString, reporter)).toEqual(expectedFragment);
