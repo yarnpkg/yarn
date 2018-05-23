@@ -225,7 +225,7 @@ test.concurrent('should install if no args', async () => {
 
 test.concurrent('should install if first arg looks like a flag', async () => {
   const stdout = await execCommand('--json', [], 'run-add', true);
-  expect(stdout[stdout.length - 1]).toEqual('{"type":"info","data":"Lockfile not saved, no dependencies."}');
+  expect(stdout[stdout.length - 1]).toEqual('{"type":"success","data":"Saved lockfile."}');
 });
 
 test.concurrent('should not output JSON activity/progress if given --no-progress option', async () => {

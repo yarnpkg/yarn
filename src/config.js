@@ -158,6 +158,8 @@ export default class Config {
 
   nonInteractive: boolean;
 
+  scriptsPrependNodePath: boolean;
+
   workspacesEnabled: boolean;
   workspacesNohoistEnabled: boolean;
 
@@ -385,6 +387,8 @@ export default class Config {
     // $FlowFixMe$
     this.nonInteractive = !!opts.nonInteractive || isCi || !process.stdout.isTTY;
 
+    this.scriptsPrependNodePath = !!opts.scriptsPrependNodePath;
+
     this.requestManager.setOptions({
       offline: !!opts.offline && !opts.preferOffline,
       captureHar: !!opts.captureHar,
@@ -399,13 +403,9 @@ export default class Config {
    * Generate an absolute module path.
    */
 
-  generateHardModulePath(pkg: ?PackageReference, ignoreLocation?: ?boolean): string {
+  generateModuleCachePath(pkg: ?PackageReference): string {
     invariant(this.cacheFolder, 'No package root');
     invariant(pkg, 'Undefined package');
-
-    if (pkg.location && !ignoreLocation) {
-      return pkg.location;
-    }
 
     let name = pkg.name;
     let uid = pkg.uid;

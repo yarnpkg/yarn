@@ -1,0 +1,64 @@
+HTTP/1.1 200 OK
+Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; sandbox
+Strict-Transport-Security: max-age=31536000
+X-Content-Type-Options: nosniff
+X-Frame-Options: deny
+X-XSS-Protection: 1; mode=block
+ETag: "55fa837d7f127a56fd756d85628c1083c68732ed"
+Content-Type: text/plain; charset=utf-8
+Cache-Control: max-age=300
+X-Geo-Block-List:
+X-GitHub-Request-Id: 9F1E:3250:1D0EC:1EDAE:5AE042BB
+Content-Length: 630
+Accept-Ranges: bytes
+Date: Wed, 25 Apr 2018 08:56:49 GMT
+Via: 1.1 varnish
+Connection: keep-alive
+X-Served-By: cache-hhn1527-HHN
+X-Cache: MISS
+X-Cache-Hits: 0
+X-Timer: S1524646608.075844,VS0,VE1113
+Vary: Authorization,Accept-Encoding
+Access-Control-Allow-Origin: *
+X-Fastly-Request-ID: 3e8d3619aeb3826f46b8315b852b87f867d5e30d
+Expires: Wed, 25 Apr 2018 09:01:49 GMT
+Source-Age: 0
+
+{
+  "name": "beeper",
+  "version": "1.1.1",
+  "description": "Make your terminal beep",
+  "license": "MIT",
+  "repository": "sindresorhus/beeper",
+  "author": {
+    "name": "Sindre Sorhus",
+    "email": "sindresorhus@gmail.com",
+    "url": "sindresorhus.com"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {
+    "test": "node test.js"
+  },
+  "files": [
+    "index.js"
+  ],
+  "keywords": [
+    "beep",
+    "beeper",
+    "boop",
+    "terminal",
+    "term",
+    "cli",
+    "console",
+    "ding",
+    "ping",
+    "alert",
+    "gulpfriendly"
+  ],
+  "devDependencies": {
+    "hooker": "^0.2.3",
+    "tape": "^4.0.0"
+  }
+}

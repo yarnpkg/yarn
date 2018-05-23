@@ -1,0 +1,8 @@
+{
+  "name": "example-yarn-workspace-6",
+  "version": "1.0.0",
+  "devDependencies": {
+    "example-yarn-workspace-5": "^1.0.0"
+  },
+  "main": "index.js"
+}

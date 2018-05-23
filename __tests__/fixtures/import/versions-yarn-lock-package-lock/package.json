@@ -1,0 +1,8 @@
+{
+  "name": "versions-yarn-lock-package-lock",
+  "version": "1.0.0",
+  "license": "MIT",
+  "dependencies": {
+    "file-dep-a": "file:deps/a"
+  }
+}
