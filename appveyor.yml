@@ -1,6 +1,7 @@
 environment:
   matrix:
     - node_version: '8'
+    - node_version: '10'
 branches:
   only:
     - master
