@@ -1,10 +1,10 @@
 /* @flow */
 
-import type { Reporter } from '../../reporters/index.js';
-import type { Manifest } from '../../types.js';
+import type {Reporter} from '../../reporters/index.js';
+import type {Manifest} from '../../types.js';
 import type PackageRequest from '../../package-request.js';
-import { MessageError } from '../../errors.js';
-import { registries } from '../../registries/index.js';
+import {MessageError} from '../../errors.js';
+import {registries} from '../../registries/index.js';
 import GitResolver from './git-resolver.js';
 import ExoticResolver from './exotic-resolver.js';
 import Git from '../../util/git.js';
@@ -69,7 +69,7 @@ export default class HostedGitResolver extends ExoticResolver {
     super(request, fragment);
 
     const exploded = (this.exploded = explodeHostedGitFragment(fragment, this.reporter));
-    const { user, repo, hash } = exploded;
+    const {user, repo, hash} = exploded;
     this.user = user;
     this.repo = repo;
     this.hash = hash;
@@ -141,12 +141,12 @@ export default class HostedGitResolver extends ExoticResolver {
 
   async resolveOverHTTP(url: string): Promise<Manifest> {
     const commit = await this.getRefOverHTTP(url);
-    const { config } = this;
+    const {config} = this;
 
     const tarballUrl = this.constructor.getTarballUrl(this.exploded, commit);
 
     const tryRegistry = async (registry): Promise<?Manifest> => {
-      const { filename } = registries[registry];
+      const {filename} = registries[registry];
 
       const href = this.constructor.getHTTPFileUrl(this.exploded, filename, commit);
       const file = await config.requestManager.request({

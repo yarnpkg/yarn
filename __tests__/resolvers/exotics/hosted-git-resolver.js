@@ -1,7 +1,7 @@
 /* @flow */
 
-import { explodeHostedGitFragment } from '../../../src/resolvers/exotics/hosted-git-resolver.js';
-import type { ExplodedFragment } from '../../../src/resolvers/exotics/hosted-git-resolver.js';
+import {explodeHostedGitFragment} from '../../../src/resolvers/exotics/hosted-git-resolver.js';
+import type {ExplodedFragment} from '../../../src/resolvers/exotics/hosted-git-resolver.js';
 import * as reporters from '../../../src/reporters/index.js';
 const reporter = new reporters.NoopReporter({});
 
