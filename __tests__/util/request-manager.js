@@ -8,6 +8,7 @@ import * as fs from '../../src/util/fs.js';
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
 const net = require('net');
+const http = require('http');
 const https = require('https');
 const path = require('path');
 
@@ -155,21 +156,17 @@ test('RequestManager.execute timeout error with maxRetryAttempts=1', async () =>
 
 test('RequestManager.execute timeout error with default maxRetryAttempts', async () => {
   jest.useFakeTimers();
-
   const LIMIT = 5;
   let counter = 0;
-  const server = net.createServer(c => {
+  const server = http.createServer(req => {
     counter += 1;
-
     // Trigger our offline retry queue which has a fixed 3 sec delay
     if (counter < LIMIT) {
-      c.on('close', jest.runOnlyPendingTimers.bind(jest));
+      req.on('aborted', jest.runOnlyPendingTimers.bind(jest));
     }
-
-    // emulate TCP server that never closes the connection by not
+    // emulate HTTP server that never closes the connection by not
     // doing anything
   });
-
   try {
     server.listen(0);
     const config = await Config.create({networkTimeout: 50});

@@ -5,6 +5,8 @@ import {run as buildRun} from './_helpers.js';
 import {run as licenses} from '../../src/cli/commands/licenses.js';
 import Config from '../../src/config.js';
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
+
 const path = require('path');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'licenses');
