@@ -116,7 +116,7 @@ async function publish(config: Config, pkg: any, flags: Object, dir: string): Pr
       body: root,
     });
   } catch (error) {
-    throw new MessageError(config.reporter.lang('publishFail'));
+    throw new MessageError(config.reporter.lang('publishFail', error.message));
   }
 
   await config.executeLifecycleScript('publish');

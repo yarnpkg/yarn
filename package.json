@@ -31,6 +31,7 @@
     "mkdirp": "^0.5.1",
     "node-emoji": "^1.6.1",
     "normalize-url": "^2.0.0",
+    "npm-logical-tree": "^1.2.1",
     "object-path": "^0.11.2",
     "proper-lockfile": "^2.0.0",
     "puka": "^1.0.0",
@@ -45,7 +46,7 @@
     "tar-fs": "^1.16.0",
     "tar-stream": "^1.6.0",
     "uuid": "^3.0.1",
-    "v8-compile-cache": "^1.1.0",
+    "v8-compile-cache": "^2.0.0",
     "validate-npm-package-license": "^3.0.3",
     "yn": "^2.0.0"
   },
@@ -86,7 +87,7 @@
     "gulp-sourcemaps": "^2.2.0",
     "gulp-util": "^3.0.7",
     "gulp-watch": "^5.0.0",
-    "jest": "^22.4.3",
+    "jest": "^22.4.4",
     "jsinspect": "^0.12.6",
     "minimatch": "^3.0.4",
     "mock-stdin": "^0.3.0",
@@ -118,6 +119,7 @@
     "release-branch": "./scripts/release-branch.sh",
     "test": "yarn lint && yarn test-only",
     "test-only": "node --max_old_space_size=4096 node_modules/jest/bin/jest.js --verbose",
+    "test-only-debug": "node --inspect-brk --max_old_space_size=4096 node_modules/jest/bin/jest.js --runInBand --verbose",
     "test-coverage": "node --max_old_space_size=4096 node_modules/jest/bin/jest.js --coverage --verbose",
     "watch": "gulp watch",
     "commit": "git-cz"

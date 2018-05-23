@@ -9,7 +9,7 @@ import executeLifecycleScript from './util/execute-lifecycle-script.js';
 import * as crypto from './util/crypto.js';
 import * as fsUtil from './util/fs.js';
 import {getPlatformSpecificPackageFilename} from './util/package-name-utils.js';
-import {pack} from './cli/commands/pack.js';
+import {packWithIgnoreAndHeaders} from './cli/commands/pack.js';
 
 const fs = require('fs');
 const invariant = require('invariant');
@@ -106,7 +106,8 @@ export default class PackageInstallScripts {
   async install(cmds: Array<[string, string]>, pkg: Manifest, spinner: ReporterSetSpinner): Promise<void> {
     const ref = pkg._reference;
     invariant(ref, 'expected reference');
-    const loc = this.config.generateHardModulePath(ref);
+    const locs = ref.locations;
+
     let updateProgress;
 
     if (cmds.length > 0) {
@@ -130,18 +131,22 @@ export default class PackageInstallScripts {
 
     try {
       for (const [stage, cmd] of cmds) {
-        const {stdout} = await executeLifecycleScript({
-          stage,
-          config: this.config,
-          cwd: loc,
-          cmd,
-          isInteractive: false,
-          updateProgress,
-        });
-        this.reporter.verbose(stdout);
+        await Promise.all(
+          locs.map(async loc => {
+            const {stdout} = await executeLifecycleScript({
+              stage,
+              config: this.config,
+              cwd: loc,
+              cmd,
+              isInteractive: false,
+              updateProgress,
+            });
+            this.reporter.verbose(stdout);
+          }),
+        );
       }
     } catch (err) {
-      err.message = `${loc}: ${err.message}`;
+      err.message = `${locs.join(', ')}: ${err.message}`;
 
       invariant(ref, 'expected reference');
 
@@ -153,7 +158,11 @@ export default class PackageInstallScripts {
 
         // Cleanup node_modules
         try {
-          await fsUtil.unlink(loc);
+          await Promise.all(
+            locs.map(async loc => {
+              await fsUtil.unlink(loc);
+            }),
+          );
         } catch (e) {
           this.reporter.error(this.reporter.lang('optionalModuleCleanupFail', e.message));
         }
@@ -183,7 +192,7 @@ export default class PackageInstallScripts {
     }
 
     // Don't run lifecycle scripts for hoisted packages
-    if (!ref.location) {
+    if (!ref.locations.length) {
       return false;
     }
 
@@ -294,9 +303,12 @@ export default class PackageInstallScripts {
       if (this.packageCanBeInstalled(pkg)) {
         const ref = pkg._reference;
         invariant(ref, 'expected reference');
-        const loc = this.config.generateHardModulePath(ref);
-        beforeFilesMap.set(loc, await this.walk(loc));
-        installablePkgs += 1;
+        await Promise.all(
+          ref.locations.map(async loc => {
+            beforeFilesMap.set(loc, await this.walk(loc));
+            installablePkgs += 1;
+          }),
+        );
       }
       workQueue.add(pkg);
     }
@@ -307,7 +319,6 @@ export default class PackageInstallScripts {
     // when there are more work added to the work queue
     const waitQueue = new Set();
     await Promise.all(set.spinners.map(spinner => this.worker(spinner, workQueue, installed, waitQueue)));
-
     // generate built package as prebuilt one for offline mirror
     const offlineMirrorPath = this.config.getOfflineMirrorPath();
     if (this.config.packBuiltPackages && offlineMirrorPath) {
@@ -319,25 +330,25 @@ export default class PackageInstallScripts {
           prebuiltPath = path.join(prebuiltPath, prebuiltFilename + '.tgz');
           const ref = pkg._reference;
           invariant(ref, 'expected reference');
-          const builtPackagePath = this.config.generateHardModulePath(ref);
-          const pkgConfig = await Config.create(
-            {
-              cwd: builtPackagePath,
-            },
-            this.reporter,
-          );
-          const stream = await pack(pkgConfig);
+          const builtPackagePaths = ref.locations;
 
-          const hash = await new Promise((resolve, reject) => {
-            const validateStream = new crypto.HashStream();
-            stream
-              .pipe(validateStream)
-              .pipe(fs.createWriteStream(prebuiltPath))
-              .on('error', reject)
-              .on('close', () => resolve(validateStream.getHash()));
-          });
-          pkg.prebuiltVariants = pkg.prebuiltVariants || {};
-          pkg.prebuiltVariants[prebuiltFilename] = hash;
+          await Promise.all(
+            builtPackagePaths.map(async builtPackagePath => {
+              // don't use pack command, we want to avoid the file filters logic
+              const stream = await packWithIgnoreAndHeaders(builtPackagePath);
+
+              const hash = await new Promise((resolve, reject) => {
+                const validateStream = new crypto.HashStream();
+                stream
+                  .pipe(validateStream)
+                  .pipe(fs.createWriteStream(prebuiltPath))
+                  .on('error', reject)
+                  .on('close', () => resolve(validateStream.getHash()));
+              });
+              pkg.prebuiltVariants = pkg.prebuiltVariants || {};
+              pkg.prebuiltVariants[prebuiltFilename] = hash;
+            }),
+          );
         }
       }
     } else {
@@ -346,10 +357,13 @@ export default class PackageInstallScripts {
         if (this.packageCanBeInstalled(pkg)) {
           const ref = pkg._reference;
           invariant(ref, 'expected reference');
-          const loc = this.config.generateHardModulePath(ref);
-          const beforeFiles = beforeFilesMap.get(loc);
-          invariant(beforeFiles, 'files before installation should always be recorded');
-          await this.saveBuildArtifacts(loc, pkg, beforeFiles, set.spinners[0]);
+          const beforeFiles = ref.locations.map(loc => beforeFilesMap.get(loc));
+          await Promise.all(
+            beforeFiles.map(async (b, index) => {
+              invariant(b, 'files before installation should always be recorded');
+              await this.saveBuildArtifacts(ref.locations[index], pkg, b, set.spinners[0]);
+            }),
+          );
         }
       }
     }

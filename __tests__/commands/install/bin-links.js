@@ -199,3 +199,20 @@ describe('with nohoist', () => {
     });
   });
 });
+
+describe('with focus', () => {
+  test('focus points bin links to the shallowly installed packages', (): Promise<void> => {
+    return runInstall(
+      {binLinks: true, focus: true},
+      {source: 'published-monorepo', cwd: '/packages/example-yarn-workspace-1'},
+      async (config): Promise<void> => {
+        expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'example-yarn-workspace-2'))).toEqual(
+          true,
+        );
+        expect(await linkAt(config, 'node_modules', '.bin', 'example-yarn-workspace-2')).toEqual(
+          '../example-yarn-workspace-2/index.js',
+        );
+      },
+    );
+  });
+});
