@@ -1,7 +1,7 @@
 # Dockerfile for building Yarn.
 # docker build -t yarnpkg/dev -f Dockerfile.dev .
 
-FROM node:8
+FROM node:10
 
 # Debian packages
 RUN apt-get -y update && \

@@ -51,7 +51,7 @@ function addTest(pattern, registry = 'npm', init: ?(cacheFolder: string) => Prom
     await resolver.init([{pattern, registry}]);
 
     const ref = resolver.getManifests()[0]._reference;
-    const cachePath = config.generateHardModulePath(ref, true);
+    const cachePath = config.generateModuleCachePath(ref);
     expect(cachePath).toMatch(cachePathRe);
 
     await reporter.close();

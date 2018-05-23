@@ -1,7 +1,8 @@
 /* @flow */
 /* eslint yarn-internal/warn-language: 0 */
 
-import BaseReporter from '../../src/reporters/base-reporter.js';
+import BaseReporter, {stringifyLangArgs} from '../../src/reporters/base-reporter.js';
+import {EOL} from 'os';
 
 test('BaseReporter.getTotalTime', () => {
   const reporter = new BaseReporter();
@@ -124,4 +125,17 @@ test('BaseReporter.prompt', async () => {
   }
   expect(error).not.toBeUndefined();
   reporter.close();
+});
+
+test('stringifyLangArgs should replace \\n and \\r\\n with new line', () => {
+  const input = '\r\nUnexpected token 123\r\nat position\n.Try again';
+  const expected = `"${EOL}Unexpected token 123${EOL}at position${EOL}.Try again"`;
+  expect(stringifyLangArgs([input])).toEqual([expected]);
+});
+
+test('stringifyLangArgs should not replace \\\\n with new line', () => {
+  const input = 'Directory not found: C:\\Users\\An\\Documents\\Projects\\newProject';
+  const expected = '"Directory not found: C:\\\\Users\\\\An\\\\Documents\\\\Projects\\\\newProject"';
+
+  expect(stringifyLangArgs([input])).toEqual([expected]);
 });

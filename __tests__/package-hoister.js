@@ -46,7 +46,7 @@ function createTestFixture(
     getFolder(): string {
       return 'node_modules';
     },
-    generateHardModulePath(pkg: ?PackageReference): string {
+    generateModuleCachePath(pkg: ?PackageReference): string {
       return pkg ? pkg.uid : '';
     },
     getWorkspaces(manifest: ?Manifest): ?WorkspacesConfig {

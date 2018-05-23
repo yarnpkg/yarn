@@ -181,14 +181,26 @@ export default class PackageRequest {
    * the registry.
    */
 
-  findVersionInfo(): Promise<Manifest> {
+  async findVersionInfo(): Promise<Manifest> {
     const exoticResolver = getExoticResolver(this.pattern);
     if (exoticResolver) {
       return this.findExoticVersionInfo(exoticResolver, this.pattern);
     } else if (WorkspaceResolver.isWorkspace(this.pattern, this.resolver.workspaceLayout)) {
       invariant(this.resolver.workspaceLayout, 'expected workspaceLayout');
       const resolver = new WorkspaceResolver(this, this.pattern, this.resolver.workspaceLayout);
-      return resolver.resolve();
+      let manifest;
+      if (
+        this.resolver.focus &&
+        !this.pattern.includes(this.resolver.workspaceLayout.virtualManifestName) &&
+        !this.pattern.startsWith(path.basename(this.config.cwd) + '@')
+      ) {
+        const localInfo = this.resolver.workspaceLayout.getManifestByPattern(this.pattern);
+        invariant(localInfo, 'expected local info for ' + this.pattern);
+        const localManifest = localInfo.manifest;
+        const requestPattern = localManifest.name + '@' + localManifest.version;
+        manifest = await this.findVersionOnRegistry(requestPattern);
+      }
+      return resolver.resolve(manifest);
     } else {
       return this.findVersionOnRegistry(this.pattern);
     }
