@@ -183,7 +183,10 @@ const messages = {
     'Package not found - this is probably an internal error, and should be reported at https://github.com/yarnpkg/yarn/issues.',
 
   workspacesAddRootCheck:
-    'Running this command will add the dependency to the workspace root rather than workspace itself, which might not be what you want - if you really meant it, make it explicit by running this command again with the -W flag (or --ignore-workspace-root-check).',
+    'Running this command will add the dependency to the workspace root rather than the workspace itself, which might not be what you want - if you really meant it, make it explicit by running this command again with the -W flag (or --ignore-workspace-root-check).',
+  workspacesRemoveRootCheck:
+    'Running this command will remove the dependency from the workspace root rather than the workspace itself, which might not be what you want - if you really meant it, make it explicit by running this command again with the -W flag (or --ignore-workspace-root-check).',
+  workspacesFocusRootCheck: 'This command can only be run inside an individual workspace.',
   workspacesRequirePrivateProjects: 'Workspaces can only be enabled in private projects.',
   workspacesSettingMustBeArray: 'The workspaces field in package.json must be an array.',
   workspacesDisabled:
@@ -319,7 +322,7 @@ const messages = {
   incorrectCredentials: 'Incorrect username or password.',
   clearedCredentials: 'Cleared login credentials.',
 
-  publishFail: "Couldn't publish package.",
+  publishFail: "Couldn't publish package: $0",
   publishPrivate: 'Package marked as private, not publishing.',
   published: 'Published.',
   publishing: 'Publishing',
@@ -354,6 +357,7 @@ const messages = {
   packageInstalledWithBinaries: 'Installed $0 with binaries:',
   packageHasBinaries: '$0 has binaries:',
   packageHasNoBinaries: '$0 has no binaries',
+  packageBinaryNotFound: "Couldn't find a binary named $0",
 
   couldBeDeduped: '$0 could be deduped from $1 to $2',
   lockfileNotContainPattern: 'Lockfile does not contain pattern: $0',
@@ -377,6 +381,9 @@ const messages = {
   importFailed: 'Import of $0 for $1 failed, resolving normally.',
   importResolveFailed: 'Import of $0 failed starting in $1',
   importResolvedRangeMatch: 'Using version $0 of $1 instead of $2 for $3',
+  importSourceFilesCorrupted: 'Failed to import from package-lock.json, source file(s) corrupted',
+  importPackageLock: 'found npm package-lock.json, converting to yarn.lock',
+  importNodeModules: 'creating yarn.lock from local node_modules folder',
   packageContainsYarnAsGlobal:
     'Installing Yarn via Yarn will result in you having two separate versions of Yarn installed at the same time, which is not recommended. To update Yarn please follow https://yarnpkg.com/en/docs/install .',
 

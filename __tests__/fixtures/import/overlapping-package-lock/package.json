@@ -1,0 +1,11 @@
+{
+  "name": "overlapping-package-lock",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "file-dep-a": "file:deps/a",
+    "file-dep-b": "file:deps/b",
+    "safe-buffer": "^5.1.1"
+  }
+}

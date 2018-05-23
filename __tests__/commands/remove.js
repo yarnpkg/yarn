@@ -47,6 +47,20 @@ test.concurrent('throws error when package is not found', (): Promise<void> => {
   });
 });
 
+test.concurrent('remove without --ignore-workspace-root-check should fail on the workspace root', async () => {
+  await runInstall({}, 'workspaces-install-basic', async (config, reporter): Promise<void> => {
+    await expect(remove(config, reporter, {}, ['left-pad'])).rejects.toThrow(
+      reporter.lang('workspacesRemoveRootCheck'),
+    );
+  });
+});
+
+test.concurrent("remove with --ignore-workspace-root-check shouldn't fail on the workspace root", async () => {
+  await runInstall({}, 'workspaces-install-basic', async (config, reporter): Promise<void> => {
+    await expect(remove(config, reporter, {ignoreWorkspaceRootCheck: true}, ['left-pad'])).resolves.toBeUndefined();
+  });
+});
+
 test.concurrent('removes package installed from npm registry', (): Promise<void> => {
   return runRemove(['dep-a'], {}, 'npm-registry', async (config): Promise<void> => {
     expect(await fs.exists(path.join(config.cwd, 'node_modules/dep-a'))).toEqual(false);

@@ -173,3 +173,15 @@ exports.readJson = async function readJson(source: string): Promise<any> {
     throw new Error(`Invalid json file (${source})`);
   }
 };
+
+exports.chmod = function chmod(target: string, mod: number): Promise<void> {
+  return fs.chmod(target, mod);
+};
+
+exports.makeFakeBinary = async function(
+  target: string,
+  {output = `Fake binary`, exitCode = 1}: {|output: string, exitCode: number|} = {},
+): Promise<void> {
+  await exports.writeFile(target, `#!/bin/sh\necho "${output}"\nexit ${exitCode}\n`);
+  await exports.chmod(target, 0o755);
+};

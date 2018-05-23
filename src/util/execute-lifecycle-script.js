@@ -142,6 +142,10 @@ export async function makeEnv(
   const envPath = env[constants.ENV_PATH_KEY];
   const pathParts = envPath ? envPath.split(path.delimiter) : [];
 
+  // Include the directory that contains node so that we can guarantee that the scripts
+  // will always run with the exact same Node release than the one use to run Yarn
+  pathParts.unshift(path.dirname(process.execPath));
+
   // Include node-gyp version that was bundled with the current Node.js version,
   // if available.
   pathParts.unshift(path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'node-gyp-bin'));
@@ -216,9 +220,8 @@ export async function executeLifecycleScript({
     detached = false;
   }
 
-  const stdout = customShell
-    ? await child.spawn(customShell, [cmd], {cwd, env, stdio, detached, windowsVerbatimArguments: true}, onProgress)
-    : await child.spawn(cmd, [], {cwd, env, stdio, detached, shell: true}, onProgress);
+  const shell = customShell || true;
+  const stdout = await child.spawn(cmd, [], {cwd, env, stdio, detached, shell}, onProgress);
 
   return {cwd, command: cmd, stdout};
 }
