@@ -39,7 +39,8 @@ export async function verifyTreeCheck(
   // check all dependencies recursively without relying on internal resolver
   const registryName = 'yarn';
   const registry = config.registries[registryName];
-  const rootManifest = await config.readManifest(registry.cwd, registryName);
+  const cwd = config.workspaceRootFolder ? config.lockfileFolder : config.cwd;
+  const rootManifest = await config.readManifest(cwd, registryName);
 
   type PackageToVerify = {
     name: string,
@@ -59,7 +60,7 @@ export async function verifyTreeCheck(
       dependenciesToCheckVersion.push({
         name,
         originalKey: name,
-        parentCwd: registry.cwd,
+        parentCwd: cwd,
         version,
       });
     }
@@ -75,7 +76,7 @@ export async function verifyTreeCheck(
       dependenciesToCheckVersion.push({
         name,
         originalKey: name,
-        parentCwd: registry.cwd,
+        parentCwd: cwd,
         version,
       });
     }
@@ -109,19 +110,15 @@ export async function verifyTreeCheck(
       for (const subdep in dependencies) {
         const subDepPath = path.join(manifestLoc, registry.folder, subdep);
         let found = false;
-        const relative = path.relative(registry.cwd, subDepPath);
+        const relative = path.relative(cwd, subDepPath);
         const locations = path.normalize(relative).split(registry.folder + path.sep).filter(dir => !!dir);
         locations.pop();
         while (locations.length >= 0) {
           let possiblePath;
           if (locations.length > 0) {
-            possiblePath = path.join(
-              registry.cwd,
-              registry.folder,
-              locations.join(path.sep + registry.folder + path.sep),
-            );
+            possiblePath = path.join(cwd, registry.folder, locations.join(path.sep + registry.folder + path.sep));
           } else {
-            possiblePath = registry.cwd;
+            possiblePath = cwd;
           }
           if (await fs.exists(path.join(possiblePath, registry.folder, subdep))) {
             dependenciesToCheckVersion.push({

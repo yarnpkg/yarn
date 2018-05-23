@@ -403,13 +403,9 @@ export default class Config {
    * Generate an absolute module path.
    */
 
-  generateHardModulePath(pkg: ?PackageReference, ignoreLocation?: ?boolean): string {
+  generateModuleCachePath(pkg: ?PackageReference): string {
     invariant(this.cacheFolder, 'No package root');
     invariant(pkg, 'Undefined package');
-
-    if (pkg.location && !ignoreLocation) {
-      return pkg.location;
-    }
 
     let name = pkg.name;
     let uid = pkg.uid;
