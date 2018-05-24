@@ -8,7 +8,7 @@ const Module = require('module');
 const path = require('path');
 const StringDecoder = require('string_decoder');
 
-const builtinModules = Module.builtinModules || Object.keys(process.binding('natives'));
+const builtinModules = new Set(Module.builtinModules || Object.keys(process.binding('natives')));
 
 const originalLoader = Module._load;
 const originalFindPath = Module._findPath;
@@ -104,19 +104,19 @@ function getPackageInformationSafe(packageLocator) {
  * Implements the node resolution for folder access and extension selection
  */
 
-function applyNodeExtensionResolution(filesystemPath) {
+function applyNodeExtensionResolution(unqualifiedPath, {extensions}) {
   // We use this "infinite while" so that we can restart the process as long as we hit package folders
   while (true) {
     let stat;
 
     try {
-      stat = fs.statSync(filesystemPath);
+      stat = fs.statSync(unqualifiedPath);
     } catch (error) {}
 
     // If the file exists and is a file, we can stop right there
 
     if (stat && !stat.isDirectory()) {
-      return filesystemPath;
+      return unqualifiedPath;
     }
 
     // If the file is a directory, we must check if it contains a package.json with a "main" entry
@@ -125,52 +125,50 @@ function applyNodeExtensionResolution(filesystemPath) {
       let pkgJson;
 
       try {
-        pkgJson = JSON.parse(fs.readFileSync(`${filesystemPath}/package.json`, 'utf-8'));
+        pkgJson = JSON.parse(fs.readFileSync(`${unqualifiedPath}/package.json`, 'utf-8'));
       } catch (error) {}
 
-      let nextFilesystemPath;
+      let nextUnqualifiedPath;
 
       if (pkgJson && pkgJson.main) {
-        nextFilesystemPath = path.resolve(filesystemPath, pkgJson.main);
+        nextUnqualifiedPath = path.resolve(unqualifiedPath, pkgJson.main);
       }
 
       // If the "main" field changed the path, we start again from this new location
 
-      if (nextFilesystemPath && nextFilesystemPath !== filesystemPath) {
-        filesystemPath = nextFilesystemPath;
+      if (nextUnqualifiedPath && nextUnqualifiedPath !== unqualifiedPath) {
+        unqualifiedPath = nextUnqualifiedPath;
         continue;
       }
     }
 
     // Otherwise we check if we find a file that match one of the supported extensions
 
-    const extensions = Object.keys(Module._extensions);
-
-    const qualifiedFile = extensions
+    const qualifiedPath = extensions
       .map(extension => {
-        return `${filesystemPath}${extension}`;
+        return `${unqualifiedPath}${extension}`;
       })
       .find(candidateFile => {
         return fs.existsSync(candidateFile);
       });
 
-    if (qualifiedFile) {
-      return qualifiedFile;
+    if (qualifiedPath) {
+      return qualifiedPath;
     }
 
     // Otherwise, we check if the path is a folder - in such a case, we try to use its index
 
     if (stat && stat.isDirectory()) {
-      const indexFile = extensions
+      const indexPath = extensions
         .map(extension => {
-          return `${filesystemPath}/index${extension}`;
+          return `${unqualifiedPath}/index${extension}`;
         })
         .find(candidateFile => {
           return fs.existsSync(candidateFile);
         });
 
-      if (indexFile) {
-        return indexFile;
+      if (indexPath) {
+        return indexPath;
       }
     }
 
@@ -216,28 +214,25 @@ exports.getPackageInformation = function getPackageInformation({name, reference}
 };
 
 /**
- * Transforms a request (what's typically passed as argument to the require function) into a location on the
- * filesystem, amongst other data.
- *
- * It also returns the following information:
- *
- *  - The owning package locator
- *  - The owning package path in the dependency tree
- *  - The file cache key
+ * Transforms a request (what's typically passed as argument to the require function) into an unqualified path.
+ * This path is called "unqualified" because it only changes the package name to the package location on the disk,
+ * which means that the end result still cannot be directly accessed (for example, it doesn't try to resolve the
+ * file extension, or to resolve directories to their "index.js" content). Use the "resolveUnqualified" function
+ * to convert them to fully-qualified paths, or just use "resolveRequest" that do both operations in one go.
  *
  * Note that it is extremely important that the `issuer` path ends with a forward slash if the issuer is to be
  * treated as a folder (ie. "/tmp/foo/" rather than "/tmp/foo" if "foo" is a directory). Otherwise relative
  * imports won't be computed correctly (they'll get resolved relative to "/tmp/" instead of "/tmp/foo/").
  */
 
-exports.resolveRequest = function resolveRequest(request, issuer) {
+exports.resolveToUnqualified = function resolveToUnqualified(request, issuer) {
   // Bailout if the request is a native module
 
-  if (builtinModules.indexOf(request) !== -1) {
+  if (builtinModules.has(request)) {
     return request;
   }
 
-  let filesystemPath;
+  let unqualifiedPath;
 
   // If the request is a relative or absolute path, we just return it normalized
   //
@@ -257,13 +252,13 @@ exports.resolveRequest = function resolveRequest(request, issuer) {
 
   if (!dependencyNameMatch) {
     if (issuer.match(isDirRegExp)) {
-      filesystemPath = path.normalize(path.resolve(issuer, request));
+      unqualifiedPath = path.normalize(path.resolve(issuer, request));
     } else if (fs.lstatSync(issuer).isSymbolicLink()) {
-      filesystemPath = path.normalize(
+      unqualifiedPath = path.normalize(
         path.resolve(path.dirname(issuer), path.dirname(fs.readlinkSync(issuer)), request),
       );
     } else {
-      filesystemPath = path.normalize(path.resolve(path.dirname(issuer), request));
+      unqualifiedPath = path.normalize(path.resolve(path.dirname(issuer), request));
     }
   }
 
@@ -351,36 +346,71 @@ exports.resolveRequest = function resolveRequest(request, issuer) {
     // Now that we know which package we should resolve to, we only have to find out the file location
 
     if (subPath) {
-      filesystemPath = path.resolve(dependencyLocation, subPath); // slice(1) to strip the leading '/'
+      unqualifiedPath = path.resolve(dependencyLocation, subPath);
     } else {
-      filesystemPath = dependencyLocation;
+      unqualifiedPath = dependencyLocation;
     }
   }
 
-  // Try to resolve the filesystem according to the Node rules (directory -> index, optional .js extensions, etc)
+  return path.normalize(unqualifiedPath);
+};
 
-  const qualifiedFilesystemPath = applyNodeExtensionResolution(filesystemPath);
+/**
+ * Transforms an unqualified path into a qualified path by using the Node resolution algorithm (which automatically
+ * appends ".js" / ".json", and transforms directory accesses into "index.js").
+ */
 
-  if (qualifiedFilesystemPath) {
-    return path.normalize(qualifiedFilesystemPath);
+exports.resolveUnqualified = function resolveUnqualified(unqualifiedPath, {extensions = Object.keys(Module._extensions)} = {}) {
+  if (builtinModules.has(unqualifiedPath)) {
+    return unqualifiedPath;
+  }
+
+  let qualifiedPath = applyNodeExtensionResolution(unqualifiedPath, {extensions});
+
+  if (qualifiedPath) {
+    return path.normalize(qualifiedPath);
   } else {
     throw makeError(
       `QUALIFIED_PATH_RESOLUTION_FAILED`,
-      `Couldn't find a suitable Node resolution for path "${filesystemPath}"`,
-      {request, issuer, filesystemPath},
+      `Couldn't find a suitable Node resolution for unqualified path "${unqualifiedPath}"`,
+      {unqualifiedPath},
     );
   }
 };
 
 /**
- * Setups the hook into the Node environment
+ * Transforms a request into a qualified fully path.
+ *
+ * Note that it is extremely important that the `issuer` path ends with a forward slash if the issuer is to be
+ * treated as a folder (ie. "/tmp/foo/" rather than "/tmp/foo" if "foo" is a directory). Otherwise relative
+ * imports won't be computed correctly (they'll get resolved relative to "/tmp/" instead of "/tmp/foo/").
+ */
+
+exports.resolveRequest = function resolveRequest(request, issuer) {
+  let unqualifiedPath = exports.resolveToUnqualified(request, issuer);
+
+  try {
+    return exports.resolveUnqualified(unqualifiedPath);
+  } catch (error) {
+    if (error.code === 'QUALIFIED_PATH_RESOLUTION_FAILED') {
+      Object.assign(error.data, {request, issuer});
+    }
+    throw error;
+  }
+};
+
+/**
+ * Setups the hook into the Node environment.
+ *
+ * From this point on, any call to `require()` will go through the "resolveRequest" function, and the result will
+ * be used as path of the file to load.
  */
 
 exports.setup = function setup() {
   Module._load = function(request, parent, isMain) {
     // Builtins are managed by the regular Node loader
 
-    if (builtinModules.indexOf(request) !== -1) {
+    if (builtinModules.has(request)) {
       return originalLoader.call(this, request, parent, isMain);
     }
 
@@ -394,11 +424,11 @@ exports.setup = function setup() {
 
     // Request `Module._resolveFilename` (ie. `resolveRequest`) to tell us which file we should load
 
-    const filesystemPath = Module._resolveFilename(request, parent, isMain);
+    const modulePath = Module._resolveFilename(request, parent, isMain);
 
     // Check if the module has already been created for the given file
 
-    const cacheEntry = moduleCache.get(filesystemPath);
+    const cacheEntry = moduleCache.get(modulePath);
 
     if (cacheEntry) {
       return cacheEntry.exports;
@@ -406,8 +436,8 @@ exports.setup = function setup() {
 
     // Create a new module and store it into the cache
 
-    const module = new Module(filesystemPath, parent);
-    moduleCache.set(filesystemPath, module);
+    const module = new Module(modulePath, parent);
+    moduleCache.set(modulePath, module);
 
     // The main module is exposed as global variable
 
@@ -421,11 +451,11 @@ exports.setup = function setup() {
     let hasThrown = true;
 
     try {
-      module.load(filesystemPath);
+      module.load(modulePath);
       hasThrown = false;
     } finally {
       if (hasThrown) {
-        moduleCache.delete(filesystemPath);
+        moduleCache.delete(modulePath);
       }
     }
 
