@@ -43,7 +43,7 @@ test('workspaces info should list the workspaces', (): Promise<void> => {
   });
 });
 
-test('workspaces info should list the workspaces inside workspace folder', (): Promise<void> => {
+test('workspaces info should list the workspaces when launched from inside workspace folder', (): Promise<void> => {
   return runWorkspaces({}, ['info'], ['run-variations', 'trailing-slash'], (config, reporter) => {
     expect(reporter.getBufferJson()).toEqual({
       'trailing-slash': {
