@@ -635,10 +635,7 @@ export default class Config {
         const relativePath = path.relative(current, initial);
         // Make packages trailing-slash-agnostic
         const sanitizedPackages = ws.packages.map(packageGlob => {
-          if (packageGlob.endsWith('/')) {
-            packageGlob = packageGlob.slice(0, -1);
-          }
-          return packageGlob + '{,/}';
+          return packageGlob.replace(/\/?$/, '');
         });
 
         if (relativePath === '' || micromatch.any(relativePath, sanitizedPackages)) {
