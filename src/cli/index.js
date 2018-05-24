@@ -86,7 +86,12 @@ export function main({
   commander.option('--preferred-cache-folder <path>', 'specify a custom folder to store the yarn cache if possible');
   commander.option('--cache-folder <path>', 'specify a custom folder that must be used to store the yarn cache');
   commander.option('--mutex <type>[:specifier]', 'use a mutex to ensure only one yarn instance is executing');
-  commander.option('--emoji [bool]', 'enable emoji in output', boolify, process.platform === 'darwin');
+  commander.option(
+    '--emoji [bool]',
+    'enable emoji in output',
+    boolify,
+    process.platform === 'darwin' || process.env.TERM_PROGRAM === 'Hyper' || process.env.TERM_PROGRAM === 'HyperTerm',
+  );
   commander.option('-s, --silent', 'skip Yarn console logs, other types of logs (script output) will be printed');
   commander.option('--cwd <cwd>', 'working directory to use', process.cwd());
   commander.option('--proxy <host>', '');
