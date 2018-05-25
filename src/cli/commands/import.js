@@ -32,6 +32,7 @@ const NPM_REGISTRY = /http[s]:\/\/registry.npmjs.org/g;
 const invariant = require('invariant');
 const path = require('path');
 const uuid = require('uuid');
+const ssri = require('ssri');
 const nodeVersion = process.versions.node.split('-')[0];
 
 export const noArguments = true;
@@ -126,6 +127,7 @@ class ImportResolver extends BaseResolver {
       type: 'tarball',
       registry: this.registry,
       reference: url,
+      integrity: info._integrity ? ssri.parse(info._integrity) : ssri.fromHex(hash, 'sha1'),
       hash,
     };
     return info;
