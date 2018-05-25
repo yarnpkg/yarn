@@ -2,6 +2,8 @@
 
 import {resolve, join as pathJoin} from 'path';
 
+import type {RegistryNames} from '../../src/registries/index.js';
+import {registries} from '../../src/registries/index.js';
 import NpmRegistry from '../../src/registries/npm-registry.js';
 import {BufferReporter} from '../../src/reporters/index.js';
 import homeDir, {home} from '../../src/util/user-home-dir.js';
@@ -74,19 +76,20 @@ function createMocks(): Object {
 describe('request', () => {
   // a helper function for creating an instance of npm registry,
   // making requests and inspecting request parameters
-  function createRegistry(config: Object): Object {
+  function createRegistry(config: Object, registry: RegistryNames = 'npm'): Object {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const npmRegistry = new registries[registry](testCwd, mockRegistries, mockRequestManager, mockReporter);
     npmRegistry.config = config;
-    return {
-      request(url: string, options: Object, packageName: string): Object {
-        npmRegistry.request(url, options, packageName);
-        const lastIndex = mockRequestManager.request.mock.calls.length - 1;
-        const requestParams = mockRequestManager.request.mock.calls[lastIndex][0];
-        return requestParams;
-      },
+    const request = npmRegistry.request.bind(npmRegistry);
+    npmRegistry.request = (url: string, options: Object, packageName: string): Object => {
+      request(url, options, packageName);
+      const lastIndex = mockRequestManager.request.mock.calls.length - 1;
+      const requestParams = mockRequestManager.request.mock.calls[lastIndex][0];
+      return requestParams;
     };
+
+    return npmRegistry;
   }
 
   test('should call requestManager.request with url', () => {
@@ -568,6 +571,101 @@ describe('request', () => {
           expect(requestParams.url.substr(0, req.expect.root.length)).toBe(req.expect.root);
           expect(requestParams.headers.authorization).toBe(req.expect.auth ? `Bearer ${req.expect.auth}` : undefined);
         });
+      });
+    });
+  });
+
+  describe('Private scoped registries with authentication details in YarnRegistry', () => {
+    const testCase = {
+      config: {
+        '//registry.myorg.com/:_authToken': 'scopedPrivateAuthToken',
+        '@private:registry': 'https://registry.myorg.com/',
+        '//registry.npmjs.org/:_authToken': 'scopedNPMAuthToken',
+        '@scoped:registry': 'https://registry.npmjs.org/',
+      },
+      requests: [
+        {
+          url: 'yarn',
+          pkg: 'yarn',
+          expect: {root: 'https://registry.npmjs.org', auth: false},
+        },
+        {
+          url: '@yarn%2fcore',
+          pkg: '@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: 'scopedNPMAuthToken'},
+        },
+        {
+          url: '-/package/yarn/dist-tags',
+          pkg: 'yarn',
+          expect: {root: 'https://registry.npmjs.org', auth: false},
+        },
+        {
+          url: '-/package/@yarn%2fcore/dist-tags',
+          pkg: '@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: 'scopedNPMAuthToken'},
+        },
+        {
+          url: '-/user/token/abcdef',
+          pkg: null,
+          expect: {root: 'https://registry.npmjs.org', auth: false},
+        },
+        {
+          url: 'https://registry.npmjs.org/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: '@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: 'scopedNPMAuthToken'},
+        },
+        {
+          url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: '@yarn/core',
+          expect: {root: 'https://registry.yarnpkg.com', auth: 'scopedNPMAuthToken'},
+        },
+        {
+          url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: null,
+          expect: {root: 'https://registry.yarnpkg.com', auth: false},
+        },
+        {
+          url: 'https://some.cdn.com/@yarn/core.tgz',
+          pkg: '@yarn/core',
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: 'https://some.cdn.com/@yarn/core.tgz',
+          pkg: null,
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: '@private/pkg',
+          pkg: '@private/pkg',
+          expect: {root: 'https://registry.myorg.com', auth: 'scopedPrivateAuthToken'},
+        },
+        {
+          url: 'https://some.cdn.com/some-hash/@private-pkg-1.0.0.tar.gz',
+          pkg: '@private/pkg',
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: 'https://some.cdn.com/@private/pkg',
+          pkg: null,
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: '@scoped/pkg',
+          pkg: '@scoped/pkg',
+          expect: {root: 'https://registry.npmjs.org', auth: 'scopedNPMAuthToken'},
+        },
+      ],
+    };
+    const registry = createRegistry({});
+    registry.registries.yarn = createRegistry(testCase.config, 'yarn');
+    testCase.requests.forEach(req => {
+      const desc =
+        `with request url ${req.url}${req.pkg ? ` in context of package ${req.pkg}` : ''} ` +
+        `auth is ${req.expect.auth ? req.expect.auth : 'not sent'}`;
+      (req.skip ? it.skip : req.only ? it.only : it)(desc, () => {
+        const requestParams = registry.request(req.url, {}, req.pkg);
+        expect(requestParams.url.substr(0, req.expect.root.length)).toBe(req.expect.root);
+        expect(requestParams.headers.authorization).toBe(req.expect.auth ? `Bearer ${req.expect.auth}` : undefined);
       });
     });
   });

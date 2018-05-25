@@ -26,6 +26,14 @@ export type CheckOutdatedReturn = Promise<{
   url: string,
 }>;
 
+const aliases = {
+  'version-git-sign': 'sign-git-tag',
+  'version-tag-prefix': 'tag-version-prefix',
+  'version-git-tag': 'git-tag-version',
+  'version-commit-hooks': 'commit-hooks',
+  'version-git-message': 'message',
+};
+
 export default class BaseRegistry {
   constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager, reporter: Reporter) {
     this.reporter = reporter;
@@ -69,7 +77,31 @@ export default class BaseRegistry {
   }
 
   getOption(key: string): mixed {
-    return this.config[key];
+    let val = this.config[key];
+
+    if (typeof val === 'undefined') {
+      for (const registryName of Object.keys(this.registries)) {
+        const registry = this.registries[registryName];
+
+        if (registry.constructor.name === this.constructor.name) {
+          continue;
+        }
+
+        if (registry.config && registry.config[key]) {
+          val = registry.config[key];
+
+          if (typeof val !== 'undefined') {
+            break;
+          }
+        }
+      }
+    }
+
+    if (typeof val === 'undefined' && aliases[key]) {
+      val = this.getOption(aliases[key]);
+    }
+
+    return val;
   }
 
   getAvailableRegistries(): Array<string> {
