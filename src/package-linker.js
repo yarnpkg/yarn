@@ -158,9 +158,14 @@ export default class PackageLinker {
     const realLocations = await Promise.all(ref.locations.map(loc => fs.realpath(loc)));
     realLocations.forEach(loc => allLocations.indexOf(loc) !== -1 || allLocations.push(loc));
 
-    const distancePairs = allLocations.map(loc => {
+    const locationBinLocPairs = allLocations.map(loc => [loc, binLoc]);
+    if (binLoc !== realBinLoc) {
+      locationBinLocPairs.push(...allLocations.map(loc => [loc, realBinLoc]));
+    }
+
+    const distancePairs = locationBinLocPairs.map(([loc, curBinLoc]) => {
       let distance = 0;
-      let curLoc = realBinLoc;
+      let curLoc = curBinLoc;
       let notFound = false;
 
       while (path.join(curLoc, ref.name) !== loc && path.join(curLoc, moduleFolder, ref.name) !== loc) {
@@ -179,6 +184,8 @@ export default class PackageLinker {
     //remove items where path was not found
     const filteredDistancePairs: any = distancePairs.filter(d => d);
     (filteredDistancePairs: Array<[string, number]>);
+
+    invariant(filteredDistancePairs.length > 0, `could not find a copy of ${pkg.name} to link in ${binLoc}`);
 
     //get smallest distance from package location
     const minItem = filteredDistancePairs.reduce((min, cur) => {
