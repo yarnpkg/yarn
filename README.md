@@ -31,7 +31,7 @@
 * **Network Resilience.** A single request that fails will not cause the entire installation to fail. Requests are automatically retried upon failure.
 * **Flat Mode.** Yarn resolves mismatched versions of dependencies to a single version to avoid creating duplicates.
 * **More emojis.** 🐈
-* **We Don't Need Changelog** Description here coming tomorrow!
+* **We Don't Need Changelog.** Description here coming tomorrow!
 
 ## Installing Yarn
 
