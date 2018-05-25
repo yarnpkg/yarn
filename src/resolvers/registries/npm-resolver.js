@@ -110,7 +110,7 @@ export default class NpmResolver extends RegistryResolver {
     invariant(this.config.cacheFolder, 'expected packages root');
     const cacheFolder = path.join(this.config.cacheFolder, scope ? `${NPM_REGISTRY_ID}-${scope}` : '');
 
-    const files = await this.config.getCache('cachedPackages', async (): Promise<Array<string>> => {
+    const files = await this.config.getCache(`offline-packages-${cacheFolder}`, async (): Promise<Array<string>> => {
       const files = await fs.readdir(cacheFolder);
       const validFiles = [];
 
