@@ -1,10 +1,10 @@
 /* @flow */
 
-import type { Reporter } from '../../reporters/index.js';
-import type { Manifest } from '../../types.js';
+import type {Reporter} from '../../reporters/index.js';
+import type {Manifest} from '../../types.js';
 import type PackageRequest from '../../package-request.js';
-import { MessageError } from '../../errors.js';
-import { registries } from '../../registries/index.js';
+import {MessageError} from '../../errors.js';
+import {registries} from '../../registries/index.js';
 import GitResolver from './git-resolver.js';
 import ExoticResolver from './exotic-resolver.js';
 import Git from '../../util/git.js';
@@ -16,52 +16,37 @@ export type ExplodedFragment = {
   hash: string,
 };
 
+function parseHash(fragment: string): string {
+  const hashPosition = fragment.indexOf('#');
+  return hashPosition === -1 ? '' : fragment.substr(hashPosition + 1);
+}
+
 export function explodeHostedGitFragment(fragment: string, reporter: Reporter): ExplodedFragment {
+  const hash = parseHash(fragment);
+
   const preParts = fragment.split('@');
   if (preParts.length > 2) {
     fragment = preParts[1] + '@' + preParts[2];
   }
 
-  const parts = fragment.split(/(?<!#semver):/);
+  const parts = fragment
+    .replace(/(.*?)#.*/, '$1') // Strip hash
+    .replace(/.*:(.*)/, '$1') // Strip prefixed protocols
+    .replace(/.git$/, '') // Strip the .git suffix
+    .split('/');
 
-  if (parts.length == 3) {
-    // protocol + host + folder
-    parts[1] = parts[1].indexOf('//') >= 0 ? parts[1].substr(2) : parts[1];
-    fragment = parts[1] + '/' + parts[2];
-  } else if (parts.length == 2) {
-    if (parts[0].indexOf('@') == -1) {
-      // protocol + host
-      fragment = parts[1];
-    } else {
-      // host + folder
-      fragment = parts[0] + '/' + parts[1];
-    }
-  } else if (parts.length == 1) {
-    fragment = parts[0];
-  } else {
+  const user = parts[parts.length - 2];
+  const repo = parts[parts.length - 1];
+
+  if (user === undefined || repo === undefined) {
     throw new MessageError(reporter.lang('invalidHostedGitFragment', fragment));
   }
 
-  const userParts = fragment.split('/');
-
-  if (userParts.length >= 2) {
-    if (userParts[0].indexOf('@') >= 0) {
-      userParts.shift();
-    }
-
-    const user = userParts.shift();
-    const repoParts = userParts.join('/').split(/(?:[.]git)?#(.*)/);
-
-    if (repoParts.length <= 3) {
-      return {
-        user,
-        repo: repoParts[0].replace(/\.git$/, ''),
-        hash: repoParts[1] || '',
-      };
-    }
-  }
-
-  throw new MessageError(reporter.lang('invalidHostedGitFragment', fragment));
+  return {
+    user,
+    repo,
+    hash,
+  };
 }
 
 export default class HostedGitResolver extends ExoticResolver {
@@ -69,7 +54,7 @@ export default class HostedGitResolver extends ExoticResolver {
     super(request, fragment);
 
     const exploded = (this.exploded = explodeHostedGitFragment(fragment, this.reporter));
-    const { user, repo, hash } = exploded;
+    const {user, repo, hash} = exploded;
     this.user = user;
     this.repo = repo;
     this.hash = hash;
@@ -141,12 +126,12 @@ export default class HostedGitResolver extends ExoticResolver {
 
   async resolveOverHTTP(url: string): Promise<Manifest> {
     const commit = await this.getRefOverHTTP(url);
-    const { config } = this;
+    const {config} = this;
 
     const tarballUrl = this.constructor.getTarballUrl(this.exploded, commit);
 
     const tryRegistry = async (registry): Promise<?Manifest> => {
-      const { filename } = registries[registry];
+      const {filename} = registries[registry];
 
       const href = this.constructor.getHTTPFileUrl(this.exploded, filename, commit);
       const file = await config.requestManager.request({
