@@ -166,6 +166,15 @@ test('Only top level (after hoisting) bin links should be linked', (): Promise<v
   });
 });
 
+// fixes https://github.com/yarnpkg/yarn/issues/5876
+test('can use link protocol to install a package that would not be found via node module resolution', (): Promise<
+  void,
+> => {
+  return runInstall({binLinks: true}, {source: 'install-link-siblings', cwd: '/bar'}, async config => {
+    expect(await linkAt(config, 'node_modules', '.bin', 'standard')).toEqual('../standard/bin/cmd.js');
+  });
+});
+
 describe('with nohoist', () => {
   // address https://github.com/yarnpkg/yarn/issues/5487
   test('nohoist bin should be linked to its own local module', (): Promise<void> => {

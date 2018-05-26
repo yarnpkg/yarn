@@ -1,7 +1,7 @@
 {
   "name": "yarn",
   "installationMethod": "unknown",
-  "version": "1.6.0",
+  "version": "1.8.0-0",
   "license": "BSD-2-Clause",
   "preferGlobal": true,
   "description": "📦🐈 Fast, reliable, and secure dependency management.",
