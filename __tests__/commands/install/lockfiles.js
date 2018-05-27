@@ -44,13 +44,14 @@ test.concurrent("writes new lockfile if existing one isn't satisfied", async ():
   });
 });
 
-test.concurrent("doesn't write a lockfile when there are no dependencies", (): Promise<void> => {
+test.concurrent('writes a lockfile when there are no dependencies', (): Promise<void> => {
   return runInstall({}, 'install-without-dependencies', async config => {
     const lockfileExists = await fs.exists(path.join(config.cwd, 'yarn.lock'));
     const installedDepFiles = await fs.walk(path.join(config.cwd, 'node_modules'));
 
-    expect(lockfileExists).toEqual(false);
-    expect(installedDepFiles).toHaveLength(0);
+    expect(lockfileExists).toEqual(true);
+    // 1 for integrity file (located in node_modules)
+    expect(installedDepFiles).toHaveLength(1);
   });
 });
 
