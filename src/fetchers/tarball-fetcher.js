@@ -83,10 +83,6 @@ export default class TarballFetcher extends BaseFetcher {
 
     extractorStream
       .pipe(untarStream)
-      .on('error', error => {
-        error.message = `${error.message}${tarballPath ? ` (${tarballPath})` : ''}`;
-        reject(error);
-      })
       .on('finish', async () => {
         const expectHash = this.hash;
         const actualHash = validateStream.getHash();
