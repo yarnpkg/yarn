@@ -563,9 +563,9 @@ if (process.mainModule === module) {
 
       try {
         const data = JSON.parse(line);
-        process.stdout.write(`${exports.resolveRequest(data[0], data[1])}\n`);
+        process.stdout.write(`${JSON.stringify([null, exports.resolveRequest(data[0], data[1])])}\n`);
       } catch (error) {
-        process.stdout.write(`${error.message}\n`);
+        process.stdout.write(`${JSON.stringify([error.message, null])}\n`);
       }
     } while (true);
   });
