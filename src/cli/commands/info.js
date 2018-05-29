@@ -64,11 +64,11 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   let result;
   try {
     result = await config.registries.npm.request(name, {unfiltered: true});
-    invariant(result, 'result must not be empty');
   } catch (e) {
     reporter.error(reporter.lang('infoFail'));
     return;
   }
+  invariant(result, 'result must not be empty');
 
   result = clean(result);
 
