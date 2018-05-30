@@ -76,6 +76,11 @@ job('yarn-homebrew') {
   scm {
     github 'yarnpkg/yarn', 'master'
   }
+  wrappers {
+    credentialsBinding {
+      string 'HOMEBREW_GITHUB_API_TOKEN', 'YARN_GITHUB_TOKEN'
+    }
+  }
   parameters {
     // Passed from yarn-version job
     stringParam 'YARN_VERSION'
