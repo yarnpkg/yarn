@@ -1,7 +1,8 @@
+const cp = require('child_process');
 const fs = require('fs-extra');
 
 const {
-  fs: {createTemporaryFolder, readJson, writeFile, writeJson},
+  fs: {createTemporaryFolder, readFile, readJson, writeFile, writeJson},
   tests: {getPackageDirectoryPath},
 } = require('pkg-tests-core');
 
@@ -495,6 +496,79 @@ module.exports = makeTemporaryEnv => {
           await run(`install`, `--disable-pnp`);
 
           await expect(readJson(`${path}/package.json`)).resolves.toHaveProperty('installConfig.foo', true);
+        },
+      ),
+    );
+
+    test(
+      `it should generate a file that can be used as an executable to resolve a request (valid request)`,
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`no-deps`]: `1.0.0`,
+          },
+        },
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          expect(fs.statSync(`${path}/.pnp.js`).mode & 0o111).toEqual(0o111);
+
+          const result = JSON.parse(cp.execFileSync(`${path}/.pnp.js`, [`no-deps`, `${path}/`], {encoding: `utf-8`}));
+
+          expect(result[0]).toEqual(null);
+          expect(typeof result[1]).toEqual(`string`);
+
+          expect(require(result[1])).toMatchObject({
+            name: `no-deps`,
+            version: `1.0.0`,
+          });
+        },
+      ),
+    );
+
+    test(
+      `it should generate a file that can be used as an executable to resolve a request (invalid request)`,
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`no-deps`]: `1.0.0`,
+          },
+        },
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          expect(fs.statSync(`${path}/.pnp.js`).mode & 0o111).toEqual(0o111);
+
+          const result = JSON.parse(
+            cp.execFileSync(`${path}/.pnp.js`, [`doesnt-exists`, `${path}/`], {encoding: `utf-8`}),
+          );
+
+          expect(typeof result[0].code).toEqual(`string`);
+          expect(typeof result[0].message).toEqual(`string`);
+
+          expect(result[1]).toEqual(null);
+        },
+      ),
+    );
+
+    test(
+      `it should generate a file with a custom shebang if configured as such`,
+      makeTemporaryEnv(
+        {},
+        {
+          plugNPlay: true,
+          plugnplayShebang: `foo`,
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          expect(await readFile(`${path}/.pnp.js`, `utf-8`)).toMatch(/^#!foo\n/);
         },
       ),
     );

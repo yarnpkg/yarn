@@ -161,6 +161,7 @@ export default class Config {
 
   plugnplayByEnv: boolean;
   plugnplayEnabled: boolean;
+  plugnplayShebang: ?string;
 
   workspacesEnabled: boolean;
   workspacesNohoistEnabled: boolean;
@@ -342,6 +343,8 @@ export default class Config {
     } else {
       this.plugnplayEnabled = !!opts.enablePnp;
     }
+
+    this.plugnplayShebang = this.getOption('plugnplay-shebang') || '/usr/bin/env node';
 
     this.workspacesEnabled = this.getOption('workspaces-experimental') !== false;
     this.workspacesNohoistEnabled = this.getOption('workspaces-nohoist-experimental') !== false;
