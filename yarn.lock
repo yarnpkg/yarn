@@ -6134,19 +6134,7 @@ tar-pack@^3.4.0:
     tar "^2.2.1"
     uid-number "^0.0.6"
 
-tar-stream@^1.1.2:
-  version "1.6.0"
-  resolved "https://registry.yarnpkg.com/tar-stream/-/tar-stream-1.6.0.tgz#a50efaa7b17760b82c27b3cae4a301a8254a5715"
-  dependencies:
-    bl "^1.0.0"
-    buffer-alloc "^1.1.0"
-    end-of-stream "^1.0.0"
-    fs-constants "^1.0.0"
-    readable-stream "^2.0.0"
-    to-buffer "^1.1.0"
-    xtend "^4.0.0"
-
-tar-stream@^1.6.1:
+tar-stream@^1.1.2, tar-stream@^1.6.1:
   version "1.6.1"
   resolved "https://registry.yarnpkg.com/tar-stream/-/tar-stream-1.6.1.tgz#f84ef1696269d6223ca48f6e1eeede3f7e81f395"
   dependencies:
