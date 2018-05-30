@@ -154,14 +154,19 @@ test.concurrent('symlink update', async (): Promise<void> => {
   const tmpGlobalFolder = await createTempGlobalFolder();
   const tmpPrefixFolder = await createTempPrefixFolder();
   const flags = {globalFolder: tmpGlobalFolder, prefix: tmpPrefixFolder};
-  return runGlobal(['add', 'dodgem@v0.2.10'], flags, 'add-with-prefix-flag', async config => {
-    expect(await fs.exists(path.join(tmpGlobalFolder, 'node_modules', 'dodgem'))).toEqual(true);
-    expect(await fs.exists(path.join(tmpPrefixFolder, 'bin', 'dodgem'))).toEqual(true);
-    const oldPath = await fs.realpath(path.join(tmpPrefixFolder, 'bin', 'dodgem'));
-    await runGlobal(['upgrade', 'dodgem@v0.2.13'], flags, 'add-with-prefix-flag', async config => {
-      expect(await fs.exists(path.join(tmpPrefixFolder, 'bin', 'dodgem'))).toEqual(true);
-      const newPath = await fs.realpath(path.join(tmpPrefixFolder, 'bin', 'dodgem'));
-      expect(oldPath).not.toEqual(newPath);
-    });
+  return runGlobal(['add', 'dummy-for-testing-changed-path@v0.0.3'], flags, 'add-with-prefix-flag', async config => {
+    expect(await fs.exists(path.join(tmpGlobalFolder, 'node_modules', 'dummy-for-testing-changed-path'))).toEqual(true);
+    expect(await fs.exists(path.join(tmpPrefixFolder, 'bin', 'dummy-for-testing-changed-path'))).toEqual(true);
+    const oldPath = await fs.realpath(path.join(tmpPrefixFolder, 'bin', 'dummy-for-testing-changed-path'));
+    await runGlobal(
+      ['upgrade', 'dummy-for-testing-changed-path@v0.0.4'],
+      flags,
+      'add-with-prefix-flag',
+      async config => {
+        expect(await fs.exists(path.join(tmpPrefixFolder, 'bin', 'dummy-for-testing-changed-path'))).toEqual(true);
+        const newPath = await fs.realpath(path.join(tmpPrefixFolder, 'bin', 'dummy-for-testing-changed-path'));
+        expect(oldPath).not.toEqual(newPath);
+      },
+    );
   });
 });
