@@ -400,6 +400,14 @@ const messages = {
   verboseUpgradeUnlocking: 'Unlocking $0 in the lockfile.',
   folderMissing: "Directory $0 doesn't exist",
   mutexPortBusy: 'Cannot use the network mutex on port $0. It is probably used by another app.',
+
+  auditSummary: '$0 vulnerabilities found - Packages audited: $1',
+  auditSummarySeverity: 'Severity:',
+  auditCritical: '$0 Critical',
+  auditHigh: '$0 High',
+  auditModerate: '$0 Moderate',
+  auditLow: '$0 Low',
+  auditInfo: '$0 Info',
 };
 
 export type LanguageKeys = $Keys<typeof messages>;

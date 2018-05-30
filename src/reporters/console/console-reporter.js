@@ -466,4 +466,36 @@ export default class ConsoleReporter extends BaseReporter {
 
     return answers[name];
   }
+
+  auditSummary(auditData: Object) {
+    const {totalDependencies, vulnerabilities} = auditData.metadata;
+    const totalVulnerabilities =
+      vulnerabilities.info +
+      vulnerabilities.low +
+      vulnerabilities.moderate +
+      vulnerabilities.high +
+      vulnerabilities.critical;
+    const summary = this.lang('auditSummary', totalVulnerabilities, totalDependencies);
+    this._log(summary);
+
+    if (totalVulnerabilities) {
+      const severities = [];
+      if (vulnerabilities.info) {
+        severities.push(this.lang('auditInfo', vulnerabilities.info));
+      }
+      if (vulnerabilities.low) {
+        severities.push(this.lang('auditLow', vulnerabilities.low));
+      }
+      if (vulnerabilities.moderate) {
+        severities.push(this.lang('auditModerate', vulnerabilities.moderate));
+      }
+      if (vulnerabilities.high) {
+        severities.push(this.lang('auditHigh', vulnerabilities.high));
+      }
+      if (vulnerabilities.critical) {
+        severities.push(this.lang('auditCritical', vulnerabilities.critical));
+      }
+      this._log(`${this.lang('auditSummarySeverity')} ${severities.join(' | ')}`);
+    }
+  }
 }

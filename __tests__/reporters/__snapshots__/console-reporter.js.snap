@@ -7,6 +7,14 @@ Object {
 }
 `;
 
+exports[`ConsoleReporter.auditSummary 1`] = `
+Object {
+  "stderr": "",
+  "stdout": "[2K[1G1 vulnerabilities found - Packages audited: 5
+[2K[1GSeverity: 1 High",
+}
+`;
+
 exports[`ConsoleReporter.command 1`] = `
 Object {
   "stderr": "",

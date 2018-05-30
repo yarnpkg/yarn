@@ -223,8 +223,11 @@ export default class BaseReporter {
   // the screen shown at the very end of the CLI
   footer(showPeakMemory: boolean) {}
 
-  //
+  // a table structure
   table(head: Array<string>, body: Array<Array<string>>) {}
+
+  // summary for security audit report
+  auditSummary(auditData: Object) {}
 
   // render an activity spinner and return a function that will trigger an update
   activity(): ReporterSpinner {

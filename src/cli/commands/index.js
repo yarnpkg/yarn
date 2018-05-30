@@ -8,6 +8,7 @@ const getDocsInfo = name => 'Visit ' + chalk.bold(getDocsLink(name)) + ' for doc
 
 import * as access from './access.js';
 import * as add from './add.js';
+import * as audit from './audit.js';
 import * as autoclean from './autoclean.js';
 import * as bin from './bin.js';
 import * as cache from './cache.js';
@@ -50,6 +51,7 @@ import buildUseless from './_useless.js';
 const commands = {
   access,
   add,
+  audit,
   autoclean,
   bin,
   cache,
