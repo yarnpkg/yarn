@@ -5,7 +5,6 @@ import type Config from '../../config.js';
 import NpmRegistry from '../../registries/npm-registry.js';
 import parsePackageName from '../../util/parse-package-name.js';
 const semver = require('semver');
-const invariant = require('invariant');
 
 function clean(object: any): any {
   if (Array.isArray(object)) {
