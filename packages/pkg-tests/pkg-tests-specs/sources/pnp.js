@@ -530,6 +530,30 @@ module.exports = makeTemporaryEnv => {
     );
 
     test(
+      `it should generate a file that can be used as an executable to resolve a request (builtin request)`,
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`no-deps`]: `1.0.0`,
+          },
+        },
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          expect(fs.statSync(`${path}/.pnp.js`).mode & 0o111).toEqual(0o111);
+
+          const result = JSON.parse(cp.execFileSync(`${path}/.pnp.js`, [`fs`, `${path}/`], {encoding: `utf-8`}));
+
+          expect(result[0]).toEqual(null);
+          expect(result[1]).toEqual(null);
+        },
+      ),
+    );
+
+    test(
       `it should generate a file that can be used as an executable to resolve a request (invalid request)`,
       makeTemporaryEnv(
         {
