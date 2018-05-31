@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!$$SHEBANG
 
 /* eslint-disable max-len, flowtype/require-valid-file-annotation, flowtype/require-return-type */
 /* global packageInformationStores, $$SETUP_STATIC_TABLES */
@@ -546,27 +546,56 @@ if (module.parent && module.parent.id === 'internal/preload') {
 }
 
 if (process.mainModule === module) {
-  let buffer = '';
-  const decoder = new StringDecoder.StringDecoder();
+  let reportError = (code, message, data) => {
+    process.stdout.write(`${JSON.stringify([{code, message, data}, null])}\n`);
+  };
 
-  process.stdin.on('data', chunk => {
-    buffer += decoder.write(chunk);
+  let reportSuccess = resolution => {
+    process.stdout.write(`${JSON.stringify([null, resolution])}\n`)
+  };
 
-    do {
-      const index = buffer.indexOf('\n');
-      if (index === -1) {
-        break;
-      }
+  let processResolution = (request, issuer) => {
+    try {
+      reportSuccess(exports.resolveRequest(request, issuer));
+    } catch (error) {
+      reportError(error.code, error.message, error.data);
+    }
+  };
 
-      const line = buffer.slice(0, index);
-      buffer = buffer.slice(index + 1);
+  let processRequest = data => {
+    try {
+      let [request, issuer] = JSON.parse(data);
+      processResolution(request, issuer);
+    } catch (error) {
+      reportError(`INVALID_JSON`, error.message, error.data);
+    }
+  };
 
-      try {
-        const data = JSON.parse(line);
-        process.stdout.write(`${JSON.stringify([null, exports.resolveRequest(data[0], data[1])])}\n`);
-      } catch (error) {
-        process.stdout.write(`${JSON.stringify([error.message, null])}\n`);
-      }
-    } while (true);
-  });
+  if (process.argv.length > 2) {
+    if (process.argv.length !== 4) {
+      process.stderr.write(`Usage: ${process.argv[0]} ${process.argv[1]} <request> <issuer>\n`);
+      process.exitCode = 64; /* EX_USAGE */
+    } else {
+      processResolution(process.argv[2], process.argv[3]);
+    }
+  } else {
+    let buffer = '';
+    const decoder = new StringDecoder.StringDecoder();
+
+    process.stdin.on('data', chunk => {
+      buffer += decoder.write(chunk);
+
+      do {
+        const index = buffer.indexOf('\n');
+        if (index === -1) {
+          break;
+        }
+
+        const line = buffer.slice(0, index);
+        buffer = buffer.slice(index + 1);
+
+        processRequest(line);
+      } while (true);
+    });
+  }
 }
