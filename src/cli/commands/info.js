@@ -68,7 +68,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     reporter.error(reporter.lang('infoFail'));
     return;
   }
-  invariant(result, 'result must not be empty');
+  if (!result) {
+    reporter.error(reporter.lang('infoFail'));
+    return;
+  }
 
   result = clean(result);
 
