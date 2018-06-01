@@ -516,8 +516,13 @@ export class Install {
     this.checkUpdate();
 
     // warn if we have a shrinkwrap
-    if (await fs.exists(path.join(this.config.lockfileFolder, 'npm-shrinkwrap.json'))) {
+    if (await fs.exists(path.join(this.config.lockfileFolder, constants.NPM_SHRINKWRAP_FILENAME))) {
       this.reporter.warn(this.reporter.lang('shrinkwrapWarning'));
+    }
+
+    // warn if we have an npm lockfile
+    if (await fs.exists(path.join(this.config.lockfileFolder, constants.NPM_LOCK_FILENAME))) {
+      this.reporter.warn(this.reporter.lang('npmLockfileWarning'));
     }
 
     // running a focused install in a workspace root is not allowed
