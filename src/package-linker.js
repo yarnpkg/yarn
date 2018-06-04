@@ -199,11 +199,11 @@ export default class PackageLinker {
   getFlatHoistedTree(
     patterns: Array<string>,
     workspaceLayout?: WorkspaceLayout,
-    {ignoreOptional, focus}: {ignoreOptional: ?boolean, focus: ?boolean} = {},
+    {ignoreOptional}: {ignoreOptional: ?boolean} = {},
   ): HoistManifestTuples {
     const hoister = new PackageHoister(this.config, this.resolver, {ignoreOptional, workspaceLayout});
     hoister.seed(patterns);
-    if (focus) {
+    if (this.config.focus) {
       hoister.markShallowWorkspaceEntries();
     }
     return hoister.init();
@@ -212,9 +212,9 @@ export default class PackageLinker {
   async copyModules(
     patterns: Array<string>,
     workspaceLayout?: WorkspaceLayout,
-    {linkDuplicates, ignoreOptional, focus}: {linkDuplicates: ?boolean, ignoreOptional: ?boolean, focus: ?boolean} = {},
+    {linkDuplicates, ignoreOptional}: {linkDuplicates: ?boolean, ignoreOptional: ?boolean} = {},
   ): Promise<void> {
-    let flatTree = this.getFlatHoistedTree(patterns, workspaceLayout, {ignoreOptional, focus});
+    let flatTree = this.getFlatHoistedTree(patterns, workspaceLayout, {ignoreOptional});
     // sorted tree makes file creation and copying not to interfere with each other
     flatTree = flatTree.sort(function(dep1, dep2): number {
       return dep1[0].localeCompare(dep2[0]);
@@ -651,9 +651,9 @@ export default class PackageLinker {
   async init(
     patterns: Array<string>,
     workspaceLayout?: WorkspaceLayout,
-    {linkDuplicates, ignoreOptional, focus}: {linkDuplicates: ?boolean, ignoreOptional: ?boolean, focus: ?boolean} = {},
+    {linkDuplicates, ignoreOptional}: {linkDuplicates: ?boolean, ignoreOptional: ?boolean} = {},
   ): Promise<void> {
     this.resolvePeerModules();
-    await this.copyModules(patterns, workspaceLayout, {linkDuplicates, ignoreOptional, focus});
+    await this.copyModules(patterns, workspaceLayout, {linkDuplicates, ignoreOptional});
   }
 }

@@ -22,7 +22,6 @@ export type ResolverOptions = {|
   isFlat?: boolean,
   isFrozen?: boolean,
   workspaceLayout?: WorkspaceLayout,
-  focus?: boolean,
 |};
 
 export default class PackageResolver {
@@ -34,7 +33,6 @@ export default class PackageResolver {
     this.resolutionMap = resolutionMap;
     this.usedRegistries = new Set();
     this.flat = false;
-    this.focus = false;
 
     this.reporter = config.reporter;
     this.lockfile = lockfile;
@@ -50,8 +48,6 @@ export default class PackageResolver {
   workspaceLayout: ?WorkspaceLayout;
 
   resolutionMap: ResolutionMap;
-
-  focus: boolean;
 
   // list of registries that have been used in this resolution
   usedRegistries: Set<RegistryNames>;
@@ -539,17 +535,15 @@ export default class PackageResolver {
 
   async init(
     deps: DependencyRequestPatterns,
-    {isFlat, isFrozen, workspaceLayout, focus}: ResolverOptions = {
+    {isFlat, isFrozen, workspaceLayout}: ResolverOptions = {
       isFlat: false,
       isFrozen: false,
       workspaceLayout: undefined,
-      focus: false,
     },
   ): Promise<void> {
     this.flat = Boolean(isFlat);
     this.frozen = Boolean(isFrozen);
     this.workspaceLayout = workspaceLayout;
-    this.focus = Boolean(focus);
     const activity = (this.activity = this.reporter.activity());
 
     for (const req of deps) {
