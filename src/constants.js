@@ -116,13 +116,13 @@ export const VERSION_COLOR_SCHEME: {[key: string]: VersionColor} = {
   premajor: 'red',
   minor: 'yellow',
   preminor: 'yellow',
-  patch: 'green',
-  prepatch: 'green',
+  patch: 'blue',
+  prepatch: 'blue',
   prerelease: 'red',
   unchanged: 'white',
   unknown: 'red',
 };
 
-export type VersionColor = 'red' | 'yellow' | 'green' | 'white';
+export type VersionColor = 'red' | 'yellow' | 'blue' | 'white';
 
 export type RequestHint = 'dev' | 'optional' | 'resolution' | 'workspaces';

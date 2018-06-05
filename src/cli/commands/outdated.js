@@ -53,8 +53,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
     const red = reporter.format.red('<red>');
     const yellow = reporter.format.yellow('<yellow>');
-    const green = reporter.format.green('<green>');
-    reporter.info(reporter.lang('legendColorsForVersionUpdates', red, yellow, green));
+    const blue = reporter.format.blue('<blue>');
+    reporter.info(reporter.lang('legendColorsForVersionUpdates', red, yellow, blue));
 
     const header = ['Package', 'Current', 'Wanted', 'Latest', 'Workspace', 'Package Type', 'URL'];
     if (!usesWorkspaces) {

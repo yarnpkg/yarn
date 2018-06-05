@@ -68,7 +68,7 @@ test.concurrent('works with no arguments', (): Promise<void> => {
     const json: Object = JSON.parse(out);
 
     expect(json.data.body.length).toBe(1);
-    expect(reporter.format.green).toHaveBeenCalledWith('left-pad');
+    expect(reporter.format.blue).toHaveBeenCalledWith('left-pad');
   });
 });
 
@@ -78,7 +78,7 @@ test.concurrent('works with single argument', (): Promise<void> => {
 
     expect(json.data.body.length).toBe(1);
     expect(json.data.body[0][0]).toBe('max-safe-integer');
-    expect(reporter.format.green).toHaveBeenCalledWith('max-safe-integer');
+    expect(reporter.format.blue).toHaveBeenCalledWith('max-safe-integer');
   });
 });
 
@@ -92,7 +92,7 @@ test.concurrent('works with multiple arguments', (): Promise<void> => {
     expect(json.data.body[0][0]).toBe('left-pad');
     expect(json.data.body[1][0]).toBe('max-safe-integer');
     expect(reporter.format.yellow).toHaveBeenCalledWith('left-pad');
-    expect(reporter.format.green).toHaveBeenCalledWith('max-safe-integer');
+    expect(reporter.format.blue).toHaveBeenCalledWith('max-safe-integer');
   });
 });
 
@@ -149,7 +149,7 @@ test.concurrent('displays correct dependency types', (): Promise<void> => {
     expect(reporter.format.yellow).toHaveBeenCalledWith('left-pad');
     expect(body[2][0]).toBe('max-safe-integer');
     expect(body[2][4]).toBe('devDependencies');
-    expect(reporter.format.green).toHaveBeenCalledWith('max-safe-integer');
+    expect(reporter.format.blue).toHaveBeenCalledWith('max-safe-integer');
   });
 });
 
