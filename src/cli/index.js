@@ -102,6 +102,7 @@ export function main({
     boolify,
   );
   commander.option('--no-node-version-check', 'do not warn when using a potentially unsupported Node version');
+  commander.option('--focus', 'Focus on a single workspace by installing remote copies of its sibling workspaces.');
 
   // if -v is the first command, then always exit after returning the version
   if (args[0] === '-v') {
@@ -498,6 +499,7 @@ export function main({
       nonInteractive: commander.nonInteractive,
       scriptsPrependNodePath: commander.scriptsPrependNodePath,
       updateChecksums: commander.updateChecksums,
+      focus: commander.focus,
     })
     .then(() => {
       // lockfile check must happen after config.init sets lockfileFolder
