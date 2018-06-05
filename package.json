@@ -6,11 +6,11 @@
   "preferGlobal": true,
   "description": "📦🐈 Fast, reliable, and secure dependency management.",
   "dependencies": {
+    "@zkochan/cmd-shim": "^2.2.4",
     "babel-runtime": "^6.26.0",
     "bytes": "^3.0.0",
     "camelcase": "^4.0.0",
     "chalk": "^2.1.0",
-    "cmd-shim": "^2.0.1",
     "commander": "^2.9.0",
     "death": "^1.0.0",
     "debug": "^3.0.0",
