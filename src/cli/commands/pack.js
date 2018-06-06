@@ -53,7 +53,7 @@ export async function packTarball(
   {mapHeader}: {mapHeader?: Object => Object} = {},
 ): Promise<stream$Duplex> {
   const pkg = await config.readRootManifest();
-  const {bundledDependencies, main, files: onlyFiles} = pkg;
+  const {bundleDependencies, main, files: onlyFiles} = pkg;
 
   // include required files
   let filters: Array<IgnoreFilter> = NEVER_IGNORE.slice();
@@ -65,10 +65,10 @@ export async function packTarball(
     filters = filters.concat(ignoreLinesToRegex(['!/' + main]));
   }
 
-  // include bundledDependencies
-  if (bundledDependencies) {
+  // include bundleDependencies
+  if (bundleDependencies) {
     const folder = config.getFolder(pkg);
-    filters = ignoreLinesToRegex(bundledDependencies.map((name): string => `!${folder}/${name}`), '.');
+    filters = ignoreLinesToRegex(bundleDependencies.map((name): string => `!${folder}/${name}`), '.');
   }
 
   // `files` field
