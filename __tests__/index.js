@@ -196,10 +196,8 @@ test.concurrent('should show version of yarn with -v', async () => {
 });
 
 test.concurrent('should run version command', async () => {
-  await expectAnErrorMessage(
-    execCommand('version', [], 'run-version'),
-    'You must specify a new version with --new-version when running with --non-interactive.',
-  );
+  const stdout = await execCommand('version', [], 'run-version');
+  expect(stdout[0]).toEqual(`yarn version v${pkg.version}`);
 });
 
 test.concurrent('should run --version command', async () => {
