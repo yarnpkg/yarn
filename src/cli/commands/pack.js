@@ -11,6 +11,7 @@ const zlib = require('zlib');
 const path = require('path');
 const tar = require('tar-fs');
 const fs2 = require('fs');
+const depsFor = require('hash-for-dep/lib/deps-for');
 
 const FOLDERS_IGNORE = [
   // never allow version control folders
@@ -66,9 +67,16 @@ export async function packTarball(
   }
 
   // include bundleDependencies
+  let bundleDependenciesFiles = [];
   if (bundleDependencies) {
-    const folder = config.getFolder(pkg);
-    filters = ignoreLinesToRegex(bundleDependencies.map((name): string => `!${folder}/${name}`), '.');
+    for (const dependency of bundleDependencies) {
+      const dependencyList = depsFor(dependency, config.cwd);
+
+      for (const dep of dependencyList) {
+        const filesForBundledDep = await fs.walk(dep.baseDir, null, new Set(FOLDERS_IGNORE));
+        bundleDependenciesFiles = bundleDependenciesFiles.concat(filesForBundledDep);
+      }
+    }
   }
 
   // `files` field
@@ -108,6 +116,11 @@ export async function packTarball(
 
   // apply filters
   sortFilter(files, filters, keepFiles, possibleKeepFiles, ignoredFiles);
+
+  // add the files for the bundled dependencies to the set of files to keep
+  bundleDependenciesFiles.forEach(file => {
+    keepFiles.add(path.relative(config.cwd, file.absolute));
+  });
 
   return packWithIgnoreAndHeaders(
     config.cwd,
