@@ -80,6 +80,9 @@ export default class TarballFetcher extends BaseFetcher {
     untarStream.on('error', err => {
       reject(new MessageError(this.config.reporter.lang('errorExtractingTarball', err.message, tarballPath)));
     });
+    extractorStream.on('error', err => {
+      reject(new MessageError(this.config.reporter.lang('errorDecompressingGzip', err.message, tarballPath)));
+    });
 
     extractorStream.pipe(untarStream).on('finish', async () => {
       const expectHash = this.hash;
