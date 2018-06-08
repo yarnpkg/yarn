@@ -130,6 +130,18 @@ describe('production', () => {
   });
 });
 
+test('yarn node should start Node', async () => {
+  const [stdoutOutput, _] = await runYarn(['-s', 'node', '-p', '42']);
+  expect(stdoutOutput.toString().trim()).toEqual('42');
+});
+
+test('yarn node --into should start Node in a specific directory', async () => {
+  const cwd = await makeTemp();
+
+  const [stdoutOutput, _] = await runYarn(['-s', 'node', '--into', cwd, '-p', 'process.cwd()']);
+  expect(stdoutOutput.toString().trim()).toEqual(await fs.realpath(cwd));
+});
+
 test('--mutex network', async () => {
   const cwd = await makeTemp();
 
