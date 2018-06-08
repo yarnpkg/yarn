@@ -7,6 +7,7 @@ import type PackageRequest from './package-request.js';
 import type PackageResolver from './package-resolver.js';
 import type {RegistryNames} from './registries/index.js';
 import {entries} from './util/misc.js';
+import type {RequestHint} from './constants';
 
 export default class PackageReference {
   constructor(request: PackageRequest, info: Manifest, remote: PackageRemote) {
@@ -14,6 +15,7 @@ export default class PackageReference {
     this.lockfile = request.lockfile;
     this.requests = [];
     this.config = request.config;
+    this.hint = request.hint;
 
     this.registry = remote.registry;
     this.version = info.version;
@@ -31,7 +33,7 @@ export default class PackageReference {
     this.ignore = false;
     this.incompatible = false;
     this.fresh = false;
-    this.location = null;
+    this.locations = [];
     this.addRequest(request);
   }
 
@@ -44,6 +46,7 @@ export default class PackageReference {
   version: string;
   uid: string;
   optional: ?boolean;
+  hint: ?RequestHint;
   ignore: boolean;
   incompatible: boolean;
   fresh: boolean;
@@ -52,15 +55,15 @@ export default class PackageReference {
   permissions: {[key: string]: boolean};
   remote: PackageRemote;
   registry: RegistryNames;
-  location: ?string;
+  locations: Array<string>;
   resolver: PackageResolver;
 
   setFresh(fresh: boolean) {
     this.fresh = fresh;
   }
 
-  setLocation(loc: string): string {
-    return (this.location = loc);
+  addLocation(loc: string) {
+    this.locations.push(loc);
   }
 
   addRequest(request: PackageRequest) {

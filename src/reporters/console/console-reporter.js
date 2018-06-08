@@ -232,6 +232,9 @@ export default class ConsoleReporter extends BaseReporter {
   tree(key: string, trees: Trees) {
     this.stopProgress();
     //
+    if (this.isSilent) {
+      return;
+    }
     const output = ({name, children, hint, color}, titlePrefix, childrenPrefix) => {
       const formatter = this.format;
       const out = getFormattedOutput({
@@ -412,7 +415,7 @@ export default class ConsoleReporter extends BaseReporter {
       };
     }
 
-    // Clear any potentiall old progress bars
+    // Clear any potentially old progress bars
     this.stopProgress();
 
     const bar = (this._progressBar = new Progress(count, this.stderr, (progress: Progress) => {

@@ -21,8 +21,12 @@ function isValidNewVersion(oldVersion: string, newVersion: string, looseSemver: 
 export function setFlags(commander: Object) {
   commander.description('Update the version of your package via the command line.');
   commander.option(NEW_VERSION_FLAG, 'new version');
+  commander.option('--major', 'auto-increment major version number');
+  commander.option('--minor', 'auto-increment minor version number');
+  commander.option('--patch', 'auto-increment patch version number');
   commander.option('--message [message]', 'message');
   commander.option('--no-git-tag-version', 'no git tag version');
+  commander.option('--no-commit-hooks', 'bypass git hooks when committing new version');
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
@@ -48,10 +52,14 @@ export async function setVersion(
 
   function runLifecycle(lifecycle: string): Promise<void> {
     if (scripts[lifecycle]) {
-      return execCommand(lifecycle, config, scripts[lifecycle], config.cwd);
+      return execCommand({stage: lifecycle, config, cmd: scripts[lifecycle], cwd: config.cwd, isInteractive: true});
     }
 
     return Promise.resolve();
+  }
+
+  function isCommitHooksDisabled(): boolean {
+    return flags.commitHooks === false || config.getOption('version-commit-hooks') === false;
   }
 
   if (pkg.scripts) {
@@ -72,11 +80,24 @@ export async function setVersion(
     throw new MessageError(reporter.lang('invalidVersion'));
   }
 
+  // get new version by bumping old version, if requested
+  if (!newVersion) {
+    if (flags.major) {
+      newVersion = semver.inc(oldVersion, 'major');
+    } else if (flags.minor) {
+      newVersion = semver.inc(oldVersion, 'minor');
+    } else if (flags.patch) {
+      newVersion = semver.inc(oldVersion, 'patch');
+    }
+  }
+
   // wasn't passed a version arg so ask interactively
   while (!newVersion) {
     // make sure we're not running in non-interactive mode before asking for new version
     if (flags.nonInteractive || config.nonInteractive) {
-      throw new MessageError(reporter.lang('nonInteractiveNoVersionSpecified'));
+      // if no version is specified, use current version in package.json
+      newVersion = oldVersion;
+      break;
     }
 
     newVersion = await reporter.question(reporter.lang('newVersion'));
@@ -150,6 +171,7 @@ export async function setVersion(
       const sign: boolean = Boolean(config.getOption('version-sign-git-tag'));
       const flag = sign ? '-sm' : '-am';
       const prefix: string = String(config.getOption('version-tag-prefix'));
+      const args: Array<string> = ['commit', '-m', message, ...(isCommitHooksDisabled() ? ['-n'] : [])];
 
       const gitRoot = (await spawnGit(['rev-parse', '--show-toplevel'], {cwd: config.cwd})).trim();
 
@@ -157,7 +179,7 @@ export async function setVersion(
       await spawnGit(['add', path.relative(gitRoot, pkgLoc)], {cwd: gitRoot});
 
       // create git commit
-      await spawnGit(['commit', '-m', message], {cwd: gitRoot});
+      await spawnGit(args, {cwd: gitRoot});
 
       // create git tag
       await spawnGit(['tag', `${prefix}${newVersion}`, flag, message], {cwd: gitRoot});

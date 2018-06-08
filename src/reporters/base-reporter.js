@@ -33,6 +33,7 @@ export type ReporterOptions = {
   emoji?: boolean,
   noProgress?: boolean,
   silent?: boolean,
+  nonInteractive?: boolean,
 };
 
 export function stringifyLangArgs(args: Array<any>): Array<string> {
@@ -45,7 +46,13 @@ export function stringifyLangArgs(args: Array<any>): Array<string> {
         // should match all literal line breaks and
         // "u001b" that follow an odd number of backslashes and convert them to ESC
         // we do this because the JSON.stringify process has escaped these characters
-        return str.replace(/((?:^|[^\\])(?:\\{2})*)\\u001[bB]/g, '$1\u001b').replace(/[\\]r[\\]n|[\\]n/g, os.EOL);
+        return str
+          .replace(/((?:^|[^\\])(?:\\{2})*)\\u001[bB]/g, '$1\u001b')
+          .replace(/[\\]r[\\]n|([\\])?[\\]n/g, (match, precededBacklash) => {
+            // precededBacklash not null when "\n" is preceded by a backlash ("\\n")
+            // match will be "\\n" and we don't replace it with os.EOL
+            return precededBacklash ? match : os.EOL;
+          });
       } catch (e) {
         return util.inspect(val);
       }
@@ -62,6 +69,7 @@ export default class BaseReporter {
     this.stderr = opts.stderr || process.stderr;
     this.stdin = opts.stdin || this._getStandardInput();
     this.emoji = !!opts.emoji;
+    this.nonInteractive = !!opts.nonInteractive;
     this.noProgress = !!opts.noProgress || isCI;
     this.isVerbose = !!opts.verbose;
 
@@ -83,16 +91,17 @@ export default class BaseReporter {
   noProgress: boolean;
   isVerbose: boolean;
   isSilent: boolean;
+  nonInteractive: boolean;
   format: Formatter;
 
-  peakMemoryInterval: ?number;
+  peakMemoryInterval: ?IntervalID;
   peakMemory: number;
   startTime: number;
 
   lang(key: LanguageKeys, ...args: Array<mixed>): string {
     const msg = languages[this.language][key] || languages.en[key];
     if (!msg) {
-      throw new ReferenceError(`Unknown language key ${key}`);
+      throw new ReferenceError(`No message defined for language key ${key}`);
     }
 
     // stringify args
@@ -107,7 +116,7 @@ export default class BaseReporter {
   /**
    * `stringifyLangArgs` run `JSON.stringify` on strings too causing
    * them to appear quoted. This marks them as "raw" and prevents
-   * the quiating and escaping
+   * the quoting and escaping
    */
   rawText(str: string): {inspect(): string} {
     return {
@@ -246,6 +255,9 @@ export default class BaseReporter {
   //
   async questionAffirm(question: string): Promise<boolean> {
     const condition = true; // trick eslint
+    if (this.nonInteractive) {
+      return true;
+    }
 
     while (condition) {
       let answer = await this.question(question);

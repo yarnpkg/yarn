@@ -8,6 +8,7 @@ import {setVersion, setFlags as versionSetFlags} from './version.js';
 import * as fs from '../../util/fs.js';
 import {pack} from './pack.js';
 import {getToken} from './login.js';
+import path from 'path';
 
 const invariant = require('invariant');
 const crypto = require('crypto');
@@ -44,12 +45,13 @@ async function publish(config: Config, pkg: any, flags: Object, dir: string): Pr
   await config.executeLifecycleScript('prepublish');
   await config.executeLifecycleScript('prepare');
   await config.executeLifecycleScript('prepublishOnly');
+  await config.executeLifecycleScript('prepack');
 
   // get tarball stream
   const stat = await fs.lstat(dir);
   let stream;
   if (stat.isDirectory()) {
-    stream = await pack(config, dir);
+    stream = await pack(config);
   } else if (stat.isFile()) {
     stream = fs2.createReadStream(dir);
   } else {
@@ -60,6 +62,8 @@ async function publish(config: Config, pkg: any, flags: Object, dir: string): Pr
     invariant(stream, 'expected stream');
     stream.on('data', data.push.bind(data)).on('end', () => resolve(Buffer.concat(data))).on('error', reject);
   });
+
+  await config.executeLifecycleScript('postpack');
 
   // copy normalized package and remove internal keys as they may be sensitive or yarn specific
   pkg = Object.assign({}, pkg);
@@ -103,20 +107,37 @@ async function publish(config: Config, pkg: any, flags: Object, dir: string): Pr
   pkg.dist.tarball = url.resolve(registry, tbURI).replace(/^https:\/\//, 'http://');
 
   // publish package
-  const res = await config.registries.npm.request(NpmRegistry.escapeName(pkg.name), {
-    method: 'PUT',
-    body: root,
-  });
-
-  if (res) {
-    await config.executeLifecycleScript('publish');
-    await config.executeLifecycleScript('postpublish');
-  } else {
-    throw new MessageError(config.reporter.lang('publishFail'));
+  try {
+    await config.registries.npm.request(NpmRegistry.escapeName(pkg.name), {
+      registry: pkg && pkg.publishConfig && pkg.publishConfig.registry,
+      method: 'PUT',
+      body: root,
+    });
+  } catch (error) {
+    throw new MessageError(config.reporter.lang('publishFail', error.message));
   }
+
+  await config.executeLifecycleScript('publish');
+  await config.executeLifecycleScript('postpublish');
 }
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+  // validate arguments
+  const dir = args[0] ? path.resolve(config.cwd, args[0]) : config.cwd;
+  if (args.length > 1) {
+    throw new MessageError(reporter.lang('tooManyArguments', 1));
+  }
+  if (!await fs.exists(dir)) {
+    throw new MessageError(reporter.lang('unknownFolderOrTarball'));
+  }
+
+  const stat = await fs.lstat(dir);
+  let publishPath = dir;
+  if (stat.isDirectory()) {
+    config.cwd = path.resolve(dir);
+    publishPath = config.cwd;
+  }
+
   // validate package fields that are required for publishing
   const pkg = await config.readRootManifest();
   if (pkg.private) {
@@ -124,15 +145,6 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   }
   if (!pkg.name) {
     throw new MessageError(reporter.lang('noName'));
-  }
-
-  // validate arguments
-  const dir = args[0] || config.cwd;
-  if (args.length > 1) {
-    throw new MessageError(reporter.lang('tooManyArguments', 1));
-  }
-  if (!await fs.exists(dir)) {
-    throw new MessageError(reporter.lang('unknownFolderOrTarball'));
   }
 
   //
@@ -145,7 +157,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   //
   reporter.step(3, 4, reporter.lang('publishing'));
-  await publish(config, pkg, flags, dir);
+  await publish(config, pkg, flags, publishPath);
   await commitVersion();
   reporter.success(reporter.lang('published'));
 

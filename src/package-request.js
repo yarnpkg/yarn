@@ -37,6 +37,7 @@ export default class PackageRequest {
     this.reporter = resolver.reporter;
     this.resolver = resolver;
     this.optional = req.optional;
+    this.hint = req.hint;
     this.pattern = req.pattern;
     this.config = resolver.config;
     this.foundInfo = null;
@@ -55,6 +56,7 @@ export default class PackageRequest {
   config: Config;
   registry: ResolverRegistryNames;
   optional: boolean;
+  hint: ?constants.RequestHint;
   foundInfo: ?Manifest;
 
   getLocked(remoteType: FetcherNames): ?Manifest {
@@ -179,14 +181,26 @@ export default class PackageRequest {
    * the registry.
    */
 
-  findVersionInfo(): Promise<Manifest> {
+  async findVersionInfo(): Promise<Manifest> {
     const exoticResolver = getExoticResolver(this.pattern);
     if (exoticResolver) {
       return this.findExoticVersionInfo(exoticResolver, this.pattern);
     } else if (WorkspaceResolver.isWorkspace(this.pattern, this.resolver.workspaceLayout)) {
       invariant(this.resolver.workspaceLayout, 'expected workspaceLayout');
       const resolver = new WorkspaceResolver(this, this.pattern, this.resolver.workspaceLayout);
-      return resolver.resolve();
+      let manifest;
+      if (
+        this.config.focus &&
+        !this.pattern.includes(this.resolver.workspaceLayout.virtualManifestName) &&
+        !this.pattern.startsWith(this.config.focusedWorkspaceName + '@')
+      ) {
+        const localInfo = this.resolver.workspaceLayout.getManifestByPattern(this.pattern);
+        invariant(localInfo, 'expected local info for ' + this.pattern);
+        const localManifest = localInfo.manifest;
+        const requestPattern = localManifest.name + '@' + localManifest.version;
+        manifest = await this.findVersionOnRegistry(requestPattern);
+      }
+      return resolver.resolve(manifest);
     } else {
       return this.findVersionOnRegistry(this.pattern);
     }
@@ -288,6 +302,7 @@ export default class PackageRequest {
       deps.push(depPattern);
       promises.push(
         this.resolver.find({
+          hint: 'optional',
           pattern: depPattern,
           registry: remote.registry,
           optional: true,
@@ -303,6 +318,7 @@ export default class PackageRequest {
         deps.push(depPattern);
         promises.push(
           this.resolver.find({
+            hint: 'dev',
             pattern: depPattern,
             registry: remote.registry,
             optional: false,
@@ -372,8 +388,11 @@ export default class PackageRequest {
 
     // filter the list down to just the packages requested.
     // prevents us from having to query the metadata for all packages.
-    if (filterByPatterns && filterByPatterns.length) {
-      const filterByNames = filterByPatterns.map(pattern => normalizePattern(pattern).name);
+    if ((filterByPatterns && filterByPatterns.length) || (flags && flags.pattern)) {
+      const filterByNames =
+        filterByPatterns && filterByPatterns.length
+          ? filterByPatterns.map(pattern => normalizePattern(pattern).name)
+          : [];
       depReqPatterns = depReqPatterns.filter(
         dep =>
           filterByNames.indexOf(normalizePattern(dep.pattern).name) >= 0 ||

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`install-file-as-default-no-semver 1`] = `
+exports[`don't install with file: protocol as default if target is valid semver: install-file-as-default-no-semver 1`] = `
 "{
   \\"author\\": \\"AJ ONeal <coolaj86@gmail.com> (http://coolaj86.info)\\",
   \\"name\\": \\"foo\\",

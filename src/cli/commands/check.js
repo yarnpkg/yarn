@@ -39,7 +39,8 @@ export async function verifyTreeCheck(
   // check all dependencies recursively without relying on internal resolver
   const registryName = 'yarn';
   const registry = config.registries[registryName];
-  const rootManifest = await config.readManifest(registry.cwd, registryName);
+  const cwd = config.workspaceRootFolder ? config.lockfileFolder : config.cwd;
+  const rootManifest = await config.readManifest(cwd, registryName);
 
   type PackageToVerify = {
     name: string,
@@ -52,14 +53,14 @@ export async function verifyTreeCheck(
     for (const name in rootManifest.dependencies) {
       const version = rootManifest.dependencies[name];
       // skip linked dependencies
-      const isLinkedDepencency = /^link:/i.test(version) || (/^file:/i.test(version) && config.linkFileDependencies);
-      if (isLinkedDepencency) {
+      const isLinkedDependency = /^link:/i.test(version) || (/^file:/i.test(version) && config.linkFileDependencies);
+      if (isLinkedDependency) {
         continue;
       }
       dependenciesToCheckVersion.push({
         name,
         originalKey: name,
-        parentCwd: registry.cwd,
+        parentCwd: cwd,
         version,
       });
     }
@@ -68,14 +69,14 @@ export async function verifyTreeCheck(
     for (const name in rootManifest.devDependencies) {
       const version = rootManifest.devDependencies[name];
       // skip linked dependencies
-      const isLinkedDepencency = /^link:/i.test(version) || (/^file:/i.test(version) && config.linkFileDependencies);
-      if (isLinkedDepencency) {
+      const isLinkedDependency = /^link:/i.test(version) || (/^file:/i.test(version) && config.linkFileDependencies);
+      if (isLinkedDependency) {
         continue;
       }
       dependenciesToCheckVersion.push({
         name,
         originalKey: name,
-        parentCwd: registry.cwd,
+        parentCwd: cwd,
         version,
       });
     }
@@ -109,19 +110,15 @@ export async function verifyTreeCheck(
       for (const subdep in dependencies) {
         const subDepPath = path.join(manifestLoc, registry.folder, subdep);
         let found = false;
-        const relative = path.relative(registry.cwd, subDepPath);
+        const relative = path.relative(cwd, subDepPath);
         const locations = path.normalize(relative).split(registry.folder + path.sep).filter(dir => !!dir);
         locations.pop();
         while (locations.length >= 0) {
           let possiblePath;
           if (locations.length > 0) {
-            possiblePath = path.join(
-              registry.cwd,
-              registry.folder,
-              locations.join(path.sep + registry.folder + path.sep),
-            );
+            possiblePath = path.join(cwd, registry.folder, locations.join(path.sep + registry.folder + path.sep));
           } else {
-            possiblePath = registry.cwd;
+            possiblePath = cwd;
           }
           if (await fs.exists(path.join(possiblePath, registry.folder, subdep))) {
             dependenciesToCheckVersion.push({
@@ -237,7 +234,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   const bundledDeps = {};
   // check if any of the node_modules are out of sync
-  const res = await install.linker.getFlatHoistedTree(patterns);
+  const res = await install.linker.getFlatHoistedTree(patterns, workspaceLayout);
   for (const [loc, {originalKey, pkg, ignore}] of res) {
     if (ignore) {
       continue;
@@ -271,9 +268,9 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
     // skip unnecessary checks for linked dependencies
     const remoteType = pkg._reference.remote.type;
-    const isLinkedDepencency =
+    const isLinkedDependency =
       remoteType === 'link' || remoteType === 'workspace' || (remoteType === 'file' && config.linkFileDependencies);
-    if (isLinkedDepencency) {
+    if (isLinkedDependency) {
       continue;
     }
 

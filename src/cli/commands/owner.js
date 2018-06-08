@@ -87,14 +87,9 @@ async function list(config: Config, reporter: Reporter, flags: Object, args: Arr
   if (args.length > 1) {
     return false;
   }
-
   const name = await getName(args, config);
-
-  reporter.step(1, 3, reporter.lang('loggingIn'));
-  const revoke = await getToken(config, reporter, name);
-
-  reporter.step(2, 3, reporter.lang('ownerGetting', name));
-  const pkg = await config.registries.npm.request(name);
+  reporter.step(1, 1, reporter.lang('ownerGetting', name));
+  const pkg = await config.registries.npm.request(name, {unfiltered: true});
   if (pkg) {
     const owners = pkg.maintainers;
     if (!owners || !owners.length) {
@@ -107,9 +102,6 @@ async function list(config: Config, reporter: Reporter, flags: Object, args: Arr
   } else {
     reporter.error(reporter.lang('ownerGettingFailed'));
   }
-
-  reporter.step(3, 3, reporter.lang('revokingToken'));
-  await revoke();
 
   if (pkg) {
     return true;

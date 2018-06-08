@@ -17,6 +17,7 @@ const path = require('path');
 
 const installFixturesLoc = path.join(__dirname, '..', 'fixtures', 'install');
 
+// $FlowFixMe I don't understand the error
 export const runInstall = run.bind(
   null,
   ConsoleReporter,
@@ -33,6 +34,7 @@ export const runInstall = run.bind(
 
 const linkFixturesLoc = path.join(__dirname, '..', 'fixtures', 'link');
 
+// $FlowFixMe I don't understand the error
 export const runLink = run.bind(
   null,
   ConsoleReporter,
@@ -89,6 +91,7 @@ export function makeConfigFromDirectory(cwd: string, reporter: Reporter, flags: 
       prefix: flags.prefix,
       production: flags.production,
       updateChecksums: !!flags.updateChecksums,
+      focus: !!flags.focus,
     },
     reporter,
   );
@@ -168,6 +171,9 @@ export async function run<T, R>(
 
   try {
     const config = await makeConfigFromDirectory(cwd, reporter, flags);
+    if (typeof flags.workspacesNohoistEnabled === 'boolean') {
+      config.workspacesNohoistEnabled = flags.workspacesNohoistEnabled;
+    }
     const install = await factory(args, flags, config, reporter, lockfile, () => out);
 
     if (checkInstalled) {
@@ -176,6 +182,7 @@ export async function run<T, R>(
   } catch (err) {
     throw new Error(`${err && err.stack} \nConsole output:\n ${out}`);
   } finally {
+    reporter.close();
     await fs.unlink(cwd);
   }
 }

@@ -1,0 +1,12 @@
+{
+  "name": "workspace-2",
+  "version": "1.0.0",
+  "scripts": {
+    "prescript": "echo workspace-2 prescript",
+    "script": "echo workspace-2 script",
+    "postscript": "echo workspace-2 postscript"
+  },
+  "dependencies": {
+    "workspace-1": "1.0.0"
+  }
+}

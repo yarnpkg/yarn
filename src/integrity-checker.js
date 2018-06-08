@@ -240,6 +240,9 @@ export default class InstallationIntegrityChecker {
     if (flags.ignoreScripts) {
       result.flags.push('ignoreScripts');
     }
+    if (this.config.focus) {
+      result.flags.push('focus: ' + this.config.focusedWorkspaceName);
+    }
 
     if (this.config.production) {
       result.flags.push('production');

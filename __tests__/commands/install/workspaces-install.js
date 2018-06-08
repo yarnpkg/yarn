@@ -168,7 +168,7 @@ test.concurrent('install should prioritize non workspace dependency at root over
   });
 });
 
-test.concurrent('install should install subedependencies of workspaces', (): Promise<void> => {
+test.concurrent('install should install subdependencies of workspaces', (): Promise<void> => {
   // the tricky part is that isarray is a subdependency of left-pad that is not referenced in the root
   // but another workspace
   return runInstall({}, 'workspaces-install-subdeps', async (config): Promise<void> => {
@@ -177,7 +177,7 @@ test.concurrent('install should install subedependencies of workspaces', (): Pro
 });
 
 test.concurrent(
-  'install should install subedependencies of workspaces that are not referenced in other workspaces',
+  'install should install subdependencies of workspaces that are not referenced in other workspaces',
   (): Promise<void> => {
     // the tricky part is that left-pad is not a dependency of root
     return runInstall({}, 'workspaces-install-subdeps-2', async (config): Promise<void> => {
@@ -240,6 +240,29 @@ test.concurrent('install should ignore node_modules in workspaces when used with
   return runInstall({}, 'workspaces-install-already-exists', async (config): Promise<void> => {
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'a'))).toBe(true);
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'b'))).toBe(true);
+  });
+});
+
+describe('install should ignore deep node_modules in workspaces', () => {
+  test('without nohoist', (): Promise<void> => {
+    return runInstall(
+      {workspacesNohoistEnabled: false},
+      'workspaces-install-already-exists-deep',
+      async (config): Promise<void> => {
+        expect(await fs.exists(path.join(config.cwd, 'node_modules', 'a'))).toBe(true);
+        expect(await fs.exists(path.join(config.cwd, 'node_modules', 'b'))).toBe(true);
+      },
+    );
+  });
+  test('with nohoist', (): Promise<void> => {
+    return runInstall(
+      {workspacesNohoistEnabled: true},
+      'workspaces-install-already-exists-deep',
+      async (config): Promise<void> => {
+        expect(await fs.exists(path.join(config.cwd, 'node_modules', 'a'))).toBe(true);
+        expect(await fs.exists(path.join(config.cwd, 'node_modules', 'b'))).toBe(true);
+      },
+    );
   });
 });
 

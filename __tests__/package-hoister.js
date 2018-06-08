@@ -46,7 +46,7 @@ function createTestFixture(
     getFolder(): string {
       return 'node_modules';
     },
-    generateHardModulePath(pkg: ?PackageReference): string {
+    generateModuleCachePath(pkg: ?PackageReference): string {
       return pkg ? pkg.uid : '';
     },
     getWorkspaces(manifest: ?Manifest): ?WorkspacesConfig {
@@ -284,7 +284,7 @@ test('considers ignored packages when determining hoisting', () => {
   // d@1 -> c@2
   //
   // Normally c@2 would hoist to the root, but it cannot because c@5 would be there if it was not ignored.
-  // This preserves deterministic install paths wheter packages are ignored or not.
+  // This preserves deterministic install paths whether packages are ignored or not.
   const {atPath, ignorePackage, packageHoister} = createTestFixture({
     'a@1.0.0': ['d@1.0.0'],
     'b@3.0.0': ['c@5.0.0'],
@@ -312,7 +312,7 @@ test('will hoist packages under subdirectories when they cannot hoist to root', 
   //     -> d@1
   //
   // b,c,d@1 cannot hoist to the root because their @2 versions would be there if not ignored.
-  // However they can still flaten under a@1.
+  // However they can still flatten under a@1.
   const {atPath, ignorePackage, packageHoister} = createTestFixture({
     'a@1.0.0': ['b@1.0.0'],
     'b@1.0.0': ['c@1.0.0'],
@@ -441,7 +441,7 @@ describe('nohoist', () => {
     expect(result).toContainPackage('c@1.0.0', atPath('a', 'node_modules', 'c'));
     expect(result).toContainPackage('d@1.0.0', atPath('a', 'node_modules', 'd'));
   });
-  test('can dedup and avoid circular reference', () => {
+  test('can dedupe and avoid circular reference', () => {
     const {atPath, packageHoister, packageResolver} = createTestFixture({
       'a@1.0.0': ['c@1.0.0'],
       'b@2.0.0': [],

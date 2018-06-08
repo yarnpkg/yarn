@@ -1,7 +1,7 @@
 Package: yarn
 Version: $VERSION-1
 Recommends: nodejs
-Conflicts: nodejs (<< 4.0.0)
+Conflicts: nodejs (<< 4.0.0), cmdtest
 Section: devel
 Priority: optional
 Architecture: all

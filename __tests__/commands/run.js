@@ -50,8 +50,8 @@ const runRunWithCustomShell = function(customShell, ...args): Promise<void> {
   })(...args);
 };
 
-test('lists all available commands with no arguments', (): Promise<void> => {
-  return runRun([], {}, 'no-args', (config, reporter): ?Promise<void> => {
+test('lists all available commands with no arguments', (): Promise<void> =>
+  runRun([], {}, 'no-args', (config, reporter): ?Promise<void> => {
     const rprtr = new reporters.BufferReporter({stdout: null, stdin: null});
     const scripts = ['build', 'prestart', 'start'];
     const hints = {
@@ -62,50 +62,73 @@ test('lists all available commands with no arguments', (): Promise<void> => {
     const bins = ['cat-names'];
 
     // Emulate run output
-    rprtr.error(rprtr.lang('commandNotSpecified'));
     rprtr.info(`${rprtr.lang('binCommands')}${bins.join(', ')}`);
     rprtr.info(rprtr.lang('possibleCommands'));
     rprtr.list('possibleCommands', scripts, hints);
     rprtr.error(rprtr.lang('commandNotSpecified'));
 
     expect(reporter.getBuffer()).toEqual(rprtr.getBuffer());
-  });
-});
+  }));
 
-test('runs script containing spaces', (): Promise<void> => {
-  return runRun(['build'], {}, 'spaces', async (config): ?Promise<void> => {
+test('lists all available commands with no arguments and --non-interactive', (): Promise<void> =>
+  runRun([], {nonInteractive: true}, 'no-args', (config, reporter): ?Promise<void> => {
+    const rprtr = new reporters.BufferReporter({stdout: null, stdin: null});
+    const scripts = ['build', 'prestart', 'start'];
+    const hints = {
+      build: "echo 'building'",
+      prestart: "echo 'prestart'",
+      start: 'node index.js',
+    };
+    const bins = ['cat-names'];
+
+    // Emulate run output
+    rprtr.info(`${rprtr.lang('binCommands')}${bins.join(', ')}`);
+    rprtr.info(rprtr.lang('possibleCommands'));
+    rprtr.list('possibleCommands', scripts, hints);
+
+    expect(reporter.getBuffer()).toEqual(rprtr.getBuffer());
+  }));
+
+test('runs script containing spaces', (): Promise<void> =>
+  runRun(['build'], {}, 'spaces', async (config): ?Promise<void> => {
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
     // The command gets called with a space appended
-    const args = ['build', config, pkg.scripts.build, config.cwd];
+    expect(execCommand).toBeCalledWith({
+      stage: 'build',
+      config,
+      cmd: pkg.scripts.build,
+      cwd: config.cwd,
+      isInteractive: true,
+    });
+  }));
 
-    expect(execCommand).toBeCalledWith(...args);
-  });
-});
-
-test('properly handles extra arguments and pre/post scripts', (): Promise<void> => {
-  return runRun(['start', '--hello'], {}, 'extra-args', async (config): ?Promise<void> => {
+test('properly handles extra arguments and pre/post scripts', (): Promise<void> =>
+  runRun(['start', '--hello'], {}, 'extra-args', async (config): ?Promise<void> => {
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
-    const poststart = ['poststart', config, pkg.scripts.poststart, config.cwd];
-    const prestart = ['prestart', config, pkg.scripts.prestart, config.cwd];
-    const start = ['start', config, pkg.scripts.start + ' --hello', config.cwd];
+    const poststart = {stage: 'poststart', config, cmd: pkg.scripts.poststart, cwd: config.cwd, isInteractive: true};
+    const prestart = {stage: 'prestart', config, cmd: pkg.scripts.prestart, cwd: config.cwd, isInteractive: true};
+    const start = {stage: 'start', config, cmd: pkg.scripts.start + ' --hello', cwd: config.cwd, isInteractive: true};
 
-    expect(execCommand.mock.calls[0]).toEqual(prestart);
-    expect(execCommand.mock.calls[1]).toEqual(start);
-    expect(execCommand.mock.calls[2]).toEqual(poststart);
-  });
-});
+    expect(execCommand.mock.calls[0]).toEqual([prestart]);
+    expect(execCommand.mock.calls[1]).toEqual([start]);
+    expect(execCommand.mock.calls[2]).toEqual([poststart]);
+  }));
 
-test('properly handle bin scripts', (): Promise<void> => {
-  return runRun(['cat-names'], {}, 'bin', config => {
+test('properly handle bin scripts', (): Promise<void> =>
+  runRun(['cat-names'], {}, 'bin', config => {
     const script = path.join(config.cwd, 'node_modules', '.bin', 'cat-names');
-    const args = ['cat-names', config, script, config.cwd];
 
-    expect(execCommand).toBeCalledWith(...args);
-  });
-});
+    expect(execCommand).toBeCalledWith({
+      stage: 'cat-names',
+      config,
+      cmd: script,
+      cwd: config.cwd,
+      isInteractive: true,
+    });
+  }));
 
-test('properly handle env command', (): Promise<void> => {
-  return runRun(['env'], {}, 'no-args', (config, reporter): ?Promise<void> => {
+test('properly handle env command', (): Promise<void> =>
+  runRun(['env'], {}, 'no-args', (config, reporter): ?Promise<void> => {
     // $FlowFixMe
     const result = JSON.parse(reporter.getBuffer()[0].data);
 
@@ -134,58 +157,66 @@ test('properly handle env command', (): Promise<void> => {
     expect(result).toHaveProperty('npm_lifecycle_event');
     expect(result).toHaveProperty('npm_execpath');
     expect(result).toHaveProperty('npm_node_execpath');
-  });
-});
+  }));
 
-test('adds string delimiters if args have spaces', (): Promise<void> => {
-  return runRun(['cat-names', '--filter', 'cat names'], {}, 'bin', config => {
+test('adds string delimiters if args have spaces', (): Promise<void> =>
+  runRun(['cat-names', '--filter', 'cat names'], {}, 'bin', config => {
     const script = path.join(config.cwd, 'node_modules', '.bin', 'cat-names');
     const q = process.platform === 'win32' ? '"' : "'";
-    const args = ['cat-names', config, `${script} --filter ${q}cat names${q}`, config.cwd];
 
-    expect(execCommand).toBeCalledWith(...args);
-  });
-});
+    expect(execCommand).toBeCalledWith({
+      stage: 'cat-names',
+      config,
+      cmd: `${script} --filter ${q}cat names${q}`,
+      cwd: config.cwd,
+      isInteractive: true,
+    });
+  }));
 
-test('adds quotes if args have spaces and quotes', (): Promise<void> => {
-  return runRun(['cat-names', '--filter', '"cat names"'], {}, 'bin', config => {
+test('adds quotes if args have spaces and quotes', (): Promise<void> =>
+  runRun(['cat-names', '--filter', '"cat names"'], {}, 'bin', config => {
     const script = path.join(config.cwd, 'node_modules', '.bin', 'cat-names');
     const quotedCatNames = process.platform === 'win32' ? '^"\\^"cat^ names\\^"^"' : `'"cat names"'`;
-    const args = ['cat-names', config, `${script} --filter ${quotedCatNames}`, config.cwd];
 
-    expect(execCommand).toBeCalledWith(...args);
-  });
-});
+    expect(execCommand).toBeCalledWith({
+      stage: 'cat-names',
+      config,
+      cmd: `${script} --filter ${quotedCatNames}`,
+      cwd: config.cwd,
+      isInteractive: true,
+    });
+  }));
 
-test('returns noScriptsAvailable with no scripts', (): Promise<void> => {
-  return runRun([], {}, 'no-scripts', (config, reporter) => {
+test('returns noScriptsAvailable with no scripts', (): Promise<void> =>
+  runRun([], {}, 'no-scripts', (config, reporter) => {
     expect(reporter.getBuffer()).toMatchSnapshot();
-  });
-});
+  }));
 
-test('returns noBinAvailable with no bins', (): Promise<void> => {
-  return runRun([], {}, 'no-bin', (config, reporter) => {
+test('returns noBinAvailable with no bins', (): Promise<void> =>
+  runRun([], {}, 'no-bin', (config, reporter) => {
     expect(reporter.getBuffer()).toMatchSnapshot();
-  });
-});
+  }));
 
-test('adds workspace root node_modules/.bin to path when in a workspace', (): Promise<void> => {
-  return runRunInWorkspacePackage('packages/pkg1', ['env'], {}, 'workspace', (config, reporter): ?Promise<void> => {
+test('adds workspace root node_modules/.bin to path when in a workspace', (): Promise<void> =>
+  runRunInWorkspacePackage('packages/pkg1', ['env'], {}, 'workspace', (config, reporter): ?Promise<void> => {
     const logEntry = reporter.getBuffer().find(entry => entry.type === 'log');
     const parsedLogData = JSON.parse(logEntry ? logEntry.data.toString() : '{}');
     const envPaths = (parsedLogData.PATH || parsedLogData.Path).split(path.delimiter);
 
     expect(envPaths).toContain(path.join(config.cwd, 'node_modules', '.bin'));
     expect(envPaths).toContain(path.join(config.cwd, 'packages', 'pkg1', 'node_modules', '.bin'));
-  });
-});
+  }));
 
-test('runs script with custom script-shell', (): Promise<void> => {
-  return runRunWithCustomShell('/usr/bin/dummy', ['start'], {}, 'script-shell', async (config): ?Promise<void> => {
+test('runs script with custom script-shell', (): Promise<void> =>
+  runRunWithCustomShell('/usr/bin/dummy', ['start'], {}, 'script-shell', async (config): ?Promise<void> => {
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
     // The command gets called with the provided customShell
-    const args = ['start', config, pkg.scripts.start, config.cwd, '/usr/bin/dummy'];
-
-    expect(execCommand).toBeCalledWith(...args);
-  });
-});
+    expect(execCommand).toBeCalledWith({
+      stage: 'start',
+      config,
+      cmd: pkg.scripts.start,
+      cwd: config.cwd,
+      isInteractive: true,
+      customShell: '/usr/bin/dummy',
+    });
+  }));

@@ -16,25 +16,32 @@ const path = require('path');
 // regexp which verifies that cache path contains semver + hash
 const cachePathRe = /-\d+\.\d+\.\d+-[\dabcdef]{40}$/;
 
+async function createEnv(configOptions): Object {
+  const lockfile = new Lockfile();
+  const reporter = new reporters.NoopReporter({});
+
+  const loc = await makeTemp();
+  const cacheFolder = path.join(loc, 'cache');
+
+  const config = await Config.create(
+    {
+      cwd: loc,
+      offline: false,
+      cacheFolder,
+      ...configOptions,
+    },
+    reporter,
+  );
+
+  await fs.mkdirp(path.join(loc, 'node_modules'));
+  await fs.mkdirp(config.cacheFolder);
+
+  return {reporter, lockfile, config};
+}
+
 function addTest(pattern, registry = 'npm', init: ?(cacheFolder: string) => Promise<any>, offline = false) {
   test.concurrent(`${offline ? 'offline ' : ''}resolve ${pattern}`, async () => {
-    const lockfile = new Lockfile();
-    const reporter = new reporters.NoopReporter({});
-
-    const loc = await makeTemp();
-    const cacheFolder = path.join(loc, 'cache');
-
-    const config = await Config.create(
-      {
-        cwd: loc,
-        offline,
-        cacheFolder,
-      },
-      reporter,
-    );
-
-    await fs.mkdirp(path.join(loc, 'node_modules'));
-    await fs.mkdirp(config.cacheFolder);
+    const {reporter, lockfile, config} = await createEnv({offline});
 
     if (init) {
       await init(config.cacheFolder);
@@ -44,7 +51,7 @@ function addTest(pattern, registry = 'npm', init: ?(cacheFolder: string) => Prom
     await resolver.init([{pattern, registry}]);
 
     const ref = resolver.getManifests()[0]._reference;
-    const cachePath = config.generateHardModulePath(ref, true);
+    const cachePath = config.generateModuleCachePath(ref);
     expect(cachePath).toMatch(cachePathRe);
 
     await reporter.close();
@@ -52,8 +59,8 @@ function addTest(pattern, registry = 'npm', init: ?(cacheFolder: string) => Prom
 }
 
 addTest('https://github.com/ocaml/ocaml-re'); // git url with no .git
-addTest('git+https://github.com/ocaml/ocaml.git#4.02.3'); // git+hash
-addTest('https://github.com/ocaml/ocaml.git#4.02.3'); // hash
+addTest('git+https://github.com/stevemao/left-pad.git#1.3.0'); // git+hash
+addTest('https://github.com/stevemao/left-pad.git#1.3.0'); // hash
 addTest('https://git@github.com/stevemao/left-pad.git'); // git url, with username
 addTest('https://bitbucket.org/hgarcia/node-bitbucket-api.git'); // hosted git url
 addTest('https://github.com/yarnpkg/yarn/releases/download/v0.18.1/yarn-v0.18.1.tar.gz'); // tarball
@@ -85,3 +92,15 @@ addTest(
   },
   true,
 ); // offline npm scoped package
+
+test.concurrent('addPattern does not add duplicates', async () => {
+  const {reporter, lockfile, config} = await createEnv({});
+  const resolver = new PackageResolver(config, lockfile);
+  resolver.addPattern('patternOne', {name: 'name'});
+  resolver.addPattern('patternTwo', {name: 'name'});
+  resolver.addPattern('patternOne', {name: 'name'});
+
+  expect(resolver.patternsByPackage['name']).toEqual(['patternOne', 'patternTwo']);
+
+  await reporter.close();
+});

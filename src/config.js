@@ -59,6 +59,8 @@ export type ConfigOptions = {
   registry?: ?string,
 
   updateChecksums?: boolean,
+
+  focus?: boolean,
 };
 
 type PackageMetadata = {
@@ -158,6 +160,8 @@ export default class Config {
 
   nonInteractive: boolean;
 
+  scriptsPrependNodePath: boolean;
+
   workspacesEnabled: boolean;
   workspacesNohoistEnabled: boolean;
 
@@ -177,6 +181,9 @@ export default class Config {
 
   //
   commandName: string;
+
+  focus: boolean;
+  focusedWorkspaceName: string;
 
   /**
    * Execute a promise produced by factory if it doesn't exist in our cache with
@@ -226,6 +233,16 @@ export default class Config {
 
     this.workspaceRootFolder = await this.findWorkspaceRoot(this.cwd);
     this.lockfileFolder = this.workspaceRootFolder || this.cwd;
+
+    // using focus in a workspace root is not allowed
+    if (this.focus && (!this.workspaceRootFolder || this.cwd === this.workspaceRootFolder)) {
+      throw new MessageError(this.reporter.lang('workspacesFocusRootCheck'));
+    }
+
+    if (this.focus) {
+      const focusedWorkspaceManifest = await this.readRootManifest();
+      this.focusedWorkspaceName = focusedWorkspaceManifest.name;
+    }
 
     this.linkedModules = [];
 
@@ -385,6 +402,8 @@ export default class Config {
     // $FlowFixMe$
     this.nonInteractive = !!opts.nonInteractive || isCi || !process.stdout.isTTY;
 
+    this.scriptsPrependNodePath = !!opts.scriptsPrependNodePath;
+
     this.requestManager.setOptions({
       offline: !!opts.offline && !opts.preferOffline,
       captureHar: !!opts.captureHar,
@@ -393,19 +412,18 @@ export default class Config {
     if (this.modulesFolder) {
       this.rootModuleFolders.push(this.modulesFolder);
     }
+
+    this.focus = !!opts.focus;
+    this.focusedWorkspaceName = '';
   }
 
   /**
    * Generate an absolute module path.
    */
 
-  generateHardModulePath(pkg: ?PackageReference, ignoreLocation?: ?boolean): string {
+  generateModuleCachePath(pkg: ?PackageReference): string {
     invariant(this.cacheFolder, 'No package root');
     invariant(pkg, 'Undefined package');
-
-    if (pkg.location && !ignoreLocation) {
-      return pkg.location;
-    }
 
     let name = pkg.name;
     let uid = pkg.uid;
@@ -660,7 +678,8 @@ export default class Config {
       .map(registryName => this.registries[registryName].constructor.filename)
       .join('|');
     const trailingPattern = `/+(${registryFilenames})`;
-    const ignorePatterns = this.registryFolders.map(folder => `/${folder}/*/+(${registryFilenames})`);
+    // anything under folder (node_modules) should be ignored, thus use the '**' instead of shallow match "*"
+    const ignorePatterns = this.registryFolders.map(folder => `/${folder}/**/+(${registryFilenames})`);
 
     const files = await Promise.all(
       patterns.map(pattern =>
@@ -713,10 +732,11 @@ export default class Config {
     // validate eligibility
     let wsCopy = {...ws};
     const warnings: Array<string> = [];
+    const errors: Array<string> = [];
 
     // packages
     if (wsCopy.packages && wsCopy.packages.length > 0 && !manifest.private) {
-      warnings.push(this.reporter.lang('workspacesRequirePrivateProjects'));
+      errors.push(this.reporter.lang('workspacesRequirePrivateProjects'));
       wsCopy = undefined;
     }
     // nohoist
@@ -725,19 +745,20 @@ export default class Config {
         warnings.push(this.reporter.lang('workspacesNohoistDisabled', manifest.name));
         wsCopy.nohoist = undefined;
       } else if (!manifest.private) {
-        warnings.push(this.reporter.lang('workspacesNohoistRequirePrivatePackages', manifest.name));
+        errors.push(this.reporter.lang('workspacesNohoistRequirePrivatePackages', manifest.name));
         wsCopy.nohoist = undefined;
       }
     }
 
-    if (warnings.length > 0) {
-      const msg = warnings.join('\n');
-      if (shouldThrow) {
-        throw new MessageError(msg);
-      } else {
-        this.reporter.warn(msg);
-      }
+    if (errors.length > 0 && shouldThrow) {
+      throw new MessageError(errors.join('\n'));
     }
+
+    const msg = errors.concat(warnings).join('\n');
+    if (msg.length > 0) {
+      this.reporter.warn(msg);
+    }
+
     return wsCopy;
   }
 

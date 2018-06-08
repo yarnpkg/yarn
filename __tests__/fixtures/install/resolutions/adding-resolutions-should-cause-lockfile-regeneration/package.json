@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "left-pad": "1.1.1",
+    "e": "file:../e-1"
+  }
+}

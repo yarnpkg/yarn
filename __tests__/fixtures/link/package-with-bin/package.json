@@ -1,0 +1,5 @@
+{
+  "name": "b-package",
+  "private": true,
+  "bin": {"file": "file.js"}
+}

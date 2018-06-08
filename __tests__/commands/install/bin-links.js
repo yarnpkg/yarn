@@ -87,7 +87,7 @@ test('install should respect --no-bin-links flag', (): Promise<void> => {
 });
 
 // Scenario: Transitive dependency having version that is overridden by newer version as the direct dependency.
-// Behavior: eslint@3.12.2 is symlinked in node_modeules/.bin
+// Behavior: eslint@3.12.2 is symlinked in node_modules/.bin
 //           and eslint@3.10.1 is symlinked to node_modules/sample-dep-eslint-3.10.1/node_modules/.bin
 test('newer transitive dep is overridden by newer direct dep', (): Promise<void> => {
   return runInstall({binLinks: true}, 'install-bin-links-newer', async config => {
@@ -101,7 +101,7 @@ test('newer transitive dep is overridden by newer direct dep', (): Promise<void>
 });
 
 // Scenario: Transitive dependency having version that is overridden by older version as the direct dependency.
-// Behavior: eslint@3.10.1 is symlinked in node_modeules/.bin
+// Behavior: eslint@3.10.1 is symlinked in node_modules/.bin
 //           and eslint@3.12.2 is symlinked to node_modules/sample-dep-eslint-3.12.2/node_modules/.bin
 test('newer transitive dep is overridden by older direct dep', (): Promise<void> => {
   return runInstall({binLinks: true}, 'install-bin-links-older', async config => {
@@ -115,9 +115,9 @@ test('newer transitive dep is overridden by older direct dep', (): Promise<void>
 });
 
 // Scenario: Transitive dependency having version that is conflicting with another transitive dependency version.
-// Behavior: eslint@3.10.1 is symlinked in node_modeules/.bin
+// Behavior: eslint@3.10.1 is symlinked in node_modules/.bin
 //           and eslint@3.12.2 is symlinked to node_modules/sample-dep-eslint-3.12.2/node_modules/.bin.
-//           Here it seems like NPM add the modules in alphabatical order
+//           Here it seems like NPM add the modules in alphabetical order
 //           and transitive deps of first dependency is installed at top level.
 test('first transient dep is installed when same level and reference count', (): Promise<void> => {
   return runInstall({binLinks: true}, 'install-bin-links-conflicting', async config => {
@@ -131,7 +131,7 @@ test('first transient dep is installed when same level and reference count', ():
 });
 
 // Scenario: Transitive dependency having version that is conflicting with another dev transitive dependency version.
-// Behavior: eslint@3.10.1 is symlinked in node_modeules/.bin
+// Behavior: eslint@3.10.1 is symlinked in node_modules/.bin
 //           and eslint@3.12.2 is symlinked to node_modules/sample-dep-eslint-3.12.2/node_modules/.bin.
 //           Whether the dependencies are devDependencies or not does not seem to matter to NPM.
 test('first dep is installed when same level and reference count and one is a dev dep', (): Promise<void> => {
@@ -163,5 +163,65 @@ test('Only top level (after hoisting) bin links should be linked', (): Promise<v
     expect(await linkAt(config, 'node_modules', '.bin', 'eslint')).toEqual('../eslint/bin/eslint.js');
     const stdout = await execCommand(config.cwd, ['node_modules', '.bin', 'uglifyjs'], ['--version']);
     expect(stdout[0]).toEqual('uglify-js 3.0.14');
+  });
+});
+
+// fixes https://github.com/yarnpkg/yarn/issues/5876
+test('can use link protocol to install a package that would not be found via node module resolution', (): Promise<
+  void,
+> => {
+  return runInstall({binLinks: true}, {source: 'install-link-siblings', cwd: '/bar'}, async config => {
+    expect(await linkAt(config, 'node_modules', '.bin', 'standard')).toEqual('../standard/bin/cmd.js');
+  });
+});
+
+describe('with nohoist', () => {
+  // address https://github.com/yarnpkg/yarn/issues/5487
+  test('nohoist bin should be linked to its own local module', (): Promise<void> => {
+    return runInstall({binLinks: true}, 'install-bin-links-nohoist', async config => {
+      // make sure all links are created at the right locations and executed correctly
+      const stdout1 = await execCommand(config.cwd, ['node_modules', '.bin', 'exec-a'], []);
+      const stdout2 = await execCommand(config.cwd, ['node_modules', '.bin', 'exec-f'], []);
+      const stdout3 = await execCommand(config.cwd, ['packages', 'a-dep', 'node_modules', '.bin', 'found-me'], []);
+      const stdout4 = await execCommand(config.cwd, ['packages', 'f-dep', 'node_modules', '.bin', 'found-me'], []);
+      expect(stdout1[0]).toEqual('exec-a');
+      expect(stdout2[0]).toEqual('exec-f');
+      expect(stdout3[0]).toEqual('found-me');
+      expect(stdout4[0]).toEqual('found-me');
+
+      // make sure the shared links: found-me are pointing to the local module
+      const localLink = '../found-me/bin.js';
+      expect(await linkAt(config, 'packages', 'a-dep', 'node_modules', '.bin', 'found-me')).toEqual(localLink);
+      expect(await linkAt(config, 'packages', 'f-dep', 'node_modules', '.bin', 'found-me')).toEqual(localLink);
+    });
+  });
+  test('nohoist bin should not be linked at top level, unless it is a top-level package', (): Promise<void> => {
+    return runInstall({binLinks: true}, 'install-bin-links-nohoist', async config => {
+      expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'exec-a'))).toEqual(true);
+      expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'exec-f'))).toEqual(true);
+      expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'found-me'))).toEqual(false);
+
+      // the top-level packages should never be marked nohoist, even if they match nohoist patterns.
+      // therefore, expect those still linked at the root node_modules.
+      expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'top-module'))).toEqual(true);
+      expect(await linkAt(config, 'node_modules', '.bin', 'top-module')).toEqual('../top-module/bin.js');
+    });
+  });
+});
+
+describe('with focus', () => {
+  test('focus points bin links to the shallowly installed packages', (): Promise<void> => {
+    return runInstall(
+      {binLinks: true, focus: true},
+      {source: 'published-monorepo', cwd: '/packages/example-yarn-workspace-1'},
+      async (config): Promise<void> => {
+        expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'example-yarn-workspace-2'))).toEqual(
+          true,
+        );
+        expect(await linkAt(config, 'node_modules', '.bin', 'example-yarn-workspace-2')).toEqual(
+          '../example-yarn-workspace-2/index.js',
+        );
+      },
+    );
   });
 });

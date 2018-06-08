@@ -82,11 +82,14 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
         // only tack on trailing arguments for default script, ignore for pre and post - #1595
         const cmdWithArgs = stage === action ? sh`${unquoted(cmd)} ${args}` : cmd;
         const customShell = config.getOption('script-shell');
-        if (customShell) {
-          await execCommand(stage, config, cmdWithArgs, config.cwd, String(customShell));
-        } else {
-          await execCommand(stage, config, cmdWithArgs, config.cwd);
-        }
+        await execCommand({
+          stage,
+          config,
+          cmd: cmdWithArgs,
+          cwd: config.cwd,
+          isInteractive: true,
+          customShell: customShell ? String(customShell) : undefined,
+        });
       }
     } else if (action === 'env') {
       reporter.log(JSON.stringify(await makeEnv('env', config.cwd, config), null, 2), {force: true});
@@ -110,8 +113,6 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   // list possible scripts if none specified
   if (args.length === 0) {
-    reporter.error(reporter.lang('commandNotSpecified'));
-
     if (binCommands.length) {
       reporter.info(`${reporter.lang('binCommands') + binCommands.join(', ')}`);
     } else {
@@ -121,9 +122,14 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     if (pkgCommands.length) {
       reporter.info(`${reporter.lang('possibleCommands')}`);
       reporter.list('possibleCommands', pkgCommands, cmdHints);
-      await reporter
-        .question(reporter.lang('commandQuestion'))
-        .then(answer => runCommand(answer.split(' ')), () => reporter.error(reporter.lang('commandNotSpecified')));
+      if (!flags.nonInteractive) {
+        await reporter
+          .question(reporter.lang('commandQuestion'))
+          .then(
+            answer => runCommand(answer.trim().split(' ')),
+            () => reporter.error(reporter.lang('commandNotSpecified')),
+          );
+      }
     } else {
       reporter.error(reporter.lang('noScriptsAvailable'));
     }

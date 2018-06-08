@@ -10,10 +10,10 @@ import PackageRequest from './package-request.js';
 import {normalizePattern} from './util/normalize-pattern.js';
 import RequestManager from './util/request-manager.js';
 import BlockingQueue from './util/blocking-queue.js';
-import Lockfile from './lockfile';
+import Lockfile, {type LockManifest} from './lockfile';
 import map from './util/map.js';
 import WorkspaceLayout from './workspace-layout.js';
-import ResolutionMap from './resolution-map.js';
+import ResolutionMap, {shouldUpdateLockfile} from './resolution-map.js';
 
 const invariant = require('invariant');
 const semver = require('semver');
@@ -121,6 +121,7 @@ export default class PackageResolver {
         for (const pattern of newPkg._reference.patterns) {
           const oldPkg = this.patterns[pattern];
           newPkg.prebuiltVariants = oldPkg.prebuiltVariants;
+
           this.patterns[pattern] = newPkg;
         }
       }
@@ -214,7 +215,7 @@ export default class PackageResolver {
   }
 
   /**
-   * Get a list of all package names in the depenency graph.
+   * Get a list of all package names in the dependency graph.
    */
 
   getAllDependencyNamesByLevelOrder(seedPatterns: Array<string>): Iterable<string> {
@@ -352,7 +353,9 @@ export default class PackageResolver {
     this.patterns[pattern] = info;
 
     const byName = (this.patternsByPackage[info.name] = this.patternsByPackage[info.name] || []);
-    byName.push(pattern);
+    if (byName.indexOf(pattern) === -1) {
+      byName.push(pattern);
+    }
   }
 
   /**
@@ -532,7 +535,11 @@ export default class PackageResolver {
 
   async init(
     deps: DependencyRequestPatterns,
-    {isFlat, isFrozen, workspaceLayout}: ResolverOptions = {isFlat: false, isFrozen: false, workspaceLayout: undefined},
+    {isFlat, isFrozen, workspaceLayout}: ResolverOptions = {
+      isFlat: false,
+      isFrozen: false,
+      workspaceLayout: undefined,
+    },
   ): Promise<void> {
     this.flat = Boolean(isFlat);
     this.frozen = Boolean(isFrozen);
@@ -629,7 +636,8 @@ export default class PackageResolver {
         invariant(resolutionManifest._reference, 'resolutions should have a resolved reference');
         resolutionManifest._reference.patterns.push(pattern);
         this.addPattern(pattern, resolutionManifest);
-        if (!this.resolutionMap.topLevelPatterns.has(pattern)) {
+        const lockManifest: ?LockManifest = this.lockfile.getLocked(pattern);
+        if (shouldUpdateLockfile(lockManifest, resolutionManifest._reference)) {
           this.lockfile.removePattern(pattern);
         }
       } else {

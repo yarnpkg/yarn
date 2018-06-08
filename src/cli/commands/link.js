@@ -3,10 +3,12 @@
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
+import * as promise from '../../util/promise.js';
 import * as fs from '../../util/fs.js';
 import {getBinFolder as getGlobalBinFolder} from './global';
 
 const invariant = require('invariant');
+const cmdShim = promise.promisify(require('@zkochan/cmd-shim'));
 const path = require('path');
 
 export async function getRegistryFolder(config: Config, name: string): Promise<string> {
@@ -73,7 +75,11 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
           if (await fs.exists(binDestLoc)) {
             reporter.warn(reporter.lang('binLinkCollision', binName));
           } else {
-            await fs.symlink(binSrcLoc, binDestLoc);
+            if (process.platform === 'win32') {
+              await cmdShim(binSrcLoc, binDestLoc);
+            } else {
+              await fs.symlink(binSrcLoc, binDestLoc);
+            }
           }
         }
       }
