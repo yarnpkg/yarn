@@ -332,8 +332,7 @@ test('TarballFetcher.fetch throws on truncated tar header', async () => {
   await expect(fetcher.fetch()).rejects.toThrow(new RegExp(reporter.lang('errorExtractingTarball', '.*', '.*')));
 });
 
-const fasttest = (message, fun) => test(message, fun, 5000);
-fasttest('TarballFetcher.fetch throws on truncated gzip files', async () => {
+test('TarballFetcher.fetch throws on truncated gzip files', async () => {
   const dir = await mkdir('tarball-fetcher');
   const reporter = new Reporter();
   const fetcher = new LocalTarballFetcher(
