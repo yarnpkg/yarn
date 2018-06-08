@@ -156,9 +156,16 @@ test.concurrent('symlink update', async (): Promise<void> => {
   const flags = {globalFolder: tmpGlobalFolder, prefix: tmpPrefixFolder};
   return runGlobal(['add', 'dummy-for-testing-changed-path@v0.0.3'], flags, 'add-with-prefix-flag', async config => {
     expect(await fs.exists(path.join(tmpGlobalFolder, 'node_modules', 'dummy-for-testing-changed-path'))).toEqual(true);
-    expect(await fs.exists(path.join(tmpPrefixFolder, 'bin', 'dummy-for-testing-changed-path'))).toEqual(true);
-    runGlobal(['upgrade', 'dummy-for-testing-changed-path@v0.0.4'], flags, 'add-with-prefix-flag', async config => {
-      expect(await fs.exists(path.join(tmpPrefixFolder, 'bin', 'dummy-for-testing-changed-path'))).toEqual(true);
+    const dummyPath = path.join(tmpPrefixFolder, 'bin', 'dummy-for-testing-changed-path'))
+
+    expect(await fs.exists(dummyPath)).toEqual(true);
+    const targetBefore = await fs.readlink(dummyPath);
+    
+    await runGlobal(['upgrade', 'dummy-for-testing-changed-path@v0.0.4'], flags, 'add-with-prefix-flag', async config => {
+      expect(await fs.exists(dummyPath)).toEqual(true);
+      const targetAfter = await fs.readlink(dummyPath);
+      
+      expect(targetAfter).not.toEqual(targetBefore);
     });
   });
 });
