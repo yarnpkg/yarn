@@ -160,12 +160,17 @@ test.concurrent('symlink update', async (): Promise<void> => {
 
     expect(await fs.exists(dummyPath)).toEqual(true);
     const targetBefore = await fs.readlink(dummyPath);
-    
-    await runGlobal(['upgrade', 'dummy-for-testing-changed-path@v0.0.4'], flags, 'add-with-prefix-flag', async config => {
-      expect(await fs.exists(dummyPath)).toEqual(true);
-      const targetAfter = await fs.readlink(dummyPath);
-      
-      expect(targetAfter).not.toEqual(targetBefore);
-    });
+
+    await runGlobal(
+      ['upgrade', 'dummy-for-testing-changed-path@v0.0.4'],
+      flags,
+      'add-with-prefix-flag',
+      async config => {
+        expect(await fs.exists(dummyPath)).toEqual(true);
+        const targetAfter = await fs.readlink(dummyPath);
+
+        expect(targetAfter).not.toEqual(targetBefore);
+      },
+    );
   });
 });
