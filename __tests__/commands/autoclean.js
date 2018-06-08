@@ -71,3 +71,12 @@ test.concurrent('runs clean when --force passed and .yarnclean exists', async ()
     expect(await fs.exists(`${config.cwd}/node_modules/left-pad/README.md`)).toEqual(false);
   });
 });
+
+test.concurrent('runs clean even through workspaces', async () => {
+  await runAutoclean({force: true}, 'workspaces', async (config): ?Promise<void> => {
+    expect(await fs.exists(`${config.cwd}/node_modules/left-pad/index.js`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/left-pad/README.md`)).toEqual(false);
+    expect(await fs.exists(`${config.cwd}/foo/node_modules/left-pad/index.js`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/foo/node_modules/left-pad/README.md`)).toEqual(false);
+  });
+});
