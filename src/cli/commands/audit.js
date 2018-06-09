@@ -87,7 +87,6 @@ export class Audit {
     const hoistedTrees = await hoistedTreeBuilder(this.config, this.reporter);
     const auditTree = this._mapHoistedTreesToAuditTree(manifest, hoistedTrees);
     const registry = YARN_REGISTRY;
-    // console.log(JSON.stringify(auditTree, null, 2));
 
     try {
       const response = await this.config.requestManager.request({
@@ -96,7 +95,6 @@ export class Audit {
         body: auditTree,
         json: true,
       });
-      // console.log(JSON.stringify(response, null, 2));
       this.reporter.auditSummary(response);
     } catch (ex) {
       this.reporter.error(ex);
