@@ -313,7 +313,10 @@ test('TarballFetcher.fetch throws on truncated tar data', async () => {
     },
     await Config.create({}, reporter),
   );
-  await expect(fetcher.fetch()).rejects.toThrow(new RegExp(reporter.lang('errorExtractingTarball', '.*', '.*')));
+  await expect(fetcher.fetch()).rejects.toThrow(
+    // The "." in ".tgz" should be escaped, but that doesn't work with reporter.lang
+    new RegExp(reporter.lang('errorExtractingTarball', '.*', '.*broken-tar-data.tgz')),
+  );
 });
 
 test('TarballFetcher.fetch throws on truncated tar header', async () => {
@@ -329,5 +332,8 @@ test('TarballFetcher.fetch throws on truncated tar header', async () => {
     },
     await Config.create({}, reporter),
   );
-  await expect(fetcher.fetch()).rejects.toThrow(new RegExp(reporter.lang('errorExtractingTarball', '.*', '.*')));
+  await expect(fetcher.fetch()).rejects.toThrow(
+    // The "." in ".tgz" should be escaped, but that doesn't work with reporter.lang
+    new RegExp(reporter.lang('errorExtractingTarball', '.*', '.*broken-tar-header.tgz')),
+  );
 });
