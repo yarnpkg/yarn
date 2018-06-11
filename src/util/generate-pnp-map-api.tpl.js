@@ -229,7 +229,7 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer) {
   // Bailout if the request is a native module
 
   if (builtinModules.has(request)) {
-    return request;
+    return null;
   }
 
   let unqualifiedPath;
@@ -360,12 +360,11 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer) {
  * appends ".js" / ".json", and transforms directory accesses into "index.js").
  */
 
-exports.resolveUnqualified = function resolveUnqualified(unqualifiedPath, {extensions = Object.keys(Module._extensions)} = {}) {
-  if (builtinModules.has(unqualifiedPath)) {
-    return unqualifiedPath;
-  }
-
-  let qualifiedPath = applyNodeExtensionResolution(unqualifiedPath, {extensions});
+exports.resolveUnqualified = function resolveUnqualified(
+  unqualifiedPath,
+  {extensions = Object.keys(Module._extensions)} = {},
+) {
+  const qualifiedPath = applyNodeExtensionResolution(unqualifiedPath, {extensions});
 
   if (qualifiedPath) {
     return path.normalize(qualifiedPath);
@@ -387,7 +386,11 @@ exports.resolveUnqualified = function resolveUnqualified(unqualifiedPath, {exten
  */
 
 exports.resolveRequest = function resolveRequest(request, issuer) {
-  let unqualifiedPath = exports.resolveToUnqualified(request, issuer);
+  const unqualifiedPath = exports.resolveToUnqualified(request, issuer);
+
+  if (unqualifiedPath === null) {
+    return null;
+  }
 
   try {
     return exports.resolveUnqualified(unqualifiedPath);
@@ -466,7 +469,8 @@ exports.setup = function setup() {
     const issuerModule = getIssuerModule(parent);
     const issuer = issuerModule ? issuerModule.filename : process.cwd() + path.sep;
 
-    return exports.resolveRequest(request, issuer);
+    const resolution = exports.resolveRequest(request, issuer);
+    return resolution !== null ? resolution : request;
   };
 
   Module._findPath = function(request, paths, isMain) {
@@ -504,13 +508,7 @@ exports.setupCompatibilityLayer = () => {
     let basedir = options.basedir || path.dirname(getCaller());
     basedir = basedir.replace(/[\\\/]?$/, path.sep);
 
-    const resolution = exports.resolveRequest(request, basedir);
-
-    if (resolution) {
-      return resolution;
-    } else {
-      throw new Error(`Resolution failed for path "${request}"`);
-    }
+    return exports.resolveRequest(request, basedir);
   };
 
   const resolveShim = (request, options, callback) => {
@@ -546,15 +544,15 @@ if (module.parent && module.parent.id === 'internal/preload') {
 }
 
 if (process.mainModule === module) {
-  let reportError = (code, message, data) => {
+  const reportError = (code, message, data) => {
     process.stdout.write(`${JSON.stringify([{code, message, data}, null])}\n`);
   };
 
-  let reportSuccess = resolution => {
-    process.stdout.write(`${JSON.stringify([null, resolution])}\n`)
+  const reportSuccess = resolution => {
+    process.stdout.write(`${JSON.stringify([null, resolution])}\n`);
   };
 
-  let processResolution = (request, issuer) => {
+  const processResolution = (request, issuer) => {
     try {
       reportSuccess(exports.resolveRequest(request, issuer));
     } catch (error) {
@@ -562,9 +560,9 @@ if (process.mainModule === module) {
     }
   };
 
-  let processRequest = data => {
+  const processRequest = data => {
     try {
-      let [request, issuer] = JSON.parse(data);
+      const [request, issuer] = JSON.parse(data);
       processResolution(request, issuer);
     } catch (error) {
       reportError(`INVALID_JSON`, error.message, error.data);

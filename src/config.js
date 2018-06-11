@@ -344,7 +344,7 @@ export default class Config {
       this.plugnplayEnabled = !!opts.enablePnp;
     }
 
-    this.plugnplayShebang = this.getOption('plugnplay-shebang') || '/usr/bin/env node';
+    this.plugnplayShebang = String(this.getOption('plugnplay-shebang')) || '/usr/bin/env node';
 
     this.workspacesEnabled = this.getOption('workspaces-experimental') !== false;
     this.workspacesNohoistEnabled = this.getOption('workspaces-nohoist-experimental') !== false;
