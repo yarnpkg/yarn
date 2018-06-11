@@ -71,11 +71,12 @@ export default class GitFetcher extends BaseFetcher {
   }
 
   async fetchFromLocal(override: ?string): Promise<FetchedOverride> {
-    const {stream, triedPaths} = await fsUtil.readFirstAvailableStream(this.getLocalPaths(override));
+    const tarPaths = this.getLocalPaths(override);
+    const stream = await fsUtil.readFirstAvailableStream(tarPaths);
 
     return new Promise((resolve, reject) => {
       if (!stream) {
-        reject(new MessageError(this.reporter.lang('tarballNotInNetworkOrCache', this.reference, triedPaths)));
+        reject(new MessageError(this.reporter.lang('tarballNotInNetworkOrCache', this.reference, tarPaths)));
         return;
       }
       invariant(stream, 'cachedStream should be available at this point');
