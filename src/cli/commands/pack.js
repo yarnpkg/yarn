@@ -118,9 +118,10 @@ export async function packTarball(
   sortFilter(files, filters, keepFiles, possibleKeepFiles, ignoredFiles);
 
   // add the files for the bundled dependencies to the set of files to keep
-  bundleDependenciesFiles.forEach(file => {
-    keepFiles.add(path.relative(config.cwd, file.absolute));
-  });
+  for (const file of bundleDependenciesFiles) {
+    const realPath = await fs.realpath(config.cwd);
+    keepFiles.add(path.relative(realPath, file.absolute));
+  }
 
   return packWithIgnoreAndHeaders(
     config.cwd,
