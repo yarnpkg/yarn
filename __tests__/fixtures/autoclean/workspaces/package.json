@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "workspaces": [
+    "foo"
+  ],
+  "dependencies": {
+    "left-pad": "^1.1.3"
+  }
+}

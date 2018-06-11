@@ -234,7 +234,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   const bundledDeps = {};
   // check if any of the node_modules are out of sync
-  const res = await install.linker.getFlatHoistedTree(patterns);
+  const res = await install.linker.getFlatHoistedTree(patterns, workspaceLayout);
   for (const [loc, {originalKey, pkg, ignore}] of res) {
     if (ignore) {
       continue;

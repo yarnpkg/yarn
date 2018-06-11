@@ -54,7 +54,6 @@ type IntegrityFile = {
 type IntegrityFlags = {
   flat: boolean,
   checkFiles: boolean,
-  focus: boolean,
 };
 
 const INTEGRITY_FILE_DEFAULTS = () => ({
@@ -241,8 +240,8 @@ export default class InstallationIntegrityChecker {
     if (flags.ignoreScripts) {
       result.flags.push('ignoreScripts');
     }
-    if (flags.focus) {
-      result.flags.push('focus: ' + path.basename(this.config.cwd));
+    if (this.config.focus) {
+      result.flags.push('focus: ' + this.config.focusedWorkspaceName);
     }
 
     if (this.config.production) {

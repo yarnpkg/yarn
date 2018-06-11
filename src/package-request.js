@@ -190,9 +190,9 @@ export default class PackageRequest {
       const resolver = new WorkspaceResolver(this, this.pattern, this.resolver.workspaceLayout);
       let manifest;
       if (
-        this.resolver.focus &&
+        this.config.focus &&
         !this.pattern.includes(this.resolver.workspaceLayout.virtualManifestName) &&
-        !this.pattern.startsWith(path.basename(this.config.cwd) + '@')
+        !this.pattern.startsWith(this.config.focusedWorkspaceName + '@')
       ) {
         const localInfo = this.resolver.workspaceLayout.getManifestByPattern(this.pattern);
         invariant(localInfo, 'expected local info for ' + this.pattern);

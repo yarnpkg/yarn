@@ -59,6 +59,8 @@ export type ConfigOptions = {
   registry?: ?string,
 
   updateChecksums?: boolean,
+
+  focus?: boolean,
 };
 
 type PackageMetadata = {
@@ -180,6 +182,9 @@ export default class Config {
   //
   commandName: string;
 
+  focus: boolean;
+  focusedWorkspaceName: string;
+
   /**
    * Execute a promise produced by factory if it doesn't exist in our cache with
    * the associated key.
@@ -228,6 +233,16 @@ export default class Config {
 
     this.workspaceRootFolder = await this.findWorkspaceRoot(this.cwd);
     this.lockfileFolder = this.workspaceRootFolder || this.cwd;
+
+    // using focus in a workspace root is not allowed
+    if (this.focus && (!this.workspaceRootFolder || this.cwd === this.workspaceRootFolder)) {
+      throw new MessageError(this.reporter.lang('workspacesFocusRootCheck'));
+    }
+
+    if (this.focus) {
+      const focusedWorkspaceManifest = await this.readRootManifest();
+      this.focusedWorkspaceName = focusedWorkspaceManifest.name;
+    }
 
     this.linkedModules = [];
 
@@ -397,6 +412,9 @@ export default class Config {
     if (this.modulesFolder) {
       this.rootModuleFolders.push(this.modulesFolder);
     }
+
+    this.focus = !!opts.focus;
+    this.focusedWorkspaceName = '';
   }
 
   /**

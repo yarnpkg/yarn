@@ -666,9 +666,9 @@ export default class PackageHoister {
   }
 
   markShallowWorkspaceEntries() {
-    const targetWorkspace = path.basename(this.config.cwd);
+    const targetWorkspace = this.config.focusedWorkspaceName;
     const targetHoistManifest = this.tree.get(targetWorkspace);
-    invariant(targetHoistManifest, 'targetHoistManifest missing');
+    invariant(targetHoistManifest, `targetHoistManifest from ${targetWorkspace} missing`);
 
     //dedupe with a set
     const dependentWorkspaces = Array.from(new Set(this._getDependentWorkspaces(targetHoistManifest)));
@@ -857,7 +857,7 @@ export default class PackageHoister {
         }
 
         if (shallowPath) {
-          const targetWorkspace = path.basename(this.config.cwd);
+          const targetWorkspace = this.config.focusedWorkspaceName;
           const treeEntry = this.tree.get(`${targetWorkspace}#${shallowPath}`) || this.tree.get(shallowPath);
           invariant(treeEntry, 'expected treeEntry for ' + shallowPath);
           const moduleFolderName = this.config.getFolder(treeEntry.pkg);

@@ -326,3 +326,19 @@ test.concurrent("install should fix if lockfile patterns don't match resolved ve
     expect(lockContent).toContain('left-pad-1.1.2.tgz');
   });
 });
+
+test.concurrent('install should warn if a conflicting npm package-lock.json exists', (): Promise<void> => {
+  const fixture = 'lockfile-conflict-package-lock-json';
+
+  return runInstall({}, fixture, (config, reporter, install, getStdout) => {
+    expect(getStdout()).toContain('package-lock.json found');
+  });
+});
+
+test.concurrent('install should warn if a conflicting npm npm-shrinkwrap.json exists', (): Promise<void> => {
+  const fixture = 'lockfile-conflict-npm-shrinkwrap-json';
+
+  return runInstall({}, fixture, (config, reporter, install, getStdout) => {
+    expect(getStdout()).toContain('npm-shrinkwrap.json found');
+  });
+});
