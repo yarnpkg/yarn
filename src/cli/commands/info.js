@@ -60,7 +60,13 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const packageInput = NpmRegistry.escapeName(packageName);
   const {name, version} = parsePackageName(packageInput);
 
-  let result = await config.registries.npm.request(name, {unfiltered: true});
+  let result;
+  try {
+    result = await config.registries.npm.request(name, {unfiltered: true});
+  } catch (e) {
+    reporter.error(reporter.lang('infoFail'));
+    return;
+  }
   if (!result) {
     reporter.error(reporter.lang('infoFail'));
     return;

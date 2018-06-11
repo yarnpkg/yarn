@@ -166,6 +166,15 @@ test('Only top level (after hoisting) bin links should be linked', (): Promise<v
   });
 });
 
+// fixes https://github.com/yarnpkg/yarn/issues/5876
+test('can use link protocol to install a package that would not be found via node module resolution', (): Promise<
+  void,
+> => {
+  return runInstall({binLinks: true}, {source: 'install-link-siblings', cwd: '/bar'}, async config => {
+    expect(await linkAt(config, 'node_modules', '.bin', 'standard')).toEqual('../standard/bin/cmd.js');
+  });
+});
+
 describe('with nohoist', () => {
   // address https://github.com/yarnpkg/yarn/issues/5487
   test('nohoist bin should be linked to its own local module', (): Promise<void> => {
@@ -197,5 +206,22 @@ describe('with nohoist', () => {
       expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'top-module'))).toEqual(true);
       expect(await linkAt(config, 'node_modules', '.bin', 'top-module')).toEqual('../top-module/bin.js');
     });
+  });
+});
+
+describe('with focus', () => {
+  test.skip('focus points bin links to the shallowly installed packages', (): Promise<void> => {
+    return runInstall(
+      {binLinks: true, focus: true},
+      {source: 'published-monorepo', cwd: '/packages/example-yarn-workspace-1'},
+      async (config): Promise<void> => {
+        expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'example-yarn-workspace-2'))).toEqual(
+          true,
+        );
+        expect(await linkAt(config, 'node_modules', '.bin', 'example-yarn-workspace-2')).toEqual(
+          '../example-yarn-workspace-2/index.js',
+        );
+      },
+    );
   });
 });

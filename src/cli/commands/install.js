@@ -76,7 +76,7 @@ type Flags = {
   // outdated, update-interactive
   includeWorkspaceDeps: boolean,
 
-  // remove, upgrade
+  // add, remove, upgrade
   workspaceRootIsCwd: boolean,
 };
 
@@ -530,8 +530,13 @@ export class Install {
     this.checkUpdate();
 
     // warn if we have a shrinkwrap
-    if (await fs.exists(path.join(this.config.lockfileFolder, 'npm-shrinkwrap.json'))) {
+    if (await fs.exists(path.join(this.config.lockfileFolder, constants.NPM_SHRINKWRAP_FILENAME))) {
       this.reporter.warn(this.reporter.lang('shrinkwrapWarning'));
+    }
+
+    // warn if we have an npm lockfile
+    if (await fs.exists(path.join(this.config.lockfileFolder, constants.NPM_LOCK_FILENAME))) {
+      this.reporter.warn(this.reporter.lang('npmLockfileWarning'));
     }
 
     let flattenedTopLevelPatterns: Array<string> = [];
@@ -663,18 +668,8 @@ export class Install {
     }
 
     // fin!
-    // The second condition is to make sure lockfile can be updated when running `remove` command.
-    if (
-      topLevelPatterns.length ||
-      (await fs.exists(path.join(this.config.lockfileFolder, constants.LOCKFILE_FILENAME)))
-    ) {
-      await this.saveLockfileAndIntegrity(topLevelPatterns, workspaceLayout);
-    } else {
-      this.reporter.info(this.reporter.lang('notSavedLockfileNoDependencies'));
-    }
-
+    await this.saveLockfileAndIntegrity(topLevelPatterns, workspaceLayout);
     await this.persistChanges();
-
     this.maybeOutputUpdate();
     this.config.requestManager.clearCache();
     return flattenedTopLevelPatterns;
@@ -883,7 +878,7 @@ export class Install {
       );
     }
 
-    // --no-lockfile or --pure-lockfile or --frozen-lockfile flag
+    // --no-lockfile or --pure-lockfile or --frozen-lockfile
     if (this.flags.lockfile === false || this.flags.pureLockfile || this.flags.frozenLockfile) {
       return;
     }
@@ -962,7 +957,7 @@ export class Install {
         }
         loc = ref.remote.reference;
       } else {
-        loc = this.config.generateHardModulePath(ref);
+        loc = this.config.generateModuleCachePath(ref);
       }
       const newPkg = await this.config.readManifest(loc);
       await this.resolver.updateManifest(ref, newPkg);

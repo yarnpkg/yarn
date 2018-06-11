@@ -316,7 +316,7 @@ exports.generatePkgDriver = function generatePkgDriver({runDriver}: {|runDriver:
       }
 
       return async function(): Promise<void> {
-        const path = await fsUtils.createTemporaryFolder();
+        const path = await fsUtils.realpath(await fsUtils.createTemporaryFolder());
 
         const registryUrl = await exports.startPackageServer();
 

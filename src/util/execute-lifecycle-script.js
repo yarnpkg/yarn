@@ -269,9 +269,8 @@ export async function executeLifecycleScript({
     detached = false;
   }
 
-  const stdout = customShell
-    ? await child.spawn(customShell, [cmd], {cwd, env, stdio, detached, windowsVerbatimArguments: true}, onProgress)
-    : await child.spawn(cmd, [], {cwd, env, stdio, detached, shell: true}, onProgress);
+  const shell = customShell || true;
+  const stdout = await child.spawn(cmd, [], {cwd, env, stdio, detached, shell}, onProgress);
 
   return {cwd, command: cmd, stdout};
 }

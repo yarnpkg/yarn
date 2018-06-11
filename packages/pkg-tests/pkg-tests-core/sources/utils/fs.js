@@ -178,6 +178,10 @@ exports.chmod = function chmod(target: string, mod: number): Promise<void> {
   return fs.chmod(target, mod);
 };
 
+exports.realpath = function realpath(source: string): Promise<string> {
+  return fs.realpath(source);
+};
+
 exports.makeFakeBinary = async function(
   target: string,
   {output = `Fake binary`, exitCode = 1}: {|output: string, exitCode: number|} = {},

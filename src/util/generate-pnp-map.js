@@ -143,7 +143,8 @@ async function getPackageInformationStores(
       return null;
     }
 
-    const loc = ref.location;
+    invariant(ref.locations.length <= 1, 'Must have at most one location (usually in the cache)');
+    const loc = ref.locations[0];
 
     if (!loc) {
       return null;
@@ -290,7 +291,8 @@ async function getPackageInformationStores(
       const ref = pkg._reference;
       invariant(ref, `Workspaces should have a reference`);
 
-      const loc = ref.location;
+      invariant(ref.locations.length === 1, `Workspaces should have exactly one location`);
+      const loc = ref.locations[0];
       invariant(loc, `Workspaces should have a location`);
 
       let packageInformationStore = packageInformationStores.get(name);

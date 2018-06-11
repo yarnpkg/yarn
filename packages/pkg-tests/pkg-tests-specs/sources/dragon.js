@@ -57,7 +57,7 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
       ),
     );
 
-    describe(
+    test(
       `it should pass the dragon test 2`,
       makeTemporaryEnv(
         {

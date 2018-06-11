@@ -535,7 +535,11 @@ export default class PackageResolver {
 
   async init(
     deps: DependencyRequestPatterns,
-    {isFlat, isFrozen, workspaceLayout}: ResolverOptions = {isFlat: false, isFrozen: false, workspaceLayout: undefined},
+    {isFlat, isFrozen, workspaceLayout}: ResolverOptions = {
+      isFlat: false,
+      isFrozen: false,
+      workspaceLayout: undefined,
+    },
   ): Promise<void> {
     this.flat = Boolean(isFlat);
     this.frozen = Boolean(isFrozen);

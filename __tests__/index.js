@@ -196,10 +196,8 @@ test.concurrent('should show version of yarn with -v', async () => {
 });
 
 test.concurrent('should run version command', async () => {
-  await expectAnErrorMessage(
-    execCommand('version', [], 'run-version'),
-    'You must specify a new version with --new-version when running with --non-interactive.',
-  );
+  const stdout = await execCommand('version', [], 'run-version');
+  expect(stdout[0]).toEqual(`yarn version v${pkg.version}`);
 });
 
 test.concurrent('should run --version command', async () => {
@@ -227,7 +225,7 @@ test.concurrent('should install if no args', async () => {
 
 test.concurrent('should install if first arg looks like a flag', async () => {
   const stdout = await execCommand('--json', [], 'run-add', true);
-  expect(stdout[stdout.length - 1]).toEqual('{"type":"info","data":"Lockfile not saved, no dependencies."}');
+  expect(stdout[stdout.length - 1]).toEqual('{"type":"success","data":"Saved lockfile."}');
 });
 
 test.concurrent('should not output JSON activity/progress if given --no-progress option', async () => {

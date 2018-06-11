@@ -35,7 +35,7 @@ export default class PackageReference {
     this.ignore = false;
     this.incompatible = false;
     this.fresh = false;
-    this.location = null;
+    this.locations = [];
     this.addRequest(request);
   }
 
@@ -58,15 +58,17 @@ export default class PackageReference {
   permissions: {[key: string]: boolean};
   remote: PackageRemote;
   registry: RegistryNames;
-  location: ?string;
+  locations: Array<string>;
   resolver: PackageResolver;
 
   setFresh(fresh: boolean) {
     this.fresh = fresh;
   }
 
-  setLocation(loc: string): string {
-    return (this.location = loc);
+  addLocation(loc: string) {
+    if (this.locations.indexOf(loc) === -1) {
+      this.locations.push(loc);
+    }
   }
 
   addRequest(request: PackageRequest) {

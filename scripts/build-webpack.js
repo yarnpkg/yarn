@@ -87,6 +87,7 @@ const compiler = webpack({
     new webpack.BannerPlugin({
       banner: '#!/usr/bin/env node',
       raw: true,
+      exclude: /lockfile/
     }),
   ],
   output: {

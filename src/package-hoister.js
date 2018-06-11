@@ -5,6 +5,7 @@ import Config from './config.js';
 import type {Manifest} from './types.js';
 import {sortAlpha} from './util/misc.js';
 import mm from 'micromatch';
+import WorkspaceLayout from './workspace-layout.js';
 
 const invariant = require('invariant');
 const path = require('path');
@@ -45,6 +46,9 @@ export class HoistManifest {
 
     this.isNohoist = false;
     this.originalParentPath = '';
+
+    this.shallowPaths = [];
+    this.isShallow = false;
   }
 
   isRequired: boolean;
@@ -58,6 +62,10 @@ export class HoistManifest {
   key: string;
   originalKey: string;
 
+  //focus
+  shallowPaths: Array<?string>;
+  isShallow: boolean;
+
   // nohoist info
   isNohoist: boolean;
   nohoistList: ?Array<string>;
@@ -69,7 +77,11 @@ export class HoistManifest {
 }
 
 export default class PackageHoister {
-  constructor(config: Config, resolver: PackageResolver, {ignoreOptional}: {ignoreOptional: ?boolean} = {}) {
+  constructor(
+    config: Config,
+    resolver: PackageResolver,
+    {ignoreOptional, workspaceLayout}: {ignoreOptional: ?boolean, workspaceLayout: ?WorkspaceLayout} = {},
+  ) {
     this.resolver = resolver;
     this.config = config;
 
@@ -79,12 +91,16 @@ export default class PackageHoister {
     this.levelQueue = [];
     this.tree = new Map();
 
+    this.workspaceLayout = workspaceLayout;
+
     this.nohoistResolver = new NohoistResolver(config, resolver);
   }
 
   resolver: PackageResolver;
   config: Config;
   nohoistResolver: NohoistResolver;
+
+  workspaceLayout: ?WorkspaceLayout;
 
   ignoreOptional: ?boolean;
 
@@ -216,7 +232,7 @@ export default class PackageHoister {
     }
 
     //
-    const loc: string = this.config.generateHardModulePath(ref);
+    const loc: string = this.config.generateModuleCachePath(ref);
     const parts = parentParts.concat(pkg.name);
     const key: string = this.implodeKey(parts);
     const info: HoistManifest = new HoistManifest(key, parts, pkg, loc, isDirectRequire, isRequired, isIncompatible);
@@ -649,6 +665,155 @@ export default class PackageHoister {
     }
   }
 
+  markShallowWorkspaceEntries() {
+    const targetWorkspace = this.config.focusedWorkspaceName;
+    const targetHoistManifest = this.tree.get(targetWorkspace);
+    invariant(targetHoistManifest, `targetHoistManifest from ${targetWorkspace} missing`);
+
+    //dedupe with a set
+    const dependentWorkspaces = Array.from(new Set(this._getDependentWorkspaces(targetHoistManifest)));
+
+    const entries = Array.from(this.tree);
+    entries.forEach(([key, info]) => {
+      const splitPath = key.split('#');
+
+      //mark the workspace and any un-hoisted dependencies it has for shallow installation
+      const isShallowDependency = dependentWorkspaces.some(w => {
+        if (splitPath[0] !== w) {
+          //entry is not related to the workspace
+          return false;
+        }
+        if (!splitPath[1]) {
+          //entry is the workspace
+          return true;
+        }
+        //don't bother marking dev dependencies or nohoist packages for shallow installation
+        const treeEntry = this.tree.get(w);
+        invariant(treeEntry, 'treeEntry is not defined for ' + w);
+        const pkg = treeEntry.pkg;
+        return !info.isNohoist && (!pkg.devDependencies || !(splitPath[1] in pkg.devDependencies));
+      });
+
+      if (isShallowDependency) {
+        info.shallowPaths = [null];
+        return;
+      }
+
+      //if package foo is at TARGET_WORKSPACE/node_modules/foo, the hoisted version of foo
+      //should be installed under each shallow workspace that uses it
+      //(unless that workspace has its own version of foo, in which case that should be installed)
+      if (splitPath.length !== 2 || splitPath[0] !== targetWorkspace) {
+        return;
+      }
+      const unhoistedDependency = splitPath[1];
+      const unhoistedInfo = this.tree.get(unhoistedDependency);
+      if (!unhoistedInfo) {
+        return;
+      }
+      dependentWorkspaces.forEach(w => {
+        if (this._packageDependsOnHoistedPackage(w, unhoistedDependency, false)) {
+          unhoistedInfo.shallowPaths.push(w);
+        }
+      });
+    });
+  }
+
+  _getDependentWorkspaces(
+    parent: HoistManifest,
+    allowDevDeps: boolean = true,
+    alreadySeen: Set<string> = new Set(),
+  ): Array<string> {
+    const parentName = parent.pkg.name;
+    if (alreadySeen.has(parentName)) {
+      return [];
+    }
+
+    alreadySeen.add(parentName);
+    invariant(this.workspaceLayout, 'missing workspaceLayout');
+    const {virtualManifestName, workspaces} = this.workspaceLayout;
+
+    const directDependencies = [];
+    const ignored = [];
+    Object.keys(workspaces).forEach(workspace => {
+      if (alreadySeen.has(workspace) || workspace === virtualManifestName) {
+        return;
+      }
+
+      //skip a workspace if a different version of it is already being installed under the parent workspace
+      let info = this.tree.get(`${parentName}#${workspace}`);
+      if (info) {
+        const workspaceVersion = workspaces[workspace].manifest.version;
+        if (
+          info.isNohoist &&
+          info.originalParentPath.startsWith(`/${WS_ROOT_ALIAS}/${parentName}`) &&
+          info.pkg.version === workspaceVersion
+        ) {
+          //nohoist installations are exceptions
+          directDependencies.push(info.key);
+        } else {
+          ignored.push(workspace);
+        }
+        return;
+      }
+
+      const searchPath = `/${WS_ROOT_ALIAS}/${parentName}`;
+      info = this.tree.get(workspace);
+      invariant(info, 'missing workspace tree entry ' + workspace);
+      if (!info.previousPaths.some(p => p.startsWith(searchPath))) {
+        return;
+      }
+      if (allowDevDeps || !parent.pkg.devDependencies || !(workspace in parent.pkg.devDependencies)) {
+        directDependencies.push(workspace);
+      }
+    });
+
+    let nested = directDependencies.map(d => {
+      const dependencyEntry = this.tree.get(d);
+      invariant(dependencyEntry, 'missing dependencyEntry ' + d);
+      return this._getDependentWorkspaces(dependencyEntry, false, alreadySeen);
+    });
+    nested = [].concat.apply([], nested); //flatten
+
+    const directDependencyNames = directDependencies.map(d => d.split('#').slice(-1)[0]);
+
+    return directDependencyNames.concat(nested).filter(w => ignored.indexOf(w) === -1);
+  }
+
+  _packageDependsOnHoistedPackage(
+    p: string,
+    hoisted: string,
+    checkDevDeps: boolean = true,
+    checked: Set<string> = new Set(),
+  ): boolean {
+    //don't check the same package more than once, and ignore any package that has its own version of hoisted
+    if (checked.has(p) || this.tree.has(`${p}#${hoisted}`)) {
+      return false;
+    }
+    checked.add(p);
+    const info = this.tree.get(p);
+    if (!info) {
+      return false;
+    }
+
+    const pkg = info.pkg;
+    if (!pkg) {
+      return false;
+    }
+
+    let deps = [];
+    if (pkg.dependencies) {
+      deps = deps.concat(Object.keys(pkg.dependencies));
+    }
+    if (checkDevDeps && pkg.devDependencies) {
+      deps = deps.concat(Object.keys(pkg.devDependencies));
+    }
+
+    if (deps.indexOf(hoisted) !== -1) {
+      return true;
+    }
+    return deps.some(dep => this._packageDependsOnHoistedPackage(dep, hoisted, false, checked));
+  }
+
   /**
    * Produce a flattened list of module locations and manifests.
    */
@@ -670,6 +835,7 @@ export default class PackageHoister {
         parts.push(keyParts[i]);
       }
 
+      const shallowLocs = [];
       if (this.config.modulesFolder) {
         // remove the first part which will be the folder name and replace it with a
         // hardcoded modules folder
@@ -679,8 +845,33 @@ export default class PackageHoister {
         parts.splice(0, 0, this.config.lockfileFolder);
       }
 
+      info.shallowPaths.forEach(shallowPath => {
+        const shallowCopyParts = parts.slice();
+        shallowCopyParts[0] = this.config.cwd;
+        if (this.config.modulesFolder) {
+          //add back the module folder name for the shallow installation
+          const treeEntry = this.tree.get(keyParts[0]);
+          invariant(treeEntry, 'expected treeEntry for ' + keyParts[0]);
+          const moduleFolderName = this.config.getFolder(treeEntry.pkg);
+          shallowCopyParts.splice(1, 0, moduleFolderName);
+        }
+
+        if (shallowPath) {
+          const targetWorkspace = this.config.focusedWorkspaceName;
+          const treeEntry = this.tree.get(`${targetWorkspace}#${shallowPath}`) || this.tree.get(shallowPath);
+          invariant(treeEntry, 'expected treeEntry for ' + shallowPath);
+          const moduleFolderName = this.config.getFolder(treeEntry.pkg);
+          shallowCopyParts.splice(1, 0, moduleFolderName, shallowPath);
+        }
+        shallowLocs.push(path.join(...shallowCopyParts));
+      });
+
       const loc = path.join(...parts);
       flatTree.push([loc, info]);
+      shallowLocs.forEach(shallowLoc => {
+        const newManifest = ({...info, isShallow: true}: any);
+        flatTree.push([shallowLoc, (newManifest: HoistManifest)]);
+      });
     }
 
     // remove ignored modules from the tree

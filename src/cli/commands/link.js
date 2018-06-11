@@ -8,7 +8,7 @@ import * as fs from '../../util/fs.js';
 import {getBinFolder as getGlobalBinFolder} from './global';
 
 const invariant = require('invariant');
-const cmdShim = promise.promisify(require('cmd-shim'));
+const cmdShim = promise.promisify(require('@zkochan/cmd-shim'));
 const path = require('path');
 
 export async function getRegistryFolder(config: Config, name: string): Promise<string> {

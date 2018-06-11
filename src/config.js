@@ -49,6 +49,7 @@ export type ConfigOptions = {
   nonInteractive?: boolean,
   enablePnp?: boolean,
   disablePnp?: boolean,
+  scriptsPrependNodePath?: boolean,
 
   // Loosely compare semver for invalid cases like "0.01.0"
   looseSemver?: ?boolean,
@@ -60,6 +61,8 @@ export type ConfigOptions = {
   registry?: ?string,
 
   updateChecksums?: boolean,
+
+  focus?: boolean,
 };
 
 type PackageMetadata = {
@@ -163,6 +166,8 @@ export default class Config {
   plugnplayEnabled: boolean;
   plugnplayShebang: ?string;
 
+  scriptsPrependNodePath: boolean;
+
   workspacesEnabled: boolean;
   workspacesNohoistEnabled: boolean;
 
@@ -182,6 +187,9 @@ export default class Config {
 
   //
   commandName: string;
+
+  focus: boolean;
+  focusedWorkspaceName: string;
 
   /**
    * Execute a promise produced by factory if it doesn't exist in our cache with
@@ -231,6 +239,16 @@ export default class Config {
 
     this.workspaceRootFolder = await this.findWorkspaceRoot(this.cwd);
     this.lockfileFolder = this.workspaceRootFolder || this.cwd;
+
+    // using focus in a workspace root is not allowed
+    if (this.focus && (!this.workspaceRootFolder || this.cwd === this.workspaceRootFolder)) {
+      throw new MessageError(this.reporter.lang('workspacesFocusRootCheck'));
+    }
+
+    if (this.focus) {
+      const focusedWorkspaceManifest = await this.readRootManifest();
+      this.focusedWorkspaceName = focusedWorkspaceManifest.name;
+    }
 
     this.linkedModules = [];
 
@@ -407,6 +425,8 @@ export default class Config {
     // $FlowFixMe$
     this.nonInteractive = !!opts.nonInteractive || isCi || !process.stdout.isTTY;
 
+    this.scriptsPrependNodePath = !!opts.scriptsPrependNodePath;
+
     this.requestManager.setOptions({
       offline: !!opts.offline && !opts.preferOffline,
       captureHar: !!opts.captureHar,
@@ -415,19 +435,18 @@ export default class Config {
     if (this.modulesFolder) {
       this.rootModuleFolders.push(this.modulesFolder);
     }
+
+    this.focus = !!opts.focus;
+    this.focusedWorkspaceName = '';
   }
 
   /**
    * Generate an absolute module path.
    */
 
-  generateHardModulePath(pkg: ?PackageReference, ignoreLocation?: ?boolean): string {
+  generateModuleCachePath(pkg: ?PackageReference): string {
     invariant(this.cacheFolder, 'No package root');
     invariant(pkg, 'Undefined package');
-
-    if (pkg.location && !ignoreLocation) {
-      return pkg.location;
-    }
 
     let name = pkg.name;
     let uid = pkg.uid;
