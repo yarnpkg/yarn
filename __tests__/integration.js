@@ -468,6 +468,19 @@ test('cache folder fallback', async () => {
   expect(stderrOutput2.toString()).toMatch(/Skipping preferred cache folder/);
 });
 
+test('relative cache folder', async () => {
+  const base = await makeTemp();
+
+  await fs.writeFile(`${base}/.yarnrc`, 'cache-folder "./foo"\n');
+
+  await fs.mkdirp(`${base}/sub`);
+  await fs.mkdirp(`${base}/foo`);
+
+  const [stdoutOutput, _] = await runYarn(['cache', 'dir'], {cwd: `${base}/sub`});
+
+  expect(await fs.realpath(path.dirname(stdoutOutput.toString()))).toEqual(await fs.realpath(`${base}/foo`));
+});
+
 test('yarn create', async () => {
   const cwd = await makeTemp();
   const options = {cwd, env: {YARN_SILENT: 1}};
