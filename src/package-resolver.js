@@ -27,7 +27,6 @@ export type ResolverOptions = {|
 export default class PackageResolver {
   constructor(config: Config, lockfile: Lockfile, resolutionMap: ResolutionMap = new ResolutionMap(config)) {
     this.patternsByPackage = map();
-    this.fetchingPatterns = new Set();
     this.fetchingQueue = new BlockingQueue('resolver fetching');
     this.patterns = map();
     this.resolutionMap = resolutionMap;
@@ -496,18 +495,14 @@ export default class PackageResolver {
       return;
     }
 
-    const request = new PackageRequest(req, this);
-    const fetchKey = `${req.registry}:${req.pattern}:${String(req.optional)}`;
-    const initialFetch = !this.fetchingPatterns.has(fetchKey);
+    const existingManifest = this.patterns[req.pattern];
     let fresh = false;
 
     if (this.activity) {
       this.activity.tick(req.pattern);
     }
-
-    if (initialFetch) {
-      this.fetchingPatterns.add(fetchKey);
-
+    const request = new PackageRequest(req, this);
+    if (!existingManifest) {
       const lockfileEntry = this.lockfile.getLocked(req.pattern);
 
       if (lockfileEntry) {
@@ -524,9 +519,10 @@ export default class PackageResolver {
       }
 
       request.init();
+      await request.find({fresh, frozen: this.frozen});
+    } else if (existingManifest._reference) {
+      existingManifest._reference.addRequest(request);
     }
-
-    await request.find({fresh, frozen: this.frozen});
   }
 
   /**
