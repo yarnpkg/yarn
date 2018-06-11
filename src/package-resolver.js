@@ -520,8 +520,14 @@ export default class PackageResolver {
 
       request.init();
       await request.find({fresh, frozen: this.frozen});
-    } else if (existingManifest._reference) {
+    } else if (
+      existingManifest._reference &&
+      existingManifest._reference.hint === initialReq.hint &&
+      existingManifest._reference.optional === initialReq.optional
+    ) {
       existingManifest._reference.addRequest(request);
+    } else {
+      await request.find({fresh, frozen: this.frozen});
     }
   }
 
