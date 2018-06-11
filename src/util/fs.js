@@ -816,11 +816,11 @@ export async function makeTempDir(prefix?: string): Promise<string> {
 
 export async function readFirstAvailableStream(paths: Iterable<?string>): Promise<?ReadStream> {
   let stream: ?ReadStream;
-  for (const tarballPath of paths) {
-    if (tarballPath) {
+  for (const path of paths) {
+    if (path) {
       try {
-        const fd = await open(tarballPath, 'r');
-        stream = fs.createReadStream(tarballPath, {fd});
+        const fd = await open(path, 'r');
+        stream = fs.createReadStream(path, {fd});
         break;
       } catch (err) {
         // Try the next one
