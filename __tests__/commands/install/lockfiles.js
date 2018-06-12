@@ -44,13 +44,14 @@ test.concurrent("writes new lockfile if existing one isn't satisfied", async ():
   });
 });
 
-test.concurrent("doesn't write a lockfile when there are no dependencies", (): Promise<void> => {
+test.concurrent('writes a lockfile when there are no dependencies', (): Promise<void> => {
   return runInstall({}, 'install-without-dependencies', async config => {
     const lockfileExists = await fs.exists(path.join(config.cwd, 'yarn.lock'));
     const installedDepFiles = await fs.walk(path.join(config.cwd, 'node_modules'));
 
-    expect(lockfileExists).toEqual(false);
-    expect(installedDepFiles).toHaveLength(0);
+    expect(lockfileExists).toEqual(true);
+    // 1 for integrity file (located in node_modules)
+    expect(installedDepFiles).toHaveLength(1);
   });
 });
 
@@ -323,5 +324,21 @@ test.concurrent("install should fix if lockfile patterns don't match resolved ve
     expect(lockContent).toContain('mime-db-1.23.0.tgz');
     expect(lockContent).not.toContain('left-pad-1.1.3.tgz');
     expect(lockContent).toContain('left-pad-1.1.2.tgz');
+  });
+});
+
+test.concurrent('install should warn if a conflicting npm package-lock.json exists', (): Promise<void> => {
+  const fixture = 'lockfile-conflict-package-lock-json';
+
+  return runInstall({}, fixture, (config, reporter, install, getStdout) => {
+    expect(getStdout()).toContain('package-lock.json found');
+  });
+});
+
+test.concurrent('install should warn if a conflicting npm npm-shrinkwrap.json exists', (): Promise<void> => {
+  const fixture = 'lockfile-conflict-npm-shrinkwrap-json';
+
+  return runInstall({}, fixture, (config, reporter, install, getStdout) => {
+    expect(getStdout()).toContain('npm-shrinkwrap.json found');
   });
 });

@@ -1,56 +1,30 @@
 /* @flow */
 
 import {explodeHostedGitFragment} from '../../../src/resolvers/exotics/hosted-git-resolver.js';
-import type {ExplodedFragment} from '../../../src/resolvers/exotics/hosted-git-resolver.js';
 import * as reporters from '../../../src/reporters/index.js';
 const reporter = new reporters.NoopReporter({});
 
-test('explodeHostedGitFragment should allow for hashes as part of the branch name', () => {
-  const fragmentString = 'jure/lens#fix-issue-#96';
-
-  const expectedFragment: ExplodedFragment = {
-    user: 'jure',
-    repo: 'lens',
-    hash: 'fix-issue-#96',
-  };
-
-  expect(explodeHostedGitFragment(fragmentString, reporter)).toEqual(expectedFragment);
-});
-
-test('explodeHostedGitFragment should work for branch names without hashes', () => {
-  const fragmentString = 'jure/lens#feature/fix-issue';
-
-  const expectedFragment: ExplodedFragment = {
-    user: 'jure',
-    repo: 'lens',
-    hash: 'feature/fix-issue',
-  };
-
-  expect(explodeHostedGitFragment(fragmentString, reporter)).toEqual(expectedFragment);
-});
-
-test('explodeHostedGitFragment should work identical with and without .git suffix', () => {
-  const fragmentWithGit = 'jure/lens.git#feature/fix-issue';
-  const fragmentWithoutGit = 'jure/lens#feature/fix-issue';
-
-  const expectedFragment: ExplodedFragment = {
-    user: 'jure',
-    repo: 'lens',
-    hash: 'feature/fix-issue',
-  };
-
-  expect(explodeHostedGitFragment(fragmentWithoutGit, reporter)).toEqual(expectedFragment);
-  expect(explodeHostedGitFragment(fragmentWithGit, reporter)).toEqual(expectedFragment);
-});
-
-test('explodeHostedGitFragment should allow the project name to contain .git', () => {
-  const fragmentString = 'jure/lens.github';
-
-  const expectedFragment: ExplodedFragment = {
-    user: 'jure',
-    repo: 'lens.github',
-    hash: '',
-  };
-
-  expect(explodeHostedGitFragment(fragmentString, reporter)).toEqual(expectedFragment);
+[
+  {fragment: 'jure/lens#fix-issue-#96', user: 'jure', repo: 'lens', hash: 'fix-issue-#96'},
+  {fragment: 'jure/lens#feature/fix-issue', user: 'jure', repo: 'lens', hash: 'feature/fix-issue'},
+  {fragment: 'jure/lens.github', user: 'jure', repo: 'lens.github', hash: ''},
+  {fragment: 'jure/lens#semver:^3.0.0', user: 'jure', repo: 'lens', hash: 'semver:^3.0.0'},
+  {fragment: 'github:jure/lens', user: 'jure', repo: 'lens', hash: ''},
+  {fragment: 'bitbucket:jure/lens', user: 'jure', repo: 'lens', hash: ''},
+  {fragment: 'git+ssh://git@github.com:jure/lens', user: 'jure', repo: 'lens', hash: ''},
+  {fragment: 'git+ssh://git@github.com:jure/lens.git', user: 'jure', repo: 'lens', hash: ''},
+  {fragment: 'git://git@github.com:jure/lens.git', user: 'jure', repo: 'lens', hash: ''},
+  {fragment: 'git+https://login@github.com/jure/lens.git', user: 'jure', repo: 'lens', hash: ''},
+  {fragment: 'git+ssh://git@github.com/jure/lens.git#semver:^3.1.0', user: 'jure', repo: 'lens', hash: 'semver:^3.1.0'},
+  {fragment: 'git+http://login@github.com/jure/lens.git', user: 'jure', repo: 'lens', hash: ''},
+].forEach(({fragment, user, repo, hash}) => {
+  test(`explodeHostedGitFragment ${fragment} -> user: '${user}'`, () => {
+    expect(explodeHostedGitFragment(fragment, reporter).user).toEqual(user);
+  });
+  test(`explodeHostedGitFragment ${fragment} -> repo: '${repo}'`, () => {
+    expect(explodeHostedGitFragment(fragment, reporter).repo).toEqual(repo);
+  });
+  test(`explodeHostedGitFragment ${fragment} -> hash: '${hash}'`, () => {
+    expect(explodeHostedGitFragment(fragment, reporter).hash).toEqual(hash);
+  });
 });

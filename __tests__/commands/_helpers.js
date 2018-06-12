@@ -91,6 +91,7 @@ export function makeConfigFromDirectory(cwd: string, reporter: Reporter, flags: 
       prefix: flags.prefix,
       production: flags.production,
       updateChecksums: !!flags.updateChecksums,
+      focus: !!flags.focus,
     },
     reporter,
   );

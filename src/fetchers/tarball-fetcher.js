@@ -98,59 +98,59 @@ export default class TarballFetcher extends BaseFetcher {
       );
     }
     const validateStream = new ssri.integrityStream(integrityInfo);
-    const extractorStream = gunzip();
     const untarStream = tarFs.extract(this.dest, {
       strip: 1,
       dmode: 0o755, // all dirs should be readable
       fmode: 0o644, // all files should be readable
       chown: false, // don't chown. just leave as it is
     });
+    const extractorStream = gunzip();
+
     validateStream.once('error', err => {
       this.validateError = err;
     });
     validateStream.once('integrity', sri => {
       this.validateIntegrity = sri;
     });
-    extractorStream
-      .pipe(untarStream)
-      .on('error', error => {
-        error.message = `${error.message}${tarballPath ? ` (${tarballPath})` : ''}`;
-        reject(error);
-      })
-      .on('finish', () => {
-        const error = this.validateError;
-        const hexDigest = this.validateIntegrity ? this.validateIntegrity.hexDigest() : '';
-        if (
-          this.config.updateChecksums &&
-          this.remote.integrity &&
-          this.validateIntegrity &&
-          this.remote.integrity !== this.validateIntegrity.toString()
-        ) {
-          this.remote.integrity = this.validateIntegrity.toString();
-        }
 
-        if (error) {
-          if (this.config.updateChecksums) {
-            this.remote.integrity = error.found.toString();
-          } else {
-            return reject(
-              new SecurityError(
-                this.config.reporter.lang(
-                  'fetchBadHashWithPath',
-                  this.packageName,
-                  this.remote.reference,
-                  error.found.toString(),
-                  error.expected.toString(),
-                ),
+    untarStream.on('error', err => {
+      reject(new MessageError(this.config.reporter.lang('errorExtractingTarball', err.message, tarballPath)));
+    });
+
+    extractorStream.pipe(untarStream).on('finish', () => {
+      const error = this.validateError;
+      const hexDigest = this.validateIntegrity ? this.validateIntegrity.hexDigest() : '';
+      if (
+        this.config.updateChecksums &&
+        this.remote.integrity &&
+        this.validateIntegrity &&
+        this.remote.integrity !== this.validateIntegrity.toString()
+      ) {
+        this.remote.integrity = this.validateIntegrity.toString();
+      }
+
+      if (error) {
+        if (this.config.updateChecksums) {
+          this.remote.integrity = error.found.toString();
+        } else {
+          return reject(
+            new SecurityError(
+              this.config.reporter.lang(
+                'fetchBadHashWithPath',
+                this.packageName,
+                this.remote.reference,
+                error.found.toString(),
+                error.expected.toString(),
               ),
-            );
-          }
+            ),
+          );
         }
+      }
 
-        return resolve({
-          hash: this.hash || hexDigest,
-        });
+      return resolve({
+        hash: this.hash || hexDigest,
       });
+    });
     return {validateStream, extractorStream};
   }
 

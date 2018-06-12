@@ -17,7 +17,7 @@ import {satisfiesWithPrereleases} from './util/semver.js';
 import WorkspaceLayout from './workspace-layout.js';
 
 const invariant = require('invariant');
-const cmdShim = promise.promisify(require('cmd-shim'));
+const cmdShim = require('@zkochan/cmd-shim');
 const path = require('path');
 // Concurrency for creating bin links disabled because of the issue #1961
 const linkBinConcurrency = 1;
@@ -158,9 +158,14 @@ export default class PackageLinker {
     const realLocations = await Promise.all(ref.locations.map(loc => fs.realpath(loc)));
     realLocations.forEach(loc => allLocations.indexOf(loc) !== -1 || allLocations.push(loc));
 
-    const distancePairs = allLocations.map(loc => {
+    const locationBinLocPairs = allLocations.map(loc => [loc, binLoc]);
+    if (binLoc !== realBinLoc) {
+      locationBinLocPairs.push(...allLocations.map(loc => [loc, realBinLoc]));
+    }
+
+    const distancePairs = locationBinLocPairs.map(([loc, curBinLoc]) => {
       let distance = 0;
-      let curLoc = realBinLoc;
+      let curLoc = curBinLoc;
       let notFound = false;
 
       while (path.join(curLoc, ref.name) !== loc && path.join(curLoc, moduleFolder, ref.name) !== loc) {
@@ -180,6 +185,8 @@ export default class PackageLinker {
     const filteredDistancePairs: any = distancePairs.filter(d => d);
     (filteredDistancePairs: Array<[string, number]>);
 
+    invariant(filteredDistancePairs.length > 0, `could not find a copy of ${pkg.name} to link in ${binLoc}`);
+
     //get smallest distance from package location
     const minItem = filteredDistancePairs.reduce((min, cur) => {
       return cur[1] < min[1] ? cur : min;
@@ -192,11 +199,11 @@ export default class PackageLinker {
   getFlatHoistedTree(
     patterns: Array<string>,
     workspaceLayout?: WorkspaceLayout,
-    {ignoreOptional, focus}: {ignoreOptional: ?boolean, focus: ?boolean} = {},
+    {ignoreOptional}: {ignoreOptional: ?boolean} = {},
   ): HoistManifestTuples {
     const hoister = new PackageHoister(this.config, this.resolver, {ignoreOptional, workspaceLayout});
     hoister.seed(patterns);
-    if (focus) {
+    if (this.config.focus) {
       hoister.markShallowWorkspaceEntries();
     }
     return hoister.init();
@@ -205,9 +212,9 @@ export default class PackageLinker {
   async copyModules(
     patterns: Array<string>,
     workspaceLayout?: WorkspaceLayout,
-    {linkDuplicates, ignoreOptional, focus}: {linkDuplicates: ?boolean, ignoreOptional: ?boolean, focus: ?boolean} = {},
+    {linkDuplicates, ignoreOptional}: {linkDuplicates: ?boolean, ignoreOptional: ?boolean} = {},
   ): Promise<void> {
-    let flatTree = this.getFlatHoistedTree(patterns, workspaceLayout, {ignoreOptional, focus});
+    let flatTree = this.getFlatHoistedTree(patterns, workspaceLayout, {ignoreOptional});
     // sorted tree makes file creation and copying not to interfere with each other
     flatTree = flatTree.sort(function(dep1, dep2): number {
       return dep1[0].localeCompare(dep2[0]);
@@ -644,9 +651,9 @@ export default class PackageLinker {
   async init(
     patterns: Array<string>,
     workspaceLayout?: WorkspaceLayout,
-    {linkDuplicates, ignoreOptional, focus}: {linkDuplicates: ?boolean, ignoreOptional: ?boolean, focus: ?boolean} = {},
+    {linkDuplicates, ignoreOptional}: {linkDuplicates: ?boolean, ignoreOptional: ?boolean} = {},
   ): Promise<void> {
     this.resolvePeerModules();
-    await this.copyModules(patterns, workspaceLayout, {linkDuplicates, ignoreOptional, focus});
+    await this.copyModules(patterns, workspaceLayout, {linkDuplicates, ignoreOptional});
   }
 }

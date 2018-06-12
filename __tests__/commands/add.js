@@ -903,6 +903,19 @@ test.concurrent('install with latest tag and --offline flag', async () => {
   });
 });
 
+test.concurrent('install with latest tag and --offline flag scoped', async () => {
+  await runAdd(['@types/node@8.0.0'], {}, 'latest-version-in-package', async (config, reporter, previousAdd) => {
+    config.offline = true;
+    const add = new Add(['@types/node@latest'], {}, config, reporter, previousAdd.lockfile);
+    await add.init();
+
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    const version = await getPackageVersion(config, '@types/node');
+
+    expect(pkg.dependencies).toEqual({'@types/node': `^${version}`});
+  });
+});
+
 test.concurrent('install with latest tag and --prefer-offline flag', async () => {
   await runAdd(['left-pad@1.1.0'], {}, 'latest-version-in-package', async (config, reporter, previousAdd) => {
     config.preferOffline = true;
@@ -913,6 +926,20 @@ test.concurrent('install with latest tag and --prefer-offline flag', async () =>
     const version = await getPackageVersion(config, 'left-pad');
 
     expect(pkg.dependencies).toEqual({'left-pad': `^${version}`});
+    expect(version).not.toEqual('1.1.0');
+  });
+});
+
+test.concurrent('install with latest tag and --prefer-offline flag scoped', async () => {
+  await runAdd(['@types/node@8.0.0'], {}, 'latest-version-in-package', async (config, reporter, previousAdd) => {
+    config.preferOffline = true;
+    const add = new Add(['@types/node@latest'], {}, config, reporter, previousAdd.lockfile);
+    await add.init();
+
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    const version = await getPackageVersion(config, '@types/node');
+
+    expect(pkg.dependencies).toEqual({'@types/node': `^${version}`});
     expect(version).not.toEqual('1.1.0');
   });
 });

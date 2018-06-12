@@ -31,6 +31,8 @@ export const DEFAULTS = {
   'user-agent': [`yarn/${version}`, 'npm/?', `node/${process.version}`, process.platform, process.arch].join(' '),
 };
 
+const RELATIVE_KEYS = ['yarn-offline-mirror', 'cache-folder'];
+
 const npmMap = {
   'version-git-sign': 'sign-git-tag',
   'version-tag-prefix': 'tag-version-prefix',
@@ -80,13 +82,13 @@ export default class YarnRegistry extends NpmRegistry {
         this.homeConfig = config;
       }
 
-      // normalize offline mirror path relative to the current yarnrc
-      const offlineLoc = config['yarn-offline-mirror'];
+      for (const key of RELATIVE_KEYS) {
+        const valueLoc = config[key];
 
-      // don't normalize if we already have a mirror path
-      if (!this.config['yarn-offline-mirror'] && offlineLoc) {
-        const mirrorLoc = (config['yarn-offline-mirror'] = path.resolve(path.dirname(loc), offlineLoc));
-        await fs.mkdirp(mirrorLoc);
+        if (!this.config[key] && valueLoc) {
+          const resolvedLoc = (config[key] = path.resolve(path.dirname(loc), valueLoc));
+          await fs.mkdirp(resolvedLoc);
+        }
       }
 
       // merge with any existing environment variables
