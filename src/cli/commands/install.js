@@ -688,24 +688,22 @@ export class Install {
     let hasChanged = false;
 
     if (!this.config.plugnplayByEnv) {
-      for (const registry of ['npm']) {
-        const {object} = manifests[registry];
+      const {object} = manifests.npm;
 
-        if (typeof object.installConfig !== 'object') {
-          object.installConfig = {};
-        }
+      if (typeof object.installConfig !== 'object') {
+        object.installConfig = {};
+      }
 
-        if (this.config.plugnplayEnabled && object.installConfig.pnp !== true) {
-          object.installConfig.pnp = true;
-          hasChanged = true;
-        } else if (!this.config.plugnplayEnabled && typeof object.installConfig.pnp !== 'undefined') {
-          delete object.installConfig.pnp;
-          hasChanged = true;
-        }
+      if (this.config.plugnplayEnabled && object.installConfig.pnp !== true) {
+        object.installConfig.pnp = true;
+        hasChanged = true;
+      } else if (!this.config.plugnplayEnabled && typeof object.installConfig.pnp !== 'undefined') {
+        delete object.installConfig.pnp;
+        hasChanged = true;
+      }
 
-        if (Object.keys(object.installConfig).length === 0) {
-          delete object.installConfig;
-        }
+      if (Object.keys(object.installConfig).length === 0) {
+        delete object.installConfig;
       }
     }
 
