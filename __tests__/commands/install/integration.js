@@ -350,6 +350,12 @@ test('--production flag does not link dev dependency bin scripts', () =>
     expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'rimraf'))).toEqual(true);
   }));
 
+  test('--production flag does not link dev dependency bin scripts', () =>
+  runInstall({production: true, binLinks: true}, 'install-production-bin', async config => {
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'touch'))).toEqual(false);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', '.bin', 'rimraf'))).toEqual(true);
+  }));
+
 test('root install with optional deps', (): Promise<void> => runInstall({}, 'root-install-with-optional-dependency'));
 
 test('install file: protocol with relative paths', (): Promise<void> =>
