@@ -361,8 +361,7 @@ test('install file: protocol with relative paths', (): Promise<void> =>
 
     expect(lockFileLines[5]).toMatch('"file:../root-a"');
     expect(lockFileLines[9]).toMatch('"file:../../root-b"');
-  });
-});
+  }));
 
 test('install file: protocol without force retains installed package', (): Promise<void> =>
   runInstall({}, 'install-file-without-cache', async (config, reporter) => {
