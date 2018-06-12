@@ -171,8 +171,8 @@ test.concurrent('pack should include bundled dependencies', (): Promise<void> =>
       'index.js',
       'package.json',
       'node_modules',
-      'node_modules/a',
-      'node_modules/b',
+      path.join('node_modules', 'a'),
+      path.join('node_modules', 'b'),
       path.join('node_modules', 'a', 'package.json'),
       path.join('node_modules', 'b', 'package.json'),
     ];
