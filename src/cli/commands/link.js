@@ -3,12 +3,11 @@
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
-import * as promise from '../../util/promise.js';
 import * as fs from '../../util/fs.js';
 import {getBinFolder as getGlobalBinFolder} from './global';
 
 const invariant = require('invariant');
-const cmdShim = promise.promisify(require('@zkochan/cmd-shim'));
+const cmdShim = require('@zkochan/cmd-shim');
 const path = require('path');
 
 export async function getRegistryFolder(config: Config, name: string): Promise<string> {
