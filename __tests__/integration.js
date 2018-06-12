@@ -478,7 +478,10 @@ test('relative cache folder', async () => {
 
   const [stdoutOutput, _] = await runYarn(['cache', 'dir'], {cwd: `${base}/sub`});
 
-  expect(await fs.realpath(path.dirname(stdoutOutput.toString()))).toEqual(await fs.realpath(`${base}/foo`));
+  // The first dirname is to remove the "node_modules" part, the second is to remove the "v2" part
+  expect(await fs.realpath(path.dirname(path.dirname(stdoutOutput.toString())))).toEqual(
+    await fs.realpath(`${base}/foo`),
+  );
 });
 
 test('yarn create', async () => {

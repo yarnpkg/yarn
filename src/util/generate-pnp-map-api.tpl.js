@@ -129,9 +129,7 @@ function applyNodeExtensionResolution(unqualifiedPath, {extensions}) {
       // ancestors.
 
       if (fs.lstatSync(unqualifiedPath).isSymbolicLink()) {
-        unqualifiedPath = path.normalize(
-          path.resolve(path.dirname(unqualifiedPath), fs.readlinkSync(unqualifiedPath)),
-        );
+        unqualifiedPath = path.normalize(path.resolve(path.dirname(unqualifiedPath), fs.readlinkSync(unqualifiedPath)));
       }
 
       return unqualifiedPath;

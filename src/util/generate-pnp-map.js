@@ -179,8 +179,8 @@ async function getPackageInformationStores(
       // on A; it's valid, but it prevents us from computing A and B - and it's even worse with 3+ packages involved)
       const peerDependencies = new Set(Array.from(Object.keys(pkg.peerDependencies || {})));
 
-      // As an optimization, we only setup virtual packages if they underlying packages are referenced multiple times in the tree
-      // This allow us to avoid having to create symlinks in the majority of cases
+      // As an optimization, we only setup virtual packages if their underlying packages are referenced multiple times
+      // in the tree. This allow us to avoid having to create symlinks in the majority of cases
       if (peerDependencies.size > 0 && ref.requests.length > 1) {
         const hash = getHashFrom([...parentData, packageName, packageReference]);
 
