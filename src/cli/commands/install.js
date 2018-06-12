@@ -688,7 +688,7 @@ export class Install {
     let hasChanged = false;
 
     if (!this.config.plugnplayByEnv) {
-      for (const registry of Object.keys(manifests)) {
+      for (const registry of ['npm']) {
         const {object} = manifests[registry];
 
         if (typeof object.installConfig !== 'object') {
