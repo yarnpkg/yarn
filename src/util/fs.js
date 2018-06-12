@@ -823,7 +823,7 @@ export async function readFirstAvailableStream(
     if (tarballPath) {
       try {
         const fd = await open(tarballPath, 'r');
-        stream = fs.createReadStream('', {fd});
+        stream = fs.createReadStream(tarballPath, {fd});
         break;
       } catch (err) {
         // Try the next one

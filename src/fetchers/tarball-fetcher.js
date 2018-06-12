@@ -77,45 +77,43 @@ export default class TarballFetcher extends BaseFetcher {
       chown: false, // don't chown. just leave as it is
     });
 
-    extractorStream
-      .pipe(untarStream)
-      .on('error', error => {
-        error.message = `${error.message}${tarballPath ? ` (${tarballPath})` : ''}`;
-        reject(error);
-      })
-      .on('finish', async () => {
-        const expectHash = this.hash;
-        const actualHash = validateStream.getHash();
+    untarStream.on('error', err => {
+      reject(new MessageError(this.config.reporter.lang('errorExtractingTarball', err.message, tarballPath)));
+    });
 
-        if (!expectHash || expectHash === actualHash) {
-          resolve({
-            hash: actualHash,
-          });
-        } else if (this.config.updateChecksums) {
-          // checksums differ and should be updated
-          // update hash, destination and cached package
-          const destUpdatedHash = this.dest.replace(this.hash || '', actualHash);
-          await fsUtil.unlink(destUpdatedHash);
-          await fsUtil.rename(this.dest, destUpdatedHash);
-          this.dest = this.dest.replace(this.hash || '', actualHash);
-          this.hash = actualHash;
-          resolve({
-            hash: actualHash,
-          });
-        } else {
-          reject(
-            new SecurityError(
-              this.config.reporter.lang(
-                'fetchBadHashWithPath',
-                this.packageName,
-                this.remote.reference,
-                actualHash,
-                expectHash,
-              ),
+    extractorStream.pipe(untarStream).on('finish', async () => {
+      const expectHash = this.hash;
+      const actualHash = validateStream.getHash();
+
+      if (!expectHash || expectHash === actualHash) {
+        resolve({
+          hash: actualHash,
+        });
+      } else if (this.config.updateChecksums) {
+        // checksums differ and should be updated
+        // update hash, destination and cached package
+        const destUpdatedHash = this.dest.replace(this.hash || '', actualHash);
+        await fsUtil.unlink(destUpdatedHash);
+        await fsUtil.rename(this.dest, destUpdatedHash);
+        this.dest = this.dest.replace(this.hash || '', actualHash);
+        this.hash = actualHash;
+        resolve({
+          hash: actualHash,
+        });
+      } else {
+        reject(
+          new SecurityError(
+            this.config.reporter.lang(
+              'fetchBadHashWithPath',
+              this.packageName,
+              this.remote.reference,
+              actualHash,
+              expectHash,
             ),
-          );
-        }
-      });
+          ),
+        );
+      }
+    });
 
     return {validateStream, extractorStream};
   }

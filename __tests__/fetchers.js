@@ -299,3 +299,41 @@ test('TarballFetcher.fetch properly stores tarball for scoped package resolved f
 
   expect(fetcher.getTarballMirrorPath()).toBe(path.join(offlineMirrorDir, '@exponent-configurator-1.0.2.tgz'));
 });
+
+test('TarballFetcher.fetch throws on truncated tar data', async () => {
+  const dir = await mkdir('tarball-fetcher');
+  const reporter = new Reporter();
+  const fetcher = new TarballFetcher(
+    dir,
+    {
+      type: 'tarball',
+      hash: '5b0482e1cc75d37dfc7f6e6d663d08c96442dcd5',
+      reference: 'file:' + path.join(__dirname, 'fixtures', 'fetchers', 'tarball', 'broken-tar-data.tgz'),
+      registry: 'npm',
+    },
+    await Config.create({}, reporter),
+  );
+  await expect(fetcher.fetch()).rejects.toThrow(
+    // The "." in ".tgz" should be escaped, but that doesn't work with reporter.lang
+    new RegExp(reporter.lang('errorExtractingTarball', '.*', '.*broken-tar-data.tgz')),
+  );
+});
+
+test('TarballFetcher.fetch throws on truncated tar header', async () => {
+  const dir = await mkdir('tarball-fetcher');
+  const reporter = new Reporter();
+  const fetcher = new TarballFetcher(
+    dir,
+    {
+      type: 'tarball',
+      hash: '1d403a8c7ef4ce25b1e7b188ede272a42ce49a52',
+      reference: 'file:' + path.join(__dirname, 'fixtures', 'fetchers', 'tarball', 'broken-tar-header.tgz'),
+      registry: 'npm',
+    },
+    await Config.create({}, reporter),
+  );
+  await expect(fetcher.fetch()).rejects.toThrow(
+    // The "." in ".tgz" should be escaped, but that doesn't work with reporter.lang
+    new RegExp(reporter.lang('errorExtractingTarball', '.*', '.*broken-tar-header.tgz')),
+  );
+});

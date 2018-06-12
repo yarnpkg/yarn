@@ -61,14 +61,12 @@ test('run version with --non-interactive and --new-version should succeed', (): 
   });
 });
 
-test('run version with --non-interactive and without --new-version should fail', async (): Promise<void> => {
-  let thrown = false;
-  try {
-    await runRun([], {nonInteractive: true}, 'no-args');
-  } catch (e) {
-    thrown = true;
-  }
-  expect(thrown).toEqual(true);
+test('run version with --non-interactive and without --new-version should succeed', (): Promise<void> => {
+  return runRun([], {nonInteractive: true}, 'no-args', async (config, reporter): ?Promise<void> => {
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+
+    expect(pkg.version).toEqual(oldVersion);
+  });
 });
 
 test('run version and make sure all lifecycle steps are executed', (): Promise<void> => {

@@ -165,15 +165,18 @@ class ImportResolver extends BaseResolver {
 
   async _resolveFromFixedVersions(): Promise<Manifest> {
     invariant(this.request instanceof ImportPackageRequest, 'request must be ImportPackageRequest');
-    invariant(this.request.fixedVersionPattern, 'fixedVersionPattern must exist on request');
-    const {fixedVersionPattern} = this.request;
+    const {name} = normalizePattern(this.pattern);
+    invariant(
+      this.request.dependencyTree instanceof LogicalDependencyTree,
+      'dependencyTree on request must be LogicalDependencyTree',
+    );
+    const fixedVersionPattern = this.request.dependencyTree.getFixedVersionPattern(name, this.request.parentNames);
     const info = await this.config.getCache(`import-resolver-${fixedVersionPattern}`, () =>
       this.resolveFixedVersion(fixedVersionPattern),
     );
     if (info) {
       return info;
     }
-    const {name} = normalizePattern(this.pattern);
     throw new MessageError(this.reporter.lang('importResolveFailed', name, this.getCwd()));
   }
 
@@ -192,7 +195,7 @@ class ImportResolver extends BaseResolver {
   }
 
   resolve(): Promise<Manifest> {
-    if (this.request instanceof ImportPackageRequest && this.request.fixedVersionPattern) {
+    if (this.request instanceof ImportPackageRequest && this.request.dependencyTree) {
       return this._resolveFromFixedVersions();
     } else {
       return this._resolveFromNodeModules();
@@ -201,14 +204,14 @@ class ImportResolver extends BaseResolver {
 }
 
 class ImportPackageRequest extends PackageRequest {
-  constructor(req: DependencyRequestPattern, fixedVersionPattern: ?string, resolver: PackageResolver) {
+  constructor(req: DependencyRequestPattern, dependencyTree: ?LogicalDependencyTree, resolver: PackageResolver) {
     super(req, resolver);
     this.import = this.parentRequest instanceof ImportPackageRequest ? this.parentRequest.import : true;
-    this.fixedVersionPattern = fixedVersionPattern;
+    this.dependencyTree = dependencyTree;
   }
 
   import: boolean;
-  fixedVersionPattern: ?string;
+  dependencyTree: ?LogicalDependencyTree;
 
   getRootName(): string {
     return (this.resolver instanceof ImportPackageResolver && this.resolver.rootName) || 'root';
@@ -290,11 +293,7 @@ class ImportPackageResolver extends PackageResolver {
     if (this.activity) {
       this.activity.tick(req.pattern);
     }
-    const {name} = normalizePattern(req.pattern);
-    const fixedVersionPattern = this.dependencyTree
-      ? this.dependencyTree.getFixedVersionPattern(name, req.parentNames)
-      : null;
-    const request = new ImportPackageRequest(req, fixedVersionPattern, this);
+    const request = new ImportPackageRequest(req, this.dependencyTree, this);
     await request.find({fresh: false});
   }
 

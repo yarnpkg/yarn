@@ -344,7 +344,7 @@ const messages = {
     'Fetch succeeded for $0. However, extracting $1 resulted in hash $2, which did not match the requested hash $3.',
   fetchErrorCorrupt:
     '$0. Mirror tarball appears to be corrupt. You can resolve this by running:\n\n  rm -rf $1\n  yarn install',
-  errorDecompressingTarball: '$0. Error decompressing $1, it appears to be corrupt.',
+  errorExtractingTarball: 'Extracting tar content of $1 failed, the file appears to be corrupt: $0',
   updateInstalling: 'Installing $0...',
   hostedGitResolveError: 'Error connecting to repository. Please, check the url.',
   retryOnInternalServerError: 'There appears to be trouble with our server. Retrying...',
