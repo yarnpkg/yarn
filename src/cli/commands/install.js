@@ -520,7 +520,7 @@ export class Install {
     }
 
     let flattenedTopLevelPatterns: Array<string> = [];
-    const steps: Array<(curr: number, total: number) => Promise<{bailout: boolean} | void>> = [];
+    const steps: Array<(curr: number, total: number) => Promise<{bailout: boolean} | {responseError: ResponseError} | void>> = [];
     const {
       requests: depRequests,
       patterns: rawPatterns,
@@ -561,7 +561,17 @@ export class Install {
       callThroughHook('fetchStep', async () => {
         this.markIgnored(ignorePatterns);
         this.reporter.step(curr, total, this.reporter.lang('fetchingPackages'), emoji.get('truck'));
-        const manifests: Array<Manifest> = await fetcher.fetch(this.resolver.getManifests(), this.config);
+        const manifests: Array<Manifest> = [];
+        try {
+          manifests = await fetcher.fetch(this.resolver.getManifests(), this.config);
+        } catch (err) {
+          if (err instanceof ResponseError) {
+            // catch and return error to allow generating har file on response error
+            return {responseError: err};
+          }
+
+          throw err;
+        }
         this.resolver.updateManifests(manifests);
         await compatibility.check(this.resolver.getManifests(), this.config, this.flags.ignoreEngines);
       }),
@@ -601,7 +611,9 @@ export class Install {
       }),
     );
 
+    var harStepIndex = -1;
     if (this.flags.har) {
+      harStepIndex = steps.length;
       steps.push(async (curr: number, total: number) => {
         const formattedDate = new Date().toISOString().replace(/:/g, '-');
         const filename = `yarn-install_${formattedDate}.har`;
@@ -625,9 +637,19 @@ export class Install {
     let currentStep = 0;
     for (const step of steps) {
       const stepResult = await step(++currentStep, steps.length);
-      if (stepResult && stepResult.bailout) {
-        this.maybeOutputUpdate();
-        return flattenedTopLevelPatterns;
+      if (stepResult) {
+        if (stepResult.bailout) {
+          this.maybeOutputUpdate();
+          return flattenedTopLevelPatterns;
+        }
+
+        if (stepResult.responseError) {
+          if (this.flags.har) {
+            await steps[harStepIndex](harStepIndex + 1, steps.length);
+          }
+          // rethrow original error after respecting har flag :)
+          throw stepResult.responseError;
+        }
       }
     }
 
