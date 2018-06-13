@@ -24,12 +24,13 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   }
 
   const packageName = builderName.replace(/^(@[^\/]+\/)?/, '$1create-');
+  const packageDir = packageName.replace(/^(?:(@[^\/]+)\/)?.*/, '$1');
   const commandName = packageName.replace(/^@[^\/]+\//, '');
 
   await runGlobal(config, reporter, {}, ['add', packageName]);
 
   const binFolder = await getBinFolder(config, {});
-  const command = path.resolve(binFolder, path.basename(commandName));
+  const command = path.resolve(binFolder, packageDir, path.basename(commandName));
 
   await child.spawn(command, rest, {stdio: `inherit`, shell: true});
 }
