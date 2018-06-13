@@ -165,6 +165,14 @@ module.exports = makeTemporaryEnv => {
       ),
     );
 
+    test(`it should correctly resolve an absolute path even when the issuer doesn't exist`, makeTemporaryEnv({
+    }, {plugNPlay: true}, async ({path, run, source}) => {
+      await run(`install`);
+
+      const api = require(`${path}/.pnp.js`);
+      api.resolveToUnqualified(`${path}/.pnp.js`, `${path}/some/path/that/doesnt/exists/please/`);
+    }));
+
     test(
       `it should fallback to the top-level dependencies when it cannot require a transitive dependency require`,
       makeTemporaryEnv(

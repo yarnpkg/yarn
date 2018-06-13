@@ -116,6 +116,22 @@ function applyNodeExtensionResolution(unqualifiedPath, {extensions}) {
     // If the file exists and is a file, we can stop right there
 
     if (stat && !stat.isDirectory()) {
+      // If the very last component of the resolved path is a symlink to a file, we then resolve it to a file. We only
+      // do this first the last component, and not the rest of the path! This allows us to support the case of bin
+      // symlinks, where a symlink in "/xyz/pkg-name/.bin/bin-name" will point somewhere else (like "/xyz/pkg-name/index.js").
+      // In such a case, we want relative requires to be resolved relative to "/xyz/pkg-name/" rather than "/xyz/pkg-name/.bin/".
+      //
+      // Also note that the reason we must use readlink on the last component (instead of realpath on the whole path)
+      // is that we must preserve the other symlinks, in particular those used by pnp to deambiguate packages using
+      // peer dependencies. For example, "/xyz/.pnp/local/pnp-01234569/.bin/bin-name" should see its relative requires
+      // be resolved relative to "/xyz/.pnp/local/pnp-0123456789/" rather than "/xyz/pkg-with-peers/", because otherwise
+      // we would lose the information that would tell us what are the dependencies of pkg-with-peers relative to its
+      // ancestors.
+
+      if (fs.lstatSync(unqualifiedPath).isSymbolicLink()) {
+        unqualifiedPath = path.normalize(path.resolve(path.dirname(unqualifiedPath), fs.readlinkSync(unqualifiedPath)));
+      }
+
       return unqualifiedPath;
     }
 
@@ -235,28 +251,14 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer) {
   let unqualifiedPath;
 
   // If the request is a relative or absolute path, we just return it normalized
-  //
-  // Note that if the very last component of the issuer is a symlink to a file, we then need to resolve it, but
-  // only it, and not the rest of the path! This allows us to support the case of bin symlinks, where a symlink
-  // in "/.../pkg-name/.bin/bin-name" will point somewhere else (like "/../pkg-name/index.js"). In such a case,
-  // we want relative requires to be resolved relative to "/../pkg-name/" rather than "/../pkg-name/.bin/".
-  //
-  // Also note that the reason we must use readlink on the last component (instead of realpath on the whole path)
-  // is that we must preserve the other symlinks, in particular those used by pnp to deambiguate packages using
-  // peer dependencies. For example, "/../.pnp/local/pnp-01234569/.bin/bin-name" should see its relative requires
-  // be resolved relative to "/../.pnp/local/pnp-0123456789/" rather than "/../pkg-with-peers/", because otherwise
-  // we would lose the information that would tell us what are the dependencies of pkg-with-peers relative to its
-  // ancestors.
 
   const dependencyNameMatch = request.match(pathRegExp);
 
   if (!dependencyNameMatch) {
-    if (issuer.match(isDirRegExp)) {
+    if (path.isAbsolute(request)) {
+      unqualifiedPath = path.normalize(request);
+    } else if (issuer.match(isDirRegExp)) {
       unqualifiedPath = path.normalize(path.resolve(issuer, request));
-    } else if (fs.lstatSync(issuer).isSymbolicLink()) {
-      unqualifiedPath = path.normalize(
-        path.resolve(path.dirname(issuer), path.dirname(fs.readlinkSync(issuer)), request),
-      );
     } else {
       unqualifiedPath = path.normalize(path.resolve(path.dirname(issuer), request));
     }
