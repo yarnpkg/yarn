@@ -34,6 +34,7 @@ export default class PackageResolver {
     this.flat = false;
 
     this.reporter = config.reporter;
+    this.requests = new Map();
     this.lockfile = lockfile;
     this.config = config;
     this.delayedResolveQueue = [];
@@ -483,6 +484,23 @@ export default class PackageResolver {
     );
   }
 
+  clearRequests(): Void {
+    this.requests.clear();
+  }
+
+  findRequest(req: DependencyRequestPattern): PackageRequest {
+    const existingReq = this.requests.get(req.pattern);
+
+    if (existingReq) {
+      return existingReq;
+    }
+
+    const newReq = new PackageRequest(req, this);
+    newReq.init();
+    this.requests.set(req.pattern, newReq);
+    return newReq;
+  }
+
   /**
    * TODO description
    */
@@ -501,33 +519,34 @@ export default class PackageResolver {
     if (this.activity) {
       this.activity.tick(req.pattern);
     }
-    const request = new PackageRequest(req, this);
-    if (!existingManifest) {
-      const lockfileEntry = this.lockfile.getLocked(req.pattern);
 
-      if (lockfileEntry) {
-        const {range, hasVersion} = normalizePattern(req.pattern);
+    const request = this.findRequest(req);
 
-        if (this.isLockfileEntryOutdated(lockfileEntry.version, range, hasVersion)) {
-          this.reporter.warn(this.reporter.lang('incorrectLockfileEntry', req.pattern));
-          this.removePattern(req.pattern);
-          this.lockfile.removePattern(req.pattern);
-          fresh = true;
-        }
-      } else {
-        fresh = true;
-      }
-
-      request.init();
-      await request.find({fresh, frozen: this.frozen});
-    } else if (
+    if (
+      existingManifest &&
       existingManifest._reference &&
       existingManifest._reference.hint === initialReq.hint &&
       existingManifest._reference.optional === initialReq.optional
     ) {
       existingManifest._reference.addRequest(request);
     } else {
-      await request.find({fresh, frozen: this.frozen});
+      if (!existingManifest) {
+        const lockfileEntry = this.lockfile.getLocked(req.pattern);
+
+        if (lockfileEntry) {
+          const {range, hasVersion} = normalizePattern(req.pattern);
+
+          if (this.isLockfileEntryOutdated(lockfileEntry.version, range, hasVersion)) {
+            this.reporter.warn(this.reporter.lang('incorrectLockfileEntry', req.pattern));
+            this.removePattern(req.pattern);
+            this.lockfile.removePattern(req.pattern);
+            fresh = true;
+          }
+        } else {
+          fresh = true;
+        }
+        await request.find({fresh, frozen: this.frozen});
+      }
     }
   }
 

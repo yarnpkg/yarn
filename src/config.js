@@ -250,11 +250,8 @@ export default class Config {
     try {
       linkedModules = await fs.readdir(this.linkFolder);
     } catch (err) {
-      if (err.code === 'ENOENT') {
-        linkedModules = [];
-      } else {
-        throw err;
-      }
+      if (err.code !== 'ENOENT') throw err;
+      linkedModules = [];
     }
 
     for (const dir of linkedModules) {
@@ -279,9 +276,11 @@ export default class Config {
       });
 
       this.registries[key] = registry;
-      this.registryFolders.push(registry.folder);
+      if (this.registryFolders.indexOf(registry.folder) === -1) {
+        this.registryFolders.push(registry.folder);
+      }
       const rootModuleFolder = path.join(this.cwd, registry.folder);
-      if (this.rootModuleFolders.indexOf(rootModuleFolder) < 0) {
+      if (this.rootModuleFolders.indexOf(rootModuleFolder) === -1) {
         this.rootModuleFolders.push(rootModuleFolder);
       }
     }

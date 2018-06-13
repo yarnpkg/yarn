@@ -631,6 +631,8 @@ export class Install {
       }
     }
 
+    this.resolver.clearRequests();
+
     // fin!
     await this.saveLockfileAndIntegrity(topLevelPatterns, workspaceLayout);
     this.maybeOutputUpdate();
