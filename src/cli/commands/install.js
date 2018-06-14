@@ -9,7 +9,7 @@ import type {RegistryNames} from '../../registries/index.js';
 import type {LockfileObject} from '../../lockfile';
 import {callThroughHook} from '../../util/hooks.js';
 import normalizeManifest from '../../util/normalize-manifest/index.js';
-import {MessageError} from '../../errors.js';
+import {MessageError, ResponseError} from '../../errors.js';
 import InstallationIntegrityChecker from '../../integrity-checker.js';
 import Lockfile from '../../lockfile';
 import {stringify as lockStringify} from '../../lockfile';
