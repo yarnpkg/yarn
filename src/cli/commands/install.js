@@ -520,7 +520,9 @@ export class Install {
     }
 
     let flattenedTopLevelPatterns: Array<string> = [];
-    const steps: Array<(curr: number, total: number) => Promise<{bailout: boolean} | {responseError: ResponseError} | void>> = [];
+    const steps: Array<
+      (curr: number, total: number) => Promise<{bailout: boolean} | {responseError: ResponseError} | void>,
+    > = [];
     const {
       requests: depRequests,
       patterns: rawPatterns,
@@ -561,7 +563,7 @@ export class Install {
       callThroughHook('fetchStep', async () => {
         this.markIgnored(ignorePatterns);
         this.reporter.step(curr, total, this.reporter.lang('fetchingPackages'), emoji.get('truck'));
-        const manifests: Array<Manifest> = [];
+        let manifests: Array<Manifest> = [];
         try {
           manifests = await fetcher.fetch(this.resolver.getManifests(), this.config);
         } catch (err) {
@@ -611,7 +613,7 @@ export class Install {
       }),
     );
 
-    var harStepIndex = -1;
+    let harStepIndex = -1;
     if (this.flags.har) {
       harStepIndex = steps.length;
       steps.push(async (curr: number, total: number) => {
