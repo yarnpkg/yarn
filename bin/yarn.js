@@ -24,6 +24,9 @@ if (majorVer < 4) {
   // be truthy when built with webpack :(
   var cli = require(dirPath + 'cli');
   if (!cli.autoRun) {
-    cli.default();
+    cli.default().catch(function(error) {
+      console.error(error.stack || error.message || error);
+      process.exitCode = 1;
+    });
   }
 }

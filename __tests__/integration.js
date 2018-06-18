@@ -271,6 +271,26 @@ test('--cwd option', async () => {
   expect(packageJson.dependencies['left-pad']).toBeDefined();
 });
 
+const customCacheCwd = `${__dirname}/fixtures/cache/custom-location`;
+
+test('default rc', async (): Promise<void> => {
+  const [stdoutOutput] = await runYarn(['cache', 'dir'], {cwd: customCacheCwd});
+
+  expect(stdoutOutput).toMatch(/uses-default-yarnrc/);
+});
+
+test('--no-default-rc', async (): Promise<void> => {
+  const [stdoutOutput] = await runYarn(['cache', 'dir', '--no-default-rc'], {cwd: customCacheCwd});
+
+  expect(stdoutOutput).not.toMatch(/uses-default-yarnrc/);
+});
+
+test('--use-yarnrc', async (): Promise<void> => {
+  const [stdoutOutput] = await runYarn(['cache', 'dir', '--use-yarnrc', './custom-yarnrc'], {cwd: customCacheCwd});
+
+  expect(stdoutOutput).toMatch(/uses-custom-yarnrc/);
+});
+
 test('yarnrc arguments', async () => {
   const cwd = await makeTemp();
 
