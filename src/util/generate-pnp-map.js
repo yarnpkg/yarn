@@ -184,13 +184,14 @@ async function getPackageInformationStores(
       if (peerDependencies.size > 0 && ref.requests.length > 1) {
         const hash = getHashFrom([...parentData, packageName, packageReference]);
 
-        const newLocDir =
+        const virtualLoc =
           ref.remote.type !== 'workspace'
-            ? path.resolve(config.lockfileFolder, '.pnp', 'global', 'node_modules')
-            : path.resolve(config.lockfileFolder, '.pnp', 'local');
+            ? path.resolve(config.lockfileFolder, '.pnp', 'externals', `pnp-${hash}`, 'node_modules', packageName)
+            : path.resolve(config.lockfileFolder, '.pnp', 'workspaces', `pnp-${hash}`, packageName);
 
+        // Don't forget to update the loc to point at the newly created indirection
         const physicalLoc = loc;
-        const virtualLoc = (loc = path.resolve(newLocDir, `pnp-${hash}`));
+        loc = virtualLoc;
 
         await fs.mkdirp(path.dirname(virtualLoc));
         await fs.symlink(physicalLoc, virtualLoc);

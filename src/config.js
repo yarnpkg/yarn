@@ -374,7 +374,7 @@ export default class Config {
     this.packBuiltPackages = Boolean(this.getOption('experimental-pack-script-packages-in-mirror'));
 
     //init & create cacheFolder, tempFolder
-    this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION), 'node_modules');
+    this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));
     this.tempFolder = opts.tempFolder || path.join(this.cacheFolder, '.tmp');
     await fs.mkdirp(this.cacheFolder);
     await fs.mkdirp(this.tempFolder);
@@ -448,21 +448,30 @@ export default class Config {
     invariant(this.cacheFolder, 'No package root');
     invariant(pkg, 'Undefined package');
 
-    let name = pkg.name;
-    let uid = pkg.uid;
+    let slug = pkg.name;
+
+    slug = slug.replace(/[^@a-z0-9]+/g, '-');
+    slug = slug.replace(/^-+|-+$/g, '');
+
     if (pkg.registry) {
-      name = `${pkg.registry}-${name}`;
+      slug = `${pkg.registry}-${slug}`;
+    } else {
+      slug = `unknown-${slug}`;
     }
 
     const {hash} = pkg.remote;
 
-    if (pkg.version && pkg.version !== pkg.uid) {
-      uid = `${pkg.version}-${uid}`;
-    } else if (hash) {
-      uid += `-${hash}`;
+    if (pkg.version) {
+      slug += `-${pkg.version}`;
     }
 
-    return path.join(this.cacheFolder, `${name}-${uid}`);
+    if (pkg.uid && pkg.version !== pkg.uid) {
+      slug += `-${pkg.uid}`;
+    } else if (hash) {
+      slug += `-${hash}`;
+    }
+
+    return path.join(this.cacheFolder, slug, `node_modules`, pkg.name);
   }
 
   /**

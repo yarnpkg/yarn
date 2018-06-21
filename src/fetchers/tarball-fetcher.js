@@ -94,8 +94,9 @@ export default class TarballFetcher extends BaseFetcher {
         // update hash, destination and cached package
         const destUpdatedHash = this.dest.replace(this.hash || '', actualHash);
         await fsUtil.unlink(destUpdatedHash);
+        await fsUtil.mkdirp(path.dirname(destUpdatedHash));
         await fsUtil.rename(this.dest, destUpdatedHash);
-        this.dest = this.dest.replace(this.hash || '', actualHash);
+        this.dest = destUpdatedHash;
         this.hash = actualHash;
         resolve({
           hash: actualHash,
