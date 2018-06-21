@@ -118,12 +118,14 @@ export default class TarballFetcher extends BaseFetcher {
     return {validateStream, extractorStream};
   }
 
-  *getLocalPaths(override: ?string): Generator<?string, void, void> {
-    if (override) {
-      yield path.resolve(this.config.cwd, override);
-    }
-    yield this.getTarballMirrorPath();
-    yield this.getTarballCachePath();
+  getLocalPaths(override: ?string): Array<string> {
+    const paths: Array<?string> = [
+      override ? path.resolve(this.config.cwd, override) : null,
+      this.getTarballMirrorPath(),
+      this.getTarballCachePath(),
+    ];
+    // $FlowFixMe: https://github.com/facebook/flow/issues/1414
+    return paths.filter(path => path != null);
   }
 
   async fetchFromLocal(override: ?string): Promise<FetchedOverride> {
