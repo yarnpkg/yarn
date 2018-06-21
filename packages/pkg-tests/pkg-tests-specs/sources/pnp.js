@@ -165,13 +165,15 @@ module.exports = makeTemporaryEnv => {
       ),
     );
 
-    test(`it should correctly resolve an absolute path even when the issuer doesn't exist`, makeTemporaryEnv({
-    }, {plugNPlay: true}, async ({path, run, source}) => {
-      await run(`install`);
+    test(
+      `it should correctly resolve an absolute path even when the issuer doesn't exist`,
+      makeTemporaryEnv({}, {plugNPlay: true}, async ({path, run, source}) => {
+        await run(`install`);
 
-      const api = require(`${path}/.pnp.js`);
-      api.resolveToUnqualified(`${path}/.pnp.js`, `${path}/some/path/that/doesnt/exists/please/`);
-    }));
+        const api = require(`${path}/.pnp.js`);
+        api.resolveToUnqualified(`${path}/.pnp.js`, `${path}/some/path/that/doesnt/exists/please/`);
+      }),
+    );
 
     test(
       `it should fallback to the top-level dependencies when it cannot require a transitive dependency require`,
@@ -450,6 +452,23 @@ module.exports = makeTemporaryEnv => {
           await writeFile(`${path}/index.js`, `require('no-deps')`);
 
           await run(`node`, `${tmp}/index.js`, `${path}/index.js`);
+        },
+      ),
+    );
+
+    test(
+      `it should not update the installConfig.pnp field of the package.json when installing with an environment override`,
+      makeTemporaryEnv(
+        {},
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await expect(readJson(`${path}/package.json`)).resolves.not.toMatchObject({
+            installConfig: {pnp: true},
+          });
         },
       ),
     );

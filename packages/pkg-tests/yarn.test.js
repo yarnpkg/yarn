@@ -25,15 +25,17 @@ const pkgDriver = generatePkgDriver({
     }
 
     return execFile(process.execPath, [`${process.cwd()}/../../bin/yarn.js`, command, ...extraArgs, ...args], {
-      env: {
-        [`NPM_CONFIG_REGISTRY`]: registryUrl,
-        [`YARN_SILENT`]: `1`,
-        [`YARN_PROXY`]: ``,
-        [`YARN_HTTPS_PROXY`]: ``,
-        [`YARN_PLUGNPLAY_EXPERIMENTAL`]: plugNPlay ? `true` : `false`,
-        [`YARN_PLUGNPLAY_SHEBANG`]: plugnplayShebang || ``,
-        [`PATH`]: `${path}/bin${delimiter}${process.env.PATH}`,
-      },
+      env: Object.assign(
+        {
+          [`NPM_CONFIG_REGISTRY`]: registryUrl,
+          [`YARN_SILENT`]: `1`,
+          [`YARN_PROXY`]: ``,
+          [`YARN_HTTPS_PROXY`]: ``,
+          [`YARN_PLUGNPLAY_SHEBANG`]: plugnplayShebang || ``,
+          [`PATH`]: `${path}/bin${delimiter}${process.env.PATH}`,
+        },
+        plugNPlay ? {[`YARN_PLUGNPLAY_OVERRIDE`]: plugNPlay} : {},
+      ),
       cwd: path,
     });
   },

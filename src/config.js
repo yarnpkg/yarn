@@ -162,7 +162,7 @@ export default class Config {
 
   nonInteractive: boolean;
 
-  plugnplayByEnv: boolean;
+  plugnplayPersist: boolean;
   plugnplayEnabled: boolean;
   plugnplayShebang: ?string;
 
@@ -350,16 +350,19 @@ export default class Config {
 
     const manifest = await this.maybeReadManifest(this.cwd);
 
-    this.plugnplayByEnv = !opts.enablePnp && !opts.disablePnp;
-
-    if (this.plugnplayByEnv) {
-      if (manifest && manifest.installConfig && manifest.installConfig.pnp) {
-        this.plugnplayEnabled = !!manifest.installConfig.pnp;
-      } else {
-        this.plugnplayEnabled = Boolean(this.getOption('plugnplay-experimental'));
-      }
-    } else {
+    const plugnplayByEnv = this.getOption('plugnplay-override');
+    if (plugnplayByEnv != null) {
+      this.plugnplayEnabled = Boolean(plugnplayByEnv);
+      this.plugnplayPersist = false;
+    } else if (opts.enablePnp || opts.disablePnp) {
       this.plugnplayEnabled = !!opts.enablePnp;
+      this.plugnplayPersist = true;
+    } else if (manifest && manifest.installConfig && manifest.installConfig.pnp) {
+      this.plugnplayEnabled = !!manifest.installConfig.pnp;
+      this.plugnplayPersist = false;
+    } else {
+      this.plugnplayEnabled = false;
+      this.plugnplayEnabled = false;
     }
 
     this.plugnplayShebang = String(this.getOption('plugnplay-shebang')) || '/usr/bin/env node';
