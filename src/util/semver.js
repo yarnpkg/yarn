@@ -19,7 +19,12 @@ export function satisfiesWithPrereleases(version: string, range: string, loose?:
   if (!version) {
     return false;
   }
-  const semverVersion = new semver.SemVer(version, semverRange.loose);
+  let semverVersion;
+  try {
+    semverVersion = new semver.SemVer(version, semverRange.loose);
+  } catch (err) {
+    return false;
+  }
 
   // A range has multiple sets of comparators. A version must satisfy all comparators in a set
   // and at least one set to satisfy the range.
