@@ -815,17 +815,15 @@ export async function makeTempDir(prefix?: string): Promise<string> {
 }
 
 export async function readFirstAvailableStream(paths: Iterable<string>): Promise<?ReadStream> {
-  let stream: ?ReadStream;
   for (const path of paths) {
     try {
       const fd = await open(path, 'r');
-      stream = fs.createReadStream(path, {fd});
-      break;
+      return fs.createReadStream(path, {fd});
     } catch (err) {
       // Try the next one
     }
   }
-  return stream;
+  return null;
 }
 
 export async function getFirstSuitableFolder(
