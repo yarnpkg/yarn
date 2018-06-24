@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "devDependencies": {
+    "nomore-test-h": "0.0.2"
+  },
+  "workspaces": [
+    "packages/nomore-test-a"
+  ]
+}

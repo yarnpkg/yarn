@@ -1,0 +1,17 @@
+HTTP/1.1 200 OK
+Date: Sun, 24 Jun 2018 05:10:05 GMT
+Content-Type: application/vnd.npm.install-v1+json
+Content-Length: 2771
+Connection: keep-alive
+Set-Cookie: __cfduid=dbf253795f7db5aaaf01e648cfc2d0dd91529817005; expires=Mon, 24-Jun-19 05:10:05 GMT; path=/; domain=.registry.yarnpkg.com; HttpOnly
+Accept-Ranges: bytes
+Cache-Control: max-age=300
+CF-Cache-Status: REVALIDATED
+CF-RAY: 42fcaf99ab8a384c-ATL
+ETag: "720c8e744e23c30b2e2fb166736f4b50"
+Expect-CT: max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
+Last-Modified: Sun, 24 Jun 2018 04:24:52 GMT
+Vary: accept-encoding, accept
+Server: cloudflare
+
+{"versions":{"1.0.0":{"name":"nomore-test-h","version":"1.0.0","peerDependencies":{"nomore-test-a":"^0.0.1"},"_hasShrinkwrap":false,"directories":{},"dist":{"integrity":"sha512-tLs2NT+W0+4iCCuTwdp/vN1NlZwY1bBvzyJAHJqRPOip3IVhhAf0juLN+80PY+dxdwBfXboFR+/SCaN8BUVI2g==","shasum":"7f445af4811b6a383c01a99c0d96e80974248989","tarball":"https://registry.npmjs.org/nomore-test-h/-/nomore-test-h-1.0.0.tgz","fileCount":2,"unpackedSize":402,"npm-signature":"-----BEGIN PGP SIGNATURE-----\r\nVersion: OpenPGP.js v3.0.4\r\nComment: https://openpgpjs.org\r\n\r\nwsFcBAEBCAAQBQJbLxyACRA9TVsSAnZWagAABeEP/ivnj/it6EALoQLeb9F1\no3iYP5fxWfPyvzOOcy7GUOmRrG5foRX7Zg6Dm+p5Ck6c26nQu7fLhhhApgPH\nqcolSmogMrgIO/cRsoTanqMFyp2BLxWfZo9NCoeX/BeiCXQmitBCbVbReJ6a\nKKqeMX7LfwUuXaOaSDtK9fXF4O9eWS/VJvv2IiOtmRSEJoQehEEnVYcAOVD3\n4O/g/5fvgnHVbxMpzMv2LzCnewAtGSSthEDNM/s0upUeKqXrmHRgWevDfeJ7\nwbrf7IzA6e+Do3z+y+hVR9YMjoMRFzLcmn7IP8WIaZXX3yEtBrrse2rCrKEF\nhiBpk2FLqL2Hkr79yUT1WLS+Ka7ui3SBjVSck2BCffkdmtS8W2IuE+NDmbxd\nu7x9w8ZX2EZrukwBp4LkVCvq1aZuqwH6O7/lZWTt43n1M9GHG7LlYrhh0zbA\nis8sT1Dn7RJe72op2VUIvs3uX882oRZV5b9S9lwG9rRjSIepMy3Jk3NNZN0h\nW/cg5bpP7SgW9bu1IKXPm2707ftizUsu9Rz0f0sI7b+x5zqic/u7zt7qjf4n\nctpx61m/A5ZPEPw4/LnTMRtblUgIUGI14el1sHjpuqOqA8SNY6MXgfjry8N1\nMGmVJvVCKxHrEcZLQqxoVKEqDklrHG35TWH6WBTZNwyit9zvYg+c1fEHYgDz\nfBlH\r\n=aX1h\r\n-----END PGP SIGNATURE-----\r\n"}},"0.0.2":{"name":"nomore-test-h","version":"0.0.2","peerDependencies":{"nomore-test-a":">=0.0.1"},"_hasShrinkwrap":false,"directories":{},"dist":{"integrity":"sha512-qCmT9Sst4Im/XYzGfIYgOLo10OZ2B/zhgaiebSZ1MjG/axf7Xrqt4sqWIzbYiI9O169fztsWS/OVAZKZDXQJsw==","shasum":"2ae58e9480144f397491a10da8ce663f0936a7c2","tarball":"https://registry.npmjs.org/nomore-test-h/-/nomore-test-h-0.0.2.tgz","fileCount":2,"unpackedSize":403,"npm-signature":"-----BEGIN PGP SIGNATURE-----\r\nVersion: OpenPGP.js v3.0.4\r\nComment: https://openpgpjs.org\r\n\r\nwsFcBAEBCAAQBQJbLx0QCRA9TVsSAnZWagAAjqIP/1GE8t5D1qK2NaJhYOyN\nfA7/0TfYnBymnbmT4nsKW98VcjVUOHfilR5RQfsQBh/Fjou7r4FXfd/309SU\nT4a7JbhWkmxc4CmdOITvVuSG02y4pdnhlKDpL8BnPKI/9ME2q7PoQjFSLpAn\nBhSVjEPAuFbQ1hLNH/zUVRFFQ/TxZDGHBnc65G3U73ircruBvVRYAiEy1q4p\nJRjgSUkppFrZvZWRQ77fG1+OFq3BpOhu7X60RhFWFvzdYicil0ULa3WgXy8c\ngpnGo0wzh2whRtJrA7CXC0r3EEJWnArlVBMnOIz97de5pRnVbaircGA5JyFF\n+J7FaJKMH5ZaF4UjNgmeBcbG+FtXCzuBnmeU3EDHUnTnFSR2WIoGhhPZCyaW\n8cllnnBZkp6i9z47agxOyh6q+/NZbdf160ijzgUpUy4zywl+LByk4eGbovNu\nmQo9JBXjRSIZ2V58s8JMmeMpneQYVOTPK8NJJShVMfBjLES26YmSCaojqH4/\nGyj+R/+nG5pvbDss3sE/JNe3tKmD4a9z7H0WkRZNoXc/UpPFcQea14X7pRlw\noLBJ+jZSR/v2OUBUwfp9AlVHs+VFi/9jYoGZrByEi59aHHzpclscDXGQqAwD\nZaW4pL0a1IcJuQsK1U5kHDfjzIO6nL9aOBKUKMlV3pZyO5lpCSzLSPiH2J4R\n76o/\r\n=fhuQ\r\n-----END PGP SIGNATURE-----\r\n"}}},"name":"nomore-test-h","dist-tags":{"latest":"0.0.2"},"modified":"2018-06-24T04:24:51.157Z"}

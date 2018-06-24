@@ -232,7 +232,9 @@ describe('--registry option', () => {
       await runYarn(['add', 'is-array', '--registry', registry], {cwd});
     } catch (err) {
       const stdoutOutput = err.message;
-      expect(stdoutOutput.toString()).toMatch(/getaddrinfo ENOTFOUND example-registry-doesnt-exist\.com/g);
+      expect(stdoutOutput.toString()).toMatch(
+        /getaddrinfo ENOTFOUND example-registry-doesnt-exist\.com|example-registry-doesnt-exist.com\/is-array: connect ECONNREFUSED/,
+      );
     }
   });
 
