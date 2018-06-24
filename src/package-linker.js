@@ -566,7 +566,7 @@ export default class PackageLinker {
       const ref = pkg._reference;
       invariant(ref, 'Package reference is missing');
       // TODO: We are taking the "shortest" ref tree but there may be multiple ref trees with the same length
-      const refTree = ref.requests.map(req => req.parentNames).sort((arr1, arr2) => arr1.length - arr2.length)[0];
+      const {parentNames: refTree = []} = ref.requests.find(ref => ref.parentNames.length) || {};
 
       const getLevelDistance = pkgRef => {
         let minDistance = Infinity;
