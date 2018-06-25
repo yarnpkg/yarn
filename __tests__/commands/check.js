@@ -383,11 +383,53 @@ test.concurrent('should ignore bundled dependencies', async (): Promise<void> =>
   );
 });
 
-test.concurrent('should warn about mismatched dependencies if they match resolutions', async (): Promise<void> => {
+test.concurrent('should warn about mismatched dependencies if they match resolutions (simple)', async (): Promise<
+  void,
+> => {
   let mismatchError = false;
   let stdout = '';
   try {
     await runCheck([], {}, 'resolutions', (config, reporter, check, getStdout) => {
+      stdout = getStdout();
+    });
+  } catch (err) {
+    mismatchError = true;
+  }
+  expect(mismatchError).toEqual(false);
+  expect(
+    stdout.search(
+      `warning.*"repeat-string@1.4.0" is incompatible with requested version "pad-left#repeat-string@\\^1.5.4"`,
+    ),
+  ).toBeGreaterThan(-1);
+});
+
+test.concurrent('should warn about mismatched dependencies if they match resolutions (tree)', async (): Promise<
+  void,
+> => {
+  let mismatchError = false;
+  let stdout = '';
+  try {
+    await runCheck([], {}, 'resolutions-tree', (config, reporter, check, getStdout) => {
+      stdout = getStdout();
+    });
+  } catch (err) {
+    mismatchError = true;
+  }
+  expect(mismatchError).toEqual(false);
+  expect(
+    stdout.search(
+      `warning.*"repeat-string@1.4.0" is incompatible with requested version "pad-left#repeat-string@\\^1.5.4"`,
+    ),
+  ).toBeGreaterThan(-1);
+});
+
+test.concurrent('should warn about mismatched dependencies if they match resolutions (glob)', async (): Promise<
+  void,
+> => {
+  let mismatchError = false;
+  let stdout = '';
+  try {
+    await runCheck([], {}, 'resolutions-glob', (config, reporter, check, getStdout) => {
       stdout = getStdout();
     });
   } catch (err) {

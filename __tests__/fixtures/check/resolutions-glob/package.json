@@ -1,0 +1,13 @@
+{
+  "name": "resolutions",
+  "description": "A package with dependencies with resolutions",
+  "version": "2.0.1",
+  "dependencies": {
+    "pad-left": "2.1.0",
+    "repeat-string": "1.4.0"
+  },
+  "resolutions": {
+    "**/repeat-string": "1.4.0"
+  },
+  "license": "MIT"
+}
