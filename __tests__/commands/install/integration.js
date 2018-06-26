@@ -619,8 +619,9 @@ test('install should update checksums in yarn.lock (--update-checksums)', (): Pr
     const cachePackageJson = path.resolve(
       config.cwd,
       '.yarn-cache/v2/',
-      'node_modules',
       packageCacheName,
+      'node_modules',
+      'abab',
       'package.json',
     );
     expect(packageHashInLockfile).toEqual(packageRealHash);

@@ -677,5 +677,54 @@ module.exports = makeTemporaryEnv => {
         },
       ),
     );
+
+    test(
+      `it should install the packages within a node_modules directory (even if within the cache)`,
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`no-deps`]: `1.0.0`,
+          },
+        },
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          // This is to allow a maximal compatibility with packages that expect to
+          // be located inside a node_modules directory. Various tools (such as
+          // transpilers) also use regexps in their configuration that it would be
+          // nice not to break.
+
+          await run(`install`);
+
+          expect(await source(`require.resolve('no-deps')`)).toMatch(/[\\\/]node_modules[\\\/]no-deps[\\\/]/);
+        },
+      ),
+    );
+
+    test(
+      `it should install packages with peer dependencies within a node_modules directory (even if within the .pnp folder)`,
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`peer-deps`]: `1.0.0`,
+            [`no-deps`]: `2.0.0`,
+          },
+        },
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          // This is to allow a maximal compatibility with packages that expect to
+          // be located inside a node_modules directory. Various tools (such as
+          // transpilers) also use regexps in their configuration that it would be
+          // nice not to break.
+
+          await run(`install`);
+
+          expect(await source(`require.resolve('peer-deps')`)).toMatch(/[\\\/]node_modules[\\\/]peer-deps[\\\/]/);
+        },
+      ),
+    );
   });
 };

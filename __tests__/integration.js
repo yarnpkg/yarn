@@ -454,7 +454,7 @@ test('cache folder fallback', async () => {
 
   const [stdoutOutput, stderrOutput] = await runCacheDir();
 
-  expect(stdoutOutput.toString().trim()).toEqual(path.join(cacheFolder, `v${constants.CACHE_VERSION}`, `node_modules`));
+  expect(stdoutOutput.toString().trim()).toEqual(path.join(cacheFolder, `v${constants.CACHE_VERSION}`));
   expect(stderrOutput.toString()).not.toMatch(/Skipping preferred cache folder/);
 
   await fs.unlink(cacheFolder);
@@ -463,7 +463,7 @@ test('cache folder fallback', async () => {
   const [stdoutOutput2, stderrOutput2] = await runCacheDir();
 
   expect(stdoutOutput2.toString().trim()).toEqual(
-    path.join(constants.PREFERRED_MODULE_CACHE_DIRECTORIES[0], `v${constants.CACHE_VERSION}`, 'node_modules'),
+    path.join(constants.PREFERRED_MODULE_CACHE_DIRECTORIES[0], `v${constants.CACHE_VERSION}`),
   );
   expect(stderrOutput2.toString()).toMatch(/Skipping preferred cache folder/);
 });
@@ -478,10 +478,8 @@ test('relative cache folder', async () => {
 
   const [stdoutOutput, _] = await runYarn(['cache', 'dir'], {cwd: `${base}/sub`});
 
-  // The first dirname is to remove the "node_modules" part, the second is to remove the "v2" part
-  expect(await fs.realpath(path.dirname(path.dirname(stdoutOutput.toString())))).toEqual(
-    await fs.realpath(`${base}/foo`),
-  );
+  // The dirname is to remove the "v2" part
+  expect(await fs.realpath(path.dirname(stdoutOutput.toString()))).toEqual(await fs.realpath(`${base}/foo`));
 });
 
 test('yarn create', async () => {
