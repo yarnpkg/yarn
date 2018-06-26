@@ -118,20 +118,23 @@ export default class TarballFetcher extends BaseFetcher {
     return {validateStream, extractorStream};
   }
 
-  *getLocalPaths(override: ?string): Generator<?string, void, void> {
-    if (override) {
-      yield path.resolve(this.config.cwd, override);
-    }
-    yield this.getTarballMirrorPath();
-    yield this.getTarballCachePath();
+  getLocalPaths(override: ?string): Array<string> {
+    const paths: Array<?string> = [
+      override ? path.resolve(this.config.cwd, override) : null,
+      this.getTarballMirrorPath(),
+      this.getTarballCachePath(),
+    ];
+    // $FlowFixMe: https://github.com/facebook/flow/issues/1414
+    return paths.filter(path => path != null);
   }
 
   async fetchFromLocal(override: ?string): Promise<FetchedOverride> {
-    const {stream, triedPaths} = await fsUtil.readFirstAvailableStream(this.getLocalPaths(override));
+    const tarPaths = this.getLocalPaths(override);
+    const stream = await fsUtil.readFirstAvailableStream(tarPaths);
 
     return new Promise((resolve, reject) => {
       if (!stream) {
-        reject(new MessageError(this.reporter.lang('tarballNotInNetworkOrCache', this.reference, triedPaths)));
+        reject(new MessageError(this.reporter.lang('tarballNotInNetworkOrCache', this.reference, tarPaths)));
         return;
       }
       invariant(stream, 'stream should be available at this point');
