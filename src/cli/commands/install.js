@@ -614,6 +614,13 @@ export class Install {
 
           const pnpPath = `${this.config.lockfileFolder}/${constants.PNP_FILENAME}`;
 
+          try {
+            const file = await fs.readFile(pnpPath);
+            if (file === code) {
+              return;
+            }
+          } catch (error) {}
+
           await fs.writeFile(pnpPath, code);
           await fs.chmod(pnpPath, 0o755);
         }),

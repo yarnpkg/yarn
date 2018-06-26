@@ -40,6 +40,60 @@ module.exports = makeTemporaryEnv => {
     );
 
     test(
+      `it should not touch the .pnp.js file when it already exists and is up-to-date`,
+      makeTemporaryEnv(
+        {},
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          const beforeTime = (await fs.stat(`${path}/.pnp.js`)).mtimeMs;
+
+          // Need to wait two seconds to be sure that the mtime will change
+          await new Promise(resolve => setTimeout(resolve, 2000));
+
+          await run(`install`);
+
+          const afterTime = (await fs.stat(`${path}/.pnp.js`)).mtimeMs;
+
+          expect(afterTime).toEqual(beforeTime);
+        },
+      ),
+    );
+
+    test(
+      `it should update the .pnp.js file when it already exists but isn't up-to-date`,
+      makeTemporaryEnv(
+        {},
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          const beforeTime = (await fs.stat(`${path}/.pnp.js`)).mtimeMs;
+
+          await writeJson(`${path}/package.json`, {
+            dependencies: {
+              [`no-deps`]: `1.0.0`,
+            },
+          });
+
+          // Need to wait two seconds to be sure that the mtime will change
+          await new Promise(resolve => setTimeout(resolve, 2000));
+
+          await run(`install`);
+
+          const afterTime = (await fs.stat(`${path}/.pnp.js`)).mtimeMs;
+
+          expect(afterTime).not.toEqual(beforeTime);
+        },
+      ),
+    );
+
+    test(
       `it should resolve two identical packages with the same object (easy)`,
       makeTemporaryEnv(
         {
