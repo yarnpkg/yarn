@@ -687,7 +687,7 @@ export class Install {
   applyChanges(manifests: RootManifests): Promise<boolean> {
     let hasChanged = false;
 
-    if (!this.config.plugnplayByEnv) {
+    if (this.config.plugnplayPersist) {
       const {object} = manifests.npm;
 
       if (typeof object.installConfig !== 'object') {
