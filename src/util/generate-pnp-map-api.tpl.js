@@ -276,7 +276,20 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer) {
     // resolution algorithm in the chain, usually the native Node resolution one
 
     if (!issuerLocator) {
-      return callNativeResolution(request, issuer);
+      const result = callNativeResolution(request, issuer);
+
+      if (result === false) {
+        throw makeError(
+          `BUILTIN_NODE_RESOLUTION_FAIL`,
+          `The builtin node resolution algorithm was unable to resolve the module referenced by "${request}" and requested from "${issuer}" (it didn't go through the pnp resolver because the issuer doesn't seem to be part of the Yarn-managed dependency tree)`,
+          {
+            request,
+            issuer,
+          },
+        );
+      }
+
+      return result;
     }
 
     const issuerInformation = getPackageInformationSafe(issuerLocator);
@@ -380,7 +393,7 @@ exports.resolveUnqualified = function resolveUnqualified(
 };
 
 /**
- * Transforms a request into a qualified fully path.
+ * Transforms a request into a fully qualified path.
  *
  * Note that it is extremely important that the `issuer` path ends with a forward slash if the issuer is to be
  * treated as a folder (ie. "/tmp/foo/" rather than "/tmp/foo" if "foo" is a directory). Otherwise relative
@@ -388,7 +401,52 @@ exports.resolveUnqualified = function resolveUnqualified(
  */
 
 exports.resolveRequest = function resolveRequest(request, issuer) {
-  const unqualifiedPath = exports.resolveToUnqualified(request, issuer);
+  let unqualifiedPath;
+
+  try {
+    unqualifiedPath = exports.resolveToUnqualified(request, issuer);
+  } catch (originalError) {
+    // If we get a BUILTIN_NODE_RESOLUTION_FAIL error there, it means that we've had to use the builtin node
+    // resolution, which usually shouldn't happen. It might be because the user is trying to require something
+    // from a path loaded through a symlink (which is not possible, because we need something normalized to
+    // figure out which package is making the require call), so we try to make the same request using a fully
+    // resolved issuer and throws a better and more actionable error if it works.
+    if (originalError.code === `BUILTIN_NODE_RESOLUTION_FAIL`) {
+      let realIssuer;
+
+      try {
+        realIssuer = fs.realpathSync(issuer);
+      } catch (error) {}
+
+      if (realIssuer) {
+        if (issuer.endsWith(`/`)) {
+          realIssuer = realIssuer.replace(/\/?$/, `/`);
+        }
+
+        try {
+          exports.resolveToUnqualified(request, realIssuer);
+        } catch (error) {
+          // If an error was thrown, the problem doesn't seem to come from a path not being normalized, so we
+          // can just throw the original error which was legit.
+          throw originalError;
+        }
+
+        // If we reach this stage, it means that resolveToUnqualified didn't fail when using the fully resolved
+        // file path, which is very likely caused by a module being invoked through Node with a path not being
+        // correctly normalized (ie you should use "node $(realpath script.js)" instead of "node script.js").
+        throw makeError(
+          `SYMLINKED_PATH_DETECTED`,
+          `A pnp module ("${request}") has been required from what seems to be a symlinked path ("${issuer}"). This is not possible, you must ensure that your modules are invoked through their fully resolved path on the filesystem (in this case "${realIssuer}").`,
+          {
+            request,
+            issuer,
+            realIssuer,
+          },
+        );
+      }
+    }
+    throw originalError;
+  }
 
   if (unqualifiedPath === null) {
     return null;
@@ -396,11 +454,11 @@ exports.resolveRequest = function resolveRequest(request, issuer) {
 
   try {
     return exports.resolveUnqualified(unqualifiedPath);
-  } catch (error) {
-    if (error.code === 'QUALIFIED_PATH_RESOLUTION_FAILED') {
-      Object.assign(error.data, {request, issuer});
+  } catch (resolutionError) {
+    if (resolutionError.code === 'QUALIFIED_PATH_RESOLUTION_FAILED') {
+      Object.assign(resolutionError.data, {request, issuer});
     }
-    throw error;
+    throw resolutionError;
   }
 };
 
