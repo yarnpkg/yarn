@@ -537,7 +537,11 @@ exports.setupCompatibilityLayer = () => {
     });
   };
 
-  moduleShims.set('resolve', Object.assign(resolveShim, {sync: resolveSyncShim}));
+  const isCoreShim = request => {
+    return builtinModules.has(request);
+  };
+
+  moduleShims.set('resolve', Object.assign(resolveShim, {sync: resolveSyncShim, isCore: isCoreShim}));
 };
 
 if (module.parent && module.parent.id === 'internal/preload') {
