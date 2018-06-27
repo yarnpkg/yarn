@@ -49,6 +49,9 @@ export type ConfigOptions = {
   nonInteractive?: boolean,
   scriptsPrependNodePath?: boolean,
 
+  enableDefaultRc?: boolean,
+  extraneousYarnrcFiles?: Array<string>,
+
   // Loosely compare semver for invalid cases like "0.01.0"
   looseSemver?: ?boolean,
 
@@ -95,6 +98,10 @@ export default class Config {
     this.reporter = reporter;
     this._init({});
   }
+
+  //
+  enableDefaultRc: boolean;
+  extraneousYarnrcFiles: Array<string>;
 
   //
   looseSemver: boolean;
@@ -272,8 +279,17 @@ export default class Config {
     for (const key of Object.keys(registries)) {
       const Registry = registries[key];
 
+      const extraneousRcFiles = Registry === registries.yarn ? this.extraneousYarnrcFiles : [];
+
       // instantiate registry
-      const registry = new Registry(this.cwd, this.registries, this.requestManager, this.reporter);
+      const registry = new Registry(
+        this.cwd,
+        this.registries,
+        this.requestManager,
+        this.reporter,
+        this.enableDefaultRc,
+        extraneousRcFiles,
+      );
       await registry.init({
         registry: opts.registry,
       });
@@ -387,6 +403,9 @@ export default class Config {
     this.looseSemver = opts.looseSemver == undefined ? true : opts.looseSemver;
 
     this.commandName = opts.commandName || '';
+
+    this.enableDefaultRc = !!opts.enableDefaultRc;
+    this.extraneousYarnrcFiles = opts.extraneousYarnrcFiles || [];
 
     this.preferOffline = !!opts.preferOffline;
     this.modulesFolder = opts.modulesFolder;

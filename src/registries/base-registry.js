@@ -27,7 +27,14 @@ export type CheckOutdatedReturn = Promise<{
 }>;
 
 export default class BaseRegistry {
-  constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager, reporter: Reporter) {
+  constructor(
+    cwd: string,
+    registries: ConfigRegistries,
+    requestManager: RequestManager,
+    reporter: Reporter,
+    enableDefaultRc: boolean,
+    extraneousRcFiles: Array<string>,
+  ) {
     this.reporter = reporter;
     this.requestManager = requestManager;
     this.registries = registries;
@@ -36,10 +43,16 @@ export default class BaseRegistry {
     this.token = '';
     this.loc = '';
     this.cwd = cwd;
+    this.enableDefaultRc = enableDefaultRc;
+    this.extraneousRcFiles = extraneousRcFiles;
   }
 
   // the filename to use for package metadata
   static filename: string;
+
+  //
+  enableDefaultRc: boolean;
+  extraneousRcFiles: Array<string>;
 
   //
   reporter: Reporter;
