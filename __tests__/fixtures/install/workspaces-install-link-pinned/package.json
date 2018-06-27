@@ -1,0 +1,10 @@
+{
+  "name": "my-project",
+  "private": true,
+  "devDependencies": {
+    "left-pad": "1.1.2"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
+}
