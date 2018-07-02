@@ -352,7 +352,7 @@ export default class Config {
 
     const plugnplayByEnv = this.getOption('plugnplay-override');
     if (plugnplayByEnv != null) {
-      this.plugnplayEnabled = Boolean(plugnplayByEnv);
+      this.plugnplayEnabled = plugnplayByEnv !== 'false' && plugnplayByEnv !== '0';
       this.plugnplayPersist = false;
     } else if (opts.enablePnp || opts.disablePnp) {
       this.plugnplayEnabled = !!opts.enablePnp;
