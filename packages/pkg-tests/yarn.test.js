@@ -34,7 +34,7 @@ const pkgDriver = generatePkgDriver({
           [`YARN_PLUGNPLAY_SHEBANG`]: plugnplayShebang || ``,
           [`PATH`]: `${path}/bin${delimiter}${process.env.PATH}`,
         },
-        plugNPlay ? {[`YARN_PLUGNPLAY_OVERRIDE`]: plugNPlay} : {},
+        plugNPlay ? {[`YARN_PLUGNPLAY_OVERRIDE`]: plugNPlay ? `1` : `0`} : {},
       ),
       cwd: path,
     });
