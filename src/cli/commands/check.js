@@ -8,6 +8,7 @@ import Lockfile from '../../lockfile';
 import type {Reporter} from '../../reporters/index.js';
 import * as fs from '../../util/fs.js';
 import {Install} from './install.js';
+import {normalizePattern} from '../../util/normalize-pattern.js';
 
 const semver = require('semver');
 const path = require('path');
@@ -196,7 +197,6 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     return;
   }
 
-  const mainPackageJson = await config.readJson(path.join(config.cwd, 'package.json'));
   const lockfile = await Lockfile.fromDirectory(config.cwd);
   const install = new Install(flags, config, reporter, lockfile);
 
@@ -335,9 +335,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
           const foundHuman = `${humaniseLocation(path.dirname(depPkgLoc)).join('#')}@${depPkg.version}`;
           if (!semver.satisfies(depPkg.version, range, config.looseSemver)) {
             // module isn't correct semver
-            const resRange = mainPackageJson.resolutions && mainPackageJson.resolutions[name];
-            if (resRange) {
-              const resHuman = `${human}#${name}@${resRange}`;
+            const resPattern = install.resolutionMap.find(name, originalKey.split('#'));
+            if (resPattern) {
+              const resHuman = `${human}#${resPattern}`;
+              const {range: resRange} = normalizePattern(resPattern);
 
               if (semver.satisfies(depPkg.version, resRange, config.looseSemver)) {
                 reporter.warn(reporter.lang('incompatibleResolutionVersion', foundHuman, subHuman));
