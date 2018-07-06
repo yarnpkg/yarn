@@ -222,8 +222,11 @@ export default class NpmResolver extends RegistryResolver {
     }
 
     if (dist != null && dist.tarball) {
+      // The resolved tarball url needs to be un-escaped.
+      // Refer to the SCOPED_PKG_REGEXP docs in npm-registry for more info.
+      const resolved = `${this.cleanRegistry(dist.tarball).replace('%2f', '/')}#${dist.shasum}`;
       info._remote = {
-        resolved: `${this.cleanRegistry(dist.tarball)}#${dist.shasum}`,
+        resolved,
         type: 'tarball',
         reference: this.cleanRegistry(dist.tarball),
         hash: dist.shasum,
