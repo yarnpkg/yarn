@@ -9,7 +9,7 @@ import {parse} from './lockfile';
 import * as rcUtil from './util/rc.js';
 
 // Keys that will get resolved relative to the path of the rc file they belong to
-const PATH_KEYS = new Set(['yarn-path', 'cache-folder', 'global-folder', 'modules-folder', 'cwd']);
+const PATH_KEYS = new Set(['yarn-path', 'cache-folder', 'global-folder', 'modules-folder', 'cwd', 'cafile']);
 
 // given a cwd, load all .yarnrc files relative to it
 export function getRcConfigForCwd(cwd: string, args: Array<string>): {[key: string]: string} {

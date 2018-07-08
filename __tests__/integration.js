@@ -526,3 +526,16 @@ test('yarn init -y', async () => {
   const manifestFile = await fs.readFile(path.join(cwd, 'package.json'));
   expect(manifestFile).toEqual(initialManifestFile);
 });
+
+test('relative cafile', async () => {
+  const base = await makeTemp();
+
+  await fs.writeFile(`${base}/.yarnrc`, 'cafile "./foo/server.cer"\n');
+
+  await fs.mkdirp(`${base}/sub`);
+  await fs.mkdirp(`${base}/foo`);
+
+  const [stdoutOutput, _] = await runYarn(['config', 'get', 'cafile'], {cwd: `${base}/sub`});
+
+  expect(await fs.realpath(stdoutOutput.toString())).toEqual(await fs.realpath(`${base}/foo/server.cer`));
+});

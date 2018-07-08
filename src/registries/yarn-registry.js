@@ -31,7 +31,7 @@ export const DEFAULTS = {
   'user-agent': [`yarn/${version}`, 'npm/?', `node/${process.version}`, process.platform, process.arch].join(' '),
 };
 
-const RELATIVE_KEYS = ['yarn-offline-mirror', 'cache-folder'];
+const RELATIVE_KEYS = ['yarn-offline-mirror', 'cache-folder', 'cafile'];
 
 const npmMap = {
   'version-git-sign': 'sign-git-tag',
@@ -96,7 +96,13 @@ export default class YarnRegistry extends NpmRegistry {
 
         if (!this.config[key] && valueLoc) {
           const resolvedLoc = (config[key] = path.resolve(path.dirname(loc), valueLoc));
-          await fs.mkdirp(resolvedLoc);
+          try {
+            await fs.mkdirp(resolvedLoc);
+          } catch (ex) {
+            if (ex.code !== 'EEXIST') {
+              throw ex;
+            }
+          }
         }
       }
 
