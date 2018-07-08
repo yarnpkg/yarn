@@ -98,9 +98,10 @@ export default class YarnRegistry extends NpmRegistry {
           const resolvedLoc = (config[key] = path.resolve(path.dirname(loc), valueLoc));
           try {
             await fs.mkdirp(resolvedLoc);
-          } catch (ex) {
-            if (ex.code !== 'EEXIST') {
-              throw ex;
+          } catch (err) {
+            // ignore EEXIST error. this only occurs when resolvedLoc is a file path
+            if (err.code !== 'EEXIST') {
+              throw err;
             }
           }
         }
