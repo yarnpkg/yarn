@@ -165,6 +165,7 @@ export default class Config {
   plugnplayPersist: boolean;
   plugnplayEnabled: boolean;
   plugnplayShebang: ?string;
+  plugnplayBlacklist: ?string;
 
   scriptsPrependNodePath: boolean;
 
@@ -366,6 +367,7 @@ export default class Config {
     }
 
     this.plugnplayShebang = String(this.getOption('plugnplay-shebang')) || '/usr/bin/env node';
+    this.plugnplayBlacklist = String(this.getOption('plugnplay-blacklist')) || null;
 
     this.workspacesEnabled = this.getOption('workspaces-experimental') !== false;
     this.workspacesNohoistEnabled = this.getOption('workspaces-nohoist-experimental') !== false;
