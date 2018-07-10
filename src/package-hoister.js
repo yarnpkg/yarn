@@ -243,8 +243,12 @@ export default class PackageHoister {
     this.taintKey(key, info);
 
     //
+    const pushed = {};
     for (const depPattern of ref.dependencies) {
-      this.levelQueue.push([depPattern, info]);
+      if (!pushed[depPattern]) {
+        this.levelQueue.push([depPattern, info]);
+        pushed[depPattern] = true;
+      }
     }
 
     return info;
