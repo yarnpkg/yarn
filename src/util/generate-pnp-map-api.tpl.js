@@ -1,12 +1,14 @@
 #!$$SHEBANG
 
 /* eslint-disable max-len, flowtype/require-valid-file-annotation, flowtype/require-return-type */
-/* global packageInformationStores, $$SETUP_STATIC_TABLES */
+/* global packageInformationStores, $$BLACKLIST, $$SETUP_STATIC_TABLES */
 
 const fs = require('fs');
 const Module = require('module');
 const path = require('path');
 const StringDecoder = require('string_decoder');
+
+const ignorePattern = $$BLACKLIST ? new RegExp($$BLACKLIST) : null;
 
 const builtinModules = new Set(Module.builtinModules || Object.keys(process.binding('natives')));
 
@@ -246,6 +248,27 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer) {
 
   if (builtinModules.has(request)) {
     return null;
+  }
+
+  // We allow disabling the pnp resolution for some subpaths. This is because some projects, often legacy,
+  // contain multiple levels of dependencies (ie. a yarn.lock inside a subfolder of a yarn.lock). This is
+  // typically solved using workspaces, but not all of them have been converted already.
+
+  if (ignorePattern && ignorePattern.test(issuer)) {
+    const result = callNativeResolution(request, issuer);
+
+    if (result === false) {
+      throw makeError(
+        `BUILTIN_NODE_RESOLUTION_FAIL`,
+        `The builtin node resolution algorithm was unable to resolve the module referenced by "${request}" and requested from "${issuer}" (it didn't go through the pnp resolver because the issuer was explicitely ignored by the regexp "$$BLACKLIST")`,
+        {
+          request,
+          issuer,
+        },
+      );
+    }
+
+    return result;
   }
 
   let unqualifiedPath;

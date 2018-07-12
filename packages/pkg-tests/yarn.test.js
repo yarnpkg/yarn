@@ -17,7 +17,7 @@ const {
 } = require(`pkg-tests-specs`);
 
 const pkgDriver = generatePkgDriver({
-  runDriver: (path, [command, ...args], {registryUrl, plugNPlay, plugnplayShebang}) => {
+  runDriver: (path, [command, ...args], {registryUrl, plugNPlay, plugnplayShebang, plugnplayBlacklist}) => {
     let extraArgs = [];
 
     if (command === 'install') {
@@ -32,6 +32,7 @@ const pkgDriver = generatePkgDriver({
           [`YARN_PROXY`]: ``,
           [`YARN_HTTPS_PROXY`]: ``,
           [`YARN_PLUGNPLAY_SHEBANG`]: plugnplayShebang || ``,
+          [`YARN_PLUGNPLAY_BLACKLIST`]: plugnplayBlacklist || ``,
           [`PATH`]: `${path}/bin${delimiter}${process.env.PATH}`,
         },
         plugNPlay ? {[`YARN_PLUGNPLAY_OVERRIDE`]: plugNPlay ? `1` : `0`} : {},

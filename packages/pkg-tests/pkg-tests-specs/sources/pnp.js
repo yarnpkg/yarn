@@ -687,6 +687,29 @@ module.exports = makeTemporaryEnv => {
       ),
     );
 
+    it(
+      `it should not be enabled for paths matching the specified regex`,
+      makeTemporaryEnv(
+        {},
+        {
+          plugNPlay: true,
+          plugnplayBlacklist: `/foo/`,
+        },
+        async ({path, run, source}) => {
+          await writeFile(`${path}/foo/shouldwork.js`, `module.exports = require('bad-dep');\n`);
+          await writeFile(`${path}/doesntwork.js`, `module.exports = require('bad-dep');\n`);
+
+          await run(`install`);
+
+          // Force it to exist so that the two scripts would succeed if using the node resolution
+          await writeFile(`${path}/node_modules/bad-dep/index.js`, `module.exports = 42;\n`);
+
+          await expect(source(`require('./doesntwork')`)).rejects.toBeTruthy();
+          await expect(source(`require('./foo/shouldwork')`)).resolves.toBeTruthy();
+        },
+      ),
+    );
+
     test(
       `it should install the packages within a node_modules directory (even if within the cache)`,
       makeTemporaryEnv(

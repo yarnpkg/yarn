@@ -345,6 +345,7 @@ export async function generatePnpMap(
     generateMaps(packageInformationStores, blacklistedLocations) + generateFindPackageLocator(packageInformationStores);
 
   return pnpApi
-    .replace(/\$\$SHEBANG/, config.plugnplayShebang)
-    .replace(/\$\$SETUP_STATIC_TABLES\(\);/, setupStaticTables);
+    .replace(/\$\$SHEBANG/g, config.plugnplayShebang)
+    .replace(/\$\$BLACKLIST/g, JSON.stringify(config.plugnplayBlacklist))
+    .replace(/\$\$SETUP_STATIC_TABLES\(\);/g, setupStaticTables);
 }
