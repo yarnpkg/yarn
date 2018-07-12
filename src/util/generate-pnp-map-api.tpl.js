@@ -200,6 +200,22 @@ function applyNodeExtensionResolution(unqualifiedPath, {extensions}) {
 }
 
 /**
+ * This function creates fake modules that can be used with the _resolveFilename function.
+ * Ideally it would be nice to be able to avoid this, since it causes useless allocations
+ * and cannot be cached efficiently (we recompute the nodeModulePaths every time).
+ *
+ * Fortunately, this should only affect the fallback, and there hopefully shouldn't have a
+ * lot of them.
+ */
+
+function makeFakeModule(path) {
+  const fakeModule = new Module(path, false);
+  fakeModule.filename = path;
+  fakeModule.paths = Module._nodeModulePaths(path);
+  return fakeModule;
+}
+
+/**
  * Forward the resolution to the next resolver (usually the native one)
  */
 
@@ -211,10 +227,11 @@ function callNativeResolution(request, issuer) {
   try {
     enableNativeHooks = false;
 
-    const paths = Module._nodeModulePaths(issuer);
-    const resolution = Module._resolveFilename(request, null, false, {paths});
-
-    return resolution;
+    // Since we would need to create a fake module anyway (to call _resolveLookupPath that
+    // would give us the paths to give to _resolveFilename), we can as well not use
+    // the {paths} option at all, since it internally makes _resolveFilename create another
+    // fake module anyway.
+    return Module._resolveFilename(request, makeFakeModule(issuer), false);
   } finally {
     enableNativeHooks = true;
   }

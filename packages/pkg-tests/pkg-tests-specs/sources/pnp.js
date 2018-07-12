@@ -710,6 +710,25 @@ module.exports = makeTemporaryEnv => {
       ),
     );
 
+    it(
+      `it should not break relative requires for files within a blacklist`,
+      makeTemporaryEnv(
+        {},
+        {
+          plugNPlay: true,
+          plugnplayBlacklist: `/foo/`,
+        },
+        async ({path, run, source}) => {
+          await writeFile(`${path}/foo/filea.js`, `module.exports = require('./fileb');\n`);
+          await writeFile(`${path}/foo/fileb.js`, `module.exports = 42;\n`);
+
+          await run(`install`);
+
+          await expect(source(`require('./foo/filea')`)).resolves.toEqual(42);
+        },
+      ),
+    );
+
     test(
       `it should install the packages within a node_modules directory (even if within the cache)`,
       makeTemporaryEnv(
