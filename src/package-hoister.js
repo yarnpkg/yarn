@@ -245,9 +245,9 @@ export default class PackageHoister {
     //
     const pushed = new Set();
     for (const depPattern of ref.dependencies) {
-      if (!set.has(depPattern)) {
+      if (!pushed.has(depPattern)) {
         this.levelQueue.push([depPattern, info]);
-        set.add(depPattern);
+        pushed.add(depPattern);
       }
     }
 
