@@ -12,10 +12,6 @@ const ignorePattern = $$BLACKLIST ? new RegExp($$BLACKLIST) : null;
 
 const builtinModules = new Set(Module.builtinModules || Object.keys(process.binding('natives')));
 
-const originalLoader = Module._load;
-const originalFindPath = Module._findPath;
-const originalNodeModulePaths = Module._nodeModulePaths;
-
 const pathRegExp = /^(?!\.{0,2}(?:\/|$))((?:@[^\/]+\/)?[^\/]+)\/?(.*|)$/;
 const isDirRegExp = /[\\\/]$/;
 
@@ -24,6 +20,13 @@ const blacklistedLocator = {name: NaN, reference: NaN};
 
 const moduleShims = new Map();
 const moduleCache = new Map();
+
+/**
+ * Used to disable the resolution hooks (for when we want to fallback to the previous resolution - we then need
+ * a way to "reset" the environment temporarily)
+ */
+
+let enableNativeHooks = true;
 
 /**
  * Simple helper function that assign an error code to an error, so that it can more easily be caught and used
@@ -205,10 +208,16 @@ function callNativeResolution(request, issuer) {
     issuer += 'internal.js';
   }
 
-  const paths = originalNodeModulePaths.call(Module, issuer);
-  const result = originalFindPath.call(Module, request, paths, false);
+  try {
+    enableNativeHooks = false;
 
-  return result;
+    const paths = Module._nodeModulePaths(issuer);
+    const resolution = Module._resolveFilename(request, null, false, {paths});
+
+    return resolution;
+  } finally {
+    enableNativeHooks = true;
+  }
 }
 
 /**
@@ -493,11 +502,22 @@ exports.resolveRequest = function resolveRequest(request, issuer) {
  */
 
 exports.setup = function setup() {
+  const originalModuleLoad = Module._load;
+
   Module._load = function(request, parent, isMain) {
+    if (!enableNativeHooks) {
+      return originalModuleLoad.call(Module, request, parent, isMain);
+    }
+
     // Builtins are managed by the regular Node loader
 
     if (builtinModules.has(request)) {
-      return originalLoader.call(this, request, parent, isMain);
+      try {
+        enableNativeHooks = false;
+        return originalModuleLoad.call(Module, request, parent, isMain);
+      } finally {
+        enableNativeHooks = true;
+      }
     }
 
     // We allow to shim modules, which is useful for packages such as `resolve`
@@ -548,7 +568,13 @@ exports.setup = function setup() {
     return module.exports;
   };
 
+  const originalModuleResolveFilename = Module._resolveFilename;
+
   Module._resolveFilename = function(request, parent, isMain, options) {
+    if (!enableNativeHooks) {
+      return originalModuleResolveFilename.call(Module, request, parent, isMain, options);
+    }
+
     const issuerModule = getIssuerModule(parent);
     const issuer = issuerModule ? issuerModule.filename : process.cwd() + path.sep;
 
@@ -556,7 +582,13 @@ exports.setup = function setup() {
     return resolution !== null ? resolution : request;
   };
 
+  const originalFindPath = Module._findPath;
+
   Module._findPath = function(request, paths, isMain) {
+    if (!enableNativeHooks) {
+      return originalFindPath.call(Module, request, paths, isMain);
+    }
+
     for (const path of paths) {
       let resolution;
 
