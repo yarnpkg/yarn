@@ -70,6 +70,22 @@ test.concurrent("throws an error if existing lockfile isn't satisfied with --fro
   expect(thrown).toEqual(true);
 });
 
+
+test.concurrent("throws an error if existing lockfile isn't satisfied with workspace and --frozen-lockfile", async (): Promise<
+  void,
+> => {
+  const reporter = new reporters.ConsoleReporter({});
+
+  let thrown = false;
+  try {
+    await runInstall({frozenLockfile: true}, 'install-throws-error-if-not-satisfied-with-workspace-and-frozen-lockfile', () => {});
+  } catch (err) {
+    thrown = true;
+    expect(err.message).toContain(reporter.lang('frozenLockfileError'));
+  }
+  expect(thrown).toEqual(true);
+});
+
 test.concurrent(
   "doesn't write new lockfile if existing one satisfied but not fully optimized with --frozen-lockfile",
   (): Promise<void> => {
