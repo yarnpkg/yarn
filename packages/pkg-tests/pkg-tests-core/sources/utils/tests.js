@@ -332,7 +332,7 @@ exports.generatePkgDriver = function generatePkgDriver({runDriver}: {|runDriver:
         };
 
         const source = async script => {
-          return JSON.parse((await run('node', '-p', `JSON.stringify(${script})`)).stdout.toString());
+          return JSON.parse((await run('node', '-p', `JSON.stringify((() => ${script})())`)).stdout.toString());
         };
 
         try {

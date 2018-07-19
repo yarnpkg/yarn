@@ -283,5 +283,57 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
         },
       ),
     );
+
+    test(
+      `it should cache the loaded modules`,
+      makeTemporaryEnv(
+        {
+          dependencies: {[`no-deps`]: `1.0.0`},
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await expect(
+            source(
+              `{ let before = require('no-deps/package.json'); let after = require('no-deps/package.json'); return before === after }`,
+            ),
+          ).resolves.toEqual(true);
+        },
+      ),
+    );
+
+    test(
+      `it should expose the cached modules into require.cache`,
+      makeTemporaryEnv(
+        {
+          dependencies: {[`no-deps`]: `1.0.0`},
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await expect(
+            source(`require('no-deps') === require.cache[require.resolve('no-deps')].exports`),
+          ).resolves.toEqual(true);
+        },
+      ),
+    );
+
+    test(
+      `it should allow resetting a loaded module by deleting its entry from require.cache`,
+      makeTemporaryEnv(
+        {
+          dependencies: {[`no-deps`]: `1.0.0`},
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await expect(
+            source(
+              `{ let before = require('no-deps/package.json'); delete require.cache[require.resolve('no-deps/package.json')]; let after = require('no-deps/package.json'); return before === after }`,
+            ),
+          ).resolves.toEqual(false);
+        },
+      ),
+    );
   });
 };

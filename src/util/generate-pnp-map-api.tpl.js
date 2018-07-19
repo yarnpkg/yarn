@@ -19,7 +19,6 @@ const topLevelLocator = {name: null, reference: null};
 const blacklistedLocator = {name: NaN, reference: NaN};
 
 const moduleShims = new Map();
-const moduleCache = new Map();
 
 /**
  * Used to disable the resolution hooks (for when we want to fallback to the previous resolution - we then need
@@ -519,6 +518,12 @@ exports.resolveRequest = function resolveRequest(request, issuer) {
  */
 
 exports.setup = function setup() {
+  // A small note: we don't replace the cache here (and instead use the native one). This is an effort to not
+  // break code similar to "delete require.cache[require.resolve(FOO)]", where FOO is a package located outside
+  // of the Yarn dependency tree. In this case, we defer the load to the native loader. If we were to replace the
+  // cache by our own, the native loader would populate its own cache, which wouldn't be exposed anymore, so the
+  // delete call would be broken.
+
   const originalModuleLoad = Module._load;
 
   Module._load = function(request, parent, isMain) {
@@ -551,7 +556,7 @@ exports.setup = function setup() {
 
     // Check if the module has already been created for the given file
 
-    const cacheEntry = moduleCache.get(modulePath);
+    const cacheEntry = Module._cache[modulePath];
 
     if (cacheEntry) {
       return cacheEntry.exports;
@@ -560,7 +565,7 @@ exports.setup = function setup() {
     // Create a new module and store it into the cache
 
     const module = new Module(modulePath, parent);
-    moduleCache.set(modulePath, module);
+    Module._cache[modulePath] = module;
 
     // The main module is exposed as global variable
 
@@ -578,7 +583,7 @@ exports.setup = function setup() {
       hasThrown = false;
     } finally {
       if (hasThrown) {
-        moduleCache.delete(modulePath);
+        delete Module._cache[modulePath];
       }
     }
 
