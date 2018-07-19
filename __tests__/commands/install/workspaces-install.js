@@ -143,6 +143,18 @@ test.concurrent('install should not link a workspace if the version is not compa
   });
 });
 
+test.concurrent('install should not link a workspace if the version is compatible but pinned down', (): Promise<
+  void,
+> => {
+  return runInstall({binLinks: true}, 'workspaces-install-link-pinned', async (config): Promise<void> => {
+    // node_modules/left-pad - from npm
+    const packageFile = await fs.readFile(path.join(config.cwd, 'node_modules', 'left-pad', 'package.json'));
+    const readme = await fs.readFile(path.join(config.cwd, 'node_modules', 'left-pad', 'README.md'));
+    expect(JSON.parse(packageFile).version).toBe('1.1.2');
+    expect(readme.split('\n')[0]).not.toEqual('WORKSPACES ROCK!');
+  });
+});
+
 test.concurrent('install should prioritize non workspace dependency at root over the workspace symlink', (): Promise<
   void,
 > => {
