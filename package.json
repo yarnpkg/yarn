@@ -36,7 +36,7 @@
     "proper-lockfile": "^2.0.0",
     "puka": "^1.0.0",
     "read": "^1.0.7",
-    "request": "^2.81.0",
+    "request": "^2.87.0",
     "request-capture-har": "^1.2.2",
     "rimraf": "^2.5.0",
     "semver": "^5.1.0",
@@ -94,6 +94,9 @@
     "temp": "^0.8.3",
     "webpack": "^2.1.0-beta.25",
     "yargs": "^6.3.0"
+  },
+  "resolutions":{
+    "sshpk": "^1.14.2"
   },
   "engines": {
     "node": ">=4.0.0"
