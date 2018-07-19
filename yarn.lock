@@ -33,9 +33,9 @@
     normalize-path "^2.0.1"
     through2 "^2.0.3"
 
-"@zkochan/cmd-shim@^2.2.4":
-  version "2.2.4"
-  resolved "https://registry.npmjs.org/@zkochan/cmd-shim/-/cmd-shim-2.2.4.tgz#5730a936491219d88487e92d12c6c3bdb16c3c6e"
+"@zkochan/cmd-shim@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@zkochan/cmd-shim/-/cmd-shim-3.0.0.tgz#23c271e097c62e01d5df678f99d1cf9e26688f55"
   dependencies:
     is-windows "^1.0.0"
     mkdirp-promise "^5.0.1"
