@@ -4,11 +4,8 @@ import type {Reporter} from '../../reporters/index.js';
 import type {Manifest} from '../../types.js';
 import type PackageRequest from '../../package-request.js';
 import {MessageError} from '../../errors.js';
-import {registries} from '../../registries/index.js';
 import GitResolver from './git-resolver.js';
 import ExoticResolver from './exotic-resolver.js';
-import Git from '../../util/git.js';
-import guessName from '../../util/guess-name.js';
 
 export type ExplodedFragment = {
   user: string,
@@ -94,95 +91,6 @@ export default class HostedGitResolver extends ExoticResolver {
     throw new Error('Not implemented');
   }
 
-  async getRefOverHTTP(url: string): Promise<string> {
-    const gitUrl = Git.npmUrlToGitUrl(url);
-    const client = new Git(this.config, gitUrl, this.hash);
-
-    let out = await this.config.requestManager.request({
-      url: `${url}/info/refs?service=git-upload-pack`,
-      queue: this.resolver.fetchingQueue,
-    });
-
-    if (out) {
-      // clean up output
-      let lines = out.trim().split('\n');
-
-      // remove first two lines which contains compatibility info etc
-      lines = lines.slice(2);
-
-      // remove last line which contains the terminator "0000"
-      lines.pop();
-
-      // remove line lengths from start of each line
-      lines = lines.map((line): string => line.slice(4));
-
-      out = lines.join('\n');
-    } else {
-      throw new Error(this.reporter.lang('hostedGitResolveError'));
-    }
-
-    return client.setRefHosted(out);
-  }
-
-  async resolveOverHTTP(url: string): Promise<Manifest> {
-    const commit = await this.getRefOverHTTP(url);
-    const {config} = this;
-
-    const tarballUrl = this.constructor.getTarballUrl(this.exploded, commit);
-
-    const tryRegistry = async (registry): Promise<?Manifest> => {
-      const {filename} = registries[registry];
-
-      const href = this.constructor.getHTTPFileUrl(this.exploded, filename, commit);
-      const file = await config.requestManager.request({
-        url: href,
-        queue: this.resolver.fetchingQueue,
-      });
-      if (!file) {
-        return null;
-      }
-
-      const json = await config.readJson(href, () => JSON.parse(file));
-      json._uid = commit;
-      json._remote = {
-        resolved: tarballUrl,
-        type: 'tarball',
-        reference: tarballUrl,
-        registry,
-      };
-      return json;
-    };
-
-    const file = await tryRegistry(this.registry);
-    if (file) {
-      return file;
-    }
-
-    for (const registry in registries) {
-      if (registry === this.registry) {
-        continue;
-      }
-
-      const file = await tryRegistry(registry);
-      if (file) {
-        return file;
-      }
-    }
-
-    return {
-      name: guessName(url),
-      version: '0.0.0',
-      _uid: commit,
-      _remote: {
-        resolved: tarballUrl,
-        type: 'tarball',
-        reference: tarballUrl,
-        registry: 'npm',
-        hash: undefined,
-      },
-    };
-  }
-
   async hasHTTPCapability(url: string): Promise<boolean> {
     return (
       (await this.config.requestManager.request({
@@ -195,8 +103,8 @@ export default class HostedGitResolver extends ExoticResolver {
   }
 
   async resolve(): Promise<Manifest> {
-    // If we already have the tarball, just return it without having to make any HTTP requests.
-    const shrunk = this.request.getLocked('tarball');
+    // If we already have the git, just return it without having to make any HTTP requests.
+    const shrunk = this.request.getLocked('git');
     if (shrunk) {
       return shrunk;
     }
@@ -208,9 +116,6 @@ export default class HostedGitResolver extends ExoticResolver {
     // If we can access the files over HTTP then we should as it's MUCH faster than git
     // archive and tarball unarchiving. The HTTP API is only available for public repos
     // though.
-    if (await this.hasHTTPCapability(httpBaseUrl)) {
-      return this.resolveOverHTTP(httpUrl);
-    }
 
     // If the url is accessible over git archive then we should immediately delegate to
     // the git resolver.
@@ -218,14 +123,8 @@ export default class HostedGitResolver extends ExoticResolver {
     // NOTE: Here we use a different url than when we delegate to the git resolver later on.
     // This is because `git archive` requires access over ssh and github only allows that
     // if you have write permissions
-    const sshGitUrl = Git.npmUrlToGitUrl(sshUrl);
-    if (await Git.hasArchiveCapability(sshGitUrl)) {
-      const archiveClient = new Git(this.config, sshGitUrl, this.hash);
-      const commit = await archiveClient.init();
-      return this.fork(GitResolver, true, `${sshUrl}#${commit}`);
-    }
 
-    // fallback to the plain git resolver
-    return this.fork(GitResolver, true, sshUrl);
+    const url = (await this.hasHTTPCapability(httpBaseUrl)) ? httpUrl : sshUrl;
+    return this.fork(GitResolver, true, `${url}#${this.hash}`);
   }
 }

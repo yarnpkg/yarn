@@ -51,14 +51,14 @@ class ImportResolver extends BaseResolver {
     const exploded = explodeHostedGitFragment(range, this.reporter);
     const hash = (info: any).gitHead;
     invariant(hash, 'expected package gitHead');
-    const url = Resolver.getTarballUrl(exploded, hash);
+    const url = Resolver.getGitHTTPUrl(exploded);
     info._uid = hash;
     info._remote = {
-      resolved: url,
-      type: 'tarball',
+      resolved: `${url}#${hash}`,
+      type: 'git',
       registry: this.registry,
       reference: url,
-      hash: null,
+      hash,
     };
     return info;
   }
