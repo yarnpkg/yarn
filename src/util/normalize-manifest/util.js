@@ -5,6 +5,14 @@ import type {PersonObject} from '../../types.js';
 const validateLicense = require('validate-npm-package-license');
 
 export function isValidLicense(license: string): boolean {
+  if (license.trim().length == 0) {
+    return true;
+  }
+
+  try {
+    validateLicense(license);
+  } catch (e) {}
+
   return !!license && validateLicense(license).validForNewPackages;
 }
 
