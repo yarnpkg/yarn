@@ -81,7 +81,10 @@ const httpMock = {
       options.agent = null;
       options.socketPath = null;
       options.createConnection = (): ReadStream => {
-        return fs.createReadStream(loc);
+        const socket = fs.createReadStream(loc);
+        socket.connecting = false;
+        socket.setTimeout = () => {};
+        return socket;
       };
       return httpModule.request(options, callback);
     } else {
