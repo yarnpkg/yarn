@@ -30,14 +30,15 @@ const build = (lib, opts) =>
       .pipe(gulpif(argv.sourcemaps, sourcemaps.write('.', {sourceRoot: '../src'})))
       .pipe(gulp.dest(lib));
 
-gulp.task('default', ['build']);
-
 gulp.task('build', () =>
   build('lib', babelRc.env[majorVer >= 5 ? 'node5' : 'pre-node5'])
 );
 
-gulp.task('watch', ['build'], () => {
-  watch('src/**/*', () => {
-    gulp.start('build');
-  });
-});
+gulp.task('default', gulp.task('build'));
+
+gulp.task(
+  'watch',
+  gulp.series('build', () => {
+    watch('src/**/*', gulp.task('build'));
+  })
+);
