@@ -6,7 +6,7 @@ const newer = require('gulp-newer');
 const babel = require('gulp-babel');
 const sourcemaps = require('gulp-sourcemaps');
 const watch = require('gulp-watch');
-const gutil = require('gulp-util');
+const log = require('fancy-log');
 const gulpif = require('gulp-if');
 const gulp = require('gulp');
 const path = require('path');
@@ -21,7 +21,7 @@ const build = (lib, opts) =>
   gulp.src('src/**/*.js')
       .pipe(plumber({
         errorHandler(err) {
-          gutil.log(err.stack);
+          log.error(err.stack);
         },
       }))
       .pipe(newer(lib))
