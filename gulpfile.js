@@ -5,7 +5,6 @@ const plumber = require('gulp-plumber');
 const newer = require('gulp-newer');
 const babel = require('gulp-babel');
 const sourcemaps = require('gulp-sourcemaps');
-const watch = require('gulp-watch');
 const log = require('fancy-log');
 const gulpif = require('gulp-if');
 const gulp = require('gulp');
@@ -38,7 +37,5 @@ gulp.task('default', gulp.task('build'));
 
 gulp.task(
   'watch',
-  gulp.series('build', () => {
-    watch('src/**/*', gulp.task('build'));
-  })
+  gulp.series('build', () => gulp.watch('src/**/*', gulp.task('build')))
 );
