@@ -92,13 +92,7 @@ export default class TarballFetcher extends BaseFetcher {
     extractorStream: stream.Transform,
   } {
     const integrityInfo = this._supportedIntegrity();
-    if (integrityInfo.algorithms.length === 0) {
-      return reject(
-        new SecurityError(
-          this.config.reporter.lang('fetchBadIntegrityAlgorithm', this.packageName, this.remote.reference),
-        ),
-      );
-    }
+
     const validateStream = new ssri.integrityStream(integrityInfo);
     const untarStream = tarFs.extract(this.dest, {
       strip: 1,
@@ -129,6 +123,14 @@ export default class TarballFetcher extends BaseFetcher {
         this.remote.integrity !== this.validateIntegrity.toString()
       ) {
         this.remote.integrity = this.validateIntegrity.toString();
+      }
+
+      if (integrityInfo.algorithms.length === 0) {
+        return reject(
+          new SecurityError(
+            this.config.reporter.lang('fetchBadIntegrityAlgorithm', this.packageName, this.remote.reference),
+          ),
+        );
       }
 
       if (error) {
