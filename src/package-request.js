@@ -80,6 +80,7 @@ export default class PackageRequest {
           hash: resolvedParts.hash,
           integrity: shrunk.integrity,
           registry: shrunk.registry,
+          packageName: shrunk.name,
         },
         optionalDependencies: shrunk.optionalDependencies || {},
         dependencies: shrunk.dependencies || {},

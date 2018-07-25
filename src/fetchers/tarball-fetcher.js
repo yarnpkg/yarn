@@ -93,8 +93,10 @@ export default class TarballFetcher extends BaseFetcher {
   } {
     const integrityInfo = this._supportedIntegrity();
     if (integrityInfo.algorithms.length === 0) {
-      throw new SecurityError(
-        this.config.reporter.lang('fetchBadIntegrityAlgorithm', this.packageName, this.remote.reference),
+      return reject(
+        new SecurityError(
+          this.config.reporter.lang('fetchBadIntegrityAlgorithm', this.packageName, this.remote.reference),
+        ),
       );
     }
     const validateStream = new ssri.integrityStream(integrityInfo);
