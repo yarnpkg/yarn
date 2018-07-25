@@ -1,0 +1,13 @@
+{
+  "name": "nested-workspace-1",
+  "version": "1.0.0",
+  "license": "BSD-2-Clause",
+  "scripts": {
+    "prescript": "echo nested-workspace-1 prescript",
+    "script": "echo nested-workspace-1 script",
+    "postscript": "echo nested-workspace-1 postscript"
+  },
+  "dependencies": {
+    "workspace-1": "1.0.0"
+  }
+}
