@@ -161,7 +161,9 @@ export function filterOverridenGitignores(files: WalkFiles): WalkFiles {
       //don't include .gitignore if .npmignore or .yarnignore are present
       const dir = path.dirname(file.absolute);
       const higherPriorityIgnoreFilePaths = [path.join(dir, IGNORE_FILENAMES[0]), path.join(dir, IGNORE_FILENAMES[1])];
-      const hasHigherPriorityFiles = files.find(file => higherPriorityIgnoreFilePaths.indexOf(file.absolute) > -1);
+      const hasHigherPriorityFiles = files.find(
+        file => higherPriorityIgnoreFilePaths.indexOf(path.normalize(file.absolute)) > -1,
+      );
       if (!hasHigherPriorityFiles) {
         return [...acc, file];
       }
