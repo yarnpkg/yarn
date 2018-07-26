@@ -115,7 +115,7 @@ async function list(config: Config, reporter: Reporter, flags: Object, args: Arr
       });
     });
 
-    reporter.tree('licenses', trees);
+    reporter.tree('licenses', trees, {force: true});
   }
 }
 export function setFlags(commander: Object) {
