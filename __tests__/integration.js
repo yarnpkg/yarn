@@ -501,6 +501,34 @@ test('relative cache folder', async () => {
   expect(await fs.realpath(path.dirname(stdoutOutput.toString()))).toEqual(await fs.realpath(`${base}/foo`));
 });
 
+test('relative cache folder path is a file', async () => {
+  const base = await makeTemp();
+
+  await fs.writeFile(`${base}/.yarnrc`, 'cache-folder "./foo"\n');
+  await fs.writeFile(`${base}/foo`, '');
+
+  try {
+    await runYarn(['cache', 'dir'], {cwd: `${base}`});
+  } catch (err) {
+    const stdoutOutput = err.message;
+    expect(stdoutOutput.toString()).toMatch(/EEXIST: file already exists, mkdir/g);
+  }
+});
+
+test('relative cache folder path is an invalid directory below a file', async () => {
+  const base = await makeTemp();
+
+  await fs.writeFile(`${base}/.yarnrc`, 'cache-folder "./foo/bar"\n');
+  await fs.writeFile(`${base}/foo`, '');
+
+  try {
+    await runYarn(['cache', 'dir'], {cwd: `${base}`});
+  } catch (err) {
+    const stdoutOutput = err.message;
+    expect(stdoutOutput.toString()).toMatch(/ENOTDIR: not a directory, mkdir/g);
+  }
+});
+
 test('yarn create', async () => {
   const cwd = await makeTemp();
   const options = {cwd, env: {YARN_SILENT: 1}};
@@ -534,6 +562,8 @@ test('relative cafile', async () => {
 
   await fs.mkdirp(`${base}/sub`);
   await fs.mkdirp(`${base}/foo`);
+
+  await fs.writeFile(`${base}/foo/server.cer`, '-----BEGIN CERTIFICATE-----\n\n-----END CERTIFICATE-----');
 
   const [stdoutOutput, _] = await runYarn(['config', 'get', 'cafile'], {cwd: `${base}/sub`});
 
