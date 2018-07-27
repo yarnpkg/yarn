@@ -97,7 +97,7 @@ export default class YarnRegistry extends NpmRegistry {
 
         if (!this.config[key] && valueLoc) {
           config[key] = path.resolve(path.dirname(loc), valueLoc);
-          if (RELATIVE_KEYS_MAKE_DIR.includes(key)) {
+          if (RELATIVE_KEYS_MAKE_DIR.indexOf(key) >= 0) {
             const resolvedLoc = config[key];
             await fs.mkdirp(resolvedLoc);
           }
