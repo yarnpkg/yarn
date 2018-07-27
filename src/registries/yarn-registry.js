@@ -32,6 +32,7 @@ export const DEFAULTS = {
 };
 
 const RELATIVE_KEYS = ['yarn-offline-mirror', 'cache-folder', 'cafile'];
+const RELATIVE_KEYS_MAKE_DIR = ['yarn-offline-mirror', 'cache-folder'];
 
 const npmMap = {
   'version-git-sign': 'sign-git-tag',
@@ -95,14 +96,10 @@ export default class YarnRegistry extends NpmRegistry {
         const valueLoc = config[key];
 
         if (!this.config[key] && valueLoc) {
-          const resolvedLoc = (config[key] = path.resolve(path.dirname(loc), valueLoc));
-          try {
+          config[key] = path.resolve(path.dirname(loc), valueLoc);
+          if (RELATIVE_KEYS_MAKE_DIR.includes(key)) {
+            const resolvedLoc = config[key];
             await fs.mkdirp(resolvedLoc);
-          } catch (err) {
-            // ignore EEXIST error. this only occurs when resolvedLoc is a file path
-            if (err.code !== 'EEXIST') {
-              throw err;
-            }
           }
         }
       }
