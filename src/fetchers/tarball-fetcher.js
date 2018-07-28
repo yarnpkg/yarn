@@ -221,6 +221,7 @@ export default class TarballFetcher extends BaseFetcher {
   }
 
   _fetch(): Promise<FetchedOverride> {
+
     const isFilePath = this.reference.startsWith('file:');
     this.reference = removePrefix(this.reference, 'file:');
     const urlParse = url.parse(this.reference);
@@ -234,7 +235,11 @@ export default class TarballFetcher extends BaseFetcher {
       return this.fetchFromLocal(this.reference);
     }
 
-    return this.fetchFromLocal().catch(err => this.fetchFromExternal());
+    return this.fetchFromLocal().catch(err => {
+      this.reporter.verbose(this.reporter.lang("errorFetchingFromLocal", err.message));
+      this.reporter.verbose(err.message);
+      return this.fetchFromExternal();
+    });
   }
 }
 
