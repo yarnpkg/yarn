@@ -229,10 +229,10 @@ export default class ConsoleReporter extends BaseReporter {
     });
   }
   // handles basic tree output to console
-  tree(key: string, trees: Trees) {
+  tree(key: string, trees: Trees, {force = false}: {force?: boolean} = {}) {
     this.stopProgress();
     //
-    if (this.isSilent) {
+    if (this.isSilent && !force) {
       return;
     }
     const output = ({name, children, hint, color}, titlePrefix, childrenPrefix) => {

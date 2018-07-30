@@ -77,7 +77,7 @@ describe('request', () => {
   function createRegistry(config: Object): Object {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
     npmRegistry.config = config;
     return {
       request(url: string, options: Object, packageName: string): Object {
@@ -577,7 +577,7 @@ describe('isRequestToRegistry functional test', () => {
   test('request to registry url matching', () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
 
     const validRegistryUrls = [
       ['http://foo.bar:80/foo/bar/baz', 'http://foo.bar/foo/'],
@@ -609,7 +609,7 @@ describe('isRequestToRegistry functional test', () => {
   test('isRequestToRegistry with custom host prefix', () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
 
     npmRegistry.config = {
       'custom-host-suffix': 'some.host.org',
@@ -659,7 +659,7 @@ describe('isScopedPackage functional test', () => {
   test('identifies scope correctly', () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
 
     packageIdents.forEach(([pathname, scope]) => {
       expect(npmRegistry.isScopedPackage(pathname)).toEqual(!!scope.length);
@@ -671,7 +671,7 @@ describe('getRequestUrl functional test', () => {
   test('returns pathname when it is a full URL', () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
     const fullURL = 'HTTP://xn--xample-hva.com:80/foo/bar/baz';
 
     expect(npmRegistry.getRequestUrl('https://my.registry.co', fullURL)).toEqual(fullURL);
@@ -680,7 +680,7 @@ describe('getRequestUrl functional test', () => {
   test('correctly handles registries lacking a trailing slash', () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
     const registry = 'https://my.registry.co/registry';
     const pathname = 'foo/bar/baz';
 
@@ -692,7 +692,7 @@ describe('getScope functional test', () => {
   describe('matches scope correctly', () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
 
     packageIdents.forEach(([pathname, scope]) => {
       expect(npmRegistry.getScope(pathname)).toEqual(scope);
@@ -705,7 +705,7 @@ describe('getPossibleConfigLocations', () => {
     const testCwd = './project/subdirectory';
     const {mockRequestManager, mockRegistries} = createMocks();
     const reporter = new BufferReporter({verbose: true});
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, reporter);
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, reporter, true, []);
     await npmRegistry.getPossibleConfigLocations('npmrc', reporter);
 
     const logs = reporter.getBuffer().map(logItem => logItem.data);
@@ -730,7 +730,7 @@ describe('checkOutdated functional test', () => {
   test('homepage URL from top level', async () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
 
     mockRequestManager.request = () => {
       return {
@@ -758,7 +758,7 @@ describe('checkOutdated functional test', () => {
   test('homepage URL fallback to wanted package manifest', async () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
 
     mockRequestManager.request = () => {
       return {
@@ -786,7 +786,7 @@ describe('checkOutdated functional test', () => {
   test('repository URL from top level', async () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
 
     mockRequestManager.request = () => {
       return {
@@ -816,7 +816,7 @@ describe('checkOutdated functional test', () => {
   test('repository URL fallback to wanted package manifest', async () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
 
     mockRequestManager.request = () => {
       return {
@@ -846,7 +846,7 @@ describe('checkOutdated functional test', () => {
   test('unpublished package (no versions)', async () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter);
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
 
     mockRequestManager.request = () => {
       return {

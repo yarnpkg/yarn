@@ -46,7 +46,7 @@ const messages = {
   verboseFileCopy: 'Copying $0 to $1.',
   verboseFileLink: 'Creating hardlink at $0 to $1.',
   verboseFileSymlink: 'Creating symlink at $0 to $1.',
-  verboseFileSkip: 'Skipping copying of file $0 as the file at $1 is the same size ($2) and mtime ($3).',
+  verboseFileSkip: 'Skipping copying of file $0 as the file at $1 is the same size ($2) and has the same content.',
   verboseFileSkipSymlink: 'Skipping copying of $0 as the file at $1 is the same symlink ($2).',
   verboseFileSkipHardlink: 'Skipping copying of $0 as the file at $1 is the same hardlink ($2).',
   verboseFileRemoveExtraneous: 'Removing extraneous file $0.',
@@ -167,7 +167,8 @@ const messages = {
 
   binLinkCollision:
     "There's already a linked binary called $0 in your global Yarn bin. Could not link this package's $0 bin entry.",
-  linkCollision: "There's already a package called $0 registered.",
+  linkCollision:
+    "There's already a package called $0 registered. This command has had no effect. If this command was run in another folder with the same name, the other folder is still linked. Please run yarn unlink in the other folder if you want to register this folder.",
   linkMissing: 'No registered package found called $0.',
   linkRegistered: 'Registered $0.',
   linkRegisteredMessage:
@@ -228,7 +229,7 @@ const messages = {
     'Failed to auto-install node-gyp. Please run "yarn global add node-gyp" manually. Error: $0',
 
   foundIncompatible: 'Found incompatible module',
-  incompatibleEngine: 'The engine $0 is incompatible with this module. Expected version $1.',
+  incompatibleEngine: 'The engine $0 is incompatible with this module. Expected version $1. Got $2',
   incompatibleCPU: 'The CPU architecture $0 is incompatible with this module.',
   incompatibleOS: 'The platform $0 is incompatible with this module.',
   invalidEngine: 'The engine $0 appears to be invalid.',

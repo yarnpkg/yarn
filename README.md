@@ -52,7 +52,7 @@ Yarn wouldn't exist if it wasn't for excellent prior art. Yarn has been inspired
 
  - [Bundler](https://github.com/bundler/bundler)
  - [Cargo](https://github.com/rust-lang/cargo)
- - [npm](https://github.com/npm/npm)
+ - [npm](https://github.com/npm/cli)
 
 ## Credits
 

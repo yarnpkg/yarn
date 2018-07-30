@@ -189,7 +189,7 @@ export default class BaseReporter {
   list(key: string, items: Array<string>, hints?: Object) {}
 
   // Outputs basic tree structure to console
-  tree(key: string, obj: Trees) {}
+  tree(key: string, obj: Trees, {force = false}: {force?: boolean} = {}) {}
 
   // called whenever we begin a step in the CLI.
   step(current: number, total: number, message: string, emoji?: string) {}

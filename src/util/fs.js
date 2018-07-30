@@ -13,7 +13,7 @@ import BlockingQueue from './blocking-queue.js';
 import * as promise from './promise.js';
 import {promisify} from './promise.js';
 import map from './map.js';
-import {copyFile, fileDatesEqual, unlink} from './fs-normalized.js';
+import {copyFile, unlink} from './fs-normalized.js';
 
 export const constants =
   typeof fs.constants !== 'undefined'
@@ -222,10 +222,10 @@ async function buildActionsForCopy(
         return;
       }
 
-      if (bothFiles && srcStat.size === destStat.size && fileDatesEqual(srcStat.mtime, destStat.mtime)) {
+      if (bothFiles && srcStat.size === destStat.size && fs.readFileSync(src).equals(fs.readFileSync(dest))) {
         // we can safely assume this is the same file
         onDone();
-        reporter.verbose(reporter.lang('verboseFileSkip', src, dest, srcStat.size, +srcStat.mtime));
+        reporter.verbose(reporter.lang('verboseFileSkip', src, dest, srcStat.size));
         return;
       }
 
@@ -814,24 +814,16 @@ export async function makeTempDir(prefix?: string): Promise<string> {
   return dir;
 }
 
-export async function readFirstAvailableStream(
-  paths: Iterable<?string>,
-): Promise<{stream: ?ReadStream, triedPaths: Array<string>}> {
-  let stream: ?ReadStream;
-  const triedPaths = [];
-  for (const tarballPath of paths) {
-    if (tarballPath) {
-      try {
-        const fd = await open(tarballPath, 'r');
-        stream = fs.createReadStream(tarballPath, {fd});
-        break;
-      } catch (err) {
-        // Try the next one
-        triedPaths.push(tarballPath);
-      }
+export async function readFirstAvailableStream(paths: Iterable<string>): Promise<?ReadStream> {
+  for (const path of paths) {
+    try {
+      const fd = await open(path, 'r');
+      return fs.createReadStream(path, {fd});
+    } catch (err) {
+      // Try the next one
     }
   }
-  return {stream, triedPaths};
+  return null;
 }
 
 export async function getFirstSuitableFolder(
