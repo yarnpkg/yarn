@@ -404,7 +404,7 @@ export default class Config {
 
     this.commandName = opts.commandName || '';
 
-    this.enableDefaultRc = !!opts.enableDefaultRc;
+    this.enableDefaultRc = opts.enableDefaultRc == undefined ? true : !!opts.enableDefaultRc;
     this.extraneousYarnrcFiles = opts.extraneousYarnrcFiles || [];
 
     this.preferOffline = !!opts.preferOffline;
