@@ -163,7 +163,7 @@ test('TarballFetcher.fetch throws on invalid hash', async () => {
   );
 
   expect(fetcher.fetch()).rejects.toMatchObject({
-    message: expect.stringContaining('did not match the requested integrity'),
+    message: expect.stringContaining("computed integrity doesn't match our records"),
   });
   expect(readdirSync(path.join(offlineMirrorDir))).toEqual([]);
 });
@@ -210,7 +210,7 @@ test('TarballFetcher.fetch throws on invalid integrity', async () => {
   );
 
   expect(fetcher.fetch()).rejects.toMatchObject({
-    message: expect.stringContaining('did not match the requested integrity'),
+    message: expect.stringContaining("computed integrity doesn't match our records"),
   });
   expect(readdirSync(path.join(offlineMirrorDir))).toEqual([]);
 });

@@ -696,17 +696,17 @@ test('install should authenticate integrity with wrong sha1 and right sha512 che
 
 test('install should fail to authenticate integrity with correct sha1 and incorrect sha512', () =>
   expect(runInstall({}, 'install-update-auth-right-sha1-wrong-sha512')).rejects.toMatchObject({
-    message: expect.stringContaining('did not match the requested integrity'),
+    message: expect.stringContaining("computed integrity doesn't match our records"),
   }));
 
 test('install should fail to authenticate on sha512 integrity mismatch', () =>
   expect(runInstall({}, 'install-update-auth-wrong-sha512')).rejects.toMatchObject({
-    message: expect.stringContaining('did not match the requested integrity'),
+    message: expect.stringContaining("computed integrity doesn't match our records"),
   }));
 
 test('install should fail to authenticate on sha1 integrity mismatch', () =>
   expect(runInstall({}, 'install-update-auth-wrong-sha1')).rejects.toMatchObject({
-    message: expect.stringContaining('did not match the requested integrity'),
+    message: expect.stringContaining("computed integrity doesn't match our records"),
   }));
 
 test('install should create integrity field if not present', () =>
@@ -725,7 +725,7 @@ test('install should create integrity field if not present', () =>
 
 test('install should ignore existing hash if integrity is present even if it fails to authenticate it', () =>
   expect(runInstall({}, 'install-update-auth-bad-sha512-good-hash')).rejects.toMatchObject({
-    message: expect.stringContaining('did not match the requested integrity'),
+    message: expect.stringContaining("computed integrity doesn't match our records"),
   }));
 
 test('install should ignore unknown integrity algorithms if it has other options in the sri', () =>
@@ -743,17 +743,17 @@ test('install should ignore unknown integrity algorithms if it has other options
 
 test('install should fail if the only algorithms in the sri are unknown', () =>
   expect(runInstall({}, 'install-update-auth-madeup')).rejects.toMatchObject({
-    message: expect.stringContaining('does not contain supported algorithms'),
+    message: expect.stringContaining('none of the specified algorithms are supported'),
   }));
 
 test('install should fail if the sri is malformed', () =>
   expect(runInstall({}, 'install-update-auth-malformed')).rejects.toMatchObject({
-    message: expect.stringContaining('does not contain supported algorithms'),
+    message: expect.stringContaining('none of the specified algorithms are supported'),
   }));
 
 test('install should fail with unsupported algorithms', () =>
   expect(runInstall({}, 'install-update-auth-sha3')).rejects.toMatchObject({
-    message: expect.stringContaining('does not contain supported algorithms'),
+    message: expect.stringContaining('none of the specified algorithms are supported'),
   }));
 
 test.concurrent('install should update integrity in yarn.lock (--update-checksums)', () =>
