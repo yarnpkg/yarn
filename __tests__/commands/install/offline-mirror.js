@@ -231,9 +231,9 @@ test.concurrent('install should add missing deps to yarn and mirror (PR import s
 
     const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileContent);
-    expect(lockFileLines).toHaveLength(11);
-    expect(lockFileLines[3].indexOf('mime-db@')).toEqual(0);
-    expect(lockFileLines[6].indexOf('mime-types@2.0.0')).toEqual(0);
+    expect(lockFileLines).toHaveLength(14);
+    expect(lockFileLines[4].indexOf('mime-db@')).toEqual(0);
+    expect(lockFileLines[8].indexOf('mime-types@2.0.0')).toEqual(0);
   });
 });
 
@@ -262,8 +262,8 @@ test.concurrent('install should update a dependency to yarn and mirror (PR impor
     expect(lockFileLines[0]).toEqual('mime-db@~1.23.0:');
     expect(lockFileLines[2]).toMatch(/resolved "https:\/\/registry\.yarnpkg\.com\/mime-db\/-\/mime-db-/);
 
-    expect(lockFileLines[3]).toEqual('mime-types@2.1.11:');
-    expect(lockFileLines[5]).toMatch(
+    expect(lockFileLines[4]).toEqual('mime-types@2.1.11:');
+    expect(lockFileLines[6]).toMatch(
       /resolved "https:\/\/registry\.yarnpkg\.com\/mime-types\/-\/mime-types-2\.1\.11\.tgz#[a-f0-9]+"/,
     );
 

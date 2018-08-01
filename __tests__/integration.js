@@ -203,7 +203,7 @@ describe('--registry option', () => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(cwd, 'yarn.lock')));
 
     expect(packageJson.dependencies['left-pad']).toBeDefined();
-    expect(lockfile).toHaveLength(3);
+    expect(lockfile).toHaveLength(4);
     expect(lockfile[2]).toContain(registry);
   });
 
@@ -220,7 +220,7 @@ describe('--registry option', () => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(cwd, 'yarn.lock')));
 
     expect(packageJson.dependencies['is-array']).toBeDefined();
-    expect(lockfile).toHaveLength(3);
+    expect(lockfile).toHaveLength(4);
     expect(lockfile[2]).toContain(registry);
   });
 
@@ -251,7 +251,7 @@ describe('--registry option', () => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(cwd, 'yarn.lock')));
 
     expect(packageJson.dependencies['left-pad']).toBeDefined();
-    expect(lockfile).toHaveLength(3);
+    expect(lockfile).toHaveLength(4);
     expect(lockfile[2]).toContain(registry);
   });
 });

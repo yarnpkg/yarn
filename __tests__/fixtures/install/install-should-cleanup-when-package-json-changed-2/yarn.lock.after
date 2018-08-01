@@ -2,3 +2,4 @@ dep-a@^1.2.0:
   name dep-a
   version "1.2.0"
   resolved dep-a-1.2.0.tgz#24fbe8e7aafea09dbfc4837058848a05eec95bf2
+  integrity sha1-JPvo56r+oJ2/xINwWISKBe7JW/I=

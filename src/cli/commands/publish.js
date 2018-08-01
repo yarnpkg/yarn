@@ -14,6 +14,7 @@ const invariant = require('invariant');
 const crypto = require('crypto');
 const url = require('url');
 const fs2 = require('fs');
+const ssri = require('ssri');
 
 export function setFlags(commander: Object) {
   versionSetFlags(commander);
@@ -102,6 +103,7 @@ async function publish(config: Config, pkg: any, flags: Object, dir: string): Pr
   pkg._id = `${pkg.name}@${pkg.version}`;
   pkg.dist = pkg.dist || {};
   pkg.dist.shasum = crypto.createHash('sha1').update(buffer).digest('hex');
+  pkg.dist.integrity = ssri.fromData(buffer).toString();
 
   const registry = String(config.getOption('registry'));
   pkg.dist.tarball = url.resolve(registry, tbURI).replace(/^https:\/\//, 'http://');

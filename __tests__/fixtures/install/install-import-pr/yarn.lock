@@ -2,3 +2,4 @@ fake-yarn-dependency@1.0.1:
   name fake-yarn-dependency
   version "1.0.1"
   resolved fake-yarn-dependency-1.0.1.tgz#4c367bddf63a69d29c943273d2155100f7000717
+  integrity sha1-TDZ73fY6adKclDJz0hVRAPcABxc=
