@@ -93,12 +93,18 @@ export default class TarballFetcher extends BaseFetcher {
   } {
     const integrityInfo = this._supportedIntegrity();
 
+    const now = new Date();
+
     const validateStream = new ssri.integrityStream(integrityInfo);
     const untarStream = tarFs.extract(this.dest, {
       strip: 1,
       dmode: 0o755, // all dirs should be readable
       fmode: 0o644, // all files should be readable
       chown: false, // don't chown. just leave as it is
+      map: header => {
+        header.mtime = now;
+        return header;
+      }
     });
     const extractorStream = gunzip();
 
