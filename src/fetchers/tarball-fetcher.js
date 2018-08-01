@@ -95,6 +95,26 @@ export default class TarballFetcher extends BaseFetcher {
 
     const now = new Date();
 
+    const fs = require('fs');
+    const patchedFs = Object.assign({}, fs, {
+      utimes: (path, atime, mtime, cb) => {
+        fs.stat(path, (err, stat) => {
+          if (err) return cb(err);
+          if (stat.isDirectory()) return fs.utimes(path, atime, mtime, cb);
+          fs.open(path, 'a', (err, fd) => {
+            if (err) return cb(err);
+            fs.futimes(fd, atime, mtime, err => {
+              if (err) {
+                fs.close(() => cb(err));
+              } else {
+                fs.close(fd, err => cb(err));
+              }
+            });
+          });
+        });
+      }
+    });
+
     const validateStream = new ssri.integrityStream(integrityInfo);
     const untarStream = tarFs.extract(this.dest, {
       strip: 1,
@@ -104,7 +124,8 @@ export default class TarballFetcher extends BaseFetcher {
       map: header => {
         header.mtime = now;
         return header;
-      }
+      },
+      fs: patchedFs
     });
     const extractorStream = gunzip();
 
