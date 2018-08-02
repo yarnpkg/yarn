@@ -10,6 +10,7 @@ import * as reporters from '../../../src/reporters/index.js';
 import {Install, run as install} from '../../../src/cli/commands/install.js';
 import Lockfile from '../../../src/lockfile';
 import * as fs from '../../../src/util/fs.js';
+import * as misc from '../../../src/util/misc.js';
 import {getPackageVersion, explodeLockfile, runInstall, runLink, createLockfile, run as buildRun} from '../_helpers.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
@@ -113,6 +114,8 @@ test('installing a package with a renamed file should not delete it', () =>
 
 test("installing a new package should correctly update it, even if the files mtime didn't change", () =>
   runInstall({}, 'mtime-same', async (config, reporter): Promise<void> => {
+    await misc.sleep(2000);
+
     const pkgJson = await fs.readJson(`${config.cwd}/package.json`);
     pkgJson.dependencies['pkg'] = 'file:./pkg-b.tgz';
     await fs.writeFile(`${config.cwd}/package.json`, JSON.stringify(pkgJson));
