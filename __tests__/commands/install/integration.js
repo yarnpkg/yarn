@@ -10,7 +10,6 @@ import * as reporters from '../../../src/reporters/index.js';
 import {Install, run as install} from '../../../src/cli/commands/install.js';
 import Lockfile from '../../../src/lockfile';
 import * as fs from '../../../src/util/fs.js';
-import * as misc from '../../../src/util/misc.js';
 import {getPackageVersion, explodeLockfile, runInstall, runLink, createLockfile, run as buildRun} from '../_helpers.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
@@ -230,7 +229,7 @@ test('changes the cache path when bumping the cache version', () =>
     const reporter = new reporters.JSONReporter({stdout: inOut});
 
     await cache(config, reporter, {}, ['dir']);
-    expect((JSON.parse(String(inOut.read())): any).data).toMatch(/[\\\/]v1[\\\/]?$/);
+    expect((JSON.parse(String(inOut.read())): any).data).toMatch(/[\\\/]v(?!42[\\\/]?$)[0-9]+[\\\/]?$/);
 
     await mockConstants(config, {CACHE_VERSION: 42}, async config => {
       await cache(config, reporter, {}, ['dir']);
