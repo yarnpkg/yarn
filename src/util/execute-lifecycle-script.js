@@ -150,10 +150,9 @@ export async function makeEnv(
   // scriptsPrependNodePath=true setting is roughly equivalent to the npm
   // setting scriptsPrependNodePath='auto'.
   if (config.scriptsPrependNodePath) {
-    const execBin = path.dirname(process.execPath);
-    const nodePath = which.sync('node', {path: envPath, nothrow: true});
-    if (!nodePath || path.dirname(nodePath) !== execBin) {
-      pathParts.unshift(execBin);
+    const nodePath = which.sync(path.basename(process.execPath), {path: envPath, nothrow: true});
+    if (!nodePath || nodePath !== process.execPath) {
+      pathParts.unshift(path.dirname(process.execPath));
     }
   }
 
