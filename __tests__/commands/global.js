@@ -111,6 +111,15 @@ test.concurrent('add', async (): Promise<void> => {
   });
 });
 
+test.concurrent('add (with scoped registry)', (): Promise<void> => {
+  const flags = {enableDefaultRc: true};
+  return runGlobal(['add', '@test-scope/scoped-module'], flags, 'add-with-scoped-registry', async config => {
+    expect(await fs.exists(path.join(config.globalFolder, 'node_modules', '@test-scope', 'scoped-module'))).toEqual(
+      true,
+    );
+  });
+});
+
 test.concurrent('remove', async (): Promise<void> => {
   const tmpGlobalFolder = await createTempGlobalFolder();
   const tmpPrefixFolder = await createTempPrefixFolder();
