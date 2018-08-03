@@ -61,10 +61,13 @@ function addTest(pattern, {strictPeers} = {strictPeers: false}, yarnArgs: Array<
 
 addTest('scrollin'); // npm
 addTest('https://git@github.com/stevemao/left-pad.git'); // git url, with username
-addTest('https://github.com/yarnpkg/yarn/releases/download/v0.18.1/yarn-v0.18.1.tar.gz'); // tarball
 addTest('https://github.com/bestander/chrome-app-livereload.git'); // no package.json
 addTest('bestander/chrome-app-livereload'); // no package.json, github, tarball
 addTest('react-scripts@1.0.13', {strictPeers: true}, ['--no-node-version-check', '--ignore-engines']); // many peer dependencies, there shouldn't be any peerDep warnings
+
+if (process.platform !== 'win32') {
+  addTest('https://github.com/yarnpkg/yarn/releases/download/v0.18.1/yarn-v0.18.1.tar.gz'); // tarball
+}
 
 const MIN_PORT_NUM = 56000;
 const MAX_PORT_NUM = 65535;
