@@ -631,7 +631,7 @@ test('install should update checksums in yarn.lock (--update-checksums)', (): Pr
     const lockFileLines = explodeLockfile(lockFileContent);
     const packageHashInLockfile = lockFileLines[2].replace(/(^.*#)|("$)/g, '');
     const installedPackageJson = path.resolve(config.cwd, 'node_modules', 'abab', 'package.json');
-    const cachePackageJson = path.resolve(config.cwd, '.yarn-cache/v1/', packageCacheName, 'package.json');
+    const cachePackageJson = path.resolve(config.cwd, '.yarn-cache/v2/', packageCacheName, 'package.json');
     expect(packageHashInLockfile).toEqual(packageRealHash);
     expect(await fs.exists(installedPackageJson)).toBe(true);
     expect(await fs.exists(cachePackageJson)).toBe(true);
