@@ -46,7 +46,7 @@ const messages = {
   verboseFileCopy: 'Copying $0 to $1.',
   verboseFileLink: 'Creating hardlink at $0 to $1.',
   verboseFileSymlink: 'Creating symlink at $0 to $1.',
-  verboseFileSkip: 'Skipping copying of file $0 as the file at $1 is the same size ($2) and has the same content.',
+  verboseFileSkip: 'Skipping copying of file $0 as the file at $1 is the same size ($2) and mtime ($3).',
   verboseFileSkipSymlink: 'Skipping copying of $0 as the file at $1 is the same symlink ($2).',
   verboseFileSkipHardlink: 'Skipping copying of $0 as the file at $1 is the same hardlink ($2).',
   verboseFileRemoveExtraneous: 'Removing extraneous file $0.',

@@ -68,13 +68,50 @@ export default class TarballFetcher extends BaseFetcher {
     validateStream: crypto.HashStream,
     extractorStream: stream.Transform,
   } {
+    const now = new Date();
+
+    const fs = require('fs');
+    const patchedFs = Object.assign({}, fs, {
+      utimes: (path, atime, mtime, cb) => {
+        fs.stat(path, (err, stat) => {
+          if (err) {
+            cb(err);
+            return;
+          }
+          if (stat.isDirectory()) {
+            fs.utimes(path, atime, mtime, cb);
+            return;
+          }
+          fs.open(path, 'a', (err, fd) => {
+            if (err) {
+              cb(err);
+              return;
+            }
+            fs.futimes(fd, atime, mtime, err => {
+              if (err) {
+                fs.close(fd, () => cb(err));
+              } else {
+                fs.close(fd, err => cb(err));
+              }
+            });
+          });
+        });
+      },
+    });
+
     const validateStream = new crypto.HashStream();
     const extractorStream = gunzip();
+
     const untarStream = tarFs.extract(this.dest, {
       strip: 1,
       dmode: 0o755, // all dirs should be readable
       fmode: 0o644, // all files should be readable
       chown: false, // don't chown. just leave as it is
+      map: header => {
+        header.mtime = now;
+        return header;
+      },
+      fs: patchedFs,
     });
 
     untarStream.on('error', err => {
