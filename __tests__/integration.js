@@ -425,7 +425,7 @@ test('yarn run <failing script>', async () => {
     path.join(cwd, 'package.json'),
     JSON.stringify({
       license: 'MIT',
-      scripts: {false: 'false'},
+      scripts: {false: 'exit 1'},
     }),
   );
 
