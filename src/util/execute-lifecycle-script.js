@@ -10,6 +10,7 @@ import {fixCmdWinSlashes} from './fix-cmd-win-slashes.js';
 import {getBinFolder as getGlobalBinFolder, run as globalRun} from '../cli/commands/global.js';
 
 const path = require('path');
+const which = require('which');
 
 export type LifecycleReturn = Promise<{
   cwd: string,
@@ -142,11 +143,18 @@ export async function makeEnv(
   const envPath = env[constants.ENV_PATH_KEY];
   const pathParts = envPath ? envPath.split(path.delimiter) : [];
 
-  // Include the directory that contains node so that we can guarantee that the scripts
-  // will always run with the exact same Node release than the one use to run Yarn
-  const execBin = path.dirname(process.execPath);
-  if (pathParts.indexOf(execBin) === -1) {
-    pathParts.unshift(execBin);
+  // If scriptsPrependNodePath is true, and the Node we are executing with is
+  // not the first node binary in the path, then prepend our Node executable
+  // directory to the path variable. This is so that scripts we run will use the
+  // exact same Node binary as the one used to run Yarn. Our
+  // scriptsPrependNodePath=true setting is roughly equivalent to the npm
+  // setting scriptsPrependNodePath='auto'.
+  if (config.scriptsPrependNodePath) {
+    const execBin = path.dirname(process.execPath);
+    const nodePath = which.sync('node', {path: envPath, nothrow: true});
+    if (!nodePath || path.dirname(nodePath) !== execBin) {
+      pathParts.unshift(execBin);
+    }
   }
 
   // Include node-gyp version that was bundled with the current Node.js version,
@@ -175,10 +183,6 @@ export async function makeEnv(
     }
     pathParts.unshift(path.join(config.linkFolder, binFolder));
     pathParts.unshift(path.join(cwd, binFolder));
-  }
-
-  if (config.scriptsPrependNodePath) {
-    pathParts.unshift(path.join(path.dirname(process.execPath)));
   }
 
   // join path back together

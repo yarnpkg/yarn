@@ -47,7 +47,7 @@ export type ConfigOptions = {
   childConcurrency?: number,
   networkTimeout?: number,
   nonInteractive?: boolean,
-  scriptsPrependNodePath?: boolean,
+  scriptsPrependNodePath?: ?boolean,
 
   enableDefaultRc?: boolean,
   extraneousYarnrcFiles?: Array<string>,
@@ -423,7 +423,7 @@ export default class Config {
     // $FlowFixMe$
     this.nonInteractive = !!opts.nonInteractive || isCi || !process.stdout.isTTY;
 
-    this.scriptsPrependNodePath = !!opts.scriptsPrependNodePath;
+    this.scriptsPrependNodePath = opts.scriptsPrependNodePath == undefined ? true : opts.scriptsPrependNodePath;
 
     this.requestManager.setOptions({
       offline: !!opts.offline && !opts.preferOffline,
