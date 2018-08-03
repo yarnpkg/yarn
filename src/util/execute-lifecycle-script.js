@@ -144,7 +144,10 @@ export async function makeEnv(
 
   // Include the directory that contains node so that we can guarantee that the scripts
   // will always run with the exact same Node release than the one use to run Yarn
-  pathParts.unshift(path.dirname(process.execPath));
+  const execBin = path.dirname(process.execPath);
+  if (pathParts.indexOf(execBin) === -1) {
+    pathParts.unshift(execBin);
+  }
 
   // Include node-gyp version that was bundled with the current Node.js version,
   // if available.
