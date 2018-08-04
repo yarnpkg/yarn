@@ -59,7 +59,7 @@
     "babel-plugin-transform-runtime": "^6.4.3",
     "babel-preset-env": "^1.6.0",
     "babel-preset-flow": "^6.23.0",
-    "babel-preset-stage-0": "^6.0.0",
+    "babel-preset-stage-0": "^6.0.15",
     "babylon": "^6.5.0",
     "commitizen": "^2.9.6",
     "cz-conventional-changelog": "^2.0.0",
