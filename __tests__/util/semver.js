@@ -42,6 +42,10 @@ describe('satisfiesWithPrereleases', () => {
     expect(satisfiesWithPrereleases('1.0.0-alpha.1', '1.0.0-alpha')).toBe(false);
   });
 
+  it('rejects prerelease versions that are invalid', () => {
+    expect(satisfiesWithPrereleases('1.0.0-alpha.01', '^1.0.0')).toBe(false);
+  });
+
   it('follows the semver spec when comparing prerelease versions', () => {
     // Example from http://semver.org/#spec-item-11
     expect(satisfiesWithPrereleases('1.0.0-alpha.1', '>1.0.0-alpha')).toBe(true);

@@ -27,7 +27,7 @@ export const YARN_INSTALLER_MSI = 'https://yarnpkg.com/latest.msi';
 export const SELF_UPDATE_VERSION_URL = 'https://yarnpkg.com/latest-version';
 
 // cache version, bump whenever we make backwards incompatible changes
-export const CACHE_VERSION = 2;
+export const CACHE_VERSION = 3;
 
 // lockfile version, bump whenever we make backwards incompatible changes
 export const LOCKFILE_VERSION = 1;

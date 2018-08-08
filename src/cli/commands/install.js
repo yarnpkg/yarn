@@ -37,6 +37,7 @@ const invariant = require('invariant');
 const path = require('path');
 const semver = require('semver');
 const uuid = require('uuid');
+const ssri = require('ssri');
 
 const ONE_DAY = 1000 * 60 * 60 * 24;
 
@@ -441,6 +442,7 @@ export class Install {
       return false;
     }
     const lockfileClean = this.lockfile.parseResultType === 'success';
+    const lockfileIntegrityPresent = !this.lockfile.hasEntriesExistWithoutIntegrity();
     const match = await this.integrityChecker.check(patterns, lockfileCache, this.flags, workspaceLayout);
     if (this.flags.frozenLockfile && (!lockfileClean || match.missingPatterns.length > 0)) {
       throw new MessageError(this.reporter.lang('frozenLockfileError'));
@@ -448,7 +450,7 @@ export class Install {
 
     const haveLockfile = await fs.exists(path.join(this.config.lockfileFolder, constants.LOCKFILE_FILENAME));
 
-    if (match.integrityMatches && haveLockfile && lockfileClean) {
+    if (match.integrityMatches && haveLockfile && lockfileClean && lockfileIntegrityPresent) {
       this.reporter.success(this.reporter.lang('upToDate'));
       return true;
     }
@@ -889,9 +891,7 @@ export class Install {
     }
 
     const lockFileHasAllPatterns = patterns.every(p => this.lockfile.getLocked(p));
-    const lockfilePatternsMatch = Object.keys(this.lockfile.cache || {}).every(p => {
-      return lockfileBasedOnResolver[p];
-    });
+    const lockfilePatternsMatch = Object.keys(this.lockfile.cache || {}).every(p => lockfileBasedOnResolver[p]);
     const resolverPatternsAreSameAsInLockfile = Object.keys(lockfileBasedOnResolver).every(pattern => {
       const manifest = this.lockfile.getLocked(pattern);
       return (
@@ -899,6 +899,19 @@ export class Install {
         manifest.resolved === lockfileBasedOnResolver[pattern].resolved &&
         deepEqual(manifest.prebuiltVariants, lockfileBasedOnResolver[pattern].prebuiltVariants)
       );
+    });
+    const integrityPatternsAreSameAsInLockfile = Object.keys(lockfileBasedOnResolver).every(pattern => {
+      const existingIntegrityInfo = lockfileBasedOnResolver[pattern].integrity;
+      if (!existingIntegrityInfo) {
+        // if this entry does not have an integrity, no need to re-write the lockfile because of it
+        return true;
+      }
+      const manifest = this.lockfile.getLocked(pattern);
+      if (manifest && manifest.integrity) {
+        const manifestIntegrity = ssri.stringify(manifest.integrity);
+        return manifestIntegrity === existingIntegrityInfo;
+      }
+      return false;
     });
 
     // remove command is followed by install with force, lockfile will be rewritten in any case then
@@ -908,6 +921,7 @@ export class Install {
       lockFileHasAllPatterns &&
       lockfilePatternsMatch &&
       resolverPatternsAreSameAsInLockfile &&
+      integrityPatternsAreSameAsInLockfile &&
       patterns.length
     ) {
       return;

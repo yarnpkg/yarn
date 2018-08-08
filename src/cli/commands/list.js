@@ -223,5 +223,5 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     trees = trees.filter(tree => filterTree(tree, args, flags.pattern));
   }
 
-  reporter.tree('list', trees);
+  reporter.tree('list', trees, {force: true});
 }

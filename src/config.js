@@ -51,6 +51,9 @@ export type ConfigOptions = {
   disablePnp?: boolean,
   scriptsPrependNodePath?: boolean,
 
+  enableDefaultRc?: boolean,
+  extraneousYarnrcFiles?: Array<string>,
+
   // Loosely compare semver for invalid cases like "0.01.0"
   looseSemver?: ?boolean,
 
@@ -97,6 +100,10 @@ export default class Config {
     this.reporter = reporter;
     this._init({});
   }
+
+  //
+  enableDefaultRc: boolean;
+  extraneousYarnrcFiles: Array<string>;
 
   //
   looseSemver: boolean;
@@ -279,16 +286,27 @@ export default class Config {
     for (const key of Object.keys(registries)) {
       const Registry = registries[key];
 
+      const extraneousRcFiles = Registry === registries.yarn ? this.extraneousYarnrcFiles : [];
+
       // instantiate registry
-      const registry = new Registry(this.cwd, this.registries, this.requestManager, this.reporter);
+      const registry = new Registry(
+        this.cwd,
+        this.registries,
+        this.requestManager,
+        this.reporter,
+        this.enableDefaultRc,
+        extraneousRcFiles,
+      );
       await registry.init({
         registry: opts.registry,
       });
 
       this.registries[key] = registry;
-      this.registryFolders.push(registry.folder);
+      if (this.registryFolders.indexOf(registry.folder) === -1) {
+        this.registryFolders.push(registry.folder);
+      }
       const rootModuleFolder = path.join(this.cwd, registry.folder);
-      if (this.rootModuleFolders.indexOf(rootModuleFolder) < 0) {
+      if (this.rootModuleFolders.indexOf(rootModuleFolder) === -1) {
         this.rootModuleFolders.push(rootModuleFolder);
       }
     }
@@ -413,6 +431,9 @@ export default class Config {
     this.looseSemver = opts.looseSemver == undefined ? true : opts.looseSemver;
 
     this.commandName = opts.commandName || '';
+
+    this.enableDefaultRc = opts.enableDefaultRc !== false;
+    this.extraneousYarnrcFiles = opts.extraneousYarnrcFiles || [];
 
     this.preferOffline = !!opts.preferOffline;
     this.modulesFolder = opts.modulesFolder;
