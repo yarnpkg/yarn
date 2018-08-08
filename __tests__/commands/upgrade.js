@@ -124,10 +124,10 @@ test.concurrent('respects dependency type', (): Promise<void> => {
 });
 
 test.concurrent('respects --ignore-engines flag', (): Promise<void> => {
-  return runUpgrade(['hawk@0.10'], {ignoreEngines: true}, 'respects-ignore-engines-flag', async (config): ?Promise<
+  return runUpgrade(['hawk@4.1'], {ignoreEngines: true}, 'respects-ignore-engines-flag', async (config): ?Promise<
     void,
   > => {
-    await expectInstalledDependency(config, 'hawk', '0.10', '0.10.2');
+    await expectInstalledDependency(config, 'hawk', '4.1', '4.1.2');
   });
 });
 

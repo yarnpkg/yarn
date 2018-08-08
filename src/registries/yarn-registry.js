@@ -42,8 +42,15 @@ const npmMap = {
 };
 
 export default class YarnRegistry extends NpmRegistry {
-  constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager, reporter: Reporter) {
-    super(cwd, registries, requestManager, reporter);
+  constructor(
+    cwd: string,
+    registries: ConfigRegistries,
+    requestManager: RequestManager,
+    reporter: Reporter,
+    enableDefaultRc: boolean,
+    extraneousRcFiles: Array<string>,
+  ) {
+    super(cwd, registries, requestManager, reporter, enableDefaultRc, extraneousRcFiles);
 
     this.homeConfigLoc = path.join(userHome, '.yarnrc');
     this.homeConfig = {};
@@ -75,7 +82,9 @@ export default class YarnRegistry extends NpmRegistry {
   }
 
   async loadConfig(): Promise<void> {
-    for (const [isHome, loc, file] of await this.getPossibleConfigLocations('yarnrc', this.reporter)) {
+    const locations = await this.getPossibleConfigLocations('yarnrc', this.reporter);
+
+    for (const [isHome, loc, file] of locations) {
       const {object: config} = parse(file, loc);
 
       if (isHome) {

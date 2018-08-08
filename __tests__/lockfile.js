@@ -6,6 +6,8 @@ import stringify from '../src/lockfile/stringify.js';
 import parse from '../src/lockfile/parse.js';
 import nullify from '../src/util/map.js';
 
+const ssri = require('ssri');
+
 const objs = [{foo: 'bar'}, {foo: {}}, {foo: 'foo', bar: 'bar'}, {foo: 5}];
 
 let i = 0;
@@ -208,6 +210,44 @@ test('Lockfile.getLockfile (sorting)', () => {
   const expected = {
     foobar1: expectedFoobar,
     foobar2: expectedFoobar,
+  };
+
+  expect(actual).toEqual(expected);
+});
+
+test('Lockfile.getLockfile handles integrity field', () => {
+  const integrity = ssri.parse('sha1-foo sha512-bar');
+  const patterns = {
+    foobar: {
+      name: 'foobar',
+      version: '0.0.0',
+      uid: '0.0.0',
+      dependencies: {},
+      optionalDependencies: {},
+      _reference: {
+        permissions: {},
+      },
+      _remote: {
+        resolved: 'http://example.com/foobar',
+        registry: 'npm',
+        integrity,
+      },
+    },
+  };
+
+  const actual = new Lockfile().getLockfile(patterns);
+
+  const expected = {
+    foobar: {
+      version: '0.0.0',
+      uid: undefined,
+      resolved: 'http://example.com/foobar',
+      registry: undefined,
+      dependencies: undefined,
+      optionalDependencies: undefined,
+      permissions: undefined,
+      integrity: integrity.toString().split(' ').sort().join(' '),
+    },
   };
 
   expect(actual).toEqual(expected);

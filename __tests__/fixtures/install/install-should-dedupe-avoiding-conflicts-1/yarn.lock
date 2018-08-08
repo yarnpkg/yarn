@@ -3,10 +3,12 @@
 dep-a@2.0.1:
   version "2.0.1"
   resolved dep-a-2.0.1.tgz#9651b29dbff798e65ddd0f9941eefcd139466e2e
+  integrity sha1-llGynb/3mOZd3Q+ZQe780TlGbi4=
   dependencies:
     dep-b "^2.0.0"
 
 dep-b@^2.0.0:
   version "2.0.0"
   resolved dep-b-2.0.0.tgz#70d81646e122375676f615834e73cd9737341844
+  integrity sha1-cNgWRuEiN1Z29hWDTnPNlzc0GEQ=
 

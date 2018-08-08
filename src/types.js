@@ -41,6 +41,7 @@ export type PackageRemote = {
   reference: string,
   resolved?: ?string,
   hash: ?string,
+  integrity?: ?string,
   packageName?: string,
   registryRemote?: ?PackageRemote,
 };
