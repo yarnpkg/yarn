@@ -16,40 +16,37 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 
-const coerceName = (name = '') => (name === '' ? 'create' : `create-${name}`);
-const coerceScope = (scope = '') => (scope === '@' ? '' : scope);
-const coerceFullName = (scope, name) => [coerceScope(scope), coerceName(name)].filter(Boolean).join('/');
-
-/**
- * # Tests
- *
- * ## basic
- * parseBuilderName('name').packageName === 'create-name'
- * parseBuilderName('@scope/name').packageName === '@scope/create-name'
- *
- * ## not adding "-" if name is empty
- * parseBuilderName('@scope/').packageName === '@scope/create'
- * parseBuilderName('@scope').packageName === '@scope/create'
- *
- * ## edge cases
- * parseBuilderName('@/name').packageName === 'create-name'
- * parseBuilderName('/name').packageName === 'create-name'
- * parseBuilderName('@/').packageName === 'create'
- */
-const parseBuilderName = str => {
-  const parts = str.split('/');
-  if (parts.length === 1 && !str.includes('@')) {
-    return {
-      packageName: coerceName(str),
-      packageDir: '',
-      commandName: coerceName(str),
-    };
+export const parsePackageName = (str = '') => {
+  if (str.charAt(0) === '/') {
+    throw new Error(`Name should not start with "/", got "${str}"`);
   }
-  return {
-    packageName: coerceFullName(parts[0], parts[1]),
-    packageDir: coerceScope(parts[0]),
-    commandName: coerceName(parts[1]),
+  if (str.charAt(0) === '.') {
+    throw new Error(`Name should not start with ".", got "${str}"`);
+  }
+  const parts = str.split('/');
+  const isScoped = str.charAt(0) === '@';
+  if (isScoped && parts[0] === '@') {
+    throw new Error(`Scope should not be empty, got "${str}"`);
+  }
+  const scope = isScoped ? parts[0] : '';
+  const name = parts[isScoped ? 1 : 0] || '';
+  const path = parts.slice(isScoped ? 2 : 1).join('/');
+  const fullName = [scope, name].filter(Boolean).join('/');
+  const full = [scope, name, path].filter(Boolean).join('/');
+
+  return {fullName, name, scope, path, full};
+};
+
+export const coerceCreatePackageName = (str = '') => {
+  const pkgNameObj = parsePackageName(str);
+  const coercedName = pkgNameObj.name !== '' ? `create-${pkgNameObj.name}` : `create`;
+  const coercedPkgNameObj = {
+    ...pkgNameObj,
+    name: coercedName,
+    fullName: [pkgNameObj.scope, coercedName].filter(Boolean).join('/'),
+    full: [pkgNameObj.scope, coercedName, pkgNameObj.path].filter(Boolean).join('/'),
   };
+  return coercedPkgNameObj;
 };
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
@@ -59,7 +56,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     throw new MessageError(reporter.lang('invalidPackageName'));
   }
 
-  const {packageName, packageDir, commandName} = parseBuilderName(builderName);
+  const {fullName: packageName, scope: packageDir, name: commandName} = coerceCreatePackageName(builderName);
   await runGlobal(config, reporter, {}, ['add', packageName]);
 
   const binFolder = await getBinFolder(config, {});
