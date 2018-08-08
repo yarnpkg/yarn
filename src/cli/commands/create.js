@@ -16,7 +16,7 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 
-export const parsePackageName = (str = '') => {
+export function parsePackageName(str: string): Object {
   if (str.charAt(0) === '/') {
     throw new Error(`Name should not start with "/", got "${str}"`);
   }
@@ -35,9 +35,9 @@ export const parsePackageName = (str = '') => {
   const full = [scope, name, path].filter(Boolean).join('/');
 
   return {fullName, name, scope, path, full};
-};
+}
 
-export const coerceCreatePackageName = (str = '') => {
+export function coerceCreatePackageName(str: string): Object {
   const pkgNameObj = parsePackageName(str);
   const coercedName = pkgNameObj.name !== '' ? `create-${pkgNameObj.name}` : `create`;
   const coercedPkgNameObj = {
@@ -47,7 +47,7 @@ export const coerceCreatePackageName = (str = '') => {
     full: [pkgNameObj.scope, coercedName, pkgNameObj.path].filter(Boolean).join('/'),
   };
   return coercedPkgNameObj;
-};
+}
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const [builderName, ...rest] = args;
