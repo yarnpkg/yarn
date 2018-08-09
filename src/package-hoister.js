@@ -163,8 +163,11 @@ export default class PackageHoister {
       while (queue.length > 0 && hasChanged) {
         hasChanged = false;
 
-        for (let t = 0; t < queue.length; ++t) {
-          const pattern = queue[t][0];
+        const queueCopy = queue;
+        queue = [];
+        for (let t = 0; t < queueCopy.length; ++t) {
+          const queueItem = queueCopy[t];
+          const pattern = queueItem[0];
           const pkg = this.resolver.getStrictResolvedPattern(pattern);
 
           const peerDependencies = Object.keys(pkg.peerDependencies || {});
@@ -172,14 +175,15 @@ export default class PackageHoister {
 
           if (areDependenciesFulfilled) {
             // Move the package inside our sorted queue
-            sortedQueue.push(queue[t]);
-            queue.splice(t--, 1);
+            sortedQueue.push(queueItem);
 
             // Add it to our set, so that we know it is available
             availableSet.add(pattern);
 
             // Schedule a next pass, in case other packages had peer dependencies on this one
             hasChanged = true;
+          } else {
+            queue.push(queueItem);
           }
         }
       }
