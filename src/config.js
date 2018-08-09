@@ -192,6 +192,8 @@ export default class Config {
   focus: boolean;
   focusedWorkspaceName: string;
 
+  autoAddIntegrity: boolean;
+
   /**
    * Execute a promise produced by factory if it doesn't exist in our cache with
    * the associated key.
@@ -367,6 +369,9 @@ export default class Config {
     this.enableLockfileVersions = Boolean(this.getOption('yarn-enable-lockfile-versions'));
     this.linkFileDependencies = Boolean(this.getOption('yarn-link-file-dependencies'));
     this.packBuiltPackages = Boolean(this.getOption('experimental-pack-script-packages-in-mirror'));
+
+    const autoAddIntegrity = this.getOption('auto-add-integrity');
+    this.autoAddIntegrity = Boolean(typeof autoAddIntegrity !== 'undefined' ? autoAddIntegrity : true);
 
     //init & create cacheFolder, tempFolder
     this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));
