@@ -135,7 +135,8 @@
     "testEnvironment": "node",
     "modulePathIgnorePatterns": [
       "__tests__/fixtures/",
-      "packages/pkg-tests/pkg-tests-fixtures"
+      "packages/pkg-tests/pkg-tests-fixtures",
+      "dist/"
     ],
     "testPathIgnorePatterns": [
       "__tests__/(fixtures|__mocks__)/",
