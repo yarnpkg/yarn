@@ -370,7 +370,7 @@ export default class Config {
     this.linkFileDependencies = Boolean(this.getOption('yarn-link-file-dependencies'));
     this.packBuiltPackages = Boolean(this.getOption('experimental-pack-script-packages-in-mirror'));
 
-    this.autoAddIntegrity = Boolean(this.getOption('unsafe-disable-integrity-migration'));
+    this.autoAddIntegrity = !Boolean(this.getOption('unsafe-disable-integrity-migration'));
 
     //init & create cacheFolder, tempFolder
     this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));
