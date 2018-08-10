@@ -609,12 +609,13 @@ export class Install {
     if (this.config.plugnplayEnabled) {
       steps.push((curr: number, total: number) =>
         callThroughHook('pnpStep', async () => {
+          const pnpPath = `${this.config.lockfileFolder}/${constants.PNP_FILENAME}`;
+
           const code = await generatePnpMap(this.config, flattenedTopLevelPatterns, {
             resolver: this.resolver,
+            targetPath: pnpPath,
             workspaceLayout,
           });
-
-          const pnpPath = `${this.config.lockfileFolder}/${constants.PNP_FILENAME}`;
 
           try {
             const file = await fs.readFile(pnpPath);

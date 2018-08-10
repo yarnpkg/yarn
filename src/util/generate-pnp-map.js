@@ -21,6 +21,7 @@ type PackageInformationStores = Map<string | null, PackageInformationStore>;
 
 type GeneratePnpMapOptions = {|
   resolver: PackageResolver,
+  targetPath: string,
   workspaceLayout: ?WorkspaceLayout,
 |};
 
@@ -83,9 +84,14 @@ function generateFindPackageLocator(packageInformationStores: PackageInformation
 
   for (const packageInformationStore of packageInformationStores.values()) {
     for (const {packageLocation} of packageInformationStore.values()) {
-      if (packageLocation !== null) {
-        lengths.set(packageLocation.length, (lengths.get(packageLocation.length) || 0) + 1);
+      if (packageLocation === null) {
+        continue;
       }
+
+      const length = packageLocation.length;
+      const count = (lengths.get(length) || 0) + 1;
+
+      lengths.set(length, count);
     }
   }
 
@@ -97,12 +103,20 @@ function generateFindPackageLocator(packageInformationStores: PackageInformation
 
   // Generate a function that, given a file path, returns the associated package name
   code += `exports.findPackageLocator = function findPackageLocator(location) {\n`;
+  code += `  let relativeLocation = path.relative(__dirname, location);\n`;
+  code += `\n`;
+  code += `  if (!relativeLocation.match(isStrictRegExp))\n`;
+  code += `    relativeLocation = \`./\${relativeLocation}\`;\n`;
+  code += `\n`;
+  code += `  if (location.match(isDirRegExp) && relativeLocation.charAt(relativeLocation.length - 1) !== '/')\n`;
+  code += `    relativeLocation = \`\${relativeLocation}/\`;\n`;
+  code += `\n`;
   code += `  let match;\n`;
 
   for (const [length] of sortedLengths) {
     code += `\n`;
-    code += `  if (location.length >= ${length} && location[${length} - 1] === path.sep)\n`;
-    code += `    if (match = locatorsByLocations.get(location.substr(0, ${length})))\n`;
+    code += `  if (relativeLocation.length >= ${length} && relativeLocation[${length - 1}] === '/')\n`;
+    code += `    if (match = locatorsByLocations.get(relativeLocation.substr(0, ${length})))\n`;
     code += `      return blacklistCheck(match);\n`;
   }
 
@@ -116,13 +130,21 @@ function generateFindPackageLocator(packageInformationStores: PackageInformation
 async function getPackageInformationStores(
   config: Config,
   seedPatterns: Array<string>,
-  {resolver, workspaceLayout}: GeneratePnpMapOptions,
+  {resolver, targetPath, workspaceLayout}: GeneratePnpMapOptions,
 ): Promise<[PackageInformationStores, Set<string>]> {
+  const targetDirectory = path.dirname(targetPath);
+
   const packageInformationStores: PackageInformationStores = new Map();
   const blacklistedLocations: Set<string> = new Set();
 
-  const ensureTrailingSlash = (fsPath: string) => {
-    return fsPath.replace(/[\\\/]?$/, path.sep);
+  const normalizeDirectoryPath = (fsPath: string) => {
+    let relativePath = path.relative(targetDirectory, fsPath);
+
+    if (!relativePath.match(/^\.{0,2}\//)) {
+      relativePath = `./${relativePath}`;
+    }
+
+    return relativePath.replace(/\/?$/, '/');
   };
 
   const getHashFrom = (data: Array<string>) => {
@@ -200,7 +222,7 @@ async function getPackageInformationStores(
 
         // We blacklist this path so that we can print a nicer error message if someone tries to require it (it usually
         // means that they're using realpath on the return value of require.resolve)
-        blacklistedLocations.add(ensureTrailingSlash(physicalLoc));
+        blacklistedLocations.add(normalizeDirectoryPath(physicalLoc));
       }
 
       // Now that we have the final reference, we need to store it
@@ -244,7 +266,7 @@ async function getPackageInformationStores(
 
       packageInformation = {
         packageMainEntry: pkg.main,
-        packageLocation: ensureTrailingSlash(loc),
+        packageLocation: normalizeDirectoryPath(loc),
         packageDependencies: new Map(),
       };
 
@@ -307,7 +329,7 @@ async function getPackageInformationStores(
 
       packageInformationStore.set(pkg.version, {
         packageMainEntry: pkg.main,
-        packageLocation: ensureTrailingSlash(await fs.realpath(loc)),
+        packageLocation: normalizeDirectoryPath(loc),
         packageDependencies: await visit(ref.dependencies, [name, pkg.version]),
       });
     }
@@ -322,7 +344,7 @@ async function getPackageInformationStores(
         null,
         {
           packageMainEntry: null,
-          packageLocation: ensureTrailingSlash(await fs.realpath(config.lockfileFolder)),
+          packageLocation: normalizeDirectoryPath(config.lockfileFolder),
           packageDependencies: await visit(seedPatterns),
         },
       ],
@@ -335,14 +357,18 @@ async function getPackageInformationStores(
 export async function generatePnpMap(
   config: Config,
   seedPatterns: Array<string>,
-  {resolver, workspaceLayout}: GeneratePnpMapOptions,
+  {resolver, workspaceLayout, targetPath}: GeneratePnpMapOptions,
 ): Promise<string> {
   const [packageInformationStores, blacklistedLocations] = await getPackageInformationStores(config, seedPatterns, {
     resolver,
+    targetPath,
     workspaceLayout,
   });
-  const setupStaticTables =
-    generateMaps(packageInformationStores, blacklistedLocations) + generateFindPackageLocator(packageInformationStores);
+
+  const setupStaticTables = [
+    generateMaps(packageInformationStores, blacklistedLocations),
+    generateFindPackageLocator(packageInformationStores),
+  ].join(``);
 
   return pnpApi
     .replace(/\$\$SHEBANG/g, config.plugnplayShebang)

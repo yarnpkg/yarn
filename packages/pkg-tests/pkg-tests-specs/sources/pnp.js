@@ -777,5 +777,77 @@ module.exports = makeTemporaryEnv => {
         },
       ),
     );
+
+    test(
+      `it should make it possible to copy the pnp file and cache from one place to another`,
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`no-deps`]: `1.0.0`,
+          },
+        },
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await makeTemporaryEnv(
+            {
+              [`no-deps`]: `1.0.0`,
+            },
+            {
+              plugNPlay: true,
+            },
+            async ({path: path2, run: run2, source: source2}) => {
+              // Move the install artifacts into a new location
+              // If the .pnp.js file references absolute paths, they will stop working
+              await fs.rename(`${path}/.cache`, `${path2}/.cache`);
+              await fs.rename(`${path}/.pnp.js`, `${path2}/.pnp.js`);
+
+              await expect(source2(`require('no-deps')`)).resolves.toMatchObject({
+                name: `no-deps`,
+                version: `1.0.0`,
+              });
+            },
+          )();
+        },
+      ),
+    );
+
+    test(
+      `it should generate the same hooks for two projects with the same configuration`,
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`no-deps`]: `1.0.0`,
+          },
+        },
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await makeTemporaryEnv(
+            {
+              dependencies: {
+                [`no-deps`]: `1.0.0`,
+              },
+            },
+            {
+              plugNPlay: true,
+            },
+            async ({path: path2, run: run2, source: source2}) => {
+              expect(path2).not.toEqual(path);
+
+              await run2(`install`);
+
+              expect(readFile(`${path2}/.pnp.js`, 'utf8')).resolves.toEqual(await readFile(`${path}/.pnp.js`, 'utf8'));
+            },
+          )();
+        },
+      ),
+    );
   });
 };
