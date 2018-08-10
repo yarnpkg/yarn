@@ -207,8 +207,13 @@ export default class NpmResolver extends RegistryResolver {
         }
       }
     }
-    if (shrunk && shrunk._remote && (shrunk._remote.integrity || !this.config.autoAddIntegrity)) {
-      // if the integrity field does not exist, it needs to be created unless the feature is disabled
+    if (
+      shrunk &&
+      shrunk._remote &&
+      (shrunk._remote.integrity || this.config.offline || !this.config.autoAddIntegrity)
+    ) {
+      // if the integrity field does not exist, we're not network-restricted, and the
+      // migration hasn't been disabled, it needs to be created
       return shrunk;
     }
 
