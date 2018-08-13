@@ -5,6 +5,8 @@ import {MessageError} from '../../errors.js';
 import type {Reporter} from '../../reporters/index.js';
 import buildSubCommands from './_build-sub-commands.js';
 import {DEPENDENCY_TYPES} from '../../constants.js';
+import * as child from '../../util/child.js';
+import {NODE_BIN_PATH, YARN_BIN_PATH} from '../../constants';
 
 const invariant = require('invariant');
 const path = require('path');
@@ -60,9 +62,40 @@ export async function info(config: Config, reporter: Reporter, flags: Object, ar
   reporter.log(JSON.stringify(publicData, null, 2), {force: true});
 }
 
+export async function runScript(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+  const {workspaceRootFolder} = config;
+
+  if (!workspaceRootFolder) {
+    throw new MessageError(reporter.lang('workspaceRootNotFound', config.cwd));
+  }
+
+  const manifest = await config.findManifest(workspaceRootFolder, false);
+  invariant(manifest && manifest.workspaces, 'We must find a manifest with a "workspaces" property');
+
+  const workspaces = await config.resolveWorkspaces(workspaceRootFolder, manifest);
+
+  try {
+    const [_, ...rest] = flags.originalArgs || [];
+
+    for (const workspaceName of Object.keys(workspaces)) {
+      const {loc} = workspaces[workspaceName];
+
+      await child.spawn(NODE_BIN_PATH, [YARN_BIN_PATH, ...rest], {
+        stdio: 'inherit',
+        cwd: loc,
+      });
+    }
+  } catch (err) {
+    throw err;
+  }
+}
+
 const {run, setFlags, examples} = buildSubCommands('workspaces', {
   async info(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
     await info(config, reporter, flags, args);
+  },
+  async run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+    await runScript(config, reporter, flags, args);
   },
 });
 
