@@ -76,19 +76,15 @@ export async function runScript(config: Config, reporter: Reporter, flags: Objec
 
   try {
     const [_, ...rest] = flags.originalArgs || [];
-    const childProcesses = [];
 
     for (const workspaceName of Object.keys(workspaces)) {
       const {loc} = workspaces[workspaceName];
-      childProcesses.push(
-        child.spawn(NODE_BIN_PATH, [YARN_BIN_PATH, ...rest], {
-          stdio: 'inherit',
-          cwd: loc,
-        }),
-      );
-    }
 
-    await Promise.all(childProcesses);
+      await child.spawn(NODE_BIN_PATH, [YARN_BIN_PATH, ...rest], {
+        stdio: 'inherit',
+        cwd: loc,
+      });
+    }
   } catch (err) {
     throw err;
   }
