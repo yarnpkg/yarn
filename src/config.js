@@ -672,7 +672,12 @@ export default class Config {
       const ws = extractWorkspaces(manifest);
       if (ws && ws.packages) {
         const relativePath = path.relative(current, initial);
-        if (relativePath === '' || micromatch([relativePath], ws.packages).length > 0) {
+        // Make packages trailing-slash-agnostic
+        const sanitizedPackages = ws.packages.map(packageGlob => {
+          return packageGlob.replace(/\/?$/, '');
+        });
+
+        if (relativePath === '' || micromatch.any(relativePath, sanitizedPackages)) {
           return current;
         } else {
           return null;
