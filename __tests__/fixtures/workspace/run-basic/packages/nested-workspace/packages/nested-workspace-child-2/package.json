@@ -1,0 +1,10 @@
+{
+  "name": "nested-workspace-2",
+  "version": "1.0.0",
+  "license": "BSD-2-Clause",
+  "scripts": {
+    "prescript": "echo nested-workspace-2 prescript",
+    "script": "echo nested-workspace-2 script",
+    "postscript": "echo nested-workspace-2 postscript"
+  }
+}

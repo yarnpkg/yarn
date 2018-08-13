@@ -661,6 +661,7 @@ export default class Config {
   }
 
   async findWorkspaceRoot(initial: string): Promise<?string> {
+    let lastFound = null;
     let previous = null;
     let current = path.normalize(initial);
     if (!await fs.exists(current)) {
@@ -673,9 +674,7 @@ export default class Config {
       if (ws && ws.packages) {
         const relativePath = path.relative(current, initial);
         if (relativePath === '' || micromatch([relativePath], ws.packages).length > 0) {
-          return current;
-        } else {
-          return null;
+          lastFound = current;
         }
       }
 
@@ -683,7 +682,7 @@ export default class Config {
       current = path.dirname(current);
     } while (current !== previous);
 
-    return null;
+    return lastFound;
   }
 
   async resolveWorkspaces(root: string, rootManifest: Manifest): Promise<WorkspacesManifestMap> {

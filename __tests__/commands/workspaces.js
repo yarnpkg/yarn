@@ -29,6 +29,11 @@ async function runWorkspaces(
 test('workspaces info should list the workspaces', (): Promise<void> => {
   return runWorkspaces({}, ['info'], 'run-basic', (config, reporter) => {
     expect(reporter.getBufferJson()).toEqual({
+      'nested-workspace-1': {
+        location: 'packages/nested-workspace/packages/nested-workspace-child-1',
+        workspaceDependencies: ['workspace-1'],
+        mismatchedWorkspaceDependencies: [],
+      },
       'workspace-1': {
         location: 'packages/workspace-child-1',
         workspaceDependencies: [],
@@ -37,6 +42,47 @@ test('workspaces info should list the workspaces', (): Promise<void> => {
       'workspace-2': {
         location: 'packages/workspace-child-2',
         workspaceDependencies: ['workspace-1'],
+        mismatchedWorkspaceDependencies: [],
+      },
+    });
+  });
+});
+
+test('workspaces info for nested workspace should list the global workspaces', (): Promise<void> => {
+  const name = path.join('run-basic', 'packages', 'nested-workspace', 'packages', 'nested-workspace-child-1');
+  return runWorkspaces({}, ['info'], name, (config, reporter) => {
+    expect(reporter.getBufferJson()).toEqual({
+      'nested-workspace-1': {
+        location: 'packages/nested-workspace/packages/nested-workspace-child-1',
+        workspaceDependencies: ['workspace-1'],
+        mismatchedWorkspaceDependencies: [],
+      },
+      'workspace-1': {
+        location: 'packages/workspace-child-1',
+        workspaceDependencies: [],
+        mismatchedWorkspaceDependencies: [],
+      },
+      'workspace-2': {
+        location: 'packages/workspace-child-2',
+        workspaceDependencies: ['workspace-1'],
+        mismatchedWorkspaceDependencies: [],
+      },
+    });
+  });
+});
+
+test('workspaces info should list the local workspaces if nested is unspecified in the global', (): Promise<void> => {
+  const name = path.join('run-basic', 'packages', 'nested-workspace', 'packages', 'nested-workspace-child-2');
+  return runWorkspaces({}, ['info'], name, (config, reporter) => {
+    expect(reporter.getBufferJson()).toEqual({
+      'nested-workspace-1': {
+        location: 'packages/nested-workspace-child-1',
+        workspaceDependencies: [],
+        mismatchedWorkspaceDependencies: [],
+      },
+      'nested-workspace-2': {
+        location: 'packages/nested-workspace-child-2',
+        workspaceDependencies: [],
         mismatchedWorkspaceDependencies: [],
       },
     });
