@@ -370,7 +370,10 @@ export default class Config {
     const manifest = await this.maybeReadManifest(this.cwd);
 
     const plugnplayByEnv = this.getOption('plugnplay-override');
-    if (plugnplayByEnv != null) {
+    if (process.platform === 'win32') {
+      this.plugnplayEnabled = false;
+      this.plugnplayPersist = false;
+    } else if (plugnplayByEnv != null) {
       this.plugnplayEnabled = plugnplayByEnv !== 'false' && plugnplayByEnv !== '0';
       this.plugnplayPersist = false;
     } else if (opts.enablePnp || opts.disablePnp) {
