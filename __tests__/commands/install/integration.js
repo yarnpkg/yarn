@@ -738,6 +738,20 @@ test('install should create integrity field if not present', () =>
     // backwards-compatibility
   }));
 
+test('install should not create the integrity field if missing and auto-add-integrity is false', () =>
+  runInstall({}, 'install-update-auth-no-integrity-field-no-auto-add', async config => {
+    const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    const lockFileLines = explodeLockfile(lockFileContent);
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'safe-buffer'))).toEqual(true);
+    expect(lockFileLines[2].indexOf('#893312af69b2123def71f57889001671eeb2c853')).toBeGreaterThan(0);
+    expect(lockFileLines.length).toEqual(3);
+  }));
+
+test('install should not create integrity field if not present and in offline mode', () =>
+  runInstall({offline: true}, 'install-update-auth-no-offline-integrity', async config => {
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'abab'))).toEqual(true);
+  }));
+
 test('install should ignore existing hash if integrity is present even if it fails to authenticate it', () =>
   expect(runInstall({}, 'install-update-auth-bad-sha512-good-hash')).rejects.toMatchObject({
     message: expect.stringContaining("computed integrity doesn't match our records"),
