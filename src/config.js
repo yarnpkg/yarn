@@ -50,6 +50,7 @@ export type ConfigOptions = {
   enablePnp?: boolean,
   disablePnp?: boolean,
   scriptsPrependNodePath?: boolean,
+  offlineCacheFolder?: string,
 
   enableDefaultRc?: boolean,
   extraneousYarnrcFiles?: Array<string>,
@@ -178,6 +179,8 @@ export default class Config {
 
   workspacesEnabled: boolean;
   workspacesNohoistEnabled: boolean;
+
+  offlineCacheFolder: ?string;
 
   //
   cwd: string;
@@ -390,10 +393,12 @@ export default class Config {
     }
 
     this.plugnplayShebang = String(this.getOption('plugnplay-shebang')) || '/usr/bin/env node';
-    this.plugnplayBlacklist = String(this.getOption('plugnplay-blacklist')) || null;
+    this.plugnplayBlacklist = String(this.getOption('plugnplay-blacklist') || '') || null;
 
     this.workspacesEnabled = this.getOption('workspaces-experimental') !== false;
     this.workspacesNohoistEnabled = this.getOption('workspaces-nohoist-experimental') !== false;
+
+    this.offlineCacheFolder = String(this.getOption('offline-cache-folder') || '') || null;
 
     this.pruneOfflineMirror = Boolean(this.getOption('yarn-offline-mirror-pruning'));
     this.enableMetaFolder = Boolean(this.getOption('enable-meta-folder'));
@@ -401,7 +406,7 @@ export default class Config {
     this.linkFileDependencies = Boolean(this.getOption('yarn-link-file-dependencies'));
     this.packBuiltPackages = Boolean(this.getOption('experimental-pack-script-packages-in-mirror'));
 
-    this.autoAddIntegrity = !Boolean(this.getOption('unsafe-disable-integrity-migration'));
+    this.autoAddIntegrity = !this.getOption('unsafe-disable-integrity-migration');
 
     //init & create cacheFolder, tempFolder
     this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));
