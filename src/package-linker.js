@@ -313,7 +313,7 @@ export default class PackageLinker {
 
     const findExtraneousFiles = async basePath => {
       for (const folder of this.config.registryFolders) {
-        const loc = path.join(basePath, folder);
+        const loc = path.resolve(basePath, folder);
 
         if (await fs.exists(loc)) {
           const files = await fs.readdir(loc);
