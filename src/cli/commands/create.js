@@ -56,11 +56,11 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     throw new MessageError(reporter.lang('invalidPackageName'));
   }
 
-  const {fullName: packageName, scope: packageDir, name: commandName} = coerceCreatePackageName(builderName);
+  const {fullName: packageName, name: commandName} = coerceCreatePackageName(builderName);
   await runGlobal(config, reporter, {}, ['add', packageName]);
 
   const binFolder = await getBinFolder(config, {});
-  const command = path.resolve(binFolder, packageDir, path.basename(commandName));
+  const command = path.resolve(binFolder, commandName);
 
   await child.spawn(command, rest, {stdio: `inherit`, shell: true});
 }
