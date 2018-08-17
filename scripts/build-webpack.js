@@ -81,6 +81,10 @@ const compiler = webpack({
         exclude: /node_modules|Caches/,
         loader: require.resolve('babel-loader'),
       },
+      {
+        test: /rx\.lite\.aggregates\.js/,
+        use: 'imports-loader?define=>false'
+      },
     ],
   },
   plugins: [
