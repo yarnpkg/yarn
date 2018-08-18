@@ -41,7 +41,7 @@ function findProjectRoot(base: string): string {
   return base;
 }
 
-export function main({
+export async function main({
   startArgs,
   args,
   endArgs,
@@ -49,13 +49,25 @@ export function main({
   startArgs: Array<string>,
   args: Array<string>,
   endArgs: Array<string>,
-}) {
+}): Promise<void> {
+  const collect = (val, acc) => {
+    acc.push(val);
+    return acc;
+  };
+
   loudRejection();
   handleSignals();
 
   // set global options
   commander.version(version, '-v, --version');
   commander.usage('[command] [flags]');
+  commander.option('--no-default-rc', 'prevent Yarn from automatically detecting yarnrc and npmrc files');
+  commander.option(
+    '--use-yarnrc <path>',
+    'specifies a yarnrc file that Yarn should use (.yarnrc only, not .npmrc)',
+    collect,
+    [],
+  );
   commander.option('--verbose', 'output verbose messages on internal operations');
   commander.option('--offline', 'trigger an error if any required dependencies are not available in local cache');
   commander.option('--prefer-offline', 'use network only if dependencies are not available in local cache');
@@ -86,7 +98,12 @@ export function main({
   commander.option('--preferred-cache-folder <path>', 'specify a custom folder to store the yarn cache if possible');
   commander.option('--cache-folder <path>', 'specify a custom folder that must be used to store the yarn cache');
   commander.option('--mutex <type>[:specifier]', 'use a mutex to ensure only one yarn instance is executing');
-  commander.option('--emoji [bool]', 'enable emoji in output', boolify, process.platform === 'darwin');
+  commander.option(
+    '--emoji [bool]',
+    'enable emoji in output',
+    boolify,
+    process.platform === 'darwin' || process.env.TERM_PROGRAM === 'Hyper' || process.env.TERM_PROGRAM === 'HyperTerm',
+  );
   commander.option('-s, --silent', 'skip Yarn console logs, other types of logs (script output) will be printed');
   commander.option('--cwd <cwd>', 'working directory to use', process.cwd());
   commander.option('--proxy <host>', '');
@@ -102,6 +119,7 @@ export function main({
     boolify,
   );
   commander.option('--no-node-version-check', 'do not warn when using a potentially unsupported Node version');
+  commander.option('--focus', 'Focus on a single workspace by installing remote copies of its sibling workspaces.');
 
   // if -v is the first command, then always exit after returning the version
   if (args[0] === '-v') {
@@ -471,11 +489,13 @@ export function main({
 
   const cwd = command.shouldRunInCurrentCwd ? commander.cwd : findProjectRoot(commander.cwd);
 
-  config
+  await config
     .init({
       cwd,
       commandName,
 
+      enableDefaultRc: commander.defaultRc,
+      extraneousYarnrcFiles: commander.useYarnrc,
       binLinks: commander.binLinks,
       modulesFolder: commander.modulesFolder,
       linkFolder: commander.linkFolder,
@@ -498,6 +518,7 @@ export function main({
       nonInteractive: commander.nonInteractive,
       scriptsPrependNodePath: commander.scriptsPrependNodePath,
       updateChecksums: commander.updateChecksums,
+      focus: commander.focus,
     })
     .then(() => {
       // lockfile check must happen after config.init sets lockfileFolder
@@ -557,7 +578,7 @@ export function main({
 }
 
 async function start(): Promise<void> {
-  const rc = getRcConfigForCwd(process.cwd());
+  const rc = getRcConfigForCwd(process.cwd(), process.argv.slice(2));
   const yarnPath = rc['yarn-path'];
 
   if (yarnPath && !boolifyWithDefault(process.env.YARN_IGNORE_PATH, false)) {
@@ -583,7 +604,7 @@ async function start(): Promise<void> {
     const args = process.argv.slice(2, doubleDashIndex === -1 ? process.argv.length : doubleDashIndex);
     const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex);
 
-    main({startArgs, args, endArgs});
+    await main({startArgs, args, endArgs});
   }
 }
 
@@ -592,7 +613,10 @@ async function start(): Promise<void> {
 export const autoRun = module.children.length === 0;
 
 if (require.main === module) {
-  start();
+  start().catch(error => {
+    console.error(error.stack || error.message || error);
+    process.exitCode = 1;
+  });
 }
 
 export default start;

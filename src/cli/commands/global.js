@@ -52,6 +52,8 @@ async function updateCwd(config: Config): Promise<void> {
     globalFolder: config.globalFolder,
     cacheFolder: config._cacheRootFolder,
     linkFolder: config.linkFolder,
+    enableDefaultRc: config.enableDefaultRc,
+    extraneousYarnrcFiles: config.extraneousYarnrcFiles,
   });
 }
 
@@ -159,11 +161,6 @@ async function initUpdateBins(config: Config, reporter: Reporter, flags: Object)
 
     // add new bins
     for (const src of afterBins) {
-      if (beforeBins.has(src)) {
-        // already inserted
-        continue;
-      }
-
       // insert new bin
       const dest = path.join(binFolder, path.basename(src));
       try {

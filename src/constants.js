@@ -25,7 +25,7 @@ export const YARN_INSTALLER_MSI = 'https://yarnpkg.com/latest.msi';
 export const SELF_UPDATE_VERSION_URL = 'https://yarnpkg.com/latest-version';
 
 // cache version, bump whenever we make backwards incompatible changes
-export const CACHE_VERSION = 1;
+export const CACHE_VERSION = 2;
 
 // lockfile version, bump whenever we make backwards incompatible changes
 export const LOCKFILE_VERSION = 1;
@@ -86,6 +86,7 @@ export const TARBALL_FILENAME = '.yarn-tarball.tgz';
 export const CLEAN_FILENAME = '.yarnclean';
 
 export const NPM_LOCK_FILENAME = 'package-lock.json';
+export const NPM_SHRINKWRAP_FILENAME = 'npm-shrinkwrap.json';
 
 export const DEFAULT_INDENT = '  ';
 export const SINGLE_INSTANCE_PORT = 31997;

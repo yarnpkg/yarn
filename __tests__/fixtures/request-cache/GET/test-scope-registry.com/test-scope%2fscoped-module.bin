@@ -1,0 +1,39 @@
+HTTP/1.1 200 OK
+X-Powered-By: verdaccio/3.5.1
+Access-Control-Allow-Origin: *
+Content-Type: application/json; charset=utf-8
+ETag: "44b57ba5bc86dbe39ef3e60f5112a6ec"
+Content-Length: 754
+Vary: Accept-Encoding
+X-Status-Cat: http://flic.kr/p/aVuVsF
+Date: Fri, 03 Aug 2018 06:37:42 GMT
+Connection: keep-alive
+
+{
+  "name": "@test-scope/scoped-module",
+  "versions": {
+    "0.0.1": {
+      "name": "@test-scope/scoped-module",
+      "version": "0.0.1",
+      "description": "Scoped Module for Yarn tests",
+      "main": "index.js",
+      "license": "MIT",
+      "_id": "@test-scope/scoped-module@0.0.1",
+      "dist": {
+        "shasum": "0d2cf8db4b0fca4f50a0597e9a377cb1e6c48a93",
+        "tarball": "http://test-scope-registry.com/@test-scope%2fscoped-module/-/scoped-module-0.0.1.tgz"
+      }
+    }
+  },
+  "time": {
+    "modified": "2018-08-03T06:33:38.743Z",
+    "created": "2018-08-03T06:33:38.743Z",
+    "0.0.1": "2018-08-03T06:33:38.743Z"
+  },
+  "dist-tags": {
+    "latest": "0.0.1"
+  },
+  "_rev": "6-7cc396d8f7359a4d",
+  "readme": "",
+  "_attachments": {}
+}

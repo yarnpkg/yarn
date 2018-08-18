@@ -61,10 +61,13 @@ function addTest(pattern, {strictPeers} = {strictPeers: false}, yarnArgs: Array<
 
 addTest('scrollin'); // npm
 addTest('https://git@github.com/stevemao/left-pad.git'); // git url, with username
-addTest('https://github.com/yarnpkg/yarn/releases/download/v0.18.1/yarn-v0.18.1.tar.gz'); // tarball
 addTest('https://github.com/bestander/chrome-app-livereload.git'); // no package.json
 addTest('bestander/chrome-app-livereload'); // no package.json, github, tarball
-addTest('react-scripts@1.0.13', {strictPeers: true}, ['--no-node-version-check', '--ignore-engines']); // many peer dependencies, there shouldn't be any peerDep warnings
+
+if (process.platform !== 'win32') {
+  addTest('https://github.com/yarnpkg/yarn/releases/download/v0.18.1/yarn-v0.18.1.tar.gz'); // tarball
+  addTest('react-scripts@1.0.13', {strictPeers: true}, ['--no-node-version-check', '--ignore-engines']); // many peer dependencies, there shouldn't be any peerDep warnings
+}
 
 const MIN_PORT_NUM = 56000;
 const MAX_PORT_NUM = 65535;
@@ -203,7 +206,7 @@ describe('--registry option', () => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(cwd, 'yarn.lock')));
 
     expect(packageJson.dependencies['left-pad']).toBeDefined();
-    expect(lockfile).toHaveLength(3);
+    expect(lockfile).toHaveLength(4);
     expect(lockfile[2]).toContain(registry);
   });
 
@@ -220,7 +223,7 @@ describe('--registry option', () => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(cwd, 'yarn.lock')));
 
     expect(packageJson.dependencies['is-array']).toBeDefined();
-    expect(lockfile).toHaveLength(3);
+    expect(lockfile).toHaveLength(4);
     expect(lockfile[2]).toContain(registry);
   });
 
@@ -251,7 +254,7 @@ describe('--registry option', () => {
     const lockfile = explodeLockfile(await fs.readFile(path.join(cwd, 'yarn.lock')));
 
     expect(packageJson.dependencies['left-pad']).toBeDefined();
-    expect(lockfile).toHaveLength(3);
+    expect(lockfile).toHaveLength(4);
     expect(lockfile[2]).toContain(registry);
   });
 });
@@ -269,6 +272,26 @@ test('--cwd option', async () => {
 
   const packageJson = JSON.parse(await fs.readFile(packageJsonPath));
   expect(packageJson.dependencies['left-pad']).toBeDefined();
+});
+
+const customCacheCwd = `${__dirname}/fixtures/cache/custom-location`;
+
+test('default rc', async (): Promise<void> => {
+  const [stdoutOutput] = await runYarn(['cache', 'dir'], {cwd: customCacheCwd});
+
+  expect(stdoutOutput).toMatch(/uses-default-yarnrc/);
+});
+
+test('--no-default-rc', async (): Promise<void> => {
+  const [stdoutOutput] = await runYarn(['cache', 'dir', '--no-default-rc'], {cwd: customCacheCwd});
+
+  expect(stdoutOutput).not.toMatch(/uses-default-yarnrc/);
+});
+
+test('--use-yarnrc', async (): Promise<void> => {
+  const [stdoutOutput] = await runYarn(['cache', 'dir', '--use-yarnrc', './custom-yarnrc'], {cwd: customCacheCwd});
+
+  expect(stdoutOutput).toMatch(/uses-custom-yarnrc/);
 });
 
 test('yarnrc arguments', async () => {
@@ -405,7 +428,7 @@ test('yarn run <failing script>', async () => {
     path.join(cwd, 'package.json'),
     JSON.stringify({
       license: 'MIT',
-      scripts: {false: 'false'},
+      scripts: {false: 'exit 1'},
     }),
   );
 
@@ -466,6 +489,19 @@ test('cache folder fallback', async () => {
     path.join(constants.PREFERRED_MODULE_CACHE_DIRECTORIES[0], `v${constants.CACHE_VERSION}`),
   );
   expect(stderrOutput2.toString()).toMatch(/Skipping preferred cache folder/);
+});
+
+test('relative cache folder', async () => {
+  const base = await makeTemp();
+
+  await fs.writeFile(`${base}/.yarnrc`, 'cache-folder "./foo"\n');
+
+  await fs.mkdirp(`${base}/sub`);
+  await fs.mkdirp(`${base}/foo`);
+
+  const [stdoutOutput, _] = await runYarn(['cache', 'dir'], {cwd: `${base}/sub`});
+
+  expect(await fs.realpath(path.dirname(stdoutOutput.toString()))).toEqual(await fs.realpath(`${base}/foo`));
 });
 
 test('yarn create', async () => {

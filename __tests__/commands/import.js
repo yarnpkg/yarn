@@ -186,14 +186,31 @@ if (semver.satisfies(nodeVersion, '>=5.0.0')) {
     expect(thrown).toBeTruthy();
   });
 
-  test.concurrent('throw on corrupted package-lock.json - missing deep dependencies', async () => {
-    let thrown = false;
-    try {
-      await runImport([], {}, 'corrupted-package-lock-missing-deps');
-    } catch (err) {
-      thrown = true;
-    }
-    expect(thrown).toBeTruthy();
+  test.concurrent(
+    'throw on corrupted package-lock.json - missing dependencies (package-lock.json inconsistent)',
+    async () => {
+      let thrown = false;
+      try {
+        await runImport([], {}, 'corrupted-package-lock-missing-deps');
+      } catch (err) {
+        thrown = true;
+      }
+      expect(thrown).toBeTruthy();
+    },
+  );
+
+  test.concurrent('import uncorrupted (consistent) package-lock.json with missing dependencies', () => {
+    return runImport([], {}, 'package-lock-missing-deps', async (config, reporter) => {
+      const errors = reporterErrors(reporter);
+      await checkLockfile(config, reporter);
+      expect(errors).toEqual([
+        {
+          type: 'warning',
+          data: 'Import of "os-homedir@^1.0.0" for "package-lock-missing-deps > user-home" failed, resolving normally.',
+          error: true,
+        },
+      ]);
+    });
   });
 
   test.concurrent('including Yarn and Node version in yarn.lock from package-lock.json', () => {

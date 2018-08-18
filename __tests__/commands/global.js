@@ -40,6 +40,18 @@ async function createTempPrefixFolder(): Promise<string> {
   return path.join(prefixFolder, 'bin');
 }
 
+async function linkAt(config, ...relativePath): Promise<string> {
+  const joinedPath = path.join(config.cwd, ...relativePath);
+  const stat = await fs.lstat(joinedPath);
+  if (stat.isSymbolicLink()) {
+    const linkPath = await fs.readlink(joinedPath);
+    return linkPath;
+  } else {
+    const contents = await fs.readFile(joinedPath);
+    return /node" +"\$basedir\/([^"]*\.js)"/.exec(contents)[1];
+  }
+}
+
 // these tests have global folder side or prefix folder effects, run it only in CI
 if (isCI) {
   test.concurrent('add without flag', (): Promise<void> => {
@@ -99,6 +111,15 @@ test.concurrent('add', async (): Promise<void> => {
   });
 });
 
+test.concurrent('add (with scoped registry)', (): Promise<void> => {
+  const flags = {enableDefaultRc: true};
+  return runGlobal(['add', '@test-scope/scoped-module'], flags, 'add-with-scoped-registry', async config => {
+    expect(await fs.exists(path.join(config.globalFolder, 'node_modules', '@test-scope', 'scoped-module'))).toEqual(
+      true,
+    );
+  });
+});
+
 test.concurrent('remove', async (): Promise<void> => {
   const tmpGlobalFolder = await createTempGlobalFolder();
   const tmpPrefixFolder = await createTempPrefixFolder();
@@ -137,15 +158,34 @@ test.concurrent('upgrade', async (): Promise<void> => {
   const tmpPrefixFolder = await createTempPrefixFolder();
   const flags = {globalFolder: tmpGlobalFolder, prefix: tmpPrefixFolder};
   const upgradeFlags = {globalFolder: tmpGlobalFolder, prefix: tmpPrefixFolder, latest: true};
-  return runGlobal(['add', 'react-native-cli@2.0.0'], flags, 'add-with-prefix-flag', () => {}).then(() => {
-    return runGlobal(
-      ['upgrade', 'react-native-cli'],
-      upgradeFlags,
-      'add-with-prefix-flag',
-      (config, reporter, install, getStdout) => {
-        expect(getStdout()).toContain('react-native-cli');
-        expect(getStdout()).not.toContain('react-native-cli@2.0.0');
-      },
+  await runGlobal(['add', 'react-native-cli@2.0.0'], flags, 'add-with-prefix-flag', () => {});
+
+  return runGlobal(
+    ['upgrade', 'react-native-cli'],
+    upgradeFlags,
+    'add-with-prefix-flag',
+    (config, reporter, install, getStdout) => {
+      expect(getStdout()).toContain('react-native-cli');
+      expect(getStdout()).not.toContain('react-native-cli@2.0.0');
+    },
+  );
+});
+
+test.concurrent('symlink update', async (): Promise<void> => {
+  const tmpGlobalFolder = await createTempGlobalFolder();
+  const tmpPrefixFolder = await createTempPrefixFolder();
+  const flags = {globalFolder: tmpGlobalFolder, prefix: tmpPrefixFolder};
+  await runGlobal(['add', 'dummy-for-testing-changed-path@v0.0.3'], flags, 'add-with-prefix-flag', async config => {
+    const targetPath = path.join(tmpGlobalFolder, 'node_modules', 'dummy-for-testing-changed-path');
+    expect(await fs.exists(targetPath)).toEqual(true);
+    expect(await linkAt(config, 'node_modules', '.bin', 'dummy-for-testing-changed-path')).toEqual(
+      '../dummy-for-testing-changed-path/index.js',
     );
   });
+
+  return runGlobal(['upgrade', 'dummy-for-testing-changed-path@v0.0.4'], flags, 'add-with-prefix-flag', async config =>
+    expect(await linkAt(config, 'node_modules', '.bin', 'dummy-for-testing-changed-path')).toEqual(
+      '../dummy-for-testing-changed-path/src/app.js',
+    ),
+  );
 });

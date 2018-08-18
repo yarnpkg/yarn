@@ -163,8 +163,11 @@ export default class PackageHoister {
       while (queue.length > 0 && hasChanged) {
         hasChanged = false;
 
-        for (let t = 0; t < queue.length; ++t) {
-          const pattern = queue[t][0];
+        const queueCopy = queue;
+        queue = [];
+        for (let t = 0; t < queueCopy.length; ++t) {
+          const queueItem = queueCopy[t];
+          const pattern = queueItem[0];
           const pkg = this.resolver.getStrictResolvedPattern(pattern);
 
           const peerDependencies = Object.keys(pkg.peerDependencies || {});
@@ -172,14 +175,15 @@ export default class PackageHoister {
 
           if (areDependenciesFulfilled) {
             // Move the package inside our sorted queue
-            sortedQueue.push(queue[t]);
-            queue.splice(t--, 1);
+            sortedQueue.push(queueItem);
 
             // Add it to our set, so that we know it is available
             availableSet.add(pattern);
 
             // Schedule a next pass, in case other packages had peer dependencies on this one
             hasChanged = true;
+          } else {
+            queue.push(queueItem);
           }
         }
       }
@@ -243,8 +247,12 @@ export default class PackageHoister {
     this.taintKey(key, info);
 
     //
+    const pushed = new Set();
     for (const depPattern of ref.dependencies) {
-      this.levelQueue.push([depPattern, info]);
+      if (!pushed.has(depPattern)) {
+        this.levelQueue.push([depPattern, info]);
+        pushed.add(depPattern);
+      }
     }
 
     return info;
@@ -666,9 +674,9 @@ export default class PackageHoister {
   }
 
   markShallowWorkspaceEntries() {
-    const targetWorkspace = path.basename(this.config.cwd);
+    const targetWorkspace = this.config.focusedWorkspaceName;
     const targetHoistManifest = this.tree.get(targetWorkspace);
-    invariant(targetHoistManifest, 'targetHoistManifest missing');
+    invariant(targetHoistManifest, `targetHoistManifest from ${targetWorkspace} missing`);
 
     //dedupe with a set
     const dependentWorkspaces = Array.from(new Set(this._getDependentWorkspaces(targetHoistManifest)));
@@ -857,7 +865,7 @@ export default class PackageHoister {
         }
 
         if (shallowPath) {
-          const targetWorkspace = path.basename(this.config.cwd);
+          const targetWorkspace = this.config.focusedWorkspaceName;
           const treeEntry = this.tree.get(`${targetWorkspace}#${shallowPath}`) || this.tree.get(shallowPath);
           invariant(treeEntry, 'expected treeEntry for ' + shallowPath);
           const moduleFolderName = this.config.getFolder(treeEntry.pkg);

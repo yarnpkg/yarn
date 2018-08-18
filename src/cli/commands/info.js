@@ -5,7 +5,6 @@ import type Config from '../../config.js';
 import NpmRegistry from '../../registries/npm-registry.js';
 import parsePackageName from '../../util/parse-package-name.js';
 const semver = require('semver');
-const invariant = require('invariant');
 
 function clean(object: any): any {
   if (Array.isArray(object)) {
@@ -68,7 +67,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     reporter.error(reporter.lang('infoFail'));
     return;
   }
-  invariant(result, 'result must not be empty');
+  if (!result) {
+    reporter.error(reporter.lang('infoFail'));
+    return;
+  }
 
   result = clean(result);
 

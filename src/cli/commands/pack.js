@@ -11,6 +11,7 @@ const zlib = require('zlib');
 const path = require('path');
 const tar = require('tar-fs');
 const fs2 = require('fs');
+const depsFor = require('hash-for-dep/lib/deps-for');
 
 const FOLDERS_IGNORE = [
   // never allow version control folders
@@ -53,7 +54,7 @@ export async function packTarball(
   {mapHeader}: {mapHeader?: Object => Object} = {},
 ): Promise<stream$Duplex> {
   const pkg = await config.readRootManifest();
-  const {bundledDependencies, main, files: onlyFiles} = pkg;
+  const {bundleDependencies, main, files: onlyFiles} = pkg;
 
   // include required files
   let filters: Array<IgnoreFilter> = NEVER_IGNORE.slice();
@@ -65,10 +66,17 @@ export async function packTarball(
     filters = filters.concat(ignoreLinesToRegex(['!/' + main]));
   }
 
-  // include bundledDependencies
-  if (bundledDependencies) {
-    const folder = config.getFolder(pkg);
-    filters = ignoreLinesToRegex(bundledDependencies.map((name): string => `!${folder}/${name}`), '.');
+  // include bundleDependencies
+  let bundleDependenciesFiles = [];
+  if (bundleDependencies) {
+    for (const dependency of bundleDependencies) {
+      const dependencyList = depsFor(dependency, config.cwd);
+
+      for (const dep of dependencyList) {
+        const filesForBundledDep = await fs.walk(dep.baseDir, null, new Set(FOLDERS_IGNORE));
+        bundleDependenciesFiles = bundleDependenciesFiles.concat(filesForBundledDep);
+      }
+    }
   }
 
   // `files` field
@@ -108,6 +116,12 @@ export async function packTarball(
 
   // apply filters
   sortFilter(files, filters, keepFiles, possibleKeepFiles, ignoredFiles);
+
+  // add the files for the bundled dependencies to the set of files to keep
+  for (const file of bundleDependenciesFiles) {
+    const realPath = await fs.realpath(config.cwd);
+    keepFiles.add(path.relative(realPath, file.absolute));
+  }
 
   return packWithIgnoreAndHeaders(
     config.cwd,

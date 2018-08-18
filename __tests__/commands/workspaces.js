@@ -1,12 +1,17 @@
 // @flow
+jest.mock('../../src/util/child');
 
 import {BufferReporter} from '../../src/reporters/index.js';
 import {run as workspace} from '../../src/cli/commands/workspaces.js';
 import * as reporters from '../../src/reporters/index.js';
 import Config from '../../src/config.js';
 import path from 'path';
+import {NODE_BIN_PATH, YARN_BIN_PATH} from '../../src/constants';
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'workspace');
+const spawn: $FlowFixMe = require('../../src/util/child').spawn;
+
+beforeEach(() => spawn.mockClear());
 
 async function runWorkspaces(
   flags: Object,
@@ -39,6 +44,20 @@ test('workspaces info should list the workspaces', (): Promise<void> => {
         workspaceDependencies: ['workspace-1'],
         mismatchedWorkspaceDependencies: [],
       },
+    });
+  });
+});
+
+test('workspaces run should spawn command for each workspace', (): Promise<void> => {
+  const originalArgs = ['run', 'script', 'arg1', '--flag1'];
+  return runWorkspaces({originalArgs}, ['run', 'script', 'arg1', '--flag1'], 'run-basic', config => {
+    expect(spawn).toHaveBeenCalledWith(NODE_BIN_PATH, [YARN_BIN_PATH, 'script', 'arg1', '--flag1'], {
+      stdio: 'inherit',
+      cwd: path.join(fixturesLoc, 'run-basic', 'packages', 'workspace-child-1'),
+    });
+    expect(spawn).toHaveBeenCalledWith(NODE_BIN_PATH, [YARN_BIN_PATH, 'script', 'arg1', '--flag1'], {
+      stdio: 'inherit',
+      cwd: path.join(fixturesLoc, 'run-basic', 'packages', 'workspace-child-2'),
     });
   });
 });

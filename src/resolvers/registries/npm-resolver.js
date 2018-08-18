@@ -16,6 +16,7 @@ const tty = require('tty');
 const invariant = require('invariant');
 const path = require('path');
 const semver = require('semver');
+const ssri = require('ssri');
 
 const NPM_REGISTRY = /http[s]:\/\/registry.npmjs.org/g;
 const NPM_REGISTRY_ID = 'npm';
@@ -83,7 +84,7 @@ export default class NpmResolver extends RegistryResolver {
     throw new MessageError(config.reporter.lang('couldntFindVersionThatMatchesRange', body.name, range));
   }
 
-  async resolveRequest(): Promise<?Manifest> {
+  async resolveRequest(desiredVersion: ?string): Promise<?Manifest> {
     if (this.config.offline) {
       const res = await this.resolveRequestOffline();
       if (res != null) {
@@ -94,7 +95,7 @@ export default class NpmResolver extends RegistryResolver {
     const body = await this.config.registries.npm.request(NpmRegistry.escapeName(this.name));
 
     if (body) {
-      return NpmResolver.findVersionInRegistryResponse(this.config, this.range, body, this.request);
+      return NpmResolver.findVersionInRegistryResponse(this.config, desiredVersion || this.range, body, this.request);
     } else {
       return null;
     }
@@ -111,7 +112,17 @@ export default class NpmResolver extends RegistryResolver {
     const cacheFolder = path.join(this.config.cacheFolder, scope ? `${NPM_REGISTRY_ID}-${scope}` : '');
 
     const files = await this.config.getCache('cachedPackages', async (): Promise<Array<string>> => {
-      const files = await fs.readdir(cacheFolder);
+      // Try to read the folder.
+      let files = [];
+      try {
+        files = await fs.readdir(cacheFolder);
+      } catch (err) {
+        if (err.code === 'ENOENT') {
+          return [];
+        }
+        throw err;
+      }
+
       const validFiles = [];
 
       for (const name of files) {
@@ -187,21 +198,40 @@ export default class NpmResolver extends RegistryResolver {
         const offlineMirrorPath = this.config.getOfflineMirrorPath();
         if (prebuiltVariants[prebuiltName] && offlineMirrorPath) {
           const filename = path.join(offlineMirrorPath, 'prebuilt', prebuiltName + '.tgz');
-          if (shrunk._remote && (await fs.exists(filename))) {
-            shrunk._remote.reference = `file:${filename}`;
-            shrunk._remote.hash = prebuiltVariants[prebuiltName];
+          const {_remote} = shrunk;
+          if (_remote && (await fs.exists(filename))) {
+            _remote.reference = `file:${filename}`;
+            _remote.hash = prebuiltVariants[prebuiltName];
+            _remote.integrity = ssri.fromHex(_remote.hash, 'sha1').toString();
           }
         }
       }
+    }
+    if (
+      shrunk &&
+      shrunk._remote &&
+      (shrunk._remote.integrity || this.config.offline || !this.config.autoAddIntegrity)
+    ) {
+      // if the integrity field does not exist, we're not network-restricted, and the
+      // migration hasn't been disabled, it needs to be created
       return shrunk;
     }
 
-    const info: ?Manifest = await this.resolveRequest();
+    const desiredVersion = shrunk && shrunk.version ? shrunk.version : null;
+    const info: ?Manifest = await this.resolveRequest(desiredVersion);
     if (info == null) {
       throw new MessageError(this.reporter.lang('packageNotFoundRegistry', this.name, NPM_REGISTRY_ID));
     }
 
     const {deprecated, dist} = info;
+    if (shrunk && shrunk._remote) {
+      shrunk._remote.integrity =
+        dist && dist.integrity
+          ? ssri.parse(dist.integrity)
+          : ssri.fromHex(dist && dist.shasum ? dist.shasum : '', 'sha1');
+      return shrunk;
+    }
+
     if (typeof deprecated === 'string') {
       let human = `${info.name}@${info.version}`;
       const parentNames = this.request.parentNames;
@@ -217,6 +247,7 @@ export default class NpmResolver extends RegistryResolver {
         type: 'tarball',
         reference: this.cleanRegistry(dist.tarball),
         hash: dist.shasum,
+        integrity: dist.integrity ? ssri.parse(dist.integrity) : ssri.fromHex(dist.shasum, 'sha1'),
         registry: NPM_REGISTRY_ID,
         packageName: info.name,
       };

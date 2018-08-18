@@ -29,8 +29,9 @@ const priorities: {[key: string]: number} = {
   version: 2,
   uid: 3,
   resolved: 4,
-  registry: 5,
-  dependencies: 6,
+  integrity: 5,
+  registry: 6,
+  dependencies: 7,
 };
 
 function priorityThenAlphaSort(a: string, b: string): number {
@@ -68,7 +69,6 @@ function _stringify(obj: {[key: string]: mixed}, options: Options): string {
       continue;
     }
 
-    //
     const valKeys = [key];
 
     // get all keys that have the same value equality, we only want this for objects
@@ -81,7 +81,6 @@ function _stringify(obj: {[key: string]: mixed}, options: Options): string {
       }
     }
 
-    //
     const keyLine = valKeys.sort(sortAlpha).map(maybeWrap).join(', ');
 
     if (typeof val === 'string' || typeof val === 'boolean' || typeof val === 'number') {

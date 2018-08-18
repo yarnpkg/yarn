@@ -5,3 +5,4 @@
 dep-a@1.0.0:
   version "1.0.0"
   resolved "./mirror-for-offline/dep-a-v1.0.0.tgz#4ede2f5f2b706cfda23f16adba7e360d4312ec6d"
+  integrity sha512-MmrJNiUh2xeomWCIlbtjt7XMajqu11lylW+c9dJK296nBbmQ9VcBWKY3wECHbeyttVio06s/UkPEr0snXoBQ5A==

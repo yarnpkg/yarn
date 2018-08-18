@@ -71,8 +71,10 @@ test.concurrent('focus should not bail out early after an un-focused install', (
     await fs.writeFile(path.join(oldCwd, 'node_modules', 'yarn.test'), 'YARN TEST');
 
     config.cwd += '/packages/example-yarn-workspace-1';
+    config.focus = true;
+    config.focusedWorkspaceName = 'example-yarn-workspace-1';
 
-    const reinstall = new Install({focus: true}, config, reporter, await Lockfile.fromDirectory(oldCwd));
+    const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(oldCwd));
     await reinstall.init();
 
     expect(await fs.exists(path.join(oldCwd, 'node_modules', 'yarn.test'))).toBeFalsy();
@@ -88,7 +90,7 @@ test.concurrent('repeated focused installs should bail out early', (): Promise<v
 
       const lockfileDir = path.join(config.cwd, '..', '..');
 
-      const reinstall = new Install({focus: true}, config, reporter, await Lockfile.fromDirectory(lockfileDir));
+      const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(lockfileDir));
       await reinstall.init();
 
       expect(await fs.exists(path.join(config.cwd, 'node_modules', 'yarn.test'))).toBeTruthy();
@@ -110,8 +112,9 @@ test.concurrent('switching directories for focused installs should fail integrit
       await fs.writeFile(path.join(rootDir, 'node_modules', 'yarn.test'), 'YARN TEST');
 
       config.cwd = path.join(rootDir, 'packages', 'example-yarn-workspace-2');
+      config.focusedWorkspaceName = 'example-yarn-workspace-2';
 
-      const reinstall = new Install({focus: true}, config, reporter, await Lockfile.fromDirectory(rootDir));
+      const reinstall = new Install({}, config, reporter, await Lockfile.fromDirectory(rootDir));
       await reinstall.init();
 
       expect(await fs.exists(path.join(rootDir, 'node_modules', 'yarn.test'))).toBeFalsy();
@@ -211,6 +214,15 @@ test.concurrent(
     );
   },
 );
+
+test.concurrent('focus works correctly when focusing on a scoped package', (): Promise<void> => {
+  return runInstall({focus: true}, {source: 'focus-scoped', cwd: '/packages/scoped'}, async (config, reporter) => {
+    const packageFile = await fs.readFile(
+      path.join(config.cwd, 'node_modules', 'example-yarn-workspace-2', 'package.json'),
+    );
+    expect(JSON.parse(packageFile).version).toEqual('1.1.1');
+  });
+});
 
 describe('nohoist', () => {
   test.concurrent('focus installs nohoist dependencies shallowly', (): Promise<void> => {

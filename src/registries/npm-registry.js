@@ -86,8 +86,15 @@ function urlParts(requestUrl: string): UrlParts {
 }
 
 export default class NpmRegistry extends Registry {
-  constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager, reporter: Reporter) {
-    super(cwd, registries, requestManager, reporter);
+  constructor(
+    cwd: string,
+    registries: ConfigRegistries,
+    requestManager: RequestManager,
+    reporter: Reporter,
+    enableDefaultRc: boolean,
+    extraneousRcFiles: Array<string>,
+  ) {
+    super(cwd, registries, requestManager, reporter, enableDefaultRc, extraneousRcFiles);
     this.folder = 'node_modules';
   }
 
@@ -209,25 +216,33 @@ export default class NpmRegistry extends Registry {
   }
 
   async getPossibleConfigLocations(filename: string, reporter: Reporter): Promise<Array<[boolean, string, string]>> {
-    // npmrc --> ./.npmrc, ~/.npmrc, ${prefix}/etc/npmrc
-    const localfile = '.' + filename;
-    const possibles = [
-      [false, path.join(this.cwd, localfile)],
-      [true, this.config.userconfig || path.join(userHome, localfile)],
-      [false, path.join(getGlobalPrefix(), 'etc', filename)],
-    ];
+    let possibles = [];
 
-    // When home directory for global install is different from where $HOME/npmrc is stored,
-    // E.g. /usr/local/share vs /root on linux machines, check the additional location
-    if (home !== userHome) {
-      possibles.push([true, path.join(home, localfile)]);
+    for (const rcFile of this.extraneousRcFiles.slice().reverse()) {
+      possibles.push([false, path.resolve(process.cwd(), rcFile)]);
     }
 
-    // npmrc --> ../.npmrc, ../../.npmrc, etc.
-    const foldersFromRootToCwd = getPosixPath(this.cwd).split('/');
-    while (foldersFromRootToCwd.length > 1) {
-      possibles.push([false, path.join(foldersFromRootToCwd.join(path.sep), localfile)]);
-      foldersFromRootToCwd.pop();
+    if (this.enableDefaultRc) {
+      // npmrc --> ./.npmrc, ~/.npmrc, ${prefix}/etc/npmrc
+      const localfile = '.' + filename;
+      possibles = possibles.concat([
+        [false, path.join(this.cwd, localfile)],
+        [true, this.config.userconfig || path.join(userHome, localfile)],
+        [false, path.join(getGlobalPrefix(), 'etc', filename)],
+      ]);
+
+      // When home directory for global install is different from where $HOME/npmrc is stored,
+      // E.g. /usr/local/share vs /root on linux machines, check the additional location
+      if (home !== userHome) {
+        possibles.push([true, path.join(home, localfile)]);
+      }
+
+      // npmrc --> ../.npmrc, ../../.npmrc, etc.
+      const foldersFromRootToCwd = getPosixPath(this.cwd).split('/');
+      while (foldersFromRootToCwd.length > 1) {
+        possibles.push([false, path.join(foldersFromRootToCwd.join(path.sep), localfile)]);
+        foldersFromRootToCwd.pop();
+      }
     }
 
     const actuals = [];
@@ -238,6 +253,7 @@ export default class NpmRegistry extends Registry {
         actuals.push([isHome, loc, await fs.readFile(loc)]);
       }
     }
+
     return actuals;
   }
 

@@ -1,0 +1,9 @@
+{
+  "name": "install-update-auth-no-integrity-field",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "safe-buffer": "^5.1.1"
+  }
+}

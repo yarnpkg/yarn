@@ -36,6 +36,7 @@ const invariant = require('invariant');
 const path = require('path');
 const semver = require('semver');
 const uuid = require('uuid');
+const ssri = require('ssri');
 
 const ONE_DAY = 1000 * 60 * 60 * 24;
 
@@ -77,9 +78,6 @@ type Flags = {
 
   // add, remove, upgrade
   workspaceRootIsCwd: boolean,
-
-  // focus
-  focus: boolean,
 };
 
 /**
@@ -158,9 +156,6 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
 
     // add, remove, update
     workspaceRootIsCwd: rawFlags.workspaceRootIsCwd !== false,
-
-    // focus
-    focus: !!rawFlags.focus,
   };
 
   if (config.getOption('ignore-scripts')) {
@@ -427,6 +422,7 @@ export class Install {
       return false;
     }
     const lockfileClean = this.lockfile.parseResultType === 'success';
+    const lockfileIntegrityPresent = !this.lockfile.hasEntriesExistWithoutIntegrity();
     const match = await this.integrityChecker.check(patterns, lockfileCache, this.flags, workspaceLayout);
     if (this.flags.frozenLockfile && (!lockfileClean || match.missingPatterns.length > 0)) {
       throw new MessageError(this.reporter.lang('frozenLockfileError'));
@@ -434,7 +430,7 @@ export class Install {
 
     const haveLockfile = await fs.exists(path.join(this.config.lockfileFolder, constants.LOCKFILE_FILENAME));
 
-    if (match.integrityMatches && haveLockfile && lockfileClean) {
+    if (match.integrityMatches && haveLockfile && lockfileClean && lockfileIntegrityPresent) {
       this.reporter.success(this.reporter.lang('upToDate'));
       return true;
     }
@@ -516,13 +512,13 @@ export class Install {
     this.checkUpdate();
 
     // warn if we have a shrinkwrap
-    if (await fs.exists(path.join(this.config.lockfileFolder, 'npm-shrinkwrap.json'))) {
+    if (await fs.exists(path.join(this.config.lockfileFolder, constants.NPM_SHRINKWRAP_FILENAME))) {
       this.reporter.warn(this.reporter.lang('shrinkwrapWarning'));
     }
 
-    // running a focused install in a workspace root is not allowed
-    if (this.flags.focus && (!this.config.workspaceRootFolder || this.config.cwd === this.config.workspaceRootFolder)) {
-      throw new MessageError(this.reporter.lang('workspacesFocusRootCheck'));
+    // warn if we have an npm lockfile
+    if (await fs.exists(path.join(this.config.lockfileFolder, constants.NPM_LOCK_FILENAME))) {
+      this.reporter.warn(this.reporter.lang('npmLockfileWarning'));
     }
 
     let flattenedTopLevelPatterns: Array<string> = [];
@@ -556,7 +552,6 @@ export class Install {
           isFlat: this.flags.flat,
           isFrozen: this.flags.frozenLockfile,
           workspaceLayout,
-          focus: this.flags.focus,
         });
         topLevelPatterns = this.preparePatterns(rawPatterns);
         flattenedTopLevelPatterns = await this.flatten(topLevelPatterns);
@@ -587,7 +582,6 @@ export class Install {
         await this.linker.init(flattenedTopLevelPatterns, workspaceLayout, {
           linkDuplicates: this.flags.linkDuplicates,
           ignoreOptional: this.flags.ignoreOptional,
-          focus: this.flags.focus,
         });
       }),
     );
@@ -810,15 +804,13 @@ export class Install {
       this.scripts.getArtifacts(),
     );
 
-    // --no-lockfile or --pure-lockfile or --frozen-lockfile or --focus flag
+    // --no-lockfile or --pure-lockfile or --frozen-lockfile
     if (this.flags.lockfile === false || this.flags.pureLockfile || this.flags.frozenLockfile) {
       return;
     }
 
     const lockFileHasAllPatterns = patterns.every(p => this.lockfile.getLocked(p));
-    const lockfilePatternsMatch = Object.keys(this.lockfile.cache || {}).every(p => {
-      return lockfileBasedOnResolver[p];
-    });
+    const lockfilePatternsMatch = Object.keys(this.lockfile.cache || {}).every(p => lockfileBasedOnResolver[p]);
     const resolverPatternsAreSameAsInLockfile = Object.keys(lockfileBasedOnResolver).every(pattern => {
       const manifest = this.lockfile.getLocked(pattern);
       return (
@@ -826,6 +818,19 @@ export class Install {
         manifest.resolved === lockfileBasedOnResolver[pattern].resolved &&
         deepEqual(manifest.prebuiltVariants, lockfileBasedOnResolver[pattern].prebuiltVariants)
       );
+    });
+    const integrityPatternsAreSameAsInLockfile = Object.keys(lockfileBasedOnResolver).every(pattern => {
+      const existingIntegrityInfo = lockfileBasedOnResolver[pattern].integrity;
+      if (!existingIntegrityInfo) {
+        // if this entry does not have an integrity, no need to re-write the lockfile because of it
+        return true;
+      }
+      const manifest = this.lockfile.getLocked(pattern);
+      if (manifest && manifest.integrity) {
+        const manifestIntegrity = ssri.stringify(manifest.integrity);
+        return manifestIntegrity === existingIntegrityInfo;
+      }
+      return false;
     });
 
     // remove command is followed by install with force, lockfile will be rewritten in any case then
@@ -835,6 +840,7 @@ export class Install {
       lockFileHasAllPatterns &&
       lockfilePatternsMatch &&
       resolverPatternsAreSameAsInLockfile &&
+      integrityPatternsAreSameAsInLockfile &&
       patterns.length
     ) {
       return;
@@ -978,7 +984,6 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 export function setFlags(commander: Object) {
   commander.description('Yarn install is used to install all dependencies for a project.');
   commander.usage('install [flags]');
-  commander.option('--focus', 'Focus on a single workspace by installing remote copies of its sibling workspaces.');
   commander.option('-g, --global', 'DEPRECATED');
   commander.option('-S, --save', 'DEPRECATED - save package to your `dependencies`');
   commander.option('-D, --save-dev', 'DEPRECATED - save package to your `devDependencies`');

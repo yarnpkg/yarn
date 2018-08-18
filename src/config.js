@@ -49,6 +49,9 @@ export type ConfigOptions = {
   nonInteractive?: boolean,
   scriptsPrependNodePath?: boolean,
 
+  enableDefaultRc?: boolean,
+  extraneousYarnrcFiles?: Array<string>,
+
   // Loosely compare semver for invalid cases like "0.01.0"
   looseSemver?: ?boolean,
 
@@ -59,6 +62,8 @@ export type ConfigOptions = {
   registry?: ?string,
 
   updateChecksums?: boolean,
+
+  focus?: boolean,
 };
 
 type PackageMetadata = {
@@ -93,6 +98,10 @@ export default class Config {
     this.reporter = reporter;
     this._init({});
   }
+
+  //
+  enableDefaultRc: boolean;
+  extraneousYarnrcFiles: Array<string>;
 
   //
   looseSemver: boolean;
@@ -180,6 +189,11 @@ export default class Config {
   //
   commandName: string;
 
+  focus: boolean;
+  focusedWorkspaceName: string;
+
+  autoAddIntegrity: boolean;
+
   /**
    * Execute a promise produced by factory if it doesn't exist in our cache with
    * the associated key.
@@ -229,6 +243,16 @@ export default class Config {
     this.workspaceRootFolder = await this.findWorkspaceRoot(this.cwd);
     this.lockfileFolder = this.workspaceRootFolder || this.cwd;
 
+    // using focus in a workspace root is not allowed
+    if (this.focus && (!this.workspaceRootFolder || this.cwd === this.workspaceRootFolder)) {
+      throw new MessageError(this.reporter.lang('workspacesFocusRootCheck'));
+    }
+
+    if (this.focus) {
+      const focusedWorkspaceManifest = await this.readRootManifest();
+      this.focusedWorkspaceName = focusedWorkspaceManifest.name;
+    }
+
     this.linkedModules = [];
 
     let linkedModules;
@@ -257,16 +281,27 @@ export default class Config {
     for (const key of Object.keys(registries)) {
       const Registry = registries[key];
 
+      const extraneousRcFiles = Registry === registries.yarn ? this.extraneousYarnrcFiles : [];
+
       // instantiate registry
-      const registry = new Registry(this.cwd, this.registries, this.requestManager, this.reporter);
+      const registry = new Registry(
+        this.cwd,
+        this.registries,
+        this.requestManager,
+        this.reporter,
+        this.enableDefaultRc,
+        extraneousRcFiles,
+      );
       await registry.init({
         registry: opts.registry,
       });
 
       this.registries[key] = registry;
-      this.registryFolders.push(registry.folder);
+      if (this.registryFolders.indexOf(registry.folder) === -1) {
+        this.registryFolders.push(registry.folder);
+      }
       const rootModuleFolder = path.join(this.cwd, registry.folder);
-      if (this.rootModuleFolders.indexOf(rootModuleFolder) < 0) {
+      if (this.rootModuleFolders.indexOf(rootModuleFolder) === -1) {
         this.rootModuleFolders.push(rootModuleFolder);
       }
     }
@@ -335,6 +370,8 @@ export default class Config {
     this.linkFileDependencies = Boolean(this.getOption('yarn-link-file-dependencies'));
     this.packBuiltPackages = Boolean(this.getOption('experimental-pack-script-packages-in-mirror'));
 
+    this.autoAddIntegrity = !Boolean(this.getOption('unsafe-disable-integrity-migration'));
+
     //init & create cacheFolder, tempFolder
     this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));
     this.tempFolder = opts.tempFolder || path.join(this.cacheFolder, '.tmp');
@@ -371,6 +408,9 @@ export default class Config {
 
     this.commandName = opts.commandName || '';
 
+    this.enableDefaultRc = opts.enableDefaultRc !== false;
+    this.extraneousYarnrcFiles = opts.extraneousYarnrcFiles || [];
+
     this.preferOffline = !!opts.preferOffline;
     this.modulesFolder = opts.modulesFolder;
     this.globalFolder = opts.globalFolder || constants.GLOBAL_MODULE_DIRECTORY;
@@ -397,6 +437,9 @@ export default class Config {
     if (this.modulesFolder) {
       this.rootModuleFolders.push(this.modulesFolder);
     }
+
+    this.focus = !!opts.focus;
+    this.focusedWorkspaceName = '';
   }
 
   /**
