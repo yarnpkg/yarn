@@ -306,83 +306,23 @@ test('ConsoleReporter.tree is silent when isSilent is true', async () => {
 });
 
 test('ConsoleReporter.auditSummary', async () => {
-  const auditData = {
-    actions: [
-      {
-        action: 'install',
-        module: 'minimatch',
-        target: '3.0.4',
-        isMajor: true,
-        resolves: [
-          {
-            id: 118,
-            path: 'minimatch',
-            dev: false,
-            optional: false,
-            bundled: false,
-          },
-        ],
-      },
-    ],
-    advisories: {
-      '118': {
-        findings: [
-          {
-            version: '1.0.0',
-            paths: ['minimatch'],
-            dev: false,
-            optional: false,
-            bundled: false,
-          },
-        ],
-        id: 118,
-        created: '2016-05-25T16:37:20.000Z',
-        updated: '2018-03-01T21:58:01.072Z',
-        deleted: null,
-        title: 'Regular Expression Denial of Service',
-        found_by: {
-          name: 'Nick Starke',
-        },
-        reported_by: {
-          name: 'Nick Starke',
-        },
-        module_name: 'minimatch',
-        cves: ['CVE-2016-10540'],
-        vulnerable_versions: '<=3.0.1',
-        patched_versions: '>=3.0.2',
-        overview: 'Affected versions of `minimatch` are vulnerable to regular expression denial of service attacks',
-        recommendation: 'Update to version 3.0.2 or later.',
-        references: '',
-        access: 'public',
-        severity: 'high',
-        cwe: 'CWE-400',
-        metadata: {
-          module_type: 'Multi.Library',
-          exploitability: 4,
-          affected_components: "Internal::Code::Function::minimatch({type:'args', key:0, vector:{type:'string'}})",
-        },
-        url: 'https://nodesecurity.io/advisories/118',
-      },
+  const auditMetadata = {
+    vulnerabilities: {
+      info: 0,
+      low: 0,
+      moderate: 0,
+      high: 1,
+      critical: 0,
     },
-    muted: [],
-    metadata: {
-      vulnerabilities: {
-        info: 0,
-        low: 0,
-        moderate: 0,
-        high: 1,
-        critical: 0,
-      },
-      dependencies: 5,
-      devDependencies: 0,
-      optionalDependencies: 0,
-      totalDependencies: 5,
-    },
+    dependencies: 5,
+    devDependencies: 0,
+    optionalDependencies: 0,
+    totalDependencies: 5,
   };
 
   expect(
     await getConsoleBuff(r => {
-      r.auditSummary(auditData);
+      r.auditSummary(auditMetadata);
     }),
   ).toMatchSnapshot();
 });

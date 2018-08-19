@@ -74,7 +74,7 @@ type PackageMetadata = {
   package: Manifest,
 };
 
-type RootManifests = {
+export type RootManifests = {
   [registryName: RegistryNames]: {
     loc: string,
     indent: ?string,

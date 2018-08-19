@@ -1,6 +1,6 @@
 /* @flow */
 
-export type YarnHook = 'resolveStep' | 'fetchStep' | 'linkStep' | 'buildStep';
+export type YarnHook = 'resolveStep' | 'fetchStep' | 'linkStep' | 'buildStep' | 'auditStep';
 
 const YARN_HOOKS_KEY = 'experimentalYarnHooks';
 

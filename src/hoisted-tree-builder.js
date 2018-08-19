@@ -2,12 +2,19 @@
 
 import type PackageResolver from './package-resolver.js';
 import type PackageLinker from './package-linker.js';
-import type {Reporter} from './reporters/index.js';
+import type {HoistManifest} from './package-hoister.js';
 
-import {Install} from './cli/commands/install.js';
 import Lockfile from './lockfile';
 
 const invariant = require('invariant');
+
+export type HoistedTree = {
+  name: string,
+  version: string,
+  manifest: HoistManifest,
+  children?: HoistedTrees,
+};
+export type HoistedTrees = Array<HoistedTree>;
 
 export function getParent(key: string, treesByKey: Object): Object {
   const parentKey = key.split('#').slice(0, -1).join('#');
@@ -19,10 +26,7 @@ export async function buildTree(
   linker: PackageLinker,
   patterns: Array<string>,
   ignoreHoisted?: boolean,
-): Promise<{
-  count: number,
-  trees: Trees,
-}> {
+): Promise<HoistedTrees> {
   const treesByKey = {};
   const trees = [];
   const flatTree = await linker.getFlatHoistedTree(patterns);
@@ -80,18 +84,5 @@ export async function buildTree(
     }
   }
 
-  return trees;
-}
-
-export async function run(config: Config, reporter: Reporter): Promise<Trees> {
-  const lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
-  const install = new Install({}, config, reporter, lockfile);
-
-  const {requests, patterns, workspaceLayout} = await install.fetchRequestFromCwd();
-  await install.resolver.init(requests, {
-    workspaceLayout,
-  });
-
-  const trees: Trees = await buildTree(install.resolver, install.linker, patterns);
   return trees;
 }

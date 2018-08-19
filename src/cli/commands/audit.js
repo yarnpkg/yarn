@@ -1,24 +1,111 @@
 /* @flow */
 
 import type Config from '../../config.js';
+import type PackageResolver from '../../package-resolver.js';
+import type PackageLinker from '../../package-linker.js';
 import type {Reporter} from '../../reporters/index.js';
+import type {HoistedTrees} from '../../hoisted-tree-builder.js';
 
-import {run as hoistedTreeBuilder} from '../../hoisted-tree-builder';
+import {buildTree as hoistedTreeBuilder} from '../../hoisted-tree-builder';
 import {Install} from './install.js';
 import Lockfile from '../../lockfile';
 import {YARN_REGISTRY} from '../../constants';
 
 export type AuditNode = {
   version: string,
-  integrity: string,
+  integrity: ?string,
   requires: Object,
-  dependencies: Object, // <string, AuditNode>
+  dependencies: {[string]: AuditNode},
 };
 
 export type AuditTree = AuditNode & {
   install: Array<string>,
   remove: Array<string>,
   metadata: Object,
+};
+
+export type AuditVulnerabilityCounts = {
+  info: number,
+  low: number,
+  moderate: number,
+  high: number,
+  critical: number,
+};
+
+export type AuditResolution = {
+  id: number,
+  path: string,
+  dev: boolean,
+  optional: boolean,
+  bundled: boolean,
+};
+
+export type AuditAction = {
+  action: string,
+  module: string,
+  target: string,
+  isMajor: boolean,
+  resolves: Array<AuditResolution>,
+};
+
+export type AuditAdvisory = {
+  findings: [
+    {
+      version: string,
+      paths: Array<string>,
+      dev: boolean,
+      optional: boolean,
+      bundled: boolean,
+    },
+  ],
+  id: number,
+  created: string,
+  updated: string,
+  deleted: ?boolean,
+  title: string,
+  found_by: {
+    name: string,
+  },
+  reported_by: {
+    name: string,
+  },
+  module_name: string,
+  cves: Array<string>,
+  vulnerable_versions: string,
+  patched_versions: string,
+  overview: string,
+  recommendation: string,
+  references: string,
+  access: string,
+  severity: string,
+  cwe: string,
+  metadata: {
+    module_type: string,
+    exploitability: number,
+    affected_components: string,
+  },
+  url: string,
+};
+
+export type AuditMetadata = {
+  vulnerabilities: AuditVulnerabilityCounts,
+  dependencies: number,
+  devDependencies: number,
+  optionalDependencies: number,
+  totalDependencies: number,
+};
+
+export type AuditReport = {
+  actions: Array<AuditAction>,
+  advisories: {[string]: AuditAdvisory},
+  muted: Array<Object>,
+  metadata: AuditMetadata,
+};
+
+export type AuditActionRecommendation = {
+  cmd: string,
+  isBreaking: boolean,
+  action: AuditAction,
 };
 
 export function setFlags(commander: Object) {
@@ -30,24 +117,49 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 
-export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<number> {
   const audit = new Audit(config, reporter);
-  await audit.report();
+  const lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
+  const install = new Install({}, config, reporter, lockfile);
+  const {manifest, requests, patterns, workspaceLayout} = await install.fetchRequestFromCwd();
+  await install.resolver.init(requests, {
+    workspaceLayout,
+  });
+
+  const vulnerabilities = await audit.performAudit(manifest, install.resolver, install.linker, patterns);
+  const totalVulnerabilities =
+    vulnerabilities.info +
+    vulnerabilities.low +
+    vulnerabilities.moderate +
+    vulnerabilities.high +
+    vulnerabilities.critical;
+
+  if (flags.summary) {
+    audit.summary();
+  } else {
+    audit.report();
+  }
+
+  return totalVulnerabilities;
 }
 
-export class Audit {
+export default class Audit {
   constructor(config: Config, reporter: Reporter) {
     this.config = config;
     this.reporter = reporter;
   }
 
-  _mapHoistedNodes(auditNode: AuditTree, hoistedNodes: HoistManifest) {
+  config: Config;
+  reporter: Reporter;
+  auditData: AuditReport;
+
+  _mapHoistedNodes(auditNode: AuditNode, hoistedNodes: HoistedTrees) {
     for (const node of hoistedNodes) {
       const pkg = node.manifest.pkg;
       auditNode.dependencies[node.name] = {
         version: node.version,
-        integrity: pkg.integrity || '', // TODO: what do we do for deps that don't have an integrity?
-        requires: Object.assign({}, pkg.dependencies || {}, pkg.devDependencies || {}, pkg.optionalDependencies || {}),
+        integrity: pkg._remote ? pkg._remote.integrity || '' : '',
+        requires: Object.assign({}, pkg.dependencies || {}, pkg.optionalDependencies || {}),
         dependencies: {},
       };
 
@@ -57,14 +169,14 @@ export class Audit {
     }
   }
 
-  _mapHoistedTreesToAuditTree(manifest: Manifest, hoistedTrees: Tree): AuditTree {
+  _mapHoistedTreesToAuditTree(manifest: Object, hoistedTrees: HoistedTrees): AuditTree {
     const auditTree: AuditTree = {
       name: manifest.name,
       version: manifest.version,
       install: [],
       remove: [],
       metadata: {
-        //TODO: What do we send here? npm sends npm version, ndoe version, etc.
+        //TODO: What do we send here? npm sends npm version, node version, etc.
       },
       requires: Object.assign(
         {},
@@ -72,6 +184,7 @@ export class Audit {
         manifest.devDependencies || {},
         manifest.optionalDependencies || {},
       ),
+      integrity: undefined,
       dependencies: {},
     };
 
@@ -79,26 +192,78 @@ export class Audit {
     return auditTree;
   }
 
-  async report(summary: boolean = false): Promise<void> {
-    const lockfile = await Lockfile.fromDirectory(this.config.lockfileFolder, this.reporter);
-    const install = new Install({}, this.config, this.reporter, lockfile);
-    const {manifest} = await install.fetchRequestFromCwd();
-
-    const hoistedTrees = await hoistedTreeBuilder(this.config, this.reporter);
-    const auditTree = this._mapHoistedTreesToAuditTree(manifest, hoistedTrees);
+  async _fetchAudit(auditTree: AuditTree): Object {
     const registry = YARN_REGISTRY;
 
-    try {
-      const response = await this.config.requestManager.request({
-        url: `${registry}/-/npm/v1/security/audits`,
-        method: 'POST',
-        body: auditTree,
-        json: true,
-      });
-      this.reporter.auditSummary(response);
-    } catch (ex) {
-      this.reporter.error(ex);
-      throw ex;
+    this.reporter.verbose(`Audit Request: ${JSON.stringify(auditTree, null, 2)}`);
+    const response = await this.config.requestManager.request({
+      url: `${registry}/-/npm/v1/security/audits`,
+      method: 'POST',
+      body: auditTree,
+      json: true,
+    });
+    this.reporter.verbose(`Audit Response: ${JSON.stringify(response, null, 2)}`);
+    if (!response || !response.metadata) {
+      throw new Error(`Unexpected audit response: ${response}`);
     }
+    return response;
+  }
+
+  async performAudit(
+    manifest: Object,
+    resolver: PackageResolver,
+    linker: PackageLinker,
+    patterns: Array<string>,
+  ): Promise<AuditVulnerabilityCounts> {
+    const hoistedTrees = await hoistedTreeBuilder(resolver, linker, patterns);
+    const auditTree = this._mapHoistedTreesToAuditTree(manifest, hoistedTrees);
+    this.auditData = await this._fetchAudit(auditTree);
+    return this.auditData.metadata.vulnerabilities;
+  }
+
+  summary() {
+    if (!this.auditData) {
+      return;
+    }
+    this.reporter.auditSummary(this.auditData.metadata);
+  }
+
+  report() {
+    if (!this.auditData) {
+      return;
+    }
+
+    const reportAdvisory = (resolution: AuditResolution) => {
+      const advisory = this.auditData.advisories[resolution.id.toString()];
+      this.reporter.auditAdvisory(resolution, advisory);
+    };
+
+    if (Object.keys(this.auditData.advisories).length !== 0) {
+      let printedManualReviewHeader = false;
+
+      this.auditData.actions.forEach(action => {
+        if (action.action === 'update' || action.action === 'install') {
+          // these advisories can be resolved automatically by running a yarn command
+          const recommendation: AuditActionRecommendation = {
+            cmd: `yarn upgrade ${action.module}@${action.target}`,
+            isBreaking: action.isMajor,
+            action,
+          };
+          this.reporter.auditAction(recommendation);
+          action.resolves.forEach(reportAdvisory);
+        }
+
+        if (action.action === 'review') {
+          // these advisories cannot be resolved automatically and require manual review
+          if (!printedManualReviewHeader) {
+            this.reporter.auditManualReview();
+          }
+          printedManualReviewHeader = true;
+          action.resolves.forEach(reportAdvisory);
+        }
+      });
+    }
+
+    this.summary();
   }
 }

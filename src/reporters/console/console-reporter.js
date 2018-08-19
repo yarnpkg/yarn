@@ -11,6 +11,8 @@ import type {
   PromptOptions,
 } from '../types.js';
 import type {FormatKeys} from '../format.js';
+import type {AuditMetadata, AuditActionRecommendation, AuditAdvisory, AuditResolution} from '../../cli/commands/audit';
+
 import BaseReporter from '../base-reporter.js';
 import Progress from './progress-bar.js';
 import Spinner from './spinner-progress.js';
@@ -18,6 +20,7 @@ import {clearLine} from './util.js';
 import {removeSuffix} from '../../util/misc.js';
 import {sortTrees, recurseTree, getFormattedOutput} from './helpers/tree-helper.js';
 import inquirer from 'inquirer';
+import Table from 'cli-table3';
 
 const {inspect} = require('util');
 const readline = require('readline');
@@ -25,6 +28,16 @@ const chalk = require('chalk');
 const stripAnsi = require('strip-ansi');
 const read = require('read');
 const tty = require('tty');
+
+const AUDIT_COL_WIDTHS = [15, 62];
+
+const auditSeverityColors = {
+  info: chalk.bold,
+  low: chalk.bold,
+  moderate: chalk.yellow,
+  high: chalk.red,
+  critical: chalk.bgRed,
+};
 
 type Row = Array<string>;
 type InquirerResponses<K, T> = {[key: K]: Array<T>};
@@ -467,15 +480,19 @@ export default class ConsoleReporter extends BaseReporter {
     return answers[name];
   }
 
-  auditSummary(auditData: Object) {
-    const {totalDependencies, vulnerabilities} = auditData.metadata;
+  auditSummary(auditMetadata: AuditMetadata) {
+    const {totalDependencies, vulnerabilities} = auditMetadata;
     const totalVulnerabilities =
       vulnerabilities.info +
       vulnerabilities.low +
       vulnerabilities.moderate +
       vulnerabilities.high +
       vulnerabilities.critical;
-    const summary = this.lang('auditSummary', totalVulnerabilities, totalDependencies);
+    const summary = this.lang(
+      'auditSummary',
+      totalVulnerabilities > 0 ? this.rawText(chalk.red(totalVulnerabilities.toString())) : totalVulnerabilities,
+      totalDependencies,
+    );
     this._log(summary);
 
     if (totalVulnerabilities) {
@@ -497,5 +514,71 @@ export default class ConsoleReporter extends BaseReporter {
       }
       this._log(`${this.lang('auditSummarySeverity')} ${severities.join(' | ')}`);
     }
+  }
+
+  auditAction(recommendation: AuditActionRecommendation) {
+    const label = recommendation.action.resolves.length === 1 ? 'vulnerability' : 'vulnerabilities';
+    this._log(
+      this.lang(
+        'auditResolveCommand',
+        this.rawText(chalk.inverse(recommendation.cmd)),
+        recommendation.action.resolves.length,
+        this.rawText(label),
+      ),
+    );
+    if (recommendation.isBreaking) {
+      this._log(this.lang('auditSemverMajorChange'));
+    }
+  }
+
+  auditManualReview() {
+    const tableOptions = {
+      colWidths: [78],
+    };
+    const table = new Table(tableOptions);
+    table.push([
+      {
+        content: this.lang('auditManualReview'),
+        vAlign: 'center',
+        hAlign: 'center',
+      },
+    ]);
+
+    this._log(table.toString());
+  }
+
+  auditAdvisory(resolution: AuditResolution, auditAdvisory: AuditAdvisory) {
+    function colorSeverity(severity: string, message: ?string): string {
+      return auditSeverityColors[severity](message || severity);
+    }
+
+    function makeAdvisoryTableRow(patchedIn: ?string): Array<Object> {
+      const patchRows = [];
+
+      if (patchedIn) {
+        patchRows.push({'Patched in': patchedIn});
+      }
+
+      return [
+        {[chalk.bold(colorSeverity(auditAdvisory.severity))]: chalk.bold(auditAdvisory.title)},
+        {Package: auditAdvisory.module_name},
+        ...patchRows,
+        {'Dependency of': `${resolution.path.split('>')[0]} ${resolution.dev ? '[dev]' : ''}`},
+        {Path: resolution.path.split('>').join(' > ')},
+        {'More info': `https://nodesecurity.io/advisories/${auditAdvisory.id}`},
+      ];
+    }
+
+    const tableOptions = {
+      colWidths: AUDIT_COL_WIDTHS,
+      wordWrap: true,
+    };
+    const table = new Table(tableOptions);
+    const patchedIn =
+      auditAdvisory.patched_versions.replace(' ', '') === '<0.0.0'
+        ? 'No patch available'
+        : auditAdvisory.patched_versions;
+    table.push(...makeAdvisoryTableRow(patchedIn));
+    this._log(table.toString());
   }
 }

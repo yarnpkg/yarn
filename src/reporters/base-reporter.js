@@ -14,6 +14,8 @@ import type {
 } from './types.js';
 import type {LanguageKeys} from './lang/en.js';
 import type {Formatter} from './format.js';
+import type {AuditMetadata, AuditActionRecommendation, AuditAdvisory, AuditResolution} from '../cli/commands/audit';
+
 import {defaultFormatter} from './format.js';
 import * as languages from './lang/index.js';
 import isCI from 'is-ci';
@@ -226,8 +228,17 @@ export default class BaseReporter {
   // a table structure
   table(head: Array<string>, body: Array<Array<string>>) {}
 
+  // security audit action to resolve advisories
+  auditAction(recommendation: AuditActionRecommendation) {}
+
+  // security audit requires manual review
+  auditManualReview() {}
+
+  // security audit advisory
+  auditAdvisory(resolution: AuditResolution, auditAdvisory: AuditAdvisory) {}
+
   // summary for security audit report
-  auditSummary(auditData: Object) {}
+  auditSummary(auditMetadata: AuditMetadata) {}
 
   // render an activity spinner and return a function that will trigger an update
   activity(): ReporterSpinner {

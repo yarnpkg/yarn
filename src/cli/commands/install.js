@@ -5,6 +5,7 @@ import type {Reporter} from '../../reporters/index.js';
 import type {ReporterSelectOption} from '../../reporters/types.js';
 import type {Manifest, DependencyRequestPatterns} from '../../types.js';
 import type Config from '../../config.js';
+import type {RootManifests} from '../../config.js';
 import type {RegistryNames} from '../../registries/index.js';
 import type {LockfileObject} from '../../lockfile';
 import {callThroughHook} from '../../util/hooks.js';
@@ -29,6 +30,7 @@ import {version as YARN_VERSION, getInstallationMethod} from '../../util/yarn-ve
 import WorkspaceLayout from '../../workspace-layout.js';
 import ResolutionMap from '../../resolution-map.js';
 import guessName from '../../util/guess-name';
+import Audit from './audit';
 
 const deepEqual = require('deep-equal');
 const emoji = require('node-emoji');
@@ -413,6 +415,11 @@ export class Install {
     return patterns;
   }
 
+  async prepareManifests(): Promise<RootManifests> {
+    const manifests = await this.config.getRootManifests();
+    return manifests;
+  }
+
   async bailout(patterns: Array<string>, workspaceLayout: ?WorkspaceLayout): Promise<boolean> {
     if (this.flags.skipIntegrityCheck || this.flags.force) {
       return false;
@@ -545,6 +552,9 @@ export class Install {
       });
     }
 
+    const audit = new Audit(this.config, this.reporter);
+    let auditFoundProblems = false;
+
     steps.push((curr: number, total: number) =>
       callThroughHook('resolveStep', async () => {
         this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
@@ -556,6 +566,32 @@ export class Install {
         topLevelPatterns = this.preparePatterns(rawPatterns);
         flattenedTopLevelPatterns = await this.flatten(topLevelPatterns);
         return {bailout: await this.bailout(topLevelPatterns, workspaceLayout)};
+      }),
+    );
+
+    steps.push((curr: number, total: number) =>
+      callThroughHook('auditStep', async () => {
+        this.reporter.step(curr, total, this.reporter.lang('auditRunning'), emoji.get('mag'));
+        if (this.flags.offline) {
+          this.reporter.warn(this.reporter.lang('auditOffline'));
+          return {bailout: false};
+        }
+        const preparedManifests = await this.prepareManifests();
+        // $FlowFixMe - Flow considers `m` in the map operation to be "mixed", so does not recognize `m.object`
+        const mergedManifest = Object.assign({}, ...Object.values(preparedManifests).map(m => m.object));
+        const auditVulnerabilityCounts = await audit.performAudit(
+          mergedManifest,
+          this.resolver,
+          this.linker,
+          topLevelPatterns,
+        );
+        auditFoundProblems =
+          auditVulnerabilityCounts.info ||
+          auditVulnerabilityCounts.low ||
+          auditVulnerabilityCounts.moderate ||
+          auditVulnerabilityCounts.high ||
+          auditVulnerabilityCounts.critical;
+        return {bailout: false}; // placeholder for a future option to abort if audit finds security problems.
       }),
     );
 
@@ -628,12 +664,20 @@ export class Install {
     for (const step of steps) {
       const stepResult = await step(++currentStep, steps.length);
       if (stepResult && stepResult.bailout) {
+        if (auditFoundProblems) {
+          audit.summary();
+          this.reporter.warn(this.reporter.lang('auditRunAuditForDetails'));
+        }
         this.maybeOutputUpdate();
         return flattenedTopLevelPatterns;
       }
     }
 
     // fin!
+    if (auditFoundProblems) {
+      audit.summary();
+      this.reporter.warn(this.reporter.lang('auditRunAuditForDetails'));
+    }
     await this.saveLockfileAndIntegrity(topLevelPatterns, workspaceLayout);
     this.maybeOutputUpdate();
     this.config.requestManager.clearCache();

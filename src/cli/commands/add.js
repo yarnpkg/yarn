@@ -234,7 +234,7 @@ export class Add extends Install {
    * Save added packages to manifest if any of the --save flags were used.
    */
 
-  async savePackages(): Promise<void> {
+  async prepareManifests(): Promise<Object> {
     // fill rootPatternsToOrigin without `excludePatterns`
     await Install.prototype.fetchRequestFromCwd.call(this);
     // // get all the different registry manifests in this folder
@@ -254,6 +254,11 @@ export class Add extends Install {
       }
     });
 
+    return manifests;
+  }
+
+  async savePackages(): Promise<void> {
+    const manifests = await this.prepareManifests();
     await this.config.saveRootManifests(manifests);
   }
 
