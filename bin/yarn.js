@@ -26,8 +26,9 @@ try {
 }
 
 // `lib/cli` may be `lib/cli/index.js` or `lib/cli.js` depending on the build.
-/* Issue - Just requiring the package will trigger a yarn run since the `require.main === module` check inside `cli/index.js`
- * will always be truthy when built with webpack (as the single bundeled file is the entrypoint).
+/* Issue - Just requiring the package will trigger a yarn run since the `require.main === module`
+ * check inside `cli/index.js` will always be truthy when built with webpack (as the single bundled
+ * file is the entrypoint).
  */
 var cli = require(__dirname + '/../lib/cli');
 

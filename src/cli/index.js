@@ -608,10 +608,17 @@ async function start(): Promise<void> {
   }
 }
 
-// When this module is compiled via Webpack, its child
-// count will be 0 since it is a single-file bundle.
+/** 
+ * Check if module is bundled - When this module is bundled/compiled via Webpack, its child
+ * count will be 0 since it is a single-file bundle.
+ * In this case (when bundled), requiring this file through another module will trigger yarn execution.
+ * An unwanted effect. As a workaround `autoRun` is exported to indicate such scenario and prevent 
+ * duplicate yarn execution (one from this file below and another from the requiring module). 
+ * check `bin/yarn.js` as an example.
+ */
 export const autoRun = module.children.length === 0;
 
+// In case this file is invoked/run directly from command line, initialize it.
 if (require.main === module) {
   start().catch(error => {
     console.error(error.stack || error.message || error);
