@@ -127,6 +127,53 @@ test('should report when a module is included multiple times including the root'
   });
 });
 
+/**
+ * Tests whether yarn reports size information when --size is passed to `yarn why`
+ */
+describe('size reporting', () => {
+  test('should return sizes when with-size flag is passed', (): Promise<void> => {
+    return runWhy({withSize: true}, ['caniuse-lite'], 'dep-included-at-2-levels', (config, reporter) => {
+      const report = reporter.getBuffer();
+      const stepsBanner = report
+        .filter(entry => entry.type === 'step' && entry.data.message)
+        .map(entry => entry.data.message);
+
+      expect(stepsBanner).toContain('Calculating file sizes');
+    });
+  });
+
+  test('should return 4 steps when with-size flag is passed', (): Promise<void> => {
+    return runWhy({withSize: true}, ['caniuse-lite'], 'dep-included-at-2-levels', (config, reporter) => {
+      const report = reporter.getBuffer();
+      const totalSteps = report.filter(entry => entry.type === 'step' && entry.data.message).map(entry => entry.data);
+
+      expect(totalSteps.length).toEqual(4);
+    });
+  });
+
+  test('should skip sizes info when with-size flag is not passed', (): Promise<void> => {
+    return runWhy({}, ['caniuse-lite'], 'dep-included-at-2-levels', (config, reporter) => {
+      const report = reporter.getBuffer();
+      const stepsBanner = report
+        .filter(entry => entry.type === 'step' && entry.data.message)
+        .map(entry => entry.data.message);
+
+      stepsBanner.forEach(bannerMessage => {
+        expect(bannerMessage).not.toEqual('Calculating file sizes');
+      });
+    });
+  });
+
+  test('should return 3 steps if with-size flag is not passed', (): Promise<void> => {
+    return runWhy({}, ['caniuse-lite'], 'dep-included-at-2-levels', (config, reporter) => {
+      const report = reporter.getBuffer();
+      const totalSteps = report.filter(entry => entry.type === 'step' && entry.data.message).map(entry => entry.data);
+
+      expect(totalSteps.length).toEqual(3);
+    });
+  });
+});
+
 class MockReporter extends reporters.BufferReporter {
   _lang = jest.fn();
   lang(key: LanguageKeys, ...args: Array<mixed>): string {
