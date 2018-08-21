@@ -12,8 +12,15 @@ const ignorePattern = $$BLACKLIST ? new RegExp($$BLACKLIST) : null;
 
 const builtinModules = new Set(Module.builtinModules || Object.keys(process.binding('natives')));
 
+// Splits a require request into its components, or return null if the request is a file path
 const pathRegExp = /^(?!\.{0,2}(?:\/|$))((?:@[^\/]+\/)?[^\/]+)\/?(.*|)$/;
-const isDirRegExp = /[\\\/]$/;
+
+// Matches if the path starts with a valid path qualifier (./, ../, /)
+// eslint-disable-next-line no-unused-vars
+const isStrictRegExp = /^\.{0,2}\//;
+
+// Matches if the path must point to a directory (ie ends with /)
+const isDirRegExp = /\/$/;
 
 const topLevelLocator = {name: null, reference: null};
 const blacklistedLocator = {name: NaN, reference: NaN};
@@ -396,7 +403,7 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer) {
 
     const dependencyLocator = {name: dependencyName, reference: dependencyReference};
     const dependencyInformation = exports.getPackageInformation(dependencyLocator);
-    const dependencyLocation = dependencyInformation.packageLocation;
+    const dependencyLocation = path.resolve(__dirname, dependencyInformation.packageLocation);
 
     if (!dependencyLocation) {
       throw makeError(
@@ -598,7 +605,7 @@ exports.setup = function setup() {
     }
 
     const issuerModule = getIssuerModule(parent);
-    const issuer = issuerModule ? issuerModule.filename : process.cwd() + path.sep;
+    const issuer = issuerModule ? issuerModule.filename : process.cwd() + '/';
 
     const resolution = exports.resolveRequest(request, issuer);
     return resolution !== null ? resolution : request;
@@ -643,7 +650,7 @@ exports.setupCompatibilityLayer = () => {
 
   const resolveSyncShim = (request, options = {}) => {
     let basedir = options.basedir || path.dirname(getCaller());
-    basedir = basedir.replace(/[\\\/]?$/, path.sep);
+    basedir = basedir.replace(/\/?$/, '/');
 
     return exports.resolveRequest(request, basedir);
   };
@@ -656,7 +663,7 @@ exports.setupCompatibilityLayer = () => {
 
     // We need to compute it here because otherwise resolveSyncShim will read the wrong stacktrace entry
     let basedir = options.basedir || path.dirname(getCaller());
-    basedir = basedir.replace(/[\\\/]?$/, path.sep);
+    basedir = basedir.replace(/\/?$/, '/');
 
     setImmediate(() => {
       let error;
