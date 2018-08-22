@@ -46,7 +46,7 @@ const messages = {
   verboseFileCopy: 'Copying $0 to $1.',
   verboseFileLink: 'Creating hardlink at $0 to $1.',
   verboseFileSymlink: 'Creating symlink at $0 to $1.',
-  verboseFileSkip: 'Skipping copying of file $0 as the file at $1 is the same size ($2) and has the same content.',
+  verboseFileSkip: 'Skipping copying of file $0 as the file at $1 is the same size ($2) and mtime ($3).',
   verboseFileSkipSymlink: 'Skipping copying of $0 as the file at $1 is the same symlink ($2).',
   verboseFileSkipHardlink: 'Skipping copying of $0 as the file at $1 is the same hardlink ($2).',
   verboseFileRemoveExtraneous: 'Removing extraneous file $0.',
@@ -69,7 +69,7 @@ const messages = {
     "Couldn't find any versions for $0 that matches $1 in our cache (possible versions are $2). This is usually caused by a missing entry in the lockfile, running Yarn without the --offline flag may help fix this issue.",
   couldntFindVersionThatMatchesRange: "Couldn't find any versions for $0 that matches $1",
   chooseVersionFromList: 'Please choose a version of $0 from this list:',
-  moduleNotInManifest: "This module isn't specified in a manifest.",
+  moduleNotInManifest: "This module isn't specified in a package.json file.",
   moduleAlreadyInManifest: '$0 is already in $1. Please remove existing entry first before adding it to $2.',
   unknownFolderOrTarball: "Passed folder/tarball doesn't exist,",
   unknownPackage: "Couldn't find package $0.",
@@ -229,7 +229,7 @@ const messages = {
     'Failed to auto-install node-gyp. Please run "yarn global add node-gyp" manually. Error: $0',
 
   foundIncompatible: 'Found incompatible module',
-  incompatibleEngine: 'The engine $0 is incompatible with this module. Expected version $1.',
+  incompatibleEngine: 'The engine $0 is incompatible with this module. Expected version $1. Got $2',
   incompatibleCPU: 'The CPU architecture $0 is incompatible with this module.',
   incompatibleOS: 'The platform $0 is incompatible with this module.',
   invalidEngine: 'The engine $0 appears to be invalid.',
@@ -341,8 +341,8 @@ const messages = {
   requestError: 'Request $0 returned a $1',
   requestFailed: 'Request failed $0',
   tarballNotInNetworkOrCache: '$0: Tarball is not in network and can not be located in cache ($1)',
-  fetchBadHashWithPath:
-    'Fetch succeeded for $0. However, extracting $1 resulted in hash $2, which did not match the requested hash $3.',
+  fetchBadHashWithPath: "Integrity check failed for $0 (computed integrity doesn't match our records, got $2)",
+  fetchBadIntegrityAlgorithm: 'Integrity checked failed for $0 (none of the specified algorithms are supported)',
   fetchErrorCorrupt:
     '$0. Mirror tarball appears to be corrupt. You can resolve this by running:\n\n  rm -rf $1\n  yarn install',
   errorExtractingTarball: 'Extracting tar content of $1 failed, the file appears to be corrupt: $0',

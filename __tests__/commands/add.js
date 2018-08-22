@@ -65,10 +65,10 @@ test.concurrent('adding to the workspace root should preserve workspace packages
     expect(pkg.dependencies).toEqual({'left-pad': '1.1.3', 'max-safe-integer': '1.0.0'});
 
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
-    expect(lockfile).toHaveLength(15);
+    expect(lockfile).toHaveLength(20);
     expect(lockfile.indexOf('isarray@2.0.1:')).toEqual(0);
-    expect(lockfile.indexOf('left-pad@1.1.3:')).toEqual(3);
-    expect(lockfile.indexOf('max-safe-integer@1.0.0:')).toEqual(6);
+    expect(lockfile.indexOf('left-pad@1.1.3:')).toEqual(4);
+    expect(lockfile.indexOf('max-safe-integer@1.0.0:')).toEqual(8);
   });
 });
 
@@ -104,6 +104,28 @@ test.concurrent('adds any new package to the current workspace, but install from
     expect(await fs.exists(`${config.cwd}/non-package/package-c/node_modules/isarray`)).toEqual(true);
 
     expect(await fs.exists(`${config.cwd}/non-package/package-c/yarn.lock`)).toEqual(true);
+  });
+});
+
+test.concurrent('add creates an entry with a sha512 integrity field', () => {
+  return runAdd(['safe-buffer@5.1.1'], {}, 'add-integrity-sha512', async config => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    expect(
+      lockfile[3].indexOf(
+        'integrity sha512-kKvNJn6Mm93gAczWVJg7wH+wGYWNrDHdWvpUmHyEsgCtIwwo3bqPtV4tR5tuPaUhTOo/kvhVwd8XwwOllGYkbg==',
+      ),
+    ).toEqual(2);
+    expect(lockfile[2].indexOf('#893312af69b2123def71f57889001671eeb2c853"')).toBeGreaterThan(0);
+    // backwards compatibility
+  });
+});
+
+test.concurrent('add creates an entry with a sha1 integrity field when sha512 is unavailable', () => {
+  return runAdd(['left-pad@1.1.0'], {}, 'add-integrity-sha1', async config => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    expect(lockfile[3].indexOf('integrity sha1-R6La9YHt5FQzTe5sYDbK4A2RLk0=')).toEqual(2);
+    expect(lockfile[2].indexOf('#47a2daf581ede454334dee6c6036cae00d912e4d')).toBeGreaterThan(0);
+    // backwards compatibility
   });
 });
 
@@ -288,7 +310,7 @@ test.concurrent('add should ignore cache', async () => {
 
     const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileWritten);
-    expect(lockFileLines).toHaveLength(3);
+    expect(lockFileLines).toHaveLength(4);
     expect(lockFileLines[0]).toEqual('left-pad@1.1.0:');
     expect(lockFileLines[2]).toMatch(
       /resolved "https:\/\/registry\.yarnpkg\.com\/left-pad\/-\/left-pad-1\.1\.0\.tgz#[a-f0-9]+"/,
@@ -378,9 +400,9 @@ test.concurrent('install --initMirror should add init mirror deps from package.j
 
     const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileContent);
-    expect(lockFileLines).toHaveLength(8);
+    expect(lockFileLines).toHaveLength(10);
     expect(lockFileLines[0].indexOf('mime-db@')).toEqual(0);
-    expect(lockFileLines[3].indexOf('mime-types@2.0.0')).toEqual(0);
+    expect(lockFileLines[4].indexOf('mime-types@2.0.0')).toEqual(0);
   });
 });
 
@@ -410,7 +432,7 @@ test.concurrent('add with new dependency should be deterministic', async () => {
       const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
       const lockFileLines = explodeLockfile(lockFileWritten);
 
-      expect(lockFileLines).toHaveLength(11);
+      expect(lockFileLines).toHaveLength(14);
       expect(lockFileLines.indexOf('mime-db@~1.0.1:')).toBeGreaterThanOrEqual(0);
       expect(lockFileLines.indexOf('mime-db@1.23.0:')).toBeGreaterThanOrEqual(0);
       expect(lockFileLines.indexOf('mime-types@2.0.0:')).toBeGreaterThanOrEqual(0);
@@ -449,7 +471,7 @@ test.concurrent('add with new dependency should be deterministic 2', async () =>
       const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
       const lockFileLines = explodeLockfile(lockFileWritten);
       // see why we don't cleanup lockfile https://github.com/yarnpkg/yarn/issues/79
-      expect(lockFileLines).toHaveLength(11);
+      expect(lockFileLines).toHaveLength(14);
 
       const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
       expect(mirror).toHaveLength(3);
@@ -556,7 +578,7 @@ test.concurrent('upgrade scenario', async () => {
 
     const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileWritten);
-    expect(lockFileLines).toHaveLength(3);
+    expect(lockFileLines).toHaveLength(4);
     expect(lockFileLines[0]).toEqual('left-pad@0.0.9:');
     expect(lockFileLines[2]).toMatch(
       /resolved "https:\/\/registry\.yarnpkg\.com\/left-pad\/-\/left-pad-0\.0\.9\.tgz#[a-f0-9]+"/,
@@ -578,7 +600,7 @@ test.concurrent('upgrade scenario', async () => {
 
     const lockFileWritten2 = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines2 = explodeLockfile(lockFileWritten2);
-    expect(lockFileLines2).toHaveLength(3);
+    expect(lockFileLines2).toHaveLength(4);
     expect(lockFileLines2[0]).toEqual('left-pad@1.1.0:');
     expect(lockFileLines2[2]).toMatch(
       /resolved "https:\/\/registry\.yarnpkg\.com\/left-pad\/-\/left-pad-1.1.0.tgz#[a-f0-9]+"/,
@@ -613,8 +635,8 @@ test.concurrent('upgrade scenario 2 (with sub dependencies)', async () => {
       expect(lockFileLines[0]).toEqual('mime-db@~1.23.0:');
       expect(lockFileLines[2]).toMatch(/resolved "https:\/\/registry\.yarnpkg\.com\/mime-db\/-\/mime-db-/);
 
-      expect(lockFileLines[3]).toEqual('mime-types@2.1.11:');
-      expect(lockFileLines[5]).toMatch(
+      expect(lockFileLines[4]).toEqual('mime-types@2.1.11:');
+      expect(lockFileLines[6]).toMatch(
         /resolved "https:\/\/registry\.yarnpkg\.com\/mime-types\/-\/mime-types-2\.1\.11\.tgz#[a-f0-9]+"/,
       );
 
@@ -665,7 +687,7 @@ test.concurrent('downgrade scenario', async () => {
     const mirrorPath = 'mirror-for-offline';
     const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileWritten);
-    expect(lockFileLines).toHaveLength(3);
+    expect(lockFileLines).toHaveLength(4);
     expect(lockFileLines[0]).toEqual('left-pad@1.1.0:');
     expect(lockFileLines[2]).toMatch(
       /resolved "https:\/\/registry\.yarnpkg\.com\/left-pad\/-\/left-pad-1\.1\.0\.tgz#[a-f0-9]+"/,
@@ -686,7 +708,7 @@ test.concurrent('downgrade scenario', async () => {
 
     const lockFileWritten2 = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines2 = explodeLockfile(lockFileWritten2);
-    expect(lockFileLines2).toHaveLength(3);
+    expect(lockFileLines2).toHaveLength(4);
     expect(lockFileLines2[0]).toEqual('left-pad@0.0.9:');
     expect(lockFileLines2[2]).toMatch(
       /resolved "https:\/\/registry\.yarnpkg\.com\/left-pad\/-\/left-pad-0\.0\.9\.tgz#[a-f0-9]+"/,

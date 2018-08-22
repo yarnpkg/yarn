@@ -12,6 +12,7 @@ import * as fs from '../src/util/fs.js';
 import {readdirSync} from 'fs';
 
 const path = require('path');
+const ssri = require('ssri');
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
@@ -154,25 +155,21 @@ test('TarballFetcher.fetch throws on invalid hash', async () => {
     dir,
     {
       type: 'tarball',
-      hash: 'foo',
+      hash: 'abcd',
       reference: url,
       registry: 'npm',
     },
     config,
   );
-  let error;
-  try {
-    await fetcher.fetch();
-  } catch (e) {
-    error = e;
-  }
 
-  expect(error && error.message).toMatchSnapshot();
+  expect(fetcher.fetch()).rejects.toMatchObject({
+    message: expect.stringContaining("computed integrity doesn't match our records"),
+  });
   expect(readdirSync(path.join(offlineMirrorDir))).toEqual([]);
 });
 
 test('TarballFetcher.fetch fixes hash if updateChecksums flag is true', async () => {
-  const wrongHash = 'foo';
+  const wrongHash = 'abcd';
   const dir = await mkdir(`tarball-fetcher-${wrongHash}`);
   const config = await Config.create({}, new Reporter());
   config.updateChecksums = true;
@@ -191,6 +188,31 @@ test('TarballFetcher.fetch fixes hash if updateChecksums flag is true', async ()
   const dirWithProperHash = dir.replace(wrongHash, fetcher.hash);
   const name = (await fs.readJson(path.join(dirWithProperHash, 'package.json'))).name;
   expect(name).toBe('beeper');
+});
+
+test('TarballFetcher.fetch throws on invalid integrity', async () => {
+  const dir = await mkdir('tarball-fetcher');
+  const offlineMirrorDir = await mkdir('offline-mirror');
+
+  const config = await Config.create({}, new Reporter());
+  config.registries.npm.config['yarn-offline-mirror'] = offlineMirrorDir;
+
+  const fetcher = new TarballFetcher(
+    dir,
+    {
+      type: 'tarball',
+      hash: '6f86cbedd8be4ec987be9aaf33c9684db1b31e7e',
+      reference: 'https://registry.npmjs.org/lodash.isempty/-/lodash.isempty-4.4.0.tgz',
+      registry: 'npm',
+      integrity: ssri.parse('sha512-foo'),
+    },
+    config,
+  );
+
+  expect(fetcher.fetch()).rejects.toMatchObject({
+    message: expect.stringContaining("computed integrity doesn't match our records"),
+  });
+  expect(readdirSync(path.join(offlineMirrorDir))).toEqual([]);
 });
 
 test('TarballFetcher.fetch supports local ungzipped tarball', async () => {

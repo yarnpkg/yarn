@@ -3,3 +3,4 @@
 dep-a@1.0.0:
   version "1.0.0"
   resolved dep-a-1.0.0.tgz#b755726d9205afefedafce1067562d37d0f478cb
+  integrity sha1-t1VybZIFr+/tr84QZ1YtN9D0eMs=

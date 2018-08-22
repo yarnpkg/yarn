@@ -150,7 +150,7 @@ export function checkOne(info: Manifest, config: Config, ignoreEngines: boolean)
 
       if (VERSIONS[name]) {
         if (!testEngine(name, range, VERSIONS, config.looseSemver)) {
-          pushError(reporter.lang('incompatibleEngine', name, range));
+          pushError(reporter.lang('incompatibleEngine', name, range, VERSIONS[name]));
         }
       } else if (ignore.indexOf(name) < 0) {
         reporter.warn(`${human}: ${reporter.lang('invalidEngine', name)}`);

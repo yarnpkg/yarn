@@ -3,6 +3,8 @@
 "@fakescope/fake-dependency@1.0.1":
   version "1.0.1"
   resolved "@fakescope-fake-dependency-1.0.1.tgz#477dafd486d856af0b3faf5a5f1c895001221609"
+  integrity sha1-R32v1IbYVq8LP69aXxyJUAEiFgk=
 fake-dependency@1.0.1:
   version "1.0.1"
   resolved fake-dependency-1.0.1.tgz#b172bf03f6b68da0967e141ef290f38956e0f861
+  integrity sha1-sXK/A/a2jaCWfhQe8pDziVbg+GE=
