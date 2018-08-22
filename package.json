@@ -54,8 +54,8 @@
   },
   "devDependencies": {
     "babel-core": "^6.26.0",
-    "babel-eslint": "^7.2.3",
-    "babel-loader": "^6.2.5",
+    "babel-eslint": "^9.0.0-beta.3",
+    "babel-loader": "^7.1.5",
     "babel-plugin-array-includes": "^2.0.3",
     "babel-plugin-transform-builtin-extend": "^1.1.2",
     "babel-plugin-transform-inline-imports-commonjs": "^1.0.0",
@@ -66,8 +66,8 @@
     "babylon": "^6.5.0",
     "commitizen": "^2.9.6",
     "cz-conventional-changelog": "^2.0.0",
-    "eslint": "^4.3.0",
-    "eslint-config-fb-strict": "^22.0.0",
+    "eslint": "^5.4.0",
+    "eslint-config-fb-strict": "^23.2.0",
     "eslint-plugin-babel": "^5.0.0",
     "eslint-plugin-flowtype": "^2.35.0",
     "eslint-plugin-jasmine": "^2.6.2",
@@ -92,7 +92,7 @@
     "jsinspect": "^0.12.6",
     "minimatch": "^3.0.4",
     "mock-stdin": "^0.3.0",
-    "prettier": "^1.5.2",
+    "prettier": "1.5.2",
     "temp": "^0.8.3",
     "webpack": "^2.1.0-beta.25",
     "yargs": "^6.3.0"
@@ -129,7 +129,9 @@
     "commit": "git-cz"
   },
   "jest": {
-    "collectCoverageFrom": ["src/**/*.js"],
+    "collectCoverageFrom": [
+      "src/**/*.js"
+    ],
     "testEnvironment": "node",
     "modulePathIgnorePatterns": [
       "__tests__/fixtures/",
