@@ -38,7 +38,7 @@ export const unlink: (path: string) => Promise<void> = promisify(require('rimraf
 export const copyFile = async function(data: CopyFileAction, cleanup: () => mixed): Promise<void> {
   try {
     await unlink(data.dest);
-    await copyFilePoly(data.src, data.dest, 0, data);
+    await copyFilePoly(data.src, data.dest, fs.constants.COPYFILE_FICLONE || 0, data);
   } finally {
     if (cleanup) {
       cleanup();
