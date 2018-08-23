@@ -133,11 +133,26 @@ async function getPackageInformationStores(
   {resolver, targetPath, workspaceLayout}: GeneratePnpMapOptions,
 ): Promise<[PackageInformationStores, Set<string>]> {
   const targetDirectory = path.dirname(targetPath);
+  const offlineCacheFolder = config.offlineCacheFolder;
 
   const packageInformationStores: PackageInformationStores = new Map();
   const blacklistedLocations: Set<string> = new Set();
 
   const normalizeDirectoryPath = (fsPath: string) => {
+    if (offlineCacheFolder) {
+      const cacheRelativePath = path.relative(config.cacheFolder, fsPath);
+
+      // if fsPath is inside cacheRelativePath
+      if (!cacheRelativePath.match(/^\.\.\//)) {
+        const components = cacheRelativePath.split(/\//g);
+
+        // eslint-disable-next-line no-unused-vars
+        const [cacheEntry, nodeModules, ...internalPath] = components;
+
+        fsPath = path.resolve(offlineCacheFolder, `${cacheEntry}.zip`, internalPath.join('/'));
+      }
+    }
+
     let relativePath = path.relative(targetDirectory, fsPath);
 
     if (!relativePath.match(/^\.{0,2}\//)) {
