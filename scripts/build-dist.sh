@@ -27,17 +27,12 @@ eval $system_yarn run build
 eval $system_yarn run build-bundle
 chmod +x artifacts/*.js
 # Verify that it works as expected
-if (( node_version > 4 )); then
-  [[ "$version" == "$(node artifacts/yarn-$version.js --version)" ]] || exit 1
-fi
-[[ "$version" == "$(node artifacts/yarn-legacy-$version.js --version)" ]] || exit 1
+[[ "$version" == "$(node artifacts/yarn-$version.js --version)" ]] || exit 1
 
 cp package.json dist/
 cp README.md dist/
 cp LICENSE dist/
-# Only use the legacy version for NPM builds so we are compatible
-# with any Node >= 4 and still small in terms of size.
-cp artifacts/yarn-legacy-$version.js dist/lib/cli.js
+cp artifacts/yarn-$version.js dist/lib/cli.js
 cp bin/{yarn.js,yarn,yarnpkg,*.cmd} dist/bin/
 chmod +x dist/bin/*
 

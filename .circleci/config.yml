@@ -143,11 +143,6 @@ jobs:
     docker:
       - image: node:6
     <<: *test_steps
-  test-linux-node4:
-    <<: *docker_defaults
-    docker:
-      - image: node:4
-    <<: *test_steps
   test-macos-node10:
     <<: *macos_defaults
     steps:
@@ -263,10 +258,6 @@ workflows:
           filters: *default_filters
           requires:
             - install
-      - test-linux-node4:
-          filters: *default_filters
-          requires:
-            - install
       - test-macos-node10:
           filters: *default_filters
           requires:
@@ -294,7 +285,6 @@ workflows:
             - test-linux-node10
             - test-linux-node8
             - test-linux-node6
-            - test-linux-node4
             - test-macos-node10
             - test-macos-node8
             - test-macos-node6
