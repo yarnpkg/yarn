@@ -207,6 +207,9 @@ export async function makeEnv(
     }
     pathParts.unshift(path.join(config.linkFolder, binFolder));
     pathParts.unshift(path.join(cwd, binFolder));
+    if (config.modulesFolder) {
+      pathParts.unshift(path.join(config.modulesFolder, '.bin'));
+    }
   }
 
   // Otherwise, only add the top-level dependencies to the PATH

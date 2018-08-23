@@ -320,7 +320,7 @@ export default class PackageLinker {
 
     const findExtraneousFiles = async basePath => {
       for (const folder of this.config.registryFolders) {
-        const loc = path.join(basePath, folder);
+        const loc = path.resolve(basePath, folder);
 
         if (await fs.exists(loc)) {
           const files = await fs.readdir(loc);
@@ -506,7 +506,12 @@ export default class PackageLinker {
             pkg.bin &&
             Object.keys(pkg.bin).length
           ) {
-            const binLoc = path.join(this.config.lockfileFolder, this.config.getFolder(pkg));
+            let binLoc;
+            if (this.config.modulesFolder) {
+              binLoc = path.join(this.config.modulesFolder);
+            } else {
+              binLoc = path.join(this.config.lockfileFolder, this.config.getFolder(pkg));
+            }
             await this.linkSelfDependencies(pkg, dest, binLoc);
           }
           tickBin();

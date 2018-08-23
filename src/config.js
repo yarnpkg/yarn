@@ -316,6 +316,10 @@ export default class Config {
       }
     }
 
+    if (this.modulesFolder) {
+      this.registryFolders.push(this.modulesFolder);
+    }
+
     this.networkConcurrency =
       opts.networkConcurrency || Number(this.getOption('network-concurrency')) || constants.NETWORK_CONCURRENCY;
 
