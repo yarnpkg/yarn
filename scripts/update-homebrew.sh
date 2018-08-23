@@ -42,5 +42,4 @@ curl --compressed --fail -L -o $tempfile $url
 hash=`sha256sum $tempfile | head -c 64`
 
 # Update the formula!
-# "BROWSER=/bin/true" is a hack around https://github.com/Homebrew/brew/issues/2468
-BROWSER=/bin/true brew bump-formula-pr --strict yarn --url=$url --sha256=$hash --message="This PR was automatically created via a script. Contact @Daniel15 with any questions."
+brew bump-formula-pr --strict yarn --url=$url --sha256=$hash --message="This PR was automatically created via a script. Contact @Daniel15 with any questions." --no-browse
