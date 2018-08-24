@@ -174,6 +174,7 @@ export default class Config {
   plugnplayEnabled: boolean;
   plugnplayShebang: ?string;
   plugnplayBlacklist: ?string;
+  plugnplayEjected: Array<string>;
 
   scriptsPrependNodePath: boolean;
 
@@ -458,6 +459,7 @@ export default class Config {
     this.offline = !!opts.offline;
     this.binLinks = !!opts.binLinks;
     this.updateChecksums = !!opts.updateChecksums;
+    this.plugnplayEjected = [];
 
     this.ignorePlatform = !!opts.ignorePlatform;
     this.ignoreScripts = !!opts.ignoreScripts;

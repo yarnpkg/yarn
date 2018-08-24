@@ -613,6 +613,7 @@ export class Install {
 
           const code = await generatePnpMap(this.config, flattenedTopLevelPatterns, {
             resolver: this.resolver,
+            reporter: this.reporter,
             targetPath: pnpPath,
             workspaceLayout,
           });

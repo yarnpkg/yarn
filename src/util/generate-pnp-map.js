@@ -3,6 +3,7 @@
 import type Config from '../config.js';
 import type WorkspaceLayout from '../workspace-layout.js';
 import type PackageResolver from '../package-resolver.js';
+import type Reporter from '../reporters/base-reporter.js';
 import pnpApi from './generate-pnp-map-api.tpl.js';
 import * as fs from './fs.js';
 
@@ -21,6 +22,7 @@ type PackageInformationStores = Map<string | null, PackageInformationStore>;
 
 type GeneratePnpMapOptions = {|
   resolver: PackageResolver,
+  reporter: Reporter,
   targetPath: string,
   workspaceLayout: ?WorkspaceLayout,
 |};
@@ -130,7 +132,7 @@ function generateFindPackageLocator(packageInformationStores: PackageInformation
 async function getPackageInformationStores(
   config: Config,
   seedPatterns: Array<string>,
-  {resolver, targetPath, workspaceLayout}: GeneratePnpMapOptions,
+  {resolver, reporter, targetPath, workspaceLayout}: GeneratePnpMapOptions,
 ): Promise<[PackageInformationStores, Set<string>]> {
   const targetDirectory = path.dirname(targetPath);
   const offlineCacheFolder = config.offlineCacheFolder;
@@ -372,10 +374,11 @@ async function getPackageInformationStores(
 export async function generatePnpMap(
   config: Config,
   seedPatterns: Array<string>,
-  {resolver, workspaceLayout, targetPath}: GeneratePnpMapOptions,
+  {resolver, reporter, workspaceLayout, targetPath}: GeneratePnpMapOptions,
 ): Promise<string> {
   const [packageInformationStores, blacklistedLocations] = await getPackageInformationStores(config, seedPatterns, {
     resolver,
+    reporter,
     targetPath,
     workspaceLayout,
   });

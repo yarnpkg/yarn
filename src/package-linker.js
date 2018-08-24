@@ -10,6 +10,7 @@ import type {InstallArtifacts} from './package-install-scripts.js';
 import PackageHoister from './package-hoister.js';
 import * as constants from './constants.js';
 import * as promise from './util/promise.js';
+import {normalizePattern} from './util/normalize-pattern.js';
 import {entries} from './util/misc.js';
 import * as fs from './util/fs.js';
 import lockMutex from './util/mutex.js';
@@ -19,6 +20,7 @@ import WorkspaceLayout from './workspace-layout.js';
 const invariant = require('invariant');
 const cmdShim = require('@zkochan/cmd-shim');
 const path = require('path');
+const semver = require('semver');
 // Concurrency for creating bin links disabled because of the issue #1961
 const linkBinConcurrency = 1;
 
@@ -49,6 +51,7 @@ export default class PackageLinker {
     this.config = config;
     this.artifacts = {};
     this.topLevelBinLinking = true;
+    this._alreadyEjected = new Set();
   }
 
   artifacts: InstallArtifacts;
@@ -57,6 +60,7 @@ export default class PackageLinker {
   config: Config;
   topLevelBinLinking: boolean;
   _treeHash: ?Map<string, HoistManifestTuple>;
+  _alreadyEjected: Set<string>;
 
   setArtifacts(artifacts: InstallArtifacts) {
     this.artifacts = artifacts;
@@ -273,8 +277,23 @@ export default class PackageLinker {
 
       if (this.config.plugnplayEnabled) {
         ref.isPlugnplay = true;
-        ref.addLocation(src);
-        continue;
+        if (this._isEjected(ref.name, ref.version)) {
+          dest = path.resolve(
+            this.config.lockfileFolder,
+            '.pnp',
+            'ejected',
+            `${pkg.name}-${pkg.version}`,
+            'node_modules',
+            pkg.name,
+          );
+          if (this._alreadyEjected.has(`${pkg.name}-${pkg.version}`)) {
+            ref.addLocation(dest);
+            continue;
+          }
+        } else {
+          ref.addLocation(src);
+          continue;
+        }
       }
 
       ref.addLocation(dest);
@@ -647,6 +666,26 @@ export default class PackageLinker {
     }
   }
 
+  async delPrevEjectedModules(): Promise<void> {
+    try {
+      const ejectedPath = `${this.config.lockfileFolder}/.pnp/ejected`;
+      for (const currentlyEjectedPkg of await fs.readdir(ejectedPath)) {
+        const pkgName = currentlyEjectedPkg.split('-').slice(0, -1).join('-');
+        const pkgVersion = currentlyEjectedPkg.split('-').pop();
+        // eg. foo-bar-baz-1.5.2 (pkgName: foo-bar-baz, pkgVersion: 1.5.2)
+        if (this._isEjected(pkgName, pkgVersion)) {
+          this._alreadyEjected.add(currentlyEjectedPkg);
+        } else {
+          await fs.unlink(path.join(ejectedPath, currentlyEjectedPkg));
+        }
+      }
+    } catch (err) {
+      if (err.code !== 'ENOENT') {
+        throw err;
+      }
+    }
+  }
+
   _satisfiesPeerDependency(range: string, version: string): boolean {
     return range === '*' || satisfiesWithPrereleases(version, range, this.config.looseSemver);
   }
@@ -668,12 +707,23 @@ export default class PackageLinker {
     }
   }
 
+  _isEjected(pkgName: string, pkgVersion: string): boolean {
+    // ejected module: temporarily (until next install) run a copy of this module from outside the global cache
+    // for debugging purposes
+    return this.config.plugnplayEjected.some(patternToEject => {
+      const {name, range, hasVersion} = normalizePattern(patternToEject);
+      const satisfiesSemver = hasVersion ? semver.satisfies(pkgVersion, range) : true;
+      return name === pkgName && satisfiesSemver;
+    });
+  }
+
   async init(
     patterns: Array<string>,
     workspaceLayout?: WorkspaceLayout,
     {linkDuplicates, ignoreOptional}: {linkDuplicates: ?boolean, ignoreOptional: ?boolean} = {},
   ): Promise<void> {
     this.resolvePeerModules();
+    await this.delPrevEjectedModules();
     await this.copyModules(patterns, workspaceLayout, {linkDuplicates, ignoreOptional});
 
     if (!this.config.plugnplayEnabled) {

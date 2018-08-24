@@ -848,6 +848,279 @@ module.exports = makeTemporaryEnv => {
           )();
         },
       ),
+		);
+
+    test(
+      `it should allow ejecting packages from a pnp installation`,
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`no-deps`]: `1.0.0`,
+            [`various-requires`]: `1.0.0`,
+          },
+        },
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+          await run(`eject`, `various-requires`);
+          await writeFile(`${path}/.pnp/ejected/various-requires-1.0.0/node_modules/various-requires/alternative-index.js`, `module.exports = "6 * 9";\n`);
+          await expect(source(`require('various-requires/relative-require')`)).resolves.toMatch('6 * 9');
+          await expect(source(`require('no-deps/package.json')`)).resolves.toMatchObject({
+            name: `no-deps`,
+            version: `1.0.0`,
+          });
+          expect(await fs.readdir(`${path}/.pnp/ejected`)).toEqual([
+            'various-requires-1.0.0'
+          ]);
+        },
+      ),
+    );
+
+    test(
+      `it should allow ejecting packages from a still uninstalled pnp installation`,
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`no-deps`]: `1.0.0`,
+            [`various-requires`]: `1.0.0`,
+          },
+        },
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          await run(`eject`, `various-requires`);
+          await writeFile(`${path}/.pnp/ejected/various-requires-1.0.0/node_modules/various-requires/alternative-index.js`, `module.exports = "6 * 9";\n`);
+          await expect(source(`require('various-requires/relative-require')`)).resolves.toMatch('6 * 9');
+          await expect(source(`require('no-deps/package.json')`)).resolves.toMatchObject({
+            name: `no-deps`,
+            version: `1.0.0`,
+          });
+          expect(await fs.readdir(`${path}/.pnp/ejected`)).toEqual([
+            'various-requires-1.0.0'
+          ]);
+        },
+      ),
+    );
+
+    test(
+      `it should produce an error if ejecting with pnp disabled`,
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`no-deps`]: `1.0.0`,
+            [`various-requires`]: `1.0.0`,
+          },
+        },
+        {
+          plugNPlay: false,
+        },
+        async ({path, run, source}) => {
+          await expect(run(`eject`, `various-requires`)).rejects.toBeTruthy();
+        },
+      ),
+    );
+
+    test(
+      'it should produce an error if ejecting with no packages in args',
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`no-deps`]: `1.0.0`,
+            [`various-requires`]: `1.0.0`,
+          },
+        },
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          await expect(run(`eject`)).rejects.toMatchObject({
+            message: expect.stringContaining(`Not enough arguments, expected at least 1.`),
+          });
+        },
+      ),
+    );
+
+    test(
+      `it should allow ejecting multiple (deep) packages from a pnp installation`,
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`no-deps`]: `2.0.0`,
+            [`one-fixed-dep`]: `1.0.0`,
+            [`various-requires`]: `1.0.0`,
+          },
+        },
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+          await run(`eject`, `various-requires`, `no-deps`);
+          expect((await fs.readdir(`${path}/.pnp/ejected`)).sort()).toEqual(
+            ['no-deps-1.0.0', 'no-deps-2.0.0', 'various-requires-1.0.0'].sort(),
+          );
+        },
+      ),
+    );
+
+    test(
+      'it should allow ejecting package (semver) ranges from a pnp installation',
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`no-deps`]: `2.0.0`,
+            [`one-fixed-dep`]: `1.0.0`,
+            [`various-requires`]: `1.0.0`,
+          },
+        },
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+          await run(`eject`, `various-requires`, `no-deps@^1.0.0`);
+          expect((await fs.readdir(`${path}/.pnp/ejected`)).sort()).toEqual([
+            'no-deps-1.0.0',
+            'various-requires-1.0.0',
+          ].sort());
+        },
+      ),
+    );
+
+    test(
+      'it should properly eject a package with peer dependencies',
+      makeTemporaryEnv(
+        {
+          dependencies: {[`provides-peer-deps-1-0-0`]: `1.0.0`, [`provides-peer-deps-2-0-0`]: `1.0.0`},
+        },
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          await run(`eject`, `no-deps`, `peer-deps`);
+
+          await expect(
+            source(`require('provides-peer-deps-1-0-0') !== require('provides-peer-deps-2-0-0')`),
+          ).resolves.toEqual(true);
+
+          await expect(source(`require('provides-peer-deps-1-0-0')`)).resolves.toMatchObject({
+            name: `provides-peer-deps-1-0-0`,
+            version: `1.0.0`,
+            dependencies: {
+              [`peer-deps`]: {
+                name: `peer-deps`,
+                version: `1.0.0`,
+                peerDependencies: {
+                  [`no-deps`]: {
+                    name: `no-deps`,
+                    version: `1.0.0`,
+                  },
+                },
+              },
+              [`no-deps`]: {
+                name: `no-deps`,
+                version: `1.0.0`,
+              },
+            },
+          });
+
+          await expect(source(`require('provides-peer-deps-2-0-0')`)).resolves.toMatchObject({
+            name: `provides-peer-deps-2-0-0`,
+            version: `1.0.0`,
+            dependencies: {
+              [`peer-deps`]: {
+                name: `peer-deps`,
+                version: `1.0.0`,
+                peerDependencies: {
+                  [`no-deps`]: {
+                    name: `no-deps`,
+                    version: `2.0.0`,
+                  },
+                },
+              },
+              [`no-deps`]: {
+                name: `no-deps`,
+                version: `2.0.0`,
+              },
+            },
+          });
+        },
+      ),
+    )
+
+    test(
+      `it should clear previous ejected folder on new pnp install`,
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`no-deps`]: `1.0.0`,
+            [`various-requires`]: `1.0.0`,
+          },
+        },
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          await run(`eject`, `various-requires`);
+          await run(`install`);
+          expect(await fs.readdir(`${path}/.pnp/ejected`)).toEqual([]);
+        },
+      ),
+    );
+
+    test(
+      `it should clear previous ejected folder on new eject`,
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`no-deps`]: `1.0.0`,
+            [`various-requires`]: `1.0.0`,
+          },
+        },
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          await run(`eject`, `various-requires`);
+          await run(`eject`, `no-deps`);
+          expect(await fs.readdir(`${path}/.pnp/ejected`)).toEqual([
+            'no-deps-1.0.0'
+          ]);
+        },
+      ),
+    );
+
+    test(
+      `it should not override an already ejected package`,
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`no-deps`]: `1.0.0`,
+            [`various-requires`]: `1.0.0`,
+          },
+        },
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+          await run(`eject`, `various-requires`);
+          await writeFile(`${path}/.pnp/ejected/various-requires-1.0.0/node_modules/various-requires/alternative-index.js`, `module.exports = "6 * 9";\n`);
+          await run(`eject`, `various-requires`, `no-deps`);
+          await expect(source(`require('various-requires/relative-require')`)).resolves.toMatch('6 * 9');
+          await expect(source(`require('no-deps/package.json')`)).resolves.toMatchObject({
+            name: `no-deps`,
+            version: `1.0.0`,
+          });
+          expect(await fs.readdir(`${path}/.pnp/ejected`)).toEqual([
+            'no-deps-1.0.0',
+            'various-requires-1.0.0',
+          ]);
+        },
+      ),
     );
   });
 };

@@ -355,6 +355,8 @@ const messages = {
   downloadGitWithoutCommit: 'Downloading the git repo $0 over plain git without a commit hash',
   downloadHTTPWithoutCommit: 'Downloading the git repo $0 over HTTP without a commit hash',
 
+  ejectPlugnplayDisabled: "Can only eject packages when Plug'n'Play is enabled",
+
   packageInstalledWithBinaries: 'Installed $0 with binaries:',
   packageHasBinaries: '$0 has binaries:',
   packageHasNoBinaries: '$0 has no binaries',

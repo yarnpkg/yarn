@@ -14,6 +14,7 @@ import * as cache from './cache.js';
 import * as check from './check.js';
 import * as config from './config.js';
 import * as create from './create.js';
+import * as eject from './eject.js';
 import * as exec from './exec.js';
 import * as generateLockEntry from './generate-lock-entry.js';
 import * as global from './global.js';
@@ -57,6 +58,7 @@ const commands = {
   config,
   create,
   dedupe: buildUseless("The dedupe command isn't necessary. `yarn install` will already dedupe."),
+  eject,
   exec,
   generateLockEntry,
   global,
