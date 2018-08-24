@@ -174,8 +174,8 @@ exports.readJson = async function readJson(source: string): Promise<any> {
   }
 };
 
-exports.chmod = function chmod(target: string, mod: number): Promise<void> {
-  return fs.chmod(target, mod);
+exports.chmod = async function chmod(target: string, mod: number): Promise<void> {
+  await fs.chmod(target, mod);
 };
 
 exports.realpath = function realpath(source: string): Promise<string> {

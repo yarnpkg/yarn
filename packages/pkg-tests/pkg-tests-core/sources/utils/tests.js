@@ -324,10 +324,17 @@ exports.generatePkgDriver = function generatePkgDriver({runDriver}: {|runDriver:
         await fsUtils.writeJson(`${path}/package.json`, await deepResolve(packageJson));
 
         const run = (...args) => {
+          let callDefinition = {};
+
+          if (args.length > 0 && typeof args[args.length - 1] === 'object') {
+            callDefinition = args.pop();
+          }
+
           return runDriver(path, args, {
             registryUrl,
             ...definition,
             ...subDefinition,
+            ...callDefinition,
           });
         };
 
