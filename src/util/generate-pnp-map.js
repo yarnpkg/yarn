@@ -149,7 +149,7 @@ async function getPackageInformationStores(
         const components = cacheRelativePath.split(/\//g);
 
         // eslint-disable-next-line no-unused-vars
-        const [cacheEntry, nodeModules, ...internalPath] = components;
+        const [cacheEntry, ...internalPath] = components;
 
         fsPath = path.resolve(offlineCacheFolder, `${cacheEntry}.zip`, internalPath.join('/'));
       }
