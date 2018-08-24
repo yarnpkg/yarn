@@ -42,7 +42,8 @@ export async function getBinEntries(config: Config): Promise<Map<string, string>
       const dependencyInformation = pnpApi.getPackageInformation({name, reference});
 
       if (dependencyInformation.packageLocation) {
-        binFolders.add(`${dependencyInformation.packageLocation}/.bin`);
+        const fullPath = path.resolve(config.lockfileFolder, dependencyInformation.packageLocation);
+        binFolders.add(`${fullPath}/.bin`);
       }
     }
   }

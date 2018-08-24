@@ -2,7 +2,10 @@
 
 import type {PackageDriver} from 'pkg-tests-core';
 
-const {fs: {makeFakeBinary}} = require(`pkg-tests-core`);
+const {existsSync, mkdirp} = require('fs-extra');
+const {isAbsolute, resolve} = require('path');
+
+const {fs: {createTemporaryFolder, makeFakeBinary}} = require(`pkg-tests-core`);
 
 module.exports = (makeTemporaryEnv: PackageDriver) => {
   describe(`Scripts tests`, () => {
@@ -45,7 +48,7 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
     );
 
     test(
-      `it should expose its dependencies within the $PATH`,
+      `it should allow to execute the dependencies binaries`,
       makeTemporaryEnv(
         {
           dependencies: {
@@ -58,6 +61,89 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
           await expect(run(`run`, `has-bin-entries`, `success`)).resolves.toMatchObject({
             stdout: `success\n`,
           });
+        },
+      ),
+    );
+
+    test(
+      `it should allow to execute the dependencies binaries even from a different cwd than the project root`,
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`has-bin-entries`]: `1.0.0`,
+          },
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await mkdirp(`${path}/foo/bar`);
+
+          await expect(
+            run(`run`, `has-bin-entries`, `success`, {
+              cwd: `${path}/foo/bar`,
+            }),
+          ).resolves.toMatchObject({
+            stdout: `success\n`,
+          });
+        },
+      ),
+    );
+
+    test(
+      `it should allow to retrieve the path to a dependency binary by its name`,
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`has-bin-entries`]: `1.0.0`,
+          },
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          const {stdout} = await run(`bin`, `has-bin-entries`);
+
+          expect(stdout.trim()).not.toEqual(``);
+          expect(existsSync(resolve(path, stdout.trim()))).toEqual(true);
+        },
+      ),
+    );
+
+    test(
+      `it should return an absolute path when retrieving the path to a dependency binary`,
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`has-bin-entries`]: `1.0.0`,
+          },
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          const {stdout} = await run(`bin`, `has-bin-entries`);
+
+          expect(isAbsolute(stdout.trim())).toEqual(true);
+        },
+      ),
+    );
+
+    test(
+      `it should allow to retrieve the path to a dependency binary, even when running from outside the project`,
+      makeTemporaryEnv(
+        {
+          dependencies: {[`has-bin-entries`]: `1.0.0`},
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          const tmp = await createTemporaryFolder();
+
+          const {stdout} = await run(`bin`, `has-bin-entries`, {
+            projectFolder: path,
+            cwd: tmp,
+          });
+
+          expect(stdout.trim()).not.toEqual(``);
+          expect(existsSync(resolve(tmp, stdout.trim()))).toEqual(true);
         },
       ),
     );
