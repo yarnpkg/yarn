@@ -12,7 +12,7 @@ import Lockfile from '../../lockfile';
 import {YARN_REGISTRY} from '../../constants';
 
 export type AuditNode = {
-  version: string,
+  version: ?string,
   integrity: ?string,
   requires: Object,
   dependencies: {[string]: AuditNode},
@@ -172,7 +172,7 @@ export default class Audit {
   _mapHoistedTreesToAuditTree(manifest: Object, hoistedTrees: HoistedTrees): AuditTree {
     const auditTree: AuditTree = {
       name: manifest.name,
-      version: manifest.version,
+      version: manifest.version || undefined,
       install: [],
       remove: [],
       metadata: {
