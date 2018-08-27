@@ -664,8 +664,8 @@ export class Install {
     for (const step of steps) {
       const stepResult = await step(++currentStep, steps.length);
       if (stepResult && stepResult.bailout) {
+        audit.summary();
         if (auditFoundProblems) {
-          audit.summary();
           this.reporter.warn(this.reporter.lang('auditRunAuditForDetails'));
         }
         this.maybeOutputUpdate();
@@ -674,8 +674,8 @@ export class Install {
     }
 
     // fin!
+    audit.summary();
     if (auditFoundProblems) {
-      audit.summary();
       this.reporter.warn(this.reporter.lang('auditRunAuditForDetails'));
     }
     await this.saveLockfileAndIntegrity(topLevelPatterns, workspaceLayout);
