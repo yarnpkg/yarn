@@ -696,7 +696,7 @@ export async function symlink(src: string, dest: string): Promise<void> {
     await fsSymlink(src, dest, 'junction');
   } else {
     // use relative paths otherwise which will be retained if the directory is moved
-    let relative = path.relative(path.dirname(dest), src);
+    const relative = path.relative(path.dirname(dest), src);
     // When path.relative returns an empty string for the current directory, we should instead use
     // '.', which is a valid fs.symlink target.
     await fsSymlink(relative || '.', dest);
