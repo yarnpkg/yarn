@@ -11,6 +11,8 @@ const crypto = require('crypto');
 const invariant = require('invariant');
 const path = require('path');
 
+const OFFLINE_CACHE_EXTENSION = `.zip`;
+
 type PackageInformation = {|
   packageLocation: string,
   packageMainEntry: ?string,
@@ -140,22 +142,37 @@ async function getPackageInformationStores(
   const packageInformationStores: PackageInformationStores = new Map();
   const blacklistedLocations: Set<string> = new Set();
 
-  const normalizeDirectoryPath = (fsPath: string) => {
-    if (offlineCacheFolder) {
-      const cacheRelativePath = path.relative(config.cacheFolder, fsPath);
+  const getCachePath = (fsPath: string) => {
+    const cacheRelativePath = path.relative(config.cacheFolder, fsPath);
 
-      // if fsPath is inside cacheRelativePath
-      if (!cacheRelativePath.match(/^\.\.\//)) {
-        const components = cacheRelativePath.split(/\//g);
-
-        // eslint-disable-next-line no-unused-vars
-        const [cacheEntry, ...internalPath] = components;
-
-        fsPath = path.resolve(offlineCacheFolder, `${cacheEntry}.zip`, internalPath.join('/'));
-      }
+    // if fsPath is not inside cacheRelativePath, we just skip it
+    if (cacheRelativePath.match(/^\.\.\//)) {
+      return null;
     }
 
-    let relativePath = path.relative(targetDirectory, fsPath);
+    return cacheRelativePath;
+  };
+
+  const resolveOfflineCacheFolder = (fsPath: string) => {
+    if (!offlineCacheFolder) {
+      return fsPath;
+    }
+
+    const cacheRelativePath = getCachePath(fsPath);
+
+    // if fsPath is not inside the cache, we shouldn't replace it (workspace)
+    if (!cacheRelativePath) {
+      return fsPath;
+    }
+
+    const components = cacheRelativePath.split(/\//g);
+    const [cacheEntry, ...internalPath] = components;
+
+    return path.resolve(offlineCacheFolder, `${cacheEntry}${OFFLINE_CACHE_EXTENSION}`, internalPath.join('/'));
+  };
+
+  const normalizeDirectoryPath = (fsPath: string) => {
+    let relativePath = path.relative(targetDirectory, resolveOfflineCacheFolder(fsPath));
 
     if (!relativePath.match(/^\.{0,2}\//)) {
       relativePath = `./${relativePath}`;
@@ -223,23 +240,57 @@ async function getPackageInformationStores(
       if (peerDependencies.size > 0 && ref.requests.length > 1) {
         const hash = getHashFrom([...parentData, packageName, packageReference]);
 
-        const virtualLoc =
-          ref.remote.type !== 'workspace'
-            ? path.resolve(config.lockfileFolder, '.pnp', 'externals', `pnp-${hash}`, 'node_modules', packageName)
-            : path.resolve(config.lockfileFolder, '.pnp', 'workspaces', `pnp-${hash}`, packageName);
+        let symlinkSource;
+        let symlinkFile;
 
-        // Don't forget to update the loc to point at the newly created indirection
-        const physicalLoc = loc;
-        loc = virtualLoc;
+        switch (ref.remote.type) {
+          case 'workspace':
+            {
+              symlinkSource = loc;
+              symlinkFile = path.resolve(config.lockfileFolder, '.pnp', 'workspaces', `pnp-${hash}`, packageName);
 
-        await fs.mkdirp(path.dirname(virtualLoc));
-        await fs.symlink(physicalLoc, virtualLoc);
+              loc = symlinkFile;
+            }
+            break;
+
+          default:
+            {
+              const isFromCache = getCachePath(loc);
+
+              const hashName =
+                isFromCache && offlineCacheFolder ? `pnp-${hash}${OFFLINE_CACHE_EXTENSION}` : `pnp-${hash}`;
+              const newLoc = path.resolve(
+                config.lockfileFolder,
+                '.pnp',
+                'externals',
+                hashName,
+                'node_modules',
+                packageName,
+              );
+
+              // The `node_modules/<pkgName>` part is already there when the package comes from the cache
+              if (isFromCache) {
+                const getBase = source => path.resolve(source, '../'.repeat(1 + packageName.split('/').length));
+                symlinkSource = resolveOfflineCacheFolder(getBase(loc));
+                symlinkFile = getBase(newLoc);
+              } else {
+                symlinkSource = loc;
+                symlinkFile = newLoc;
+              }
+
+              loc = newLoc;
+            }
+            break;
+        }
+
+        await fs.mkdirp(path.dirname(symlinkFile));
+        await fs.symlink(symlinkSource, symlinkFile);
 
         packageReference = `pnp:${hash}`;
 
         // We blacklist this path so that we can print a nicer error message if someone tries to require it (it usually
         // means that they're using realpath on the return value of require.resolve)
-        blacklistedLocations.add(normalizeDirectoryPath(physicalLoc));
+        blacklistedLocations.add(normalizeDirectoryPath(loc));
       }
 
       // Now that we have the final reference, we need to store it
