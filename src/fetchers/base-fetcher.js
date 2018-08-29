@@ -11,9 +11,25 @@ import * as fs from '../util/fs.js';
 
 const path = require('path');
 
+const defaultReporter = {
+  activity: x => x,
+  activitySet: x => x,
+  command: x => x,
+  error: x => x,
+  info: x => x,
+  lang: x => x,
+  progress: x => x,
+  select: x => x,
+  step: x => x,
+  success: x => x,
+  tree: x => x,
+  verbose: x => x,
+  warn: x => x,
+};
+
 export default class BaseFetcher {
   constructor(dest: string, remote: PackageRemote, config: Config) {
-    this.reporter = config.reporter;
+    this.reporter = config.reporter || defaultReporter;
     this.packageName = remote.packageName;
     this.reference = remote.reference;
     this.registry = remote.registry;
