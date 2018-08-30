@@ -168,6 +168,9 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   _log(msg: string, {force = false}: {force?: boolean} = {}) {
+    if (!process.stdout.isTTY) {
+      msg = this.format.stripColor(msg);
+    }
     if (this.isSilent && !force) {
       return;
     }
