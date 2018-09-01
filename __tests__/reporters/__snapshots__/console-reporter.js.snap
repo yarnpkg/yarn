@@ -10,7 +10,7 @@ Object {
 exports[`ConsoleReporter.command 1`] = `
 Object {
   "stderr": "",
-  "stdout": "[2K[1G$ foobar",
+  "stdout": "[2K[1G[2m$ foobar[22m",
 }
 `;
 
@@ -38,14 +38,14 @@ Object {
 exports[`ConsoleReporter.header 1`] = `
 Object {
   "stderr": "",
-  "stdout": "[2K[1Gyarn foobar v0.0.0",
+  "stdout": "[2K[1G[1myarn foobar v0.0.0[22m",
 }
 `;
 
 exports[`ConsoleReporter.info 1`] = `
 Object {
   "stderr": "",
-  "stdout": "[2K[1Ginfo foobar",
+  "stdout": "[2K[1G[34minfo[39m foobar",
 }
 `;
 
@@ -94,9 +94,9 @@ Object {
 exports[`ConsoleReporter.select 1`] = `
 Object {
   "stderr": "",
-  "stdout": "[2K[1Ginfo Ayo?
-[2K[1G  1) foo
-[2K[1G  2) bar
+  "stdout": "[2K[1G[34minfo[39m Ayo?
+[2K[1G  [2m1)[22m foo
+[2K[1G  [2m2)[22m bar
 [1G[0JSelect one: [13G1",
 }
 `;
@@ -104,14 +104,14 @@ Object {
 exports[`ConsoleReporter.step 1`] = `
 Object {
   "stderr": "",
-  "stdout": "[2K[1G[1/5] foboar...",
+  "stdout": "[2K[1G[2m[1/5][22m foboar...",
 }
 `;
 
 exports[`ConsoleReporter.success 1`] = `
 Object {
   "stderr": "",
-  "stdout": "[2K[1Gsuccess foobar",
+  "stdout": "[2K[1G[32msuccess[39m foobar",
 }
 `;
 
