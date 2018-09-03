@@ -24,10 +24,14 @@ import {normalizePattern} from '../../util/normalize-pattern.js';
 import {LogicalDependencyTree} from '../../util/logical-dependency-tree';
 import * as fs from '../../util/fs.js';
 import * as util from '../../util/misc.js';
-import {YARN_REGISTRY, LOCKFILE_FILENAME, NODE_PACKAGE_JSON, NPM_LOCK_FILENAME} from '../../constants.js';
+import {
+  YARN_REGISTRY,
+  NPM_REGISTRY_RE,
+  LOCKFILE_FILENAME,
+  NODE_PACKAGE_JSON,
+  NPM_LOCK_FILENAME,
+} from '../../constants.js';
 import semver from 'semver';
-
-const NPM_REGISTRY = /http[s]:\/\/registry.npmjs.org/g;
 
 const invariant = require('invariant');
 const path = require('path');
@@ -119,7 +123,7 @@ class ImportResolver extends BaseResolver {
     invariant(url, 'expected package _resolved');
     invariant(hash, 'expected package _shasum');
     if (this.config.getOption('registry') === YARN_REGISTRY) {
-      url = url.replace(NPM_REGISTRY, YARN_REGISTRY);
+      url = url.replace(NPM_REGISTRY_RE, YARN_REGISTRY);
     }
     info._uid = info.version;
     info._remote = {
