@@ -122,7 +122,7 @@ export default class ConsoleReporter extends BaseReporter {
     if (typeof value !== 'number' && typeof value !== 'string') {
       value = inspect(value, {
         breakLength: 0,
-        colors: true,
+        colors: this.isTTY,
         depth: null,
         maxArrayLength: null,
       });
@@ -168,9 +168,6 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   _log(msg: string, {force = false}: {force?: boolean} = {}) {
-    if (!process.stdout.isTTY) {
-      msg = this.format.stripColor(msg);
-    }
     if (this.isSilent && !force) {
       return;
     }
