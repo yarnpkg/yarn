@@ -455,7 +455,7 @@ exports.resolveUnqualified = function resolveUnqualified(
  * imports won't be computed correctly (they'll get resolved relative to "/tmp/" instead of "/tmp/foo/").
  */
 
-exports.resolveRequest = function resolveRequest(request, issuer) {
+exports.resolveRequest = function resolveRequest(request, issuer, {extensions} = {}) {
   let unqualifiedPath;
 
   try {
@@ -479,7 +479,7 @@ exports.resolveRequest = function resolveRequest(request, issuer) {
         }
 
         try {
-          exports.resolveToUnqualified(request, realIssuer);
+          exports.resolveToUnqualified(request, realIssuer, {extensions});
         } catch (error) {
           // If an error was thrown, the problem doesn't seem to come from a path not being normalized, so we
           // can just throw the original error which was legit.
