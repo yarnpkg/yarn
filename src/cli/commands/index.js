@@ -14,7 +14,6 @@ import * as cache from './cache.js';
 import * as check from './check.js';
 import * as config from './config.js';
 import * as create from './create.js';
-import * as eject from './eject.js';
 import * as exec from './exec.js';
 import * as generateLockEntry from './generate-lock-entry.js';
 import * as global from './global.js';
@@ -37,6 +36,7 @@ import * as remove from './remove.js';
 import * as run from './run.js';
 import * as tag from './tag.js';
 import * as team from './team.js';
+import * as unplug from './unplug.js';
 import * as unlink from './unlink.js';
 import * as upgrade from './upgrade.js';
 import * as version from './version.js';
@@ -58,7 +58,6 @@ const commands = {
   config,
   create,
   dedupe: buildUseless("The dedupe command isn't necessary. `yarn install` will already dedupe."),
-  eject,
   exec,
   generateLockEntry,
   global,
@@ -83,6 +82,7 @@ const commands = {
   run,
   tag,
   team,
+  unplug,
   unlink,
   upgrade,
   version,
