@@ -6,7 +6,7 @@ import Lockfile from '../../lockfile';
 import {wrapLifecycle, Install} from './install.js';
 import {MessageError} from '../../errors.js';
 
-export class Eject extends Install {
+export class Unplug extends Install {
   constructor(args: Array<string>, flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
     const workspaceRootIsCwd = config.cwd === config.lockfileFolder;
     const _flags = flags ? {...flags, workspaceRootIsCwd} : {workspaceRootIsCwd};
@@ -16,7 +16,7 @@ export class Eject extends Install {
 
   init(): Promise<Array<string>> {
     if (!this.config.plugnplayEnabled) {
-      throw new MessageError(this.reporter.lang('ejectPlugnplayDisabled'));
+      throw new MessageError(this.reporter.lang('unplugPlugnplayDisabled'));
     }
     return Install.prototype.init.call(this);
   }
@@ -30,7 +30,7 @@ export function setFlags(commander: Object) {
   commander.description(
     'Temporarily copies a package (with an optional @range suffix) outside of the global cache for debugging purposes',
   );
-  commander.usage('eject [packages ...] [flags]');
+  commander.usage('unplug [packages ...] [flags]');
 }
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
@@ -39,7 +39,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   }
   const lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
   await wrapLifecycle(config, flags, async () => {
-    const install = new Eject(args, flags, config, reporter, lockfile);
+    const install = new Unplug(args, flags, config, reporter, lockfile);
     await install.init();
   });
 }

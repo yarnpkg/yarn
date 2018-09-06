@@ -281,7 +281,7 @@ export default class PackageLinker {
           dest = path.resolve(
             this.config.lockfileFolder,
             '.pnp',
-            'ejected',
+            'unplugged',
             `${pkg.name}-${pkg.version}`,
             'node_modules',
             pkg.name,
@@ -668,7 +668,7 @@ export default class PackageLinker {
 
   async delPrevEjectedModules(): Promise<void> {
     try {
-      const ejectedPath = `${this.config.lockfileFolder}/.pnp/ejected`;
+      const ejectedPath = `${this.config.lockfileFolder}/.pnp/unplugged`;
       for (const currentlyEjectedPkg of await fs.readdir(ejectedPath)) {
         const pkgName = currentlyEjectedPkg.split('-').slice(0, -1).join('-');
         const pkgVersion = currentlyEjectedPkg.split('-').pop();

@@ -851,7 +851,7 @@ module.exports = makeTemporaryEnv => {
 		);
 
     test(
-      `it should allow ejecting packages from a pnp installation`,
+      `it should allow unplugging packages from a pnp installation`,
       makeTemporaryEnv(
         {
           dependencies: {
@@ -864,14 +864,14 @@ module.exports = makeTemporaryEnv => {
         },
         async ({path, run, source}) => {
           await run(`install`);
-          await run(`eject`, `various-requires`);
-          await writeFile(`${path}/.pnp/ejected/various-requires-1.0.0/node_modules/various-requires/alternative-index.js`, `module.exports = "6 * 9";\n`);
+          await run(`unplug`, `various-requires`);
+          await writeFile(`${path}/.pnp/unplugged/various-requires-1.0.0/node_modules/various-requires/alternative-index.js`, `module.exports = "6 * 9";\n`);
           await expect(source(`require('various-requires/relative-require')`)).resolves.toMatch('6 * 9');
           await expect(source(`require('no-deps/package.json')`)).resolves.toMatchObject({
             name: `no-deps`,
             version: `1.0.0`,
           });
-          expect(await fs.readdir(`${path}/.pnp/ejected`)).toEqual([
+          expect(await fs.readdir(`${path}/.pnp/unplugged`)).toEqual([
             'various-requires-1.0.0'
           ]);
         },
@@ -879,7 +879,7 @@ module.exports = makeTemporaryEnv => {
     );
 
     test(
-      `it should allow ejecting packages from a still uninstalled pnp installation`,
+      `it should allow unplugging packages from a still uninstalled pnp installation`,
       makeTemporaryEnv(
         {
           dependencies: {
@@ -891,14 +891,14 @@ module.exports = makeTemporaryEnv => {
           plugNPlay: true,
         },
         async ({path, run, source}) => {
-          await run(`eject`, `various-requires`);
-          await writeFile(`${path}/.pnp/ejected/various-requires-1.0.0/node_modules/various-requires/alternative-index.js`, `module.exports = "6 * 9";\n`);
+          await run(`unplug`, `various-requires`);
+          await writeFile(`${path}/.pnp/unplugged/various-requires-1.0.0/node_modules/various-requires/alternative-index.js`, `module.exports = "6 * 9";\n`);
           await expect(source(`require('various-requires/relative-require')`)).resolves.toMatch('6 * 9');
           await expect(source(`require('no-deps/package.json')`)).resolves.toMatchObject({
             name: `no-deps`,
             version: `1.0.0`,
           });
-          expect(await fs.readdir(`${path}/.pnp/ejected`)).toEqual([
+          expect(await fs.readdir(`${path}/.pnp/unplugged`)).toEqual([
             'various-requires-1.0.0'
           ]);
         },
@@ -906,7 +906,7 @@ module.exports = makeTemporaryEnv => {
     );
 
     test(
-      `it should produce an error if ejecting with pnp disabled`,
+      `it should produce an error if unplugging with pnp disabled`,
       makeTemporaryEnv(
         {
           dependencies: {
@@ -918,13 +918,13 @@ module.exports = makeTemporaryEnv => {
           plugNPlay: false,
         },
         async ({path, run, source}) => {
-          await expect(run(`eject`, `various-requires`)).rejects.toBeTruthy();
+          await expect(run(`unplug`, `various-requires`)).rejects.toBeTruthy();
         },
       ),
     );
 
     test(
-      'it should produce an error if ejecting with no packages in args',
+      'it should produce an error if unplugging with no packages in args',
       makeTemporaryEnv(
         {
           dependencies: {
@@ -936,7 +936,7 @@ module.exports = makeTemporaryEnv => {
           plugNPlay: true,
         },
         async ({path, run, source}) => {
-          await expect(run(`eject`)).rejects.toMatchObject({
+          await expect(run(`unplug`)).rejects.toMatchObject({
             message: expect.stringContaining(`Not enough arguments, expected at least 1.`),
           });
         },
@@ -944,7 +944,7 @@ module.exports = makeTemporaryEnv => {
     );
 
     test(
-      `it should allow ejecting multiple (deep) packages from a pnp installation`,
+      `it should allow unplugging multiple (deep) packages from a pnp installation`,
       makeTemporaryEnv(
         {
           dependencies: {
@@ -958,8 +958,8 @@ module.exports = makeTemporaryEnv => {
         },
         async ({path, run, source}) => {
           await run(`install`);
-          await run(`eject`, `various-requires`, `no-deps`);
-          expect((await fs.readdir(`${path}/.pnp/ejected`)).sort()).toEqual(
+          await run(`unplug`, `various-requires`, `no-deps`);
+          expect((await fs.readdir(`${path}/.pnp/unplugged`)).sort()).toEqual(
             ['no-deps-1.0.0', 'no-deps-2.0.0', 'various-requires-1.0.0'].sort(),
           );
         },
@@ -967,7 +967,7 @@ module.exports = makeTemporaryEnv => {
     );
 
     test(
-      'it should allow ejecting package (semver) ranges from a pnp installation',
+      'it should allow unplugging package (semver) ranges from a pnp installation',
       makeTemporaryEnv(
         {
           dependencies: {
@@ -981,8 +981,8 @@ module.exports = makeTemporaryEnv => {
         },
         async ({path, run, source}) => {
           await run(`install`);
-          await run(`eject`, `various-requires`, `no-deps@^1.0.0`);
-          expect((await fs.readdir(`${path}/.pnp/ejected`)).sort()).toEqual([
+          await run(`unplug`, `various-requires`, `no-deps@^1.0.0`);
+          expect((await fs.readdir(`${path}/.pnp/unplugged`)).sort()).toEqual([
             'no-deps-1.0.0',
             'various-requires-1.0.0',
           ].sort());
@@ -1000,7 +1000,7 @@ module.exports = makeTemporaryEnv => {
           plugNPlay: true,
         },
         async ({path, run, source}) => {
-          await run(`eject`, `no-deps`, `peer-deps`);
+          await run(`unplug`, `no-deps`, `peer-deps`);
 
           await expect(
             source(`require('provides-peer-deps-1-0-0') !== require('provides-peer-deps-2-0-0')`),
@@ -1052,7 +1052,7 @@ module.exports = makeTemporaryEnv => {
     )
 
     test(
-      `it should clear previous ejected folder on new pnp install`,
+      `it should clear previous unplugged folder on new pnp install`,
       makeTemporaryEnv(
         {
           dependencies: {
@@ -1064,15 +1064,15 @@ module.exports = makeTemporaryEnv => {
           plugNPlay: true,
         },
         async ({path, run, source}) => {
-          await run(`eject`, `various-requires`);
+          await run(`unplug`, `various-requires`);
           await run(`install`);
-          expect(await fs.readdir(`${path}/.pnp/ejected`)).toEqual([]);
+          expect(await fs.readdir(`${path}/.pnp/unplugged`)).toEqual([]);
         },
       ),
     );
 
     test(
-      `it should clear previous ejected folder on new eject`,
+      `it should clear previous unplugged folder on new eject`,
       makeTemporaryEnv(
         {
           dependencies: {
@@ -1084,9 +1084,9 @@ module.exports = makeTemporaryEnv => {
           plugNPlay: true,
         },
         async ({path, run, source}) => {
-          await run(`eject`, `various-requires`);
-          await run(`eject`, `no-deps`);
-          expect(await fs.readdir(`${path}/.pnp/ejected`)).toEqual([
+          await run(`unplug`, `various-requires`);
+          await run(`unplug`, `no-deps`);
+          expect(await fs.readdir(`${path}/.pnp/unplugged`)).toEqual([
             'no-deps-1.0.0'
           ]);
         },
@@ -1094,7 +1094,7 @@ module.exports = makeTemporaryEnv => {
     );
 
     test(
-      `it should not override an already ejected package`,
+      `it should not override an already unplugged package`,
       makeTemporaryEnv(
         {
           dependencies: {
@@ -1107,15 +1107,15 @@ module.exports = makeTemporaryEnv => {
         },
         async ({path, run, source}) => {
           await run(`install`);
-          await run(`eject`, `various-requires`);
-          await writeFile(`${path}/.pnp/ejected/various-requires-1.0.0/node_modules/various-requires/alternative-index.js`, `module.exports = "6 * 9";\n`);
-          await run(`eject`, `various-requires`, `no-deps`);
+          await run(`unplug`, `various-requires`);
+          await writeFile(`${path}/.pnp/unplugged/various-requires-1.0.0/node_modules/various-requires/alternative-index.js`, `module.exports = "6 * 9";\n`);
+          await run(`unplug`, `various-requires`, `no-deps`);
           await expect(source(`require('various-requires/relative-require')`)).resolves.toMatch('6 * 9');
           await expect(source(`require('no-deps/package.json')`)).resolves.toMatchObject({
             name: `no-deps`,
             version: `1.0.0`,
           });
-          expect(await fs.readdir(`${path}/.pnp/ejected`)).toEqual([
+          expect(await fs.readdir(`${path}/.pnp/unplugged`)).toEqual([
             'no-deps-1.0.0',
             'various-requires-1.0.0',
           ]);
