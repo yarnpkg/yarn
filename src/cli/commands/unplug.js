@@ -5,22 +5,9 @@ import type Config from '../../config.js';
 import Lockfile from '../../lockfile';
 import {wrapLifecycle, Install} from './install.js';
 import {MessageError} from '../../errors.js';
+import * as fs from '../../util/fs.js';
 
-export class Unplug extends Install {
-  constructor(args: Array<string>, flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
-    const workspaceRootIsCwd = config.cwd === config.lockfileFolder;
-    const _flags = flags ? {...flags, workspaceRootIsCwd} : {workspaceRootIsCwd};
-    config.plugnplayEjected = args;
-    super(_flags, config, reporter, lockfile);
-  }
-
-  init(): Promise<Array<string>> {
-    if (!this.config.plugnplayEnabled) {
-      throw new MessageError(this.reporter.lang('unplugPlugnplayDisabled'));
-    }
-    return Install.prototype.init.call(this);
-  }
-}
+const path = require('path');
 
 export function hasWrapper(commander: Object): boolean {
   return true;
@@ -31,15 +18,57 @@ export function setFlags(commander: Object) {
     'Temporarily copies a package (with an optional @range suffix) outside of the global cache for debugging purposes',
   );
   commander.usage('unplug [packages ...] [flags]');
+  commander.option('--clear', 'Delete the selected packages');
+  commander.option('--clear-all', 'Delete all unplugged packages');
 }
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-  if (!args.length) {
+  if (!config.plugnplayEnabled) {
+    throw new MessageError(reporter.lang('unplugDisabled'));
+  }
+  if (!args.length && !flags.clearAll) {
     throw new MessageError(reporter.lang('tooFewArguments', 1));
   }
-  const lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
-  await wrapLifecycle(config, flags, async () => {
-    const install = new Unplug(args, flags, config, reporter, lockfile);
-    await install.init();
-  });
+  if (args.length && flags.clearAll) {
+    throw new MessageError(reporter.lang('noArguments'));
+  }
+
+  if (flags.clearAll) {
+    await clearAll(config);
+  } else if (flags.clear) {
+    await clearSome(config, new Set(args));
+  } else {
+    const lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
+    await wrapLifecycle(config, flags, async () => {
+      const install = new Install(flags, config, reporter, lockfile);
+      install.linker.unplugged = args;
+      await install.init();
+    });
+  }
+}
+
+export async function clearSome(config: Config, filters: Set<string>): Promise<void> {
+  const unpluggedPackageFolders = await config.listUnpluggedPackageFolders();
+  const removeList = [];
+
+  for (const [unpluggedName, target] of unpluggedPackageFolders.entries()) {
+    const {name} = await fs.readJson(path.join(target, 'package.json'));
+    const toBeRemoved = filters.has(name);
+
+    if (toBeRemoved) {
+      removeList.push(path.join(config.getUnpluggedPath(), unpluggedName));
+    }
+  }
+
+  if (removeList === unpluggedPackageFolders.size) {
+    await fs.unlink(config.getUnpluggedPath());
+  } else {
+    for (const unpluggedPackagePath of removeList) {
+      await fs.unlink(unpluggedPackagePath);
+    }
+  }
+}
+
+export async function clearAll(config: Config): Promise<void> {
+  await fs.unlink(config.getUnpluggedPath());
 }
