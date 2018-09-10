@@ -677,6 +677,11 @@ export class Install {
         continue;
       }
 
+      if (infos.length > 1 && this.config.nonInteractive) {
+        flattenedPatterns.push(this.resolver.patternsByPackage[name][0]);
+        continue;
+      }
+
       const options = infos.map((info): ReporterSelectOption => {
         const ref = info._reference;
         invariant(ref, 'expected reference');
