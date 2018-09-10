@@ -934,26 +934,6 @@ module.exports = makeTemporaryEnv => {
     );
 
     test(
-      'it should produce an error if unplugging with no packages in args',
-      makeTemporaryEnv(
-        {
-          dependencies: {
-            [`no-deps`]: `1.0.0`,
-            [`various-requires`]: `1.0.0`,
-          },
-        },
-        {
-          plugNPlay: true,
-        },
-        async ({path, run, source}) => {
-          await expect(run(`unplug`)).rejects.toMatchObject({
-            message: expect.stringContaining(`Not enough arguments, expected at least 1.`),
-          });
-        },
-      ),
-    );
-
-    test(
       `it should allow unplugging multiple (deep) packages from a pnp installation`,
       makeTemporaryEnv(
         {

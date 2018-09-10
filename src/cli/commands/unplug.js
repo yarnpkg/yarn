@@ -26,7 +26,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   if (!config.plugnplayEnabled) {
     throw new MessageError(reporter.lang('unplugDisabled'));
   }
-  if (!args.length && !flags.clearAll) {
+  if (!args.length && flags.clear) {
     throw new MessageError(reporter.lang('tooFewArguments', 1));
   }
   if (args.length && flags.clearAll) {
@@ -37,13 +37,19 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     await clearAll(config);
   } else if (flags.clear) {
     await clearSome(config, new Set(args));
-  } else {
+  } else if (args.length > 0) {
     const lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
     await wrapLifecycle(config, flags, async () => {
       const install = new Install(flags, config, reporter, lockfile);
       install.linker.unplugged = args;
       await install.init();
     });
+  }
+
+  const unpluggedPackageFolders = await config.listUnpluggedPackageFolders();
+
+  for (const target of unpluggedPackageFolders.values()) {
+    reporter.log(target, {force: true});
   }
 }
 
@@ -60,7 +66,7 @@ export async function clearSome(config: Config, filters: Set<string>): Promise<v
     }
   }
 
-  if (removeList === unpluggedPackageFolders.size) {
+  if (removeList.length === unpluggedPackageFolders.size) {
     await fs.unlink(config.getUnpluggedPath());
   } else {
     for (const unpluggedPackagePath of removeList) {

@@ -551,6 +551,10 @@ export default class Config {
     const unpluggedPackages = new Map();
     const unpluggedPath = this.getUnpluggedPath();
 
+    if (!await fs.exists(unpluggedPath)) {
+      return unpluggedPackages;
+    }
+
     for (const unpluggedName of await fs.readdir(unpluggedPath)) {
       const nmListing = await fs.readdir(path.join(unpluggedPath, unpluggedName, 'node_modules'));
       invariant(nmListing.length === 1, 'A single folder should be in the unplugged directory');
