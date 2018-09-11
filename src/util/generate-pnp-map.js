@@ -15,7 +15,6 @@ const OFFLINE_CACHE_EXTENSION = `.zip`;
 
 type PackageInformation = {|
   packageLocation: string,
-  packageMainEntry: ?string,
   packageDependencies: Map<string, string>,
 |};
 
@@ -36,15 +35,9 @@ function generateMaps(packageInformationStores: PackageInformationStores, blackl
   code += `let packageInformationStores = new Map([\n`;
   for (const [packageName, packageInformationStore] of packageInformationStores) {
     code += `  [${JSON.stringify(packageName)}, new Map([\n`;
-    for (const [
-      packageReference,
-      {packageMainEntry, packageLocation, packageDependencies},
-    ] of packageInformationStore) {
+    for (const [packageReference, {packageLocation, packageDependencies}] of packageInformationStore) {
       code += `    [${JSON.stringify(packageReference)}, {\n`;
       code += `      packageLocation: ${JSON.stringify(packageLocation)},\n`;
-      if (packageMainEntry) {
-        code += `      packageMainEntry: ${JSON.stringify(packageMainEntry)},\n`;
-      }
       code += `      packageDependencies: new Map([\n`;
       for (const [dependencyName, dependencyReference] of packageDependencies.entries()) {
         code += `        [${JSON.stringify(dependencyName)}, ${JSON.stringify(dependencyReference)}],\n`;
@@ -333,7 +326,6 @@ async function getPackageInformationStores(
       }
 
       packageInformation = {
-        packageMainEntry: pkg.main,
         packageLocation: normalizeDirectoryPath(loc),
         packageDependencies: new Map(),
       };
@@ -396,7 +388,6 @@ async function getPackageInformationStores(
       }
 
       packageInformationStore.set(pkg.version, {
-        packageMainEntry: pkg.main,
         packageLocation: normalizeDirectoryPath(loc),
         packageDependencies: await visit(ref.dependencies, [name, pkg.version]),
       });
@@ -411,7 +402,6 @@ async function getPackageInformationStores(
       [
         null,
         {
-          packageMainEntry: null,
           packageLocation: normalizeDirectoryPath(config.lockfileFolder),
           packageDependencies: await visit(seedPatterns),
         },
