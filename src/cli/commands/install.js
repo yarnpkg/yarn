@@ -66,6 +66,7 @@ type Flags = {
   frozenLockfile: boolean,
   skipIntegrityCheck: boolean,
   checkFiles: boolean,
+  audit: boolean,
 
   // add
   peer: boolean,
@@ -144,6 +145,7 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
     frozenLockfile: !!rawFlags.frozenLockfile,
     linkDuplicates: !!rawFlags.linkDuplicates,
     checkFiles: !!rawFlags.checkFiles,
+    audit: !!rawFlags.audit,
 
     // add
     peer: !!rawFlags.peer,
@@ -569,31 +571,33 @@ export class Install {
       }),
     );
 
-    steps.push((curr: number, total: number) =>
-      callThroughHook('auditStep', async () => {
-        this.reporter.step(curr, total, this.reporter.lang('auditRunning'), emoji.get('mag'));
-        if (this.flags.offline) {
-          this.reporter.warn(this.reporter.lang('auditOffline'));
-          return {bailout: false};
-        }
-        const preparedManifests = await this.prepareManifests();
-        // $FlowFixMe - Flow considers `m` in the map operation to be "mixed", so does not recognize `m.object`
-        const mergedManifest = Object.assign({}, ...Object.values(preparedManifests).map(m => m.object));
-        const auditVulnerabilityCounts = await audit.performAudit(
-          mergedManifest,
-          this.resolver,
-          this.linker,
-          topLevelPatterns,
-        );
-        auditFoundProblems =
-          auditVulnerabilityCounts.info ||
-          auditVulnerabilityCounts.low ||
-          auditVulnerabilityCounts.moderate ||
-          auditVulnerabilityCounts.high ||
-          auditVulnerabilityCounts.critical;
-        return {bailout: false}; // placeholder for a future option to abort if audit finds security problems.
-      }),
-    );
+    if (this.flags.audit) {
+      steps.push((curr: number, total: number) =>
+        callThroughHook('auditStep', async () => {
+          this.reporter.step(curr, total, this.reporter.lang('auditRunning'), emoji.get('mag'));
+          if (this.flags.offline) {
+            this.reporter.warn(this.reporter.lang('auditOffline'));
+            return {bailout: false};
+          }
+          const preparedManifests = await this.prepareManifests();
+          // $FlowFixMe - Flow considers `m` in the map operation to be "mixed", so does not recognize `m.object`
+          const mergedManifest = Object.assign({}, ...Object.values(preparedManifests).map(m => m.object));
+          const auditVulnerabilityCounts = await audit.performAudit(
+            mergedManifest,
+            this.resolver,
+            this.linker,
+            topLevelPatterns,
+          );
+          auditFoundProblems =
+            auditVulnerabilityCounts.info ||
+            auditVulnerabilityCounts.low ||
+            auditVulnerabilityCounts.moderate ||
+            auditVulnerabilityCounts.high ||
+            auditVulnerabilityCounts.critical;
+          return {bailout: false}; // placeholder for a future option to abort if audit finds security problems.
+        }),
+      );
+    }
 
     steps.push((curr: number, total: number) =>
       callThroughHook('fetchStep', async () => {
@@ -664,7 +668,9 @@ export class Install {
     for (const step of steps) {
       const stepResult = await step(++currentStep, steps.length);
       if (stepResult && stepResult.bailout) {
-        audit.summary();
+        if (this.flags.audit) {
+          audit.summary();
+        }
         if (auditFoundProblems) {
           this.reporter.warn(this.reporter.lang('auditRunAuditForDetails'));
         }
@@ -674,7 +680,9 @@ export class Install {
     }
 
     // fin!
-    audit.summary();
+    if (this.flags.audit) {
+      audit.summary();
+    }
     if (auditFoundProblems) {
       this.reporter.warn(this.reporter.lang('auditRunAuditForDetails'));
     }
@@ -1028,6 +1036,7 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 export function setFlags(commander: Object) {
   commander.description('Yarn install is used to install all dependencies for a project.');
   commander.usage('install [flags]');
+  commander.option('-A', '--audit', 'Run vulnerability audit on installed packages');
   commander.option('-g, --global', 'DEPRECATED');
   commander.option('-S, --save', 'DEPRECATED - save package to your `dependencies`');
   commander.option('-D, --save-dev', 'DEPRECATED - save package to your `devDependencies`');
