@@ -1,6 +1,7 @@
 /* @flow */
 
 import type {Manifest} from './types.js';
+import type PackageReference from './package-reference.js';
 import type PackageResolver from './package-resolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
@@ -51,7 +52,7 @@ export default class PackageLinker {
     this.config = config;
     this.artifacts = {};
     this.topLevelBinLinking = true;
-    this._alreadyEjected = new Set();
+    this.unplugged = [];
   }
 
   artifacts: InstallArtifacts;
@@ -59,8 +60,8 @@ export default class PackageLinker {
   resolver: PackageResolver;
   config: Config;
   topLevelBinLinking: boolean;
+  unplugged: Array<string>;
   _treeHash: ?Map<string, HoistManifestTuple>;
-  _alreadyEjected: Set<string>;
 
   setArtifacts(artifacts: InstallArtifacts) {
     this.artifacts = artifacts;
@@ -277,16 +278,11 @@ export default class PackageLinker {
 
       if (this.config.plugnplayEnabled) {
         ref.isPlugnplay = true;
-        if (this._isEjected(ref.name, ref.version)) {
-          dest = path.resolve(
-            this.config.lockfileFolder,
-            '.pnp',
-            'unplugged',
-            `${pkg.name}-${pkg.version}`,
-            'node_modules',
-            pkg.name,
-          );
-          if (this._alreadyEjected.has(`${pkg.name}-${pkg.version}`)) {
+        if (await this._isUnplugged(ref)) {
+          dest = this.config.generatePackageUnpluggedPath(ref);
+
+          // We don't skip the copy if the unplugged package isn't materialized yet
+          if (await fs.exists(dest)) {
             ref.addLocation(dest);
             continue;
           }
@@ -666,26 +662,6 @@ export default class PackageLinker {
     }
   }
 
-  async delPrevEjectedModules(): Promise<void> {
-    try {
-      const ejectedPath = `${this.config.lockfileFolder}/.pnp/unplugged`;
-      for (const currentlyEjectedPkg of await fs.readdir(ejectedPath)) {
-        const pkgName = currentlyEjectedPkg.split('-').slice(0, -1).join('-');
-        const pkgVersion = currentlyEjectedPkg.split('-').pop();
-        // eg. foo-bar-baz-1.5.2 (pkgName: foo-bar-baz, pkgVersion: 1.5.2)
-        if (this._isEjected(pkgName, pkgVersion)) {
-          this._alreadyEjected.add(currentlyEjectedPkg);
-        } else {
-          await fs.unlink(path.join(ejectedPath, currentlyEjectedPkg));
-        }
-      }
-    } catch (err) {
-      if (err.code !== 'ENOENT') {
-        throw err;
-      }
-    }
-  }
-
   _satisfiesPeerDependency(range: string, version: string): boolean {
     return range === '*' || satisfiesWithPrereleases(version, range, this.config.looseSemver);
   }
@@ -707,13 +683,17 @@ export default class PackageLinker {
     }
   }
 
-  _isEjected(pkgName: string, pkgVersion: string): boolean {
-    // ejected module: temporarily (until next install) run a copy of this module from outside the global cache
-    // for debugging purposes
-    return this.config.plugnplayEjected.some(patternToEject => {
+  async _isUnplugged(ref: PackageReference): Promise<boolean> {
+    // If an unplugged folder exists for the specified package, we simply use it
+    if (await fs.exists(this.config.generatePackageUnpluggedPath(ref))) {
+      return true;
+    }
+
+    // Check whether the user explicitly requested for the package to be unplugged
+    return this.unplugged.some(patternToEject => {
       const {name, range, hasVersion} = normalizePattern(patternToEject);
-      const satisfiesSemver = hasVersion ? semver.satisfies(pkgVersion, range) : true;
-      return name === pkgName && satisfiesSemver;
+      const satisfiesSemver = hasVersion ? semver.satisfies(ref.version, range) : true;
+      return name === ref.name && satisfiesSemver;
     });
   }
 
@@ -723,7 +703,6 @@ export default class PackageLinker {
     {linkDuplicates, ignoreOptional}: {linkDuplicates: ?boolean, ignoreOptional: ?boolean} = {},
   ): Promise<void> {
     this.resolvePeerModules();
-    await this.delPrevEjectedModules();
     await this.copyModules(patterns, workspaceLayout, {linkDuplicates, ignoreOptional});
 
     if (!this.config.plugnplayEnabled) {

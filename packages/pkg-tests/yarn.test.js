@@ -17,11 +17,11 @@ const {
 } = require(`pkg-tests-specs`);
 
 const pkgDriver = generatePkgDriver({
-  runDriver: (
+  async runDriver(
     path,
     [command, ...args],
     {cwd, projectFolder, registryUrl, plugNPlay, plugnplayShebang, plugnplayBlacklist},
-  ) => {
+  ) {
     let beforeArgs = [];
     let middleArgs = [];
 
@@ -33,7 +33,7 @@ const pkgDriver = generatePkgDriver({
       middleArgs = [...middleArgs, `--cache-folder`, `${path}/.cache`];
     }
 
-    return execFile(
+    const res = await execFile(
       process.execPath,
       [`${process.cwd()}/../../bin/yarn.js`, ...beforeArgs, command, ...middleArgs, ...args],
       {
@@ -52,6 +52,15 @@ const pkgDriver = generatePkgDriver({
         cwd: cwd || path,
       },
     );
+
+    if (process.env.JEST_LOG_SPAWNS) {
+      console.log(`===== stdout:`);
+      console.log(res.stdout);
+      console.log(`===== stderr:`);
+      console.log(res.stderr);
+    }
+
+    return res;
   },
 });
 

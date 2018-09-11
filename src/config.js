@@ -175,6 +175,7 @@ export default class Config {
   plugnplayShebang: ?string;
   plugnplayBlacklist: ?string;
   plugnplayEjected: Array<string>;
+  plugnplayPurgeEjectedPackages: boolean;
 
   scriptsPrependNodePath: boolean;
 
@@ -460,6 +461,7 @@ export default class Config {
     this.binLinks = !!opts.binLinks;
     this.updateChecksums = !!opts.updateChecksums;
     this.plugnplayEjected = [];
+    this.plugnplayPurgeEjectedPackages = false;
 
     this.ignorePlatform = !!opts.ignorePlatform;
     this.ignoreScripts = !!opts.ignoreScripts;
@@ -485,13 +487,10 @@ export default class Config {
   }
 
   /**
-   * Generate an absolute module path.
+   * Generate a name suitable as unique filesystem identifier for the specified package.
    */
 
-  generateModuleCachePath(pkg: ?PackageReference): string {
-    invariant(this.cacheFolder, 'No package root');
-    invariant(pkg, 'Undefined package');
-
+  generateStablePackageName(pkg: PackageReference): string {
     let slug = pkg.name;
 
     slug = slug.replace(/[^@a-z0-9]+/g, '-');
@@ -515,7 +514,56 @@ export default class Config {
       slug += `-${hash}`;
     }
 
-    return path.join(this.cacheFolder, slug, `node_modules`, pkg.name);
+    return slug;
+  }
+
+  /**
+   * Generate an absolute module path.
+   */
+
+  generateModuleCachePath(pkg: ?PackageReference): string {
+    invariant(this.cacheFolder, 'No package root');
+    invariant(pkg, 'Undefined package');
+
+    const name = this.generateStablePackageName(pkg);
+    return path.join(this.cacheFolder, name, 'node_modules', pkg.name);
+  }
+
+  /**
+   */
+
+  getUnpluggedPath(): string {
+    return path.join(this.lockfileFolder, '.pnp', 'unplugged');
+  }
+
+  /**
+    */
+
+  generatePackageUnpluggedPath(pkg: PackageReference): string {
+    const name = this.generateStablePackageName(pkg);
+    return path.join(this.getUnpluggedPath(), name, 'node_modules', pkg.name);
+  }
+
+  /**
+   */
+
+  async listUnpluggedPackageFolders(): Promise<Map<string, string>> {
+    const unpluggedPackages = new Map();
+    const unpluggedPath = this.getUnpluggedPath();
+
+    if (!await fs.exists(unpluggedPath)) {
+      return unpluggedPackages;
+    }
+
+    for (const unpluggedName of await fs.readdir(unpluggedPath)) {
+      const nmListing = await fs.readdir(path.join(unpluggedPath, unpluggedName, 'node_modules'));
+      invariant(nmListing.length === 1, 'A single folder should be in the unplugged directory');
+
+      const target = path.join(unpluggedPath, unpluggedName, `node_modules`, nmListing[0]);
+      unpluggedPackages.set(unpluggedName, target);
+    }
+
+    return unpluggedPackages;
   }
 
   /**

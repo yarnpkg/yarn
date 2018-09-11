@@ -751,6 +751,7 @@ babel-plugin-check-es2015-constants@^6.22.0:
 babel-plugin-inline-import@^2.0.6:
   version "2.0.6"
   resolved "https://registry.yarnpkg.com/babel-plugin-inline-import/-/babel-plugin-inline-import-2.0.6.tgz#8a3c179561b503bf4af319f3cad435e6b7b2863c"
+  integrity sha1-ijwXlWG1A79K8xnzytQ15reyhjw=
   dependencies:
     require-resolve "0.0.2"
 
@@ -5759,6 +5760,7 @@ path-exists@^3.0.0:
 path-extra@^1.0.2:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/path-extra/-/path-extra-1.0.3.tgz#7c112189a6e50d595790e7ad2037e44e410c1166"
+  integrity sha1-fBEhiablDVlXkOetIDfkTkEMEWY=
 
 path-is-absolute@^1.0.0, path-is-absolute@^1.0.1:
   version "1.0.1"
@@ -6335,6 +6337,7 @@ require-main-filename@^1.0.1:
 require-resolve@0.0.2:
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/require-resolve/-/require-resolve-0.0.2.tgz#bab410ab1aee2f3f55b79317451dd3428764e6f3"
+  integrity sha1-urQQqxruLz9Vt5MXRR3TQodk5vM=
   dependencies:
     x-path "^0.0.2"
 
@@ -7398,9 +7401,10 @@ v8flags@^3.0.1:
   dependencies:
     homedir-polyfill "^1.0.1"
 
-validate-npm-package-license@^3.0.4:
+validate-npm-package-license@^3.0.1, validate-npm-package-license@^3.0.4:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/validate-npm-package-license/-/validate-npm-package-license-3.0.4.tgz#fc91f6b9c7ba15c857f4cb2c5defeec39d4f410a"
+  integrity sha512-DpKm2Ui/xN7/HQKCtpZxoRWBhZ9Z0kqtygG8XCgNQ8ZlDnxuQmWhj566j8fN4Cu3/JmbhsDo7fcAJq4s9h27Ew==
   dependencies:
     spdx-correct "^3.0.0"
     spdx-expression-parse "^3.0.0"
@@ -7661,6 +7665,7 @@ ws@^5.2.0:
 x-path@^0.0.2:
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/x-path/-/x-path-0.0.2.tgz#294d076bb97a7706cc070bbb2a6fd8c54df67b12"
+  integrity sha1-KU0Ha7l6dwbMBwu7Km/YxU32exI=
   dependencies:
     path-extra "^1.0.2"
 
