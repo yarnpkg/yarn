@@ -388,21 +388,19 @@ export default class RequestManager {
         successHosts[parts.hostname] = true;
 
         this.reporter.verbose(this.reporter.lang('verboseRequestFinish', params.url, res.statusCode));
-
         if (body && typeof body.error === 'string') {
           reject(new Error(body.error));
           return;
         }
 
-        if (res.statusCode === 403) {
+        if ([400, 401, 404].concat(params.rejectStatusCode || []).indexOf(res.statusCode) !== -1) {
+          body = false;
+        } else if (res.statusCode >= 400) {
           const errMsg = (body && body.message) || reporter.lang('requestError', params.url, res.statusCode);
           reject(new Error(errMsg));
-        } else {
-          if ([400, 401, 404].concat(params.rejectStatusCode || []).indexOf(res.statusCode) !== -1) {
-            body = false;
-          }
-          resolve(body);
         }
+
+        resolve(body);
       };
     }
 
