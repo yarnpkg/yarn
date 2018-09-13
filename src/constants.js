@@ -19,6 +19,7 @@ export const MANIFEST_FIELDS = [RESOLUTIONS, ...DEPENDENCY_TYPES];
 export const SUPPORTED_NODE_VERSIONS = '^4.8.0 || ^5.7.0 || ^6.2.2 || >=8.0.0';
 
 export const YARN_REGISTRY = 'https://registry.yarnpkg.com';
+export const NPM_REGISTRY_RE = /https?:\/\/registry\.npmjs\.org/g;
 
 export const YARN_DOCS = 'https://yarnpkg.com/en/docs/cli/';
 export const YARN_INSTALLER_SH = 'https://yarnpkg.com/install.sh';

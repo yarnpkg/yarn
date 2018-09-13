@@ -9,7 +9,7 @@ import RegistryResolver from './registry-resolver.js';
 import NpmRegistry from '../../registries/npm-registry.js';
 import map from '../../util/map.js';
 import * as fs from '../../util/fs.js';
-import {YARN_REGISTRY} from '../../constants.js';
+import {YARN_REGISTRY, NPM_REGISTRY_RE} from '../../constants.js';
 import {getPlatformSpecificPackageFilename} from '../../util/package-name-utils.js';
 
 const inquirer = require('inquirer');
@@ -18,7 +18,6 @@ const path = require('path');
 const semver = require('semver');
 const ssri = require('ssri');
 
-const NPM_REGISTRY = /http[s]:\/\/registry.npmjs.org/g;
 const NPM_REGISTRY_ID = 'npm';
 
 type RegistryResponse = {
@@ -145,7 +144,7 @@ export default class NpmResolver extends RegistryResolver {
 
   cleanRegistry(url: string): string {
     if (this.config.getOption('registry') === YARN_REGISTRY) {
-      return url.replace(NPM_REGISTRY, YARN_REGISTRY);
+      return url.replace(NPM_REGISTRY_RE, YARN_REGISTRY);
     } else {
       return url;
     }
