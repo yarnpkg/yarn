@@ -204,7 +204,7 @@ export default class Audit {
     });
     this.reporter.verbose(`Audit Response: ${JSON.stringify(response, null, 2)}`);
     if (!response || !response.metadata) {
-      throw new Error(`Unexpected audit response: ${response}`);
+      throw new Error(`Unexpected audit response: ${JSON.stringify(response, null, 2)}`);
     }
     return response;
   }

@@ -4,8 +4,6 @@ import type PackageResolver from './package-resolver.js';
 import type PackageLinker from './package-linker.js';
 import type {HoistManifest} from './package-hoister.js';
 
-import Lockfile from './lockfile';
-
 const invariant = require('invariant');
 
 export type HoistedTree = {
