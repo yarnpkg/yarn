@@ -2,8 +2,8 @@
     "name": "no-deps-scripted",
     "version": "1.0.0",
     "scripts": {
-        "preinstall": "echo preinstall >> log",
-        "install": "echo install >> log",
-        "postinstall": "echo postinstall >> log"
+        "preinstall": "echo 'module.exports.push(100);' >> log.js",
+        "install": "echo 'module.exports.push(200);' >> log.js",
+        "postinstall": "echo 'module.exports.push(300);' >> log.js; echo 'module.exports = '\"$RANDOM\"';' > rnd.js"
     }
 }

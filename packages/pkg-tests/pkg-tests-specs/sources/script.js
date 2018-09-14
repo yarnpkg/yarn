@@ -194,5 +194,14 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
         });
       }),
     );
+
+    test(
+      `it should run install scripts during the install`,
+      makeTemporaryEnv({dependencies: {[`no-deps-scripted`]: `1.0.0`}}, async ({path, run, source}) => {
+        await run(`install`);
+
+        await expect(source(`require('no-deps-scripted/log.js')`)).resolves.toEqual([100, 200, 300]);
+      }),
+    );
   });
 };

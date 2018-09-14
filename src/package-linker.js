@@ -278,7 +278,7 @@ export default class PackageLinker {
 
       if (this.config.plugnplayEnabled) {
         ref.isPlugnplay = true;
-        if (await this._isUnplugged(ref)) {
+        if (await this._isUnplugged(pkg, ref)) {
           dest = this.config.generatePackageUnpluggedPath(ref);
 
           // We don't skip the copy if the unplugged package isn't materialized yet
@@ -683,9 +683,14 @@ export default class PackageLinker {
     }
   }
 
-  async _isUnplugged(ref: PackageReference): Promise<boolean> {
+  async _isUnplugged(pkg: Manifest, ref: PackageReference): Promise<boolean> {
     // If an unplugged folder exists for the specified package, we simply use it
     if (await fs.exists(this.config.generatePackageUnpluggedPath(ref))) {
+      return true;
+    }
+
+    // If the package has a postinstall script, we also eject it (otherwise they would run into the cache)
+    if (pkg.scripts && (pkg.scripts.preinstall || pkg.scripts.install || pkg.scripts.postinstall)) {
       return true;
     }
 

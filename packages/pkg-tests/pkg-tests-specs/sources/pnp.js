@@ -1,5 +1,6 @@
 const cp = require('child_process');
-const fs = require('fs-extra');
+const {existsSync, statSync, stat, rename, readdir, remove} = require('fs-extra');
+const {relative, isAbsolute} = require('path');
 
 const {
   fs: {createTemporaryFolder, readFile, readJson, writeFile, writeJson},
@@ -44,7 +45,7 @@ module.exports = makeTemporaryEnv => {
       makeTemporaryEnv({}, {plugNPlay: false}, async ({path, run, source}) => {
         await run(`install`);
 
-        expect(fs.existsSync(`${path}/.pnp.js`)).toEqual(false);
+        expect(existsSync(`${path}/.pnp.js`)).toEqual(false);
       }),
     );
 
@@ -58,14 +59,14 @@ module.exports = makeTemporaryEnv => {
         async ({path, run, source}) => {
           await run(`install`);
 
-          const beforeTime = (await fs.stat(`${path}/.pnp.js`)).mtimeMs;
+          const beforeTime = (await stat(`${path}/.pnp.js`)).mtimeMs;
 
           // Need to wait two seconds to be sure that the mtime will change
           await new Promise(resolve => setTimeout(resolve, 2000));
 
           await run(`install`);
 
-          const afterTime = (await fs.stat(`${path}/.pnp.js`)).mtimeMs;
+          const afterTime = (await stat(`${path}/.pnp.js`)).mtimeMs;
 
           expect(afterTime).toEqual(beforeTime);
         },
@@ -82,7 +83,7 @@ module.exports = makeTemporaryEnv => {
         async ({path, run, source}) => {
           await run(`install`);
 
-          const beforeTime = (await fs.stat(`${path}/.pnp.js`)).mtimeMs;
+          const beforeTime = (await stat(`${path}/.pnp.js`)).mtimeMs;
 
           await writeJson(`${path}/package.json`, {
             dependencies: {
@@ -95,7 +96,7 @@ module.exports = makeTemporaryEnv => {
 
           await run(`install`);
 
-          const afterTime = (await fs.stat(`${path}/.pnp.js`)).mtimeMs;
+          const afterTime = (await stat(`${path}/.pnp.js`)).mtimeMs;
 
           expect(afterTime).not.toEqual(beforeTime);
         },
@@ -557,7 +558,7 @@ module.exports = makeTemporaryEnv => {
         async ({path, run, source}) => {
           await run(`install`);
 
-          expect(fs.existsSync(`${path}/.pnp.js`)).toEqual(true);
+          expect(existsSync(`${path}/.pnp.js`)).toEqual(true);
         },
       ),
     );
@@ -604,7 +605,7 @@ module.exports = makeTemporaryEnv => {
         async ({path, run, source}) => {
           await run(`install`);
 
-          expect(fs.statSync(`${path}/.pnp.js`).mode & 0o111).toEqual(0o111);
+          expect(statSync(`${path}/.pnp.js`).mode & 0o111).toEqual(0o111);
 
           const result = JSON.parse(cp.execFileSync(`${path}/.pnp.js`, [`no-deps`, `${path}/`], {encoding: `utf-8`}));
 
@@ -633,7 +634,7 @@ module.exports = makeTemporaryEnv => {
         async ({path, run, source}) => {
           await run(`install`);
 
-          expect(fs.statSync(`${path}/.pnp.js`).mode & 0o111).toEqual(0o111);
+          expect(statSync(`${path}/.pnp.js`).mode & 0o111).toEqual(0o111);
 
           const result = JSON.parse(cp.execFileSync(`${path}/.pnp.js`, [`fs`, `${path}/`], {encoding: `utf-8`}));
 
@@ -657,7 +658,7 @@ module.exports = makeTemporaryEnv => {
         async ({path, run, source}) => {
           await run(`install`);
 
-          expect(fs.statSync(`${path}/.pnp.js`).mode & 0o111).toEqual(0o111);
+          expect(statSync(`${path}/.pnp.js`).mode & 0o111).toEqual(0o111);
 
           const result = JSON.parse(
             cp.execFileSync(`${path}/.pnp.js`, [`doesnt-exists`, `${path}/`], {encoding: `utf-8`}),
@@ -802,8 +803,8 @@ module.exports = makeTemporaryEnv => {
             async ({path: path2, run: run2, source: source2}) => {
               // Move the install artifacts into a new location
               // If the .pnp.js file references absolute paths, they will stop working
-              await fs.rename(`${path}/.cache`, `${path2}/.cache`);
-              await fs.rename(`${path}/.pnp.js`, `${path2}/.pnp.js`);
+              await rename(`${path}/.cache`, `${path2}/.cache`);
+              await rename(`${path}/.pnp.js`, `${path2}/.pnp.js`);
 
               await expect(source2(`require('no-deps')`)).resolves.toMatchObject({
                 name: `no-deps`,
@@ -866,7 +867,7 @@ module.exports = makeTemporaryEnv => {
           await run(`install`);
           await run(`unplug`, `various-requires`);
 
-          const listing = await fs.readdir(`${path}/.pnp/unplugged`);
+          const listing = await readdir(`${path}/.pnp/unplugged`);
           expect(listing).toHaveLength(1);
 
           await writeFile(
@@ -898,7 +899,7 @@ module.exports = makeTemporaryEnv => {
         async ({path, run, source}) => {
           await run(`unplug`, `various-requires`);
 
-          const listing = await fs.readdir(`${path}/.pnp/unplugged`);
+          const listing = await readdir(`${path}/.pnp/unplugged`);
           expect(listing).toHaveLength(1);
 
           await writeFile(
@@ -950,7 +951,7 @@ module.exports = makeTemporaryEnv => {
           await run(`install`);
           await run(`unplug`, `various-requires`, `no-deps`);
 
-          await expect(fs.readdir(`${path}/.pnp/unplugged`)).resolves.toHaveLength(3);
+          await expect(readdir(`${path}/.pnp/unplugged`)).resolves.toHaveLength(3);
         },
       ),
     );
@@ -972,7 +973,7 @@ module.exports = makeTemporaryEnv => {
           await run(`install`);
           await run(`unplug`, `various-requires`, `no-deps@^1.0.0`);
 
-          await expect(fs.readdir(`${path}/.pnp/unplugged`)).resolves.toHaveLength(2);
+          await expect(readdir(`${path}/.pnp/unplugged`)).resolves.toHaveLength(2);
         },
       ),
     );
@@ -1054,7 +1055,7 @@ module.exports = makeTemporaryEnv => {
           await run(`unplug`, `various-requires`);
           await run(`install`);
 
-          await expect(fs.readdir(`${path}/.pnp/unplugged`)).resolves.toHaveLength(1);
+          await expect(readdir(`${path}/.pnp/unplugged`)).resolves.toHaveLength(1);
         },
       ),
     );
@@ -1075,7 +1076,7 @@ module.exports = makeTemporaryEnv => {
           await run(`unplug`, `various-requires`);
           await run(`unplug`, `no-deps`);
 
-          await expect(fs.readdir(`${path}/.pnp/unplugged`)).resolves.toHaveLength(2);
+          await expect(readdir(`${path}/.pnp/unplugged`)).resolves.toHaveLength(2);
         },
       ),
     );
@@ -1095,11 +1096,11 @@ module.exports = makeTemporaryEnv => {
         async ({path, run, source}) => {
           await run(`unplug`, `various-requires`);
 
-          await expect(fs.readdir(`${path}/.pnp/unplugged`)).resolves.toHaveLength(1);
+          await expect(readdir(`${path}/.pnp/unplugged`)).resolves.toHaveLength(1);
 
           await run(`unplug`, `various-requires`, `--clear`);
 
-          await expect(fs.exists(`${path}/.pnp/unplugged`)).resolves.toEqual(false);
+          expect(existsSync(`${path}/.pnp/unplugged`)).toEqual(false);
         },
       ),
     );
@@ -1120,7 +1121,7 @@ module.exports = makeTemporaryEnv => {
           await run(`unplug`, `various-requires`);
           await run(`unplug`, `--clear-all`);
 
-          await expect(fs.exists(`${path}/.pnp/unplugged`)).resolves.toEqual(false);
+          expect(existsSync(`${path}/.pnp/unplugged`)).toEqual(false);
         },
       ),
     );
@@ -1141,7 +1142,7 @@ module.exports = makeTemporaryEnv => {
           await run(`install`);
           await run(`unplug`, `various-requires`);
 
-          const listing = await fs.readdir(`${path}/.pnp/unplugged`);
+          const listing = await readdir(`${path}/.pnp/unplugged`);
           expect(listing).toHaveLength(1);
 
           await writeFile(
@@ -1156,6 +1157,53 @@ module.exports = makeTemporaryEnv => {
             name: `no-deps`,
             version: `1.0.0`,
           });
+        },
+      ),
+    );
+
+    test(
+      `it should automatically eject packages with postinstall scripts`,
+      makeTemporaryEnv(
+        {
+          dependencies: {[`no-deps-scripted`]: `1.0.0`},
+        },
+        {plugNPlay: true},
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          const resolution = await source(`require.resolve('no-deps-scripted')`);
+          const cacheRelativeResolution = relative(`${path}/.cache`, resolution);
+
+          expect(
+            cacheRelativeResolution &&
+              !cacheRelativeResolution.startsWith(`..${path.sep}`) &&
+              !isAbsolute(cacheRelativeResolution),
+          );
+        },
+      ),
+    );
+
+    test(
+      `it should not cache the postinstall artifacts`,
+      makeTemporaryEnv(
+        {
+          dependencies: {[`no-deps-scripted`]: `1.0.0`},
+        },
+        {plugNPlay: true},
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          const rndBefore = await source(`require('no-deps-scripted/rnd.js')`);
+
+          await remove(`${path}/.pnp`);
+          await remove(`${path}/.pnp.js`);
+
+          await run(`install`);
+
+          const rndAfter = await source(`require('no-deps-scripted/rnd.js')`);
+
+          // It might fail once every blue moon, when the two random numbers are equal
+          expect(rndAfter).not.toEqual(rndBefore);
         },
       ),
     );
