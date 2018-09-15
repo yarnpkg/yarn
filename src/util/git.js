@@ -319,6 +319,7 @@ export default class Git implements GitRefResolvingInterface {
 
     return fs.lockQueue.push(gitUrl.repository, async () => {
       if (await fs.exists(cwd)) {
+        await spawnGit(['fetch', '--tags'], {cwd});
         await spawnGit(['pull'], {cwd});
       } else {
         await spawnGit(['clone', gitUrl.repository, cwd]);
