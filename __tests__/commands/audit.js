@@ -1,6 +1,6 @@
 /* @flow */
 
-import {ConsoleReporter} from '../../src/reporters/index.js';
+import {NoopReporter} from '../../src/reporters/index.js';
 import {run as buildRun} from './_helpers.js';
 import {run as audit} from '../../src/cli/commands/audit.js';
 
@@ -8,7 +8,8 @@ const path = require('path');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'audit');
 
-const setupMocks = function(config, apiResponse) {
+const setupMockRequestManager = function(config) {
+  const apiResponse = getAuditResponse(config);
   // $FlowFixMe
   config.requestManager.request = jest.fn();
   config.requestManager.request.mockReturnValue(
@@ -18,39 +19,33 @@ const setupMocks = function(config, apiResponse) {
   );
 };
 
-const runAudit = function(apiResponse, ...args): Promise<void> {
-  return buildRun(
-    ConsoleReporter,
-    fixturesLoc,
-    async (args, flags, config, reporter, lockfile, getStdout): Promise<string> => {
-      setupMocks(config, apiResponse);
-      await audit(config, reporter, flags, args);
-      return getStdout();
-    },
-    ...args,
-  );
+const setupMockReporter = function(reporter) {
+  // $FlowFixMe
+  reporter.auditAdvisory = jest.fn();
+  // $FlowFixMe
+  reporter.auditAction = jest.fn();
+  // $FlowFixMe
+  reporter.auditSummary = jest.fn();
 };
 
-test.concurrent('sends correct dependency map to audit api for single dependency.', () => {
-  const apiResponse = {
-    actions: [],
-    advisories: {},
-    muted: [],
-    metadata: {
-      vulnerabilities: {
-        info: 0,
-        low: 0,
-        moderate: 0,
-        high: 0,
-        critical: 0,
-      },
-      dependencies: 4,
-      devDependencies: 0,
-      optionalDependencies: 0,
-      totalDependencies: 4,
-    },
-  };
+const getAuditResponse = function(config): Object {
+  // $FlowFixMe
+  return require(path.join(config.cwd, 'audit-api-response.json'));
+};
 
+const runAudit = buildRun.bind(
+  null,
+  NoopReporter,
+  fixturesLoc,
+  async (args, flags, config, reporter, lockfile, getStdout): Promise<string> => {
+    setupMockRequestManager(config);
+    setupMockReporter(reporter);
+    await audit(config, reporter, flags, args);
+    return getStdout();
+  },
+);
+
+test.concurrent('sends correct dependency map to audit api for single dependency.', () => {
   const expectedApiPost = {
     name: 'yarn-test',
     install: [],
@@ -93,11 +88,36 @@ test.concurrent('sends correct dependency map to audit api for single dependency
     version: '0.0.0',
   };
 
-  return runAudit(apiResponse, [], {}, 'single-vulnerable-dep-installed', config => {
+  return runAudit([], {}, 'single-vulnerable-dep-installed', config => {
     expect(config.requestManager.request).toBeCalledWith(
       expect.objectContaining({
         body: expectedApiPost,
       }),
     );
+  });
+});
+
+test('calls reporter auditAdvisory with correct data', () => {
+  return runAudit([], {}, 'single-vulnerable-dep-installed', (config, reporter) => {
+    const apiResponse = getAuditResponse(config);
+    expect(reporter.auditAdvisory).toBeCalledWith(apiResponse.actions[0].resolves[0], apiResponse.advisories['118']);
+  });
+});
+
+test('calls reporter auditAction with correct data', () => {
+  return runAudit([], {}, 'single-vulnerable-dep-installed', (config, reporter) => {
+    const apiResponse = getAuditResponse(config);
+    expect(reporter.auditAction).toBeCalledWith({
+      cmd: 'yarn upgrade minimatch@3.0.4',
+      isBreaking: false,
+      action: apiResponse.actions[0],
+    });
+  });
+});
+
+test('calls reporter auditSummary with correct data', () => {
+  return runAudit([], {}, 'single-vulnerable-dep-installed', (config, reporter) => {
+    const apiResponse = getAuditResponse(config);
+    expect(reporter.auditSummary).toBeCalledWith(apiResponse.metadata);
   });
 });
