@@ -226,7 +226,9 @@ test('RequestManager.execute fails on 500 error', async () => {
     },
     resolve: body => {},
     reject: err => {
-      expect(err.message).toBe('https://localhost:port/?nocache: Request "https://localhost:port/?nocache" returned a 500');
+      expect(err.message).toBe(
+        'https://localhost:port/?nocache: Request "https://localhost:port/?nocache" returned a 500',
+      );
     },
   });
 });
