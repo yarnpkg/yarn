@@ -131,3 +131,16 @@ test.concurrent('can specify a path', () => {
     );
   });
 });
+
+test.concurrent('can specify a path without `--new-version`', () => {
+  return runPublish(['mypkg'], {}, 'subdir', config => {
+    expect(config.registries.npm.request).toBeCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        body: expect.objectContaining({
+          access: undefined,
+        }),
+      }),
+    );
+  });
+});

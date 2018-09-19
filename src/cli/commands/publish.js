@@ -151,7 +151,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   //
   reporter.step(1, 4, reporter.lang('bumpingVersion'));
-  const commitVersion = await setVersion(config, reporter, flags, args, false);
+  const commitVersion = await setVersion(config, reporter, flags, [], false);
 
   //
   reporter.step(2, 4, reporter.lang('loggingIn'));
