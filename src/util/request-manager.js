@@ -394,7 +394,7 @@ export default class RequestManager {
           return;
         }
 
-        if (res.statusCode === 403) {
+        if (res.statusCode === 403 || res.statusCode >= 500) {
           const errMsg = (body && body.message) || reporter.lang('requestError', params.url, res.statusCode);
           reject(new Error(errMsg));
         } else {

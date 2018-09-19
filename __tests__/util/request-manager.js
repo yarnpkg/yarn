@@ -205,6 +205,34 @@ test('RequestManager.execute Request 403 error', async () => {
   });
 });
 
+// Cloudflare will occasionally return an html response with a 500 status code on some calls
+test('RequestManager.execute fails on 500 error', async () => {
+  jest.resetModules();
+  const config = await Config.create({}, new Reporter());
+  jest.mock('request', factory => options => {
+    options.callback(
+      '',
+      {statusCode: 500},
+      `<!DOCTYPE html><title>Rendering error | registry.yarnpkg.com | Cloudflare</title>...`,
+    );
+    return {
+      on: () => {},
+    };
+  });
+  await config.requestManager.execute({
+    params: {
+      url: `https://localhost:port/?nocache`,
+      headers: {Connection: 'close'},
+    },
+    resolve: body => {},
+    reject: err => {
+      expect(err.message).toBe(
+        'https://localhost:port/?nocache: Request "https://localhost:port/?nocache" returned a 500',
+      );
+    },
+  });
+});
+
 test('RequestManager.request with offlineNoRequests', async () => {
   const config = await Config.create({offline: true}, new Reporter());
   try {
