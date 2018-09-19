@@ -397,6 +397,9 @@ export default class RequestManager {
         if (res.statusCode === 403) {
           const errMsg = (body && body.message) || reporter.lang('requestError', params.url, res.statusCode);
           reject(new Error(errMsg));
+        } else if (res.statusCode >= 500) {
+          const errMsg = 'Registry error';
+          reject(new Error(errMsg));
         } else {
           if ([400, 401, 404].concat(params.rejectStatusCode || []).indexOf(res.statusCode) !== -1) {
             body = false;
