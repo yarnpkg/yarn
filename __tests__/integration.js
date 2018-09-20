@@ -2,6 +2,7 @@
 /* eslint max-len: 0 */
 
 import http from 'http';
+import {existsSync} from 'fs';
 
 import invariant from 'invariant';
 import execa from 'execa';
@@ -15,6 +16,10 @@ import en from '../src/reporters/lang/en.js';
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
 
 const path = require('path');
+
+if (!existsSync(path.resolve(__dirname, '../lib'))) {
+  throw new Error('These tests require `yarn build` to have been run first.');
+}
 
 function addTest(pattern, {strictPeers} = {strictPeers: false}, yarnArgs: Array<string> = []) {
   test.concurrent(`yarn add ${pattern}`, async () => {

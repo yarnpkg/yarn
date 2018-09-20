@@ -746,6 +746,15 @@ test.concurrent('modules resolved multiple times should save to mirror correctly
   });
 });
 
+// For some packages the NPM registry is incorrectly returning HTTP tarball URLs, eg:
+// http://registry.npmjs.org/onetime/-/onetime-1.1.0.tgz
+test.concurrent('Insecure HTTP npmjs tarball URLs should still be normalised to registry.yarnpkg.com', async () => {
+  await runAdd(['onetime@1.1.0'], {}, 'add-with-no-manifest', async config => {
+    const lockFileLines = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    expect(lockFileLines[2]).toContain('resolved "https://registry.yarnpkg.com/onetime/-/onetime-1.1.0.tgz');
+  });
+});
+
 test.concurrent('add should put a git dependency to mirror', async () => {
   const mirrorPath = 'mirror-for-offline';
 

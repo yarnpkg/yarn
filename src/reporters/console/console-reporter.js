@@ -135,7 +135,7 @@ export default class ConsoleReporter extends BaseReporter {
     if (typeof value !== 'number' && typeof value !== 'string') {
       value = inspect(value, {
         breakLength: 0,
-        colors: true,
+        colors: this.isTTY,
         depth: null,
         maxArrayLength: null,
       });

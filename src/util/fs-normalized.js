@@ -36,9 +36,11 @@ export const unlink: (path: string) => Promise<void> = promisify(require('rimraf
  * to force the correct naming when the filename has changed only in character-casing. (Jest -> jest).
  */
 export const copyFile = async function(data: CopyFileAction, cleanup: () => mixed): Promise<void> {
+  // $FlowFixMe: Flow doesn't currently support COPYFILE_FICLONE
+  const ficloneFlag = fs.constants.COPYFILE_FICLONE || 0;
   try {
     await unlink(data.dest);
-    await copyFilePoly(data.src, data.dest, 0, data);
+    await copyFilePoly(data.src, data.dest, ficloneFlag, data);
   } finally {
     if (cleanup) {
       cleanup();

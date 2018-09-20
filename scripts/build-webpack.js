@@ -28,11 +28,11 @@ const compiler = webpack({
     'packages/lockfile/index.js': path.join(basedir, 'src/lockfile/index.js'),
   },
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        loader: 'babel-loader',
+        use: 'babel-loader',
       },
       {
         test: /rx\.lite\.aggregates\.js/,
@@ -70,12 +70,20 @@ const compilerLegacy = webpack({
   // devtool: 'inline-source-map',
   entry: path.join(basedir, 'src/cli/index.js'),
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        loader: 'babel-loader',
-        query: babelRc.env['pre-node5'],
+        use: [
+          {
+            loader:'babel-loader',
+            options: babelRc.env['pre-node5'],
+          }
+        ],
+      },
+      {
+        test: /rx\.lite\.aggregates\.js/,
+        use: 'imports-loader?define=>false'
       },
     ],
   },

@@ -1,5 +1,7 @@
 /* @flow */
 
+import {existsSync} from 'fs';
+
 import NoopReporter from '../src/reporters/base-reporter.js';
 import makeTemp from './_temp';
 import * as fs from '../src/util/fs.js';
@@ -11,6 +13,10 @@ const fixturesLoc = path.join(__dirname, './fixtures/lifecycle-scripts');
 const yarnBin = path.join(__dirname, '../bin/yarn.js');
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
+
+if (!existsSync(path.resolve(__dirname, '../lib'))) {
+  throw new Error('These tests require `yarn build` to have been run first.');
+}
 
 async function execCommand(cmd: string, packageName: string, env = process.env): Promise<string> {
   const srcPackageDir = path.join(fixturesLoc, packageName);

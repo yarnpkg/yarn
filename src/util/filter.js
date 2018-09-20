@@ -101,7 +101,7 @@ export function matchesFilter(filter: IgnoreFilter, basename: string, loc: strin
     filterByBasename = false;
   }
   // the micromatch regex expects unix path separators
-  loc = loc.replace('\\', '/');
+  loc = loc.replace(/\\/g, '/');
 
   return (
     filter.regex.test(loc) ||
