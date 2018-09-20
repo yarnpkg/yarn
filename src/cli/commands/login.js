@@ -41,8 +41,10 @@ export async function getToken(
   reporter: Reporter,
   name: string = '',
   flags: Object = {},
+  registry: string = '',
 ): Promise<() => Promise<void>> {
-  const auth = config.registries.npm.getAuth(name);
+  const auth = registry ? config.registries.npm.getAuthByRegistry(registry) : config.registries.npm.getAuth(name);
+
   if (auth) {
     config.registries.npm.setToken(auth);
     return function revoke(): Promise<void> {
