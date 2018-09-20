@@ -149,7 +149,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     throw new MessageError(reporter.lang('noName'));
   }
 
-  let registry = '';
+  let registry: string = '';
 
   if (pkg && pkg.publishConfig && pkg.publishConfig.registry) {
     registry = pkg.publishConfig.registry;
