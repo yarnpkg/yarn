@@ -149,6 +149,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     throw new MessageError(reporter.lang('noName'));
   }
 
+  if (!flags.registry && pkg && pkg.registry) {
+    flags.registry = pkg.registry;
+  }
+
   //
   reporter.step(1, 4, reporter.lang('bumpingVersion'));
   const commitVersion = await setVersion(config, reporter, flags, [], false);
