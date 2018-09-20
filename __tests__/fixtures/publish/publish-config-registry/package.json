@@ -1,0 +1,7 @@
+{
+  "name": "test",
+  "version": "0.0.0",
+  "publishConfig": {
+    "registry": "https://registry.myorg.com/"
+  }
+}

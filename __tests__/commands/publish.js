@@ -22,6 +22,8 @@ const setupMocks = function(config) {
   // $FlowFixMe
   config.registries.npm.getAuth = jest.fn();
   config.registries.npm.getAuth.mockReturnValue('test');
+  config.registries.npm.getAuthByRegistry = jest.fn();
+  config.registries.npm.getAuthByRegistry.mockReturnValue('test2');
 };
 
 const runPublish = buildRun.bind(
@@ -142,5 +144,34 @@ test.concurrent('can specify a path without `--new-version`', () => {
         }),
       }),
     );
+  });
+});
+
+test.concurrent('publish should respect publishConfig.registry ', () => {
+  const registry = 'https://registry.myorg.com/';
+
+  return runPublish([], {}, 'publish-config-registry', config => {
+    expect(config.registries.npm.request).toBeCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        registry,
+      }),
+    );
+    expect(config.registries.npm.getAuthByRegistry).toBeCalledWith(registry);
+  });
+});
+
+test.concurrent('publish with publishConfig.registry and --registry', () => {
+  const registry = 'https://registry.myorg.com/';
+  const registry2 = 'https://registry2.myorg.com/';
+
+  return runPublish([], {registry: registry2}, 'publish-config-registry', config => {
+    expect(config.registries.npm.request).toBeCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        registry,
+      }),
+    );
+    expect(config.registries.npm.getAuthByRegistry).toBeCalledWith(registry);
   });
 });
