@@ -141,6 +141,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   }
 
   // validate package fields that are required for publishing
+  // $FlowFixMe
   const pkg = await config.readRootManifest();
   if (pkg.private) {
     throw new MessageError(reporter.lang('publishPrivate'));

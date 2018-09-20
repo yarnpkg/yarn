@@ -22,6 +22,7 @@ const setupMocks = function(config) {
   // $FlowFixMe
   config.registries.npm.getAuth = jest.fn();
   config.registries.npm.getAuth.mockReturnValue('test');
+  // $FlowFixMe
   config.registries.npm.getAuthByRegistry = jest.fn();
   config.registries.npm.getAuthByRegistry.mockReturnValue('test2');
 };
