@@ -183,28 +183,30 @@ test('RequestManager.execute timeout error with default maxRetryAttempts', async
   }
 });
 
-test('RequestManager.execute Request 403 error', async () => {
-  // The await await is just to silence Flow - https://github.com/facebook/flow/issues/6064
-  const config = await await Config.create({}, new Reporter());
-  jest.mock('request', factory => options => {
-    options.callback('', {statusCode: 403}, '');
-    return {
-      on: () => {},
-    };
+for (const statusCode of [403, 442, 542]) {
+  test(`RequestManager.execute Request ${statusCode} error`, async () => {
+    // The await await is just to silence Flow - https://github.com/facebook/flow/issues/6064
+    const config = await await Config.create({}, new Reporter());
+    jest.mock('request', factory => options => {
+      options.callback('', {statusCode}, '');
+      return {
+        on: () => {},
+      };
+    });
+    await config.requestManager.execute({
+      params: {
+        url: `https://localhost:port/?nocache`,
+        headers: {Connection: 'close'},
+      },
+      resolve: body => {},
+      reject: err => {
+        expect(err.message).toBe(
+          `https://localhost:port/?nocache: Request "https://localhost:port/?nocache" returned a ${statusCode}`,
+        );
+      },
+    });
   });
-  await config.requestManager.execute({
-    params: {
-      url: `https://localhost:port/?nocache`,
-      headers: {Connection: 'close'},
-    },
-    resolve: body => {},
-    reject: err => {
-      expect(err.message).toBe(
-        'https://localhost:port/?nocache: Request "https://localhost:port/?nocache" returned a 403',
-      );
-    },
-  });
-});
+}
 
 // Cloudflare will occasionally return an html response with a 500 status code on some calls
 test('RequestManager.execute retries on 500 error', async () => {
