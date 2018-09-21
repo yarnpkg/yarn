@@ -324,6 +324,30 @@ export default class NpmRegistry extends Registry {
     return DEFAULT_REGISTRY;
   }
 
+  getAuthByRegistry(registry: string): string {
+    // Check for bearer token.
+    const authToken = this.getRegistryOrGlobalOption(registry, '_authToken');
+    if (authToken) {
+      return `Bearer ${String(authToken)}`;
+    }
+
+    // Check for basic auth token.
+    const auth = this.getRegistryOrGlobalOption(registry, '_auth');
+    if (auth) {
+      return `Basic ${String(auth)}`;
+    }
+
+    // Check for basic username/password auth.
+    const username = this.getRegistryOrGlobalOption(registry, 'username');
+    const password = this.getRegistryOrGlobalOption(registry, '_password');
+    if (username && password) {
+      const pw = Buffer.from(String(password), 'base64').toString();
+      return 'Basic ' + Buffer.from(String(username) + ':' + pw).toString('base64');
+    }
+
+    return '';
+  }
+
   getAuth(packageIdent: string): string {
     if (this.token) {
       return this.token;
@@ -338,24 +362,10 @@ export default class NpmRegistry extends Registry {
     }
 
     for (const registry of registries) {
-      // Check for bearer token.
-      const authToken = this.getRegistryOrGlobalOption(registry, '_authToken');
-      if (authToken) {
-        return `Bearer ${String(authToken)}`;
-      }
+      const auth = this.getAuthByRegistry(registry);
 
-      // Check for basic auth token.
-      const auth = this.getRegistryOrGlobalOption(registry, '_auth');
       if (auth) {
-        return `Basic ${String(auth)}`;
-      }
-
-      // Check for basic username/password auth.
-      const username = this.getRegistryOrGlobalOption(registry, 'username');
-      const password = this.getRegistryOrGlobalOption(registry, '_password');
-      if (username && password) {
-        const pw = Buffer.from(String(password), 'base64').toString();
-        return 'Basic ' + Buffer.from(String(username) + ':' + pw).toString('base64');
+        return auth;
       }
     }
 
