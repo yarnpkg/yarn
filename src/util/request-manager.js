@@ -431,14 +431,13 @@ export default class RequestManager {
           return;
         }
 
-        if ([403, 408].indexOf() !== -1 || res.statusCode >= 500) {
+        if ([400, 401, 404].concat(params.rejectStatusCode || []).indexOf(res.statusCode) !== -1) {
+          // So this is actually a rejection ... the hosted git resolver uses this to know whether http is supported
+          resolve(false);
+        } else if (res.statusCode >= 400) {
           const errMsg = (body && body.message) || reporter.lang('requestError', params.url, res.statusCode);
           reject(new Error(errMsg));
         } else {
-          // So this is actually a rejection ... the hosted git resolver uses this to know whether http is supported
-          if ([400, 401, 404].concat(params.rejectStatusCode || []).indexOf(res.statusCode) !== -1) {
-            body = false;
-          }
           resolve(body);
         }
       };
