@@ -1,5 +1,5 @@
 {
-  "only": "*.js",
+  "only": ["*.js"],
   "env": {
     "pre-node5": {
       "presets": [
