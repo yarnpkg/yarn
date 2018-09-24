@@ -11,6 +11,7 @@ const StringDecoder = require('string_decoder');
 const ignorePattern = $$BLACKLIST ? new RegExp($$BLACKLIST) : null;
 
 const builtinModules = new Set(Module.builtinModules || Object.keys(process.binding('natives')));
+const patchedModules = new Map();
 
 // Splits a require request into its components, or return null if the request is a file path
 const pathRegExp = /^(?!\.{0,2}(?:\/|$))((?:@[^\/]+\/)?[^\/]+)\/?(.*|)$/;
@@ -292,10 +293,10 @@ exports.getPackageInformation = function getPackageInformation({name, reference}
  * imports won't be computed correctly (they'll get resolved relative to "/tmp/" instead of "/tmp/foo/").
  */
 
-exports.resolveToUnqualified = function resolveToUnqualified(request, issuer) {
+exports.resolveToUnqualified = function resolveToUnqualified(request, issuer, {considerBuiltins = true} = {}) {
   // Bailout if the request is a native module
 
-  if (builtinModules.has(request)) {
+  if (considerBuiltins && builtinModules.has(request)) {
     return null;
   }
 
@@ -472,11 +473,11 @@ exports.resolveUnqualified = function resolveUnqualified(
  * imports won't be computed correctly (they'll get resolved relative to "/tmp/" instead of "/tmp/foo/").
  */
 
-exports.resolveRequest = function resolveRequest(request, issuer, {extensions} = {}) {
+exports.resolveRequest = function resolveRequest(request, issuer, {considerBuiltins, extensions} = {}) {
   let unqualifiedPath;
 
   try {
-    unqualifiedPath = exports.resolveToUnqualified(request, issuer);
+    unqualifiedPath = exports.resolveToUnqualified(request, issuer, {considerBuiltins});
   } catch (originalError) {
     // If we get a BUILTIN_NODE_RESOLUTION_FAIL error there, it means that we've had to use the builtin node
     // resolution, which usually shouldn't happen. It might be because the user is trying to require something
@@ -609,6 +610,12 @@ exports.setup = function setup() {
       }
     }
 
+    // Some modules might have to be patched for compatibility purposes
+
+    if (patchedModules.has(request)) {
+      module.exports = patchedModules.get(request)(module.exports);
+    }
+
     return module.exports;
   };
 
@@ -663,42 +670,85 @@ exports.setupCompatibilityLayer = () => {
     return stack[2].getFileName();
   };
 
-  const resolveSyncShim = (request, options = {}) => {
-    let basedir = options.basedir || path.dirname(getCaller());
-    basedir = basedir.replace(/\/?$/, '/');
+  // We need to shim the "resolve" module, because Liftoff uses it in order to find the location
+  // of the module in the dependency tree. And Liftoff is used to power Gulp, which doesn't work
+  // at all unless modulePath is set, which we cannot configure from any other way than through
+  // the Liftoff pipeline (the key isn't whitelisted for env or cli options).
 
-    return exports.resolveRequest(request, basedir);
-  };
+  patchedModules.set('resolve', resolve => {
+    const mustBeShimmed = caller => {
+      const callerLocator = exports.findPackageLocator(caller);
 
-  const resolveShim = (request, options, callback) => {
-    if (typeof options === 'function') {
-      callback = options;
-      options = {};
-    }
+      return callerLocator && callerLocator.name === 'liftoff';
+    };
 
-    // We need to compute it here because otherwise resolveSyncShim will read the wrong stacktrace entry
-    let basedir = options.basedir || path.dirname(getCaller());
-    basedir = basedir.replace(/\/?$/, '/');
+    const attachCallerToOptions = (caller, options) => {
+      if (!options.basedir) {
+        options.basedir = path.dirname(caller);
+      };
+    };
 
-    setImmediate(() => {
-      let error;
-      let result;
+    const resolveSyncShim = (request, {basedir}) => {
+      return exports.resolveRequest(request, basedir, {
+        considerBuiltins: false,
+      });
+    };
 
-      try {
-        result = resolveShim.sync(request, Object.assign(options, {basedir}));
-      } catch (thrown) {
-        error = thrown;
+    const resolveShim = (request, options, callback) => {
+      setImmediate(() => {
+        let error;
+        let result;
+
+        try {
+          result = resolveSyncShim(request, options);
+        } catch (thrown) {
+          error = thrown;
+        }
+
+        callback(error, result);
+      });
+    };
+
+    const isCoreShim = request => {
+      return builtinModules.has(request);
+    };
+
+    return Object.assign((request, options, callback) => {
+      if (typeof options === 'function') {
+        callback = options;
+        options = {};
+      } else if (!options) {
+        options = {};
       }
 
-      callback(error, result);
+      const caller = getCaller();
+      attachCallerToOptions(caller, options);
+
+      if (mustBeShimmed(caller)) {
+        return resolveShim(request, options, callback);
+      } else {
+        return realResolve.sync(request, options, callback);
+      }
+    }, {
+      sync: (request, options) => {
+        if (!options) {
+          options = {};
+        }
+
+        const caller = getCaller();
+        attachCallerToOptions(caller, options);
+
+        if (mustBeShimmed(caller)) {
+          return resolveSyncShim(request, options);
+        } else {
+          return realResolve.sync(request, options);
+        }
+      },
+      isCore: request => {
+        return realResolve.isCore(request);
+      }
     });
-  };
-
-  const isCoreShim = request => {
-    return builtinModules.has(request);
-  };
-
-  moduleShims.set('resolve', Object.assign(resolveShim, {sync: resolveSyncShim, isCore: isCoreShim}));
+  });
 };
 
 if (module.parent && module.parent.id === 'internal/preload') {
