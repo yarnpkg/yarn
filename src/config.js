@@ -381,10 +381,7 @@ export default class Config {
     const manifest = await this.maybeReadManifest(this.cwd);
 
     const plugnplayByEnv = this.getOption('plugnplay-override');
-    if (process.platform === 'win32') {
-      this.plugnplayEnabled = false;
-      this.plugnplayPersist = false;
-    } else if (plugnplayByEnv != null) {
+    if (plugnplayByEnv != null) {
       this.plugnplayEnabled = plugnplayByEnv !== 'false' && plugnplayByEnv !== '0';
       this.plugnplayPersist = false;
     } else if (opts.enablePnp || opts.disablePnp) {
@@ -396,6 +393,14 @@ export default class Config {
     } else {
       this.plugnplayEnabled = false;
       this.plugnplayEnabled = false;
+    }
+
+    if (process.platform === 'win32') {
+      if (this.plugnplayEnabled) {
+        this.reporter.warn(this.reporter.lang('plugnplayWindowsSupport'));
+      }
+      this.plugnplayEnabled = false;
+      this.plugnplayPersist = false;
     }
 
     this.plugnplayShebang = String(this.getOption('plugnplay-shebang')) || '/usr/bin/env node';
