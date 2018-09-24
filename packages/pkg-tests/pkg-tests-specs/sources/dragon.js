@@ -2,6 +2,8 @@
 
 import type {PackageDriver} from 'pkg-tests-core';
 
+const {fs: {writeFile, writeJson}} = require('pkg-tests-core');
+
 // Here be dragons. The biggest and baddest tests, that just can't be described in a single line of summary. Because
 // of this, they each must be clearly documented and explained.
 //
@@ -19,7 +21,7 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
             [`dragon-test-1-e`]: `1.0.0`,
           },
         },
-        async ({path, run}) => {
+        async ({path, run, source}) => {
           // This test assumes the following:
           //
           // . -> D@1.0.0 -> C@1.0.0 -> B@1.0.0 -> A@1.0.0
@@ -51,6 +53,70 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
           // This test simply makes sure that this edge case doesn't crash the install.
 
           await run(`install`);
+        },
+      ),
+    );
+
+    test(
+      `it should pass the dragon test 2`,
+      makeTemporaryEnv(
+        {
+          private: true,
+          workspaces: [`dragon-test-2-a`, `dragon-test-2-b`],
+          dependencies: {
+            [`dragon-test-2-a`]: `1.0.0`,
+          },
+        },
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          // This test assumes the following:
+          //
+          // . -> A@workspace -> B@workspace -> no-deps@* (peer dep)
+          //                  -> no-deps@1.0.0
+          //
+          // In this situation, the implementation might register the workspaces one by
+          // one, going through all their dependencies before moving to the next one.
+          // Because the workspace B is also a dependency of the workspace A, it will be
+          // traversed a first time as a dependency of A, and then a second time as a
+          // workspace.
+          //
+          // A problem is when B also has peer dependencies, like in the setup described
+          // above. In this case, the Yarn implementation of PnP needs to generate a virtual
+          // package for B (in order to deambiguate the dependencies), and register it while
+          // processing A. Then later, when iterating over B, it is possible that the
+          // workspace registration overwrites the previously registered virtual dependency,
+          // making it unavailable whilst still being referenced in the dependencies of A.
+          //
+          // This test ensures that A can always require B.
+
+          await writeJson(`${path}/dragon-test-2-a/package.json`, {
+            name: `dragon-test-2-a`,
+            version: `1.0.0`,
+            dependencies: {
+              [`dragon-test-2-b`]: `1.0.0`,
+              [`no-deps`]: `1.0.0`,
+            },
+          });
+
+          await writeJson(`${path}/dragon-test-2-b/package.json`, {
+            name: `dragon-test-2-b`,
+            version: `1.0.0`,
+            peerDependencies: {
+              [`no-deps`]: `*`,
+            },
+          });
+
+          await writeFile(`${path}/dragon-test-2-a/index.js`, `module.exports = require('dragon-test-2-b')`);
+          await writeFile(`${path}/dragon-test-2-b/index.js`, `module.exports = require('no-deps')`);
+
+          await run(`install`);
+
+          await expect(source(`require("dragon-test-2-a")`)).resolves.toMatchObject({
+            name: `no-deps`,
+            version: `1.0.0`,
+          });
         },
       ),
     );

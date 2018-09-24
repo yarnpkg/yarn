@@ -945,7 +945,7 @@ export class NohoistResolver {
    * algorithm: a nohoist package should never be hoisted beyond the top of its branch, i.e.
    * the first element of its parts. Therefore the highest possible hoisting index is 1,
    * unless the package has only 1 part (itself), in such case returns null just like any hoisted package
-   * 
+   *
    */
 
   highestHoistingPoint = (info: HoistManifest): ?number => {
@@ -954,13 +954,16 @@ export class NohoistResolver {
 
   // private functions
   _isNohoist = (info: HoistManifest): boolean => {
-    if (!info.nohoistList || info.nohoistList.length <= 0) {
+    if (this._isTopPackage(info)) {
       return false;
     }
-    const path = this._originalPath(info);
-
-    // top package can not be marked 'nohoist' because it is already at the top (hoisted).
-    return !this._isTopPackage(info) && mm.any(path, info.nohoistList);
+    if (info.nohoistList && info.nohoistList.length > 0 && mm.any(this._originalPath(info), info.nohoistList)) {
+      return true;
+    }
+    if (this._config.plugnplayEnabled) {
+      return true;
+    }
+    return false;
   };
   _isRootPackage = (pkg: Manifest): boolean => {
     return pkg.name === this._wsRootPackageName;
@@ -970,7 +973,8 @@ export class NohoistResolver {
   };
   _makePath(...args: Array<string>): string {
     const parts = args.map(s => (s === this._wsRootPackageName ? WS_ROOT_ALIAS : s));
-    return parts.join('/');
+    const result = parts.join('/');
+    return result[0] === '/' ? result : '/' + result;
   }
   _isTopPackage = (info: HoistManifest): boolean => {
     const parentParts = info.parts.slice(0, -1);

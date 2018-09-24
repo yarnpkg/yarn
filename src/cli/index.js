@@ -71,6 +71,8 @@ export async function main({
   commander.option('--verbose', 'output verbose messages on internal operations');
   commander.option('--offline', 'trigger an error if any required dependencies are not available in local cache');
   commander.option('--prefer-offline', 'use network only if dependencies are not available in local cache');
+  commander.option('--enable-pnp, --pnp', "enable the Plug'n'Play installation");
+  commander.option('--disable-pnp', "disable the Plug'n'Play installation");
   commander.option('--strict-semver');
   commander.option('--json', 'format Yarn log messages as lines of JSON (see jsonlines.org)');
   commander.option('--ignore-scripts', "don't run lifecycle scripts");
@@ -186,13 +188,18 @@ export async function main({
   const PROXY_COMMANDS = new Set([`run`, `create`, `node`]);
   if (PROXY_COMMANDS.has(commandName)) {
     if (endArgs.length === 0) {
+      let preservedArgs = 0;
       // the "run" and "create" command take one argument that we want to parse as usual (the
       // script/package name), hence the splice(1)
       if (command === commands.run || command === commands.create) {
-        endArgs = ['--', ...args.splice(1)];
-      } else {
-        endArgs = ['--', ...args];
+        preservedArgs += 1;
       }
+      // If the --into option immediately follows the command (or the script name in the "run/create"
+      // case), we parse them as regular options so that we can cd into them
+      if (args[preservedArgs] === `--into`) {
+        preservedArgs += 2;
+      }
+      endArgs = ['--', ...args.splice(preservedArgs)];
     } else {
       warnAboutRunDashDash = true;
     }
@@ -494,6 +501,8 @@ export async function main({
       cwd,
       commandName,
 
+      enablePnp: commander.pnp,
+      disablePnp: commander.disablePnp,
       enableDefaultRc: commander.defaultRc,
       extraneousYarnrcFiles: commander.useYarnrc,
       binLinks: commander.binLinks,
@@ -516,7 +525,6 @@ export async function main({
       networkConcurrency: commander.networkConcurrency,
       networkTimeout: commander.networkTimeout,
       nonInteractive: commander.nonInteractive,
-      scriptsPrependNodePath: commander.scriptsPrependNodePath,
       updateChecksums: commander.updateChecksums,
       focus: commander.focus,
     })

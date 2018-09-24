@@ -10,7 +10,7 @@
         "babel-preset-env": "^1.6.1",
         "babel-preset-flow": "^6.23.0",
         "flow-bin": "^0.66.0",
-        "jest": "^22.3.0",
+        "jest": "^23.0.0",
         "prettier": "^1.10.2"
     },
     "scripts": {

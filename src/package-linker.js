@@ -1,6 +1,7 @@
 /* @flow */
 
 import type {Manifest} from './types.js';
+import type PackageReference from './package-reference.js';
 import type PackageResolver from './package-resolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
@@ -10,6 +11,7 @@ import type {InstallArtifacts} from './package-install-scripts.js';
 import PackageHoister from './package-hoister.js';
 import * as constants from './constants.js';
 import * as promise from './util/promise.js';
+import {normalizePattern} from './util/normalize-pattern.js';
 import {entries} from './util/misc.js';
 import * as fs from './util/fs.js';
 import lockMutex from './util/mutex.js';
@@ -19,6 +21,7 @@ import WorkspaceLayout from './workspace-layout.js';
 const invariant = require('invariant');
 const cmdShim = require('@zkochan/cmd-shim');
 const path = require('path');
+const semver = require('semver');
 // Concurrency for creating bin links disabled because of the issue #1961
 const linkBinConcurrency = 1;
 
@@ -49,6 +52,7 @@ export default class PackageLinker {
     this.config = config;
     this.artifacts = {};
     this.topLevelBinLinking = true;
+    this.unplugged = [];
   }
 
   artifacts: InstallArtifacts;
@@ -56,6 +60,7 @@ export default class PackageLinker {
   resolver: PackageResolver;
   config: Config;
   topLevelBinLinking: boolean;
+  unplugged: Array<string>;
   _treeHash: ?Map<string, HoistManifestTuple>;
 
   setArtifacts(artifacts: InstallArtifacts) {
@@ -141,6 +146,7 @@ export default class PackageLinker {
     // write the executables
     for (const {dep, loc} of deps) {
       if (dep._reference && dep._reference.locations.length) {
+        invariant(!dep._reference.isPlugnplay, "Plug'n'play packages should not be referenced here");
         await this.linkSelfDependencies(dep, loc, dir);
       }
     }
@@ -267,6 +273,22 @@ export default class PackageLinker {
           // fs.copy operations can't copy files through a symlink, so all the paths under workspace-package
           // need to be replaced with a real path, except for the symlink root/node_modules/workspace-package
           dest = dest.replace(symlink, realpath);
+        }
+      }
+
+      if (this.config.plugnplayEnabled) {
+        ref.isPlugnplay = true;
+        if (await this._isUnplugged(pkg, ref)) {
+          dest = this.config.generatePackageUnpluggedPath(ref);
+
+          // We don't skip the copy if the unplugged package isn't materialized yet
+          if (await fs.exists(dest)) {
+            ref.addLocation(dest);
+            continue;
+          }
+        } else {
+          ref.addLocation(src);
+          continue;
         }
       }
 
@@ -434,6 +456,7 @@ export default class PackageLinker {
         }
       },
     });
+
     await fs.hardlinkBulk(Array.from(hardlinkQueue.values()), this.reporter, {
       possibleExtraneous,
       artifactFiles,
@@ -472,7 +495,7 @@ export default class PackageLinker {
       await promise.queue(
         flatTree,
         async ([dest, {pkg, isNohoist, parts}]) => {
-          if (pkg._reference && pkg._reference.locations.length) {
+          if (pkg._reference && pkg._reference.locations.length && !pkg._reference.isPlugnplay) {
             const binLoc = path.join(dest, this.config.getFolder(pkg));
             await this.linkBinDependencies(pkg, binLoc);
             if (isNohoist) {
@@ -482,6 +505,7 @@ export default class PackageLinker {
             }
             tickBin();
           }
+          tickBin();
         },
         linkBinConcurrency,
       );
@@ -490,7 +514,13 @@ export default class PackageLinker {
       await promise.queue(
         topLevelDependencies,
         async ([dest, {pkg}]) => {
-          if (pkg._reference && pkg._reference.locations.length && pkg.bin && Object.keys(pkg.bin).length) {
+          if (
+            pkg._reference &&
+            pkg._reference.locations.length &&
+            !pkg._reference.isPlugnplay &&
+            pkg.bin &&
+            Object.keys(pkg.bin).length
+          ) {
             let binLoc;
             if (this.config.modulesFolder) {
               binLoc = path.join(this.config.modulesFolder);
@@ -498,8 +528,8 @@ export default class PackageLinker {
               binLoc = path.join(this.config.lockfileFolder, this.config.getFolder(pkg));
             }
             await this.linkSelfDependencies(pkg, dest, binLoc);
-            tickBin();
           }
+          tickBin();
         },
         linkBinConcurrency,
       );
@@ -653,6 +683,25 @@ export default class PackageLinker {
     }
   }
 
+  async _isUnplugged(pkg: Manifest, ref: PackageReference): Promise<boolean> {
+    // If an unplugged folder exists for the specified package, we simply use it
+    if (await fs.exists(this.config.generatePackageUnpluggedPath(ref))) {
+      return true;
+    }
+
+    // If the package has a postinstall script, we also unplug it (otherwise they would run into the cache)
+    if (pkg.scripts && (pkg.scripts.preinstall || pkg.scripts.install || pkg.scripts.postinstall)) {
+      return true;
+    }
+
+    // Check whether the user explicitly requested for the package to be unplugged
+    return this.unplugged.some(patternToUnplug => {
+      const {name, range, hasVersion} = normalizePattern(patternToUnplug);
+      const satisfiesSemver = hasVersion ? semver.satisfies(ref.version, range) : true;
+      return name === ref.name && satisfiesSemver;
+    });
+  }
+
   async init(
     patterns: Array<string>,
     workspaceLayout?: WorkspaceLayout,
@@ -660,5 +709,9 @@ export default class PackageLinker {
   ): Promise<void> {
     this.resolvePeerModules();
     await this.copyModules(patterns, workspaceLayout, {linkDuplicates, ignoreOptional});
+
+    if (!this.config.plugnplayEnabled) {
+      await fs.unlink(`${this.config.lockfileFolder}/${constants.PNP_FILENAME}`);
+    }
   }
 }

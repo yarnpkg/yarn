@@ -4,7 +4,9 @@ import type Config from '../config.js';
 import {MessageError, ProcessTermError} from '../errors.js';
 import * as constants from '../constants.js';
 import * as child from './child.js';
-import {exists} from './fs.js';
+import * as fs from './fs.js';
+import {dynamicRequire} from './dynamic-require.js';
+import {makePortableProxyScript} from './portable-script.js';
 import {registries} from '../resolvers/index.js';
 import {fixCmdWinSlashes} from './fix-cmd-win-slashes.js';
 import {getBinFolder as getGlobalBinFolder, run as globalRun} from '../cli/commands/global.js';
@@ -23,6 +25,36 @@ export const IGNORE_MANIFEST_KEYS: Set<string> = new Set(['readme', 'notice', 'l
 // This helps us avoid some gyp issues when building native modules.
 // See https://github.com/yarnpkg/yarn/issues/2286.
 const IGNORE_CONFIG_KEYS = ['lastUpdateCheck'];
+
+async function getPnpParameters(config: Config): Promise<Array<string>> {
+  if (await fs.exists(`${config.lockfileFolder}/${constants.PNP_FILENAME}`)) {
+    return ['-r', `${config.lockfileFolder}/${constants.PNP_FILENAME}`];
+  } else {
+    return [];
+  }
+}
+
+let wrappersFolder = null;
+
+export async function getWrappersFolder(config: Config): Promise<string> {
+  if (wrappersFolder) {
+    return wrappersFolder;
+  }
+
+  wrappersFolder = await fs.makeTempDir();
+
+  await makePortableProxyScript(process.execPath, wrappersFolder, {
+    proxyBasename: 'node',
+    prependArguments: [...(await getPnpParameters(config))],
+  });
+
+  await makePortableProxyScript(process.execPath, wrappersFolder, {
+    proxyBasename: 'yarn',
+    prependArguments: [process.argv[1]],
+  });
+
+  return wrappersFolder;
+}
 
 const INVALID_CHAR_REGEX = /\W/g;
 
@@ -167,7 +199,7 @@ export async function makeEnv(
     pathParts.unshift(globalBin);
   }
 
-  // add .bin folders to PATH
+  // Add node_modules .bin folders to the PATH
   for (const registry of Object.keys(registries)) {
     const binFolder = path.join(config.registries[registry].folder, '.bin');
     if (config.workspacesEnabled && config.workspaceRootFolder) {
@@ -180,9 +212,26 @@ export async function makeEnv(
     }
   }
 
-  if (config.scriptsPrependNodePath) {
-    pathParts.unshift(path.join(path.dirname(process.execPath)));
+  // Otherwise, only add the top-level dependencies to the PATH
+  // Note that this isn't enough when executing scripts from subdependencies, but since dependencies with postinstall
+  // scripts have other issues that require us to make them fallback to regular node_modules installation (like sharing
+  // artifacts), we can sit on this one until we fix everything at once.
+  if (await fs.exists(`${config.lockfileFolder}/${constants.PNP_FILENAME}`)) {
+    const pnpApi = dynamicRequire(`${config.lockfileFolder}/${constants.PNP_FILENAME}`);
+    const topLevelInformation = pnpApi.getPackageInformation({name: null, reference: null});
+
+    for (const [name, reference] of topLevelInformation.packageDependencies.entries()) {
+      const dependencyInformation = pnpApi.getPackageInformation({name, reference});
+
+      if (!dependencyInformation || !dependencyInformation.packageLocation) {
+        continue;
+      }
+
+      pathParts.unshift(`${dependencyInformation.packageLocation}/.bin`);
+    }
   }
+
+  pathParts.unshift(await getWrappersFolder(config));
 
   // join path back together
   env[constants.ENV_PATH_KEY] = pathParts.join(path.delimiter);
@@ -256,7 +305,7 @@ async function _checkForGyp(config: Config, paths: Array<string>): Promise<void>
   const {reporter} = config;
 
   // Check every directory in the PATH
-  const allChecks = await Promise.all(paths.map(dir => exists(path.join(dir, 'node-gyp'))));
+  const allChecks = await Promise.all(paths.map(dir => fs.exists(path.join(dir, 'node-gyp'))));
   if (allChecks.some(Boolean)) {
     // node-gyp is available somewhere
     return;

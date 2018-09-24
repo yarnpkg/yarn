@@ -236,7 +236,7 @@ test('changes the cache path when bumping the cache version', () =>
 
     await mockConstants(config, {CACHE_VERSION: 42}, async config => {
       await cache(config, reporter, {}, ['dir']);
-      expect((JSON.parse(String(inOut.read())): any).data).toMatch(/[\\\/]v42[\\\/]?$/);
+      expect((JSON.parse(String(inOut.read())): any).data).toMatch(/[\\\/]v42([\\\/].*)?$/);
     });
   }));
 

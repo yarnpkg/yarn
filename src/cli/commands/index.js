@@ -36,6 +36,7 @@ import * as remove from './remove.js';
 import * as run from './run.js';
 import * as tag from './tag.js';
 import * as team from './team.js';
+import * as unplug from './unplug.js';
 import * as unlink from './unlink.js';
 import * as upgrade from './upgrade.js';
 import * as version from './version.js';
@@ -81,6 +82,7 @@ const commands = {
   run,
   tag,
   team,
+  unplug,
   unlink,
   upgrade,
   version,

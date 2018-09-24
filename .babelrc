@@ -52,6 +52,7 @@
     "stage-0"
   ],
   "plugins": [
+    ["babel-plugin-inline-import", { "extensions": [ ".tpl.js" ] }],
     ["transform-inline-imports-commonjs"],
     ["transform-runtime", { "polyfill": false, "regenerator": true }]
   ]

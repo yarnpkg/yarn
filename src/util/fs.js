@@ -675,10 +675,18 @@ export async function find(filename: string, dir: string): Promise<string | fals
 }
 
 export async function symlink(src: string, dest: string): Promise<void> {
+  if (process.platform !== 'win32') {
+    // use relative paths otherwise which will be retained if the directory is moved
+    src = path.relative(path.dirname(dest), src);
+    // When path.relative returns an empty string for the current directory, we should instead use
+    // '.', which is a valid fs.symlink target.
+    src = src || '.';
+  }
+
   try {
     const stats = await lstat(dest);
     if (stats.isSymbolicLink()) {
-      const resolved = await realpath(dest);
+      const resolved = dest;
       if (resolved === src) {
         return;
       }
@@ -688,6 +696,7 @@ export async function symlink(src: string, dest: string): Promise<void> {
       throw err;
     }
   }
+
   // We use rimraf for unlink which never throws an ENOENT on missing target
   await unlink(dest);
 
@@ -695,11 +704,7 @@ export async function symlink(src: string, dest: string): Promise<void> {
     // use directory junctions if possible on win32, this requires absolute paths
     await fsSymlink(src, dest, 'junction');
   } else {
-    // use relative paths otherwise which will be retained if the directory is moved
-    const relative = path.relative(path.dirname(dest), src);
-    // When path.relative returns an empty string for the current directory, we should instead use
-    // '.', which is a valid fs.symlink target.
-    await fsSymlink(relative || '.', dest);
+    await fsSymlink(src, dest);
   }
 }
 
