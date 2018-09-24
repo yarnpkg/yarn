@@ -28,14 +28,20 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 
-async function publish(config: Config, pkg: any, flags: Object, dir: string): Promise<void> {
-  let access = flags.access;
+function getPublishConfigOption(flags: Object, pkg: any, key: 'access' | 'registry'): string {
+  let option = flags[key];
 
+  if (!option && pkg && pkg.publishConfig && pkg.publishConfig[key]) {
+    option = pkg.publishConfig[key];
+  }
+
+  return option;
+}
+
+async function publish(config: Config, pkg: any, flags: Object, dir: string): Promise<void> {
   // if no access level is provided, check package.json for `publishConfig.access`
   // see: https://docs.npmjs.com/files/package.json#publishconfig
-  if (!access && pkg && pkg.publishConfig && pkg.publishConfig.access) {
-    access = pkg.publishConfig.access;
-  }
+  const access = getPublishConfigOption(flags, pkg, 'access');
 
   // validate access argument
   if (access && access !== 'public' && access !== 'restricted') {
@@ -111,7 +117,7 @@ async function publish(config: Config, pkg: any, flags: Object, dir: string): Pr
   // publish package
   try {
     await config.registries.npm.request(NpmRegistry.escapeName(pkg.name), {
-      registry: pkg && pkg.publishConfig && pkg.publishConfig.registry,
+      registry: getPublishConfigOption(flags, pkg, 'registry'),
       method: 'PUT',
       body: root,
     });
@@ -141,7 +147,6 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   }
 
   // validate package fields that are required for publishing
-  // $FlowFixMe
   const pkg = await config.readRootManifest();
   if (pkg.private) {
     throw new MessageError(reporter.lang('publishPrivate'));
@@ -150,18 +155,12 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     throw new MessageError(reporter.lang('noName'));
   }
 
-  let registry: string = '';
-
-  if (pkg && pkg.publishConfig && pkg.publishConfig.registry) {
-    registry = pkg.publishConfig.registry;
-  }
-
   reporter.step(1, 4, reporter.lang('bumpingVersion'));
   const commitVersion = await setVersion(config, reporter, flags, [], false);
 
   //
   reporter.step(2, 4, reporter.lang('loggingIn'));
-  const revoke = await getToken(config, reporter, pkg.name, flags, registry);
+  const revoke = await getToken(config, reporter, pkg.name, flags, getPublishConfigOption(flags, pkg, 'registry'));
 
   //
   reporter.step(3, 4, reporter.lang('publishing'));
