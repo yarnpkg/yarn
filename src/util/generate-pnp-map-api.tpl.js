@@ -3,7 +3,10 @@
 /* eslint-disable max-len, flowtype/require-valid-file-annotation, flowtype/require-return-type */
 /* global packageInformationStores, $$BLACKLIST, $$SETUP_STATIC_TABLES */
 
-const fs = require('fs');
+// Used for the resolveUnqualified part of the resolution (ie resolving folder/index.js & file extensions)
+// Deconstructed so that they aren't affected by any fs monkeypatching occuring later during the execution
+const {statSync, lstatSync, readlinkSync, readFileSync, existsSync, realpathSync} = require('fs');
+
 const Module = require('module');
 const path = require('path');
 const StringDecoder = require('string_decoder');
@@ -122,7 +125,7 @@ function applyNodeExtensionResolution(unqualifiedPath, {extensions}) {
     let stat;
 
     try {
-      stat = fs.statSync(unqualifiedPath);
+      stat = statSync(unqualifiedPath);
     } catch (error) {}
 
     // If the file exists and is a file, we can stop right there
@@ -140,8 +143,8 @@ function applyNodeExtensionResolution(unqualifiedPath, {extensions}) {
       // we would lose the information that would tell us what are the dependencies of pkg-with-peers relative to its
       // ancestors.
 
-      if (fs.lstatSync(unqualifiedPath).isSymbolicLink()) {
-        unqualifiedPath = path.normalize(path.resolve(path.dirname(unqualifiedPath), fs.readlinkSync(unqualifiedPath)));
+      if (lstatSync(unqualifiedPath).isSymbolicLink()) {
+        unqualifiedPath = path.normalize(path.resolve(path.dirname(unqualifiedPath), readlinkSync(unqualifiedPath)));
       }
 
       return unqualifiedPath;
@@ -153,7 +156,7 @@ function applyNodeExtensionResolution(unqualifiedPath, {extensions}) {
       let pkgJson;
 
       try {
-        pkgJson = JSON.parse(fs.readFileSync(`${unqualifiedPath}/package.json`, 'utf-8'));
+        pkgJson = JSON.parse(readFileSync(`${unqualifiedPath}/package.json`, 'utf-8'));
       } catch (error) {}
 
       let nextUnqualifiedPath;
@@ -177,7 +180,7 @@ function applyNodeExtensionResolution(unqualifiedPath, {extensions}) {
         return `${unqualifiedPath}${extension}`;
       })
       .find(candidateFile => {
-        return fs.existsSync(candidateFile);
+        return existsSync(candidateFile);
       });
 
     if (qualifiedPath) {
@@ -192,7 +195,7 @@ function applyNodeExtensionResolution(unqualifiedPath, {extensions}) {
           return `${unqualifiedPath}/index${extension}`;
         })
         .find(candidateFile => {
-          return fs.existsSync(candidateFile);
+          return existsSync(candidateFile);
         });
 
       if (indexPath) {
@@ -488,7 +491,7 @@ exports.resolveRequest = function resolveRequest(request, issuer, {considerBuilt
       let realIssuer;
 
       try {
-        realIssuer = fs.realpathSync(issuer);
+        realIssuer = realpathSync(issuer);
       } catch (error) {}
 
       if (realIssuer) {
