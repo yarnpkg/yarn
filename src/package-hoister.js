@@ -973,7 +973,8 @@ export class NohoistResolver {
   };
   _makePath(...args: Array<string>): string {
     const parts = args.map(s => (s === this._wsRootPackageName ? WS_ROOT_ALIAS : s));
-    return parts.join('/');
+    const result = parts.join('/');
+    return result[0] === '/' ? result : '/' + result;
   }
   _isTopPackage = (info: HoistManifest): boolean => {
     const parentParts = info.parts.slice(0, -1);
