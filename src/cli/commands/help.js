@@ -4,7 +4,7 @@ import commands from './index.js';
 import * as constants from '../../constants.js';
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import {sortAlpha, hyphenate} from '../../util/misc.js';
+import {sortAlpha, hyphenate, sortOptionsAlpha} from '../../util/misc.js';
 import aliases from '../aliases';
 const chalk = require('chalk');
 
@@ -17,6 +17,7 @@ export function setFlags(commander: Object) {
 }
 
 export function run(config: Config, reporter: Reporter, commander: Object, args: Array<string>): Promise<void> {
+  commander.options.sort(sortOptionsAlpha);
   if (args.length) {
     const commandName = args.shift();
     if (Object.prototype.hasOwnProperty.call(commands, commandName)) {
