@@ -10,7 +10,7 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 150000;
 
 const path = require('path');
 
-test.skip('focus does not work from a non-workspaces project', async (): Promise<void> => {
+test.concurrent('focus does not work from a non-workspaces project', async (): Promise<void> => {
   let error = '';
   const reporter = new reporters.ConsoleReporter({});
   try {
@@ -21,7 +21,7 @@ test.skip('focus does not work from a non-workspaces project', async (): Promise
   expect(error).toContain(reporter.lang('workspacesFocusRootCheck'));
 });
 
-test.skip('focus does not work from the root of a workspaces project', async (): Promise<void> => {
+test.concurrent('focus does not work from the root of a workspaces project', async (): Promise<void> => {
   let error = '';
   const reporter = new reporters.ConsoleReporter({});
   try {
@@ -32,7 +32,7 @@ test.skip('focus does not work from the root of a workspaces project', async ():
   expect(error).toContain(reporter.lang('workspacesFocusRootCheck'));
 });
 
-test.skip('focus does a normal workspace installation', (): Promise<void> => {
+test.concurrent('focus does a normal workspace installation', (): Promise<void> => {
   return runInstall(
     {focus: true},
     {source: 'published-monorepo', cwd: '/packages/example-yarn-workspace-1'},
@@ -49,7 +49,7 @@ test.skip('focus does a normal workspace installation', (): Promise<void> => {
   );
 });
 
-test.skip('focus shallowly installs sibling workspaces under target', (): Promise<void> => {
+test.concurrent('focus shallowly installs sibling workspaces under target', (): Promise<void> => {
   return runInstall(
     {focus: true},
     {source: 'published-monorepo', cwd: '/packages/example-yarn-workspace-1'},
@@ -64,7 +64,7 @@ test.skip('focus shallowly installs sibling workspaces under target', (): Promis
   );
 });
 
-test.skip('focus should not bail out early after an un-focused install', (): Promise<void> => {
+test.concurrent('focus should not bail out early after an un-focused install', (): Promise<void> => {
   return runInstall({}, 'published-monorepo', async (config, reporter) => {
     const oldCwd = config.cwd;
 
@@ -81,7 +81,7 @@ test.skip('focus should not bail out early after an un-focused install', (): Pro
   });
 });
 
-test.skip('repeated focused installs should bail out early', (): Promise<void> => {
+test.concurrent('repeated focused installs should bail out early', (): Promise<void> => {
   return runInstall(
     {focus: true},
     {source: 'published-monorepo', cwd: '/packages/example-yarn-workspace-1'},
@@ -100,7 +100,7 @@ test.skip('repeated focused installs should bail out early', (): Promise<void> =
   );
 });
 
-test.skip('switching directories for focused installs should fail integrity checks and reinstall', (): Promise<
+test.concurrent('switching directories for focused installs should fail integrity checks and reinstall', (): Promise<
   void,
 > => {
   return runInstall(
@@ -122,7 +122,7 @@ test.skip('switching directories for focused installs should fail integrity chec
   );
 });
 
-test.skip(
+test.concurrent(
   'focus shallowly installs anything that a sibling needed to shallowly install underneath that sibling',
   (): Promise<void> => {
     return runInstall(
@@ -138,7 +138,7 @@ test.skip(
   },
 );
 
-test.skip("focus does not shallowly install a sibling's dev dependencies", (): Promise<void> => {
+test.concurrent("focus does not shallowly install a sibling's dev dependencies", (): Promise<void> => {
   return runInstall(
     {focus: true},
     {source: 'published-monorepo', cwd: '/packages/example-yarn-workspace-4'},
@@ -150,7 +150,7 @@ test.skip("focus does not shallowly install a sibling's dev dependencies", (): P
   );
 });
 
-test.skip("focus runs shallow dependencies' postinstall scripts", (): Promise<void> => {
+test.concurrent("focus runs shallow dependencies' postinstall scripts", (): Promise<void> => {
   return runInstall(
     {focus: true},
     {source: 'published-monorepo', cwd: '/packages/example-yarn-workspace-4'},
@@ -162,7 +162,7 @@ test.skip("focus runs shallow dependencies' postinstall scripts", (): Promise<vo
   );
 });
 
-test.skip('focus installs transitive dependencies shallowly', (): Promise<void> => {
+test.concurrent('focus installs transitive dependencies shallowly', (): Promise<void> => {
   return runInstall(
     {focus: true},
     {source: 'published-monorepo', cwd: '/packages/example-yarn-workspace-4'},
@@ -174,7 +174,7 @@ test.skip('focus installs transitive dependencies shallowly', (): Promise<void> 
   );
 });
 
-test.skip(
+test.concurrent(
   'focus does not install transitive devdependencies shallowly (but does install non-transitive devdeps)',
   (): Promise<void> => {
     return runInstall(
@@ -199,7 +199,7 @@ test.skip(
   },
 );
 
-test.skip(
+test.concurrent(
   'focus does not shallowly install current version of sibling if another version is specified in package.json',
   (): Promise<void> => {
     return runInstall(
@@ -215,7 +215,7 @@ test.skip(
   },
 );
 
-test.skip('focus works correctly when focusing on a scoped package', (): Promise<void> => {
+test.concurrent('focus works correctly when focusing on a scoped package', (): Promise<void> => {
   return runInstall({focus: true}, {source: 'focus-scoped', cwd: '/packages/scoped'}, async (config, reporter) => {
     const packageFile = await fs.readFile(
       path.join(config.cwd, 'node_modules', 'example-yarn-workspace-2', 'package.json'),
@@ -225,7 +225,7 @@ test.skip('focus works correctly when focusing on a scoped package', (): Promise
 });
 
 describe('nohoist', () => {
-  test.skip('focus installs nohoist dependencies shallowly', (): Promise<void> => {
+  test.concurrent('focus installs nohoist dependencies shallowly', (): Promise<void> => {
     return runInstall(
       {focus: true},
       {source: 'focus-nohoist', cwd: '/packages/example-yarn-workspace-1'},
@@ -238,7 +238,7 @@ describe('nohoist', () => {
     );
   });
 
-  test.skip('focus does not do nested shallow installs of transitive nohoist packages', (): Promise<void> => {
+  test.concurrent('focus does not do nested shallow installs of transitive nohoist packages', (): Promise<void> => {
     return runInstall(
       {focus: true},
       {source: 'focus-nohoist', cwd: '/packages/example-yarn-workspace-3'},
@@ -255,7 +255,7 @@ describe('nohoist', () => {
     );
   });
 
-  test.skip(
+  test.concurrent(
     'focus installs the correct version when a package is nohoist but differs from the workspace version',
     (): Promise<void> => {
       return runInstall(
