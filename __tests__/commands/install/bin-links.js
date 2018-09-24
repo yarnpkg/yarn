@@ -219,7 +219,7 @@ describe('with focus', () => {
           true,
         );
         expect(await linkAt(config, 'node_modules', '.bin', 'example-yarn-workspace-2')).toEqual(
-          '../../../example-yarn-workspace-2/index.js',
+          '../example-yarn-workspace-2/index.js',
         );
       },
     );
