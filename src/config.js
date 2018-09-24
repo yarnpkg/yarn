@@ -174,8 +174,8 @@ export default class Config {
   plugnplayEnabled: boolean;
   plugnplayShebang: ?string;
   plugnplayBlacklist: ?string;
-  plugnplayEjected: Array<string>;
-  plugnplayPurgeEjectedPackages: boolean;
+  plugnplayUnplugged: Array<string>;
+  plugnplayPurgeUnpluggedPackages: boolean;
 
   scriptsPrependNodePath: boolean;
 
@@ -460,8 +460,8 @@ export default class Config {
     this.offline = !!opts.offline;
     this.binLinks = !!opts.binLinks;
     this.updateChecksums = !!opts.updateChecksums;
-    this.plugnplayEjected = [];
-    this.plugnplayPurgeEjectedPackages = false;
+    this.plugnplayUnplugged = [];
+    this.plugnplayPurgeUnpluggedPackages = false;
 
     this.ignorePlatform = !!opts.ignorePlatform;
     this.ignoreScripts = !!opts.ignoreScripts;
@@ -490,7 +490,7 @@ export default class Config {
    * Generate a name suitable as unique filesystem identifier for the specified package.
    */
 
-  generateStablePackageName(pkg: PackageReference): string {
+  generateUniquePackageSlug(pkg: PackageReference): string {
     let slug = pkg.name;
 
     slug = slug.replace(/[^@a-z0-9]+/g, '-');
@@ -525,8 +525,8 @@ export default class Config {
     invariant(this.cacheFolder, 'No package root');
     invariant(pkg, 'Undefined package');
 
-    const name = this.generateStablePackageName(pkg);
-    return path.join(this.cacheFolder, name, 'node_modules', pkg.name);
+    const slug = this.generateUniquePackageSlug(pkg);
+    return path.join(this.cacheFolder, slug, 'node_modules', pkg.name);
   }
 
   /**
@@ -540,8 +540,8 @@ export default class Config {
     */
 
   generatePackageUnpluggedPath(pkg: PackageReference): string {
-    const name = this.generateStablePackageName(pkg);
-    return path.join(this.getUnpluggedPath(), name, 'node_modules', pkg.name);
+    const slug = this.generateUniquePackageSlug(pkg);
+    return path.join(this.getUnpluggedPath(), slug, 'node_modules', pkg.name);
   }
 
   /**

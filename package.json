@@ -150,8 +150,5 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
-  },
-  "installConfig": {
-    "pnp": true
   }
 }

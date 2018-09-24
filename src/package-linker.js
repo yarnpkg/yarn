@@ -689,14 +689,14 @@ export default class PackageLinker {
       return true;
     }
 
-    // If the package has a postinstall script, we also eject it (otherwise they would run into the cache)
+    // If the package has a postinstall script, we also unplug it (otherwise they would run into the cache)
     if (pkg.scripts && (pkg.scripts.preinstall || pkg.scripts.install || pkg.scripts.postinstall)) {
       return true;
     }
 
     // Check whether the user explicitly requested for the package to be unplugged
-    return this.unplugged.some(patternToEject => {
-      const {name, range, hasVersion} = normalizePattern(patternToEject);
+    return this.unplugged.some(patternToUnplug => {
+      const {name, range, hasVersion} = normalizePattern(patternToUnplug);
       const satisfiesSemver = hasVersion ? semver.satisfies(ref.version, range) : true;
       return name === ref.name && satisfiesSemver;
     });

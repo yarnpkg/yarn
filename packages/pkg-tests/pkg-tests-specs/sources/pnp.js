@@ -979,7 +979,7 @@ module.exports = makeTemporaryEnv => {
     );
 
     test(
-      'it should properly eject a package with peer dependencies',
+      'it should properly unplug a package with peer dependencies',
       makeTemporaryEnv(
         {
           dependencies: {[`provides-peer-deps-1-0-0`]: `1.0.0`, [`provides-peer-deps-2-0-0`]: `1.0.0`},
@@ -1061,7 +1061,7 @@ module.exports = makeTemporaryEnv => {
     );
 
     test(
-      `it shouldn't clear the unplugged folder when ejecting new packages`,
+      `it shouldn't clear the unplugged folder when unplugging new packages`,
       makeTemporaryEnv(
         {
           dependencies: {
@@ -1162,7 +1162,7 @@ module.exports = makeTemporaryEnv => {
     );
 
     test(
-      `it should automatically eject packages with postinstall scripts`,
+      `it should automatically unplug packages with postinstall scripts`,
       makeTemporaryEnv(
         {
           dependencies: {[`no-deps-scripted`]: `1.0.0`},

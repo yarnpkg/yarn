@@ -210,7 +210,7 @@ describe('with nohoist', () => {
 });
 
 describe('with focus', () => {
-  test.skip('focus points bin links to the shallowly installed packages', (): Promise<void> => {
+  test('focus points bin links to the shallowly installed packages', (): Promise<void> => {
     return runInstall(
       {binLinks: true, focus: true},
       {source: 'published-monorepo', cwd: '/packages/example-yarn-workspace-1'},

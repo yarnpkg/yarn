@@ -67,7 +67,7 @@ function blacklistCheck(locator) {
     throw makeError(
       `BLACKLISTED`,
       [
-        `A package has been resolved through a blacklisted path - this is usually caused by one of your tool calling`,
+        `A package has been resolved through a blacklisted path - this is usually caused by one of your tools calling`,
         `"realpath" on the return value of "require.resolve". Since the returned values use symlinks to disambiguate`,
         `peer dependencies, they must be passed untransformed to "require".`,
       ].join(` `),
@@ -210,7 +210,7 @@ function applyNodeExtensionResolution(unqualifiedPath, {extensions}) {
  * Ideally it would be nice to be able to avoid this, since it causes useless allocations
  * and cannot be cached efficiently (we recompute the nodeModulePaths every time).
  *
- * Fortunately, this should only affect the fallback, and there hopefully shouldn't have a
+ * Fortunately, this should only affect the fallback, and there hopefully shouldn't be a
  * lot of them.
  */
 
