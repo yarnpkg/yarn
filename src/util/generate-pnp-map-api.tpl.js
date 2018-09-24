@@ -25,7 +25,7 @@ const isDirRegExp = /\/$/;
 const topLevelLocator = {name: null, reference: null};
 const blacklistedLocator = {name: NaN, reference: NaN};
 
-const moduleShims = new Map();
+const pnpModule = module;
 
 /**
  * Used to disable the resolution hooks (for when we want to fallback to the previous resolution - we then need
@@ -253,6 +253,12 @@ function callNativeResolution(request, issuer) {
  */
 
 exports.VERSIONS = {std: 1};
+
+/**
+ * Useful when used together with getPackageInformation to fetch information about the top-level package.
+ */
+
+exports.topLevel = {name: null, reference: null};
 
 /**
  * Gets the package information for a given locator. Returns null if they cannot be retrieved.
@@ -560,12 +566,10 @@ exports.setup = function setup() {
       }
     }
 
-    // We allow to shim modules, which is useful for packages such as `resolve`
+    // The 'pnpapi' name is reserved to return the PnP api currently in use by the program
 
-    const shim = moduleShims.get(request);
-
-    if (shim) {
-      return shim;
+    if (request === `pnpapi`) {
+      return pnpModule.exports;
     }
 
     // Request `Module._resolveFilename` (ie. `resolveRequest`) to tell us which file we should load

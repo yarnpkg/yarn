@@ -521,6 +521,21 @@ module.exports = makeTemporaryEnv => {
     );
 
     test(
+      `it should export the PnP API through the 'pnpapi' name`,
+      makeTemporaryEnv(
+        {dependencies: {[`no-deps`]: `1.0.0`}},
+        {
+          plugNPlay: true,
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await expect(source(`typeof require('pnpapi').VERSIONS.std`)).resolves.toEqual(`number`);
+        },
+      ),
+    );
+
+    test(
       `it should not update the installConfig.pnp field of the package.json when installing with an environment override`,
       makeTemporaryEnv(
         {},
