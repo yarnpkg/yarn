@@ -678,7 +678,7 @@ exports.setupCompatibilityLayer = () => {
   // at all unless modulePath is set, which we cannot configure from any other way than through
   // the Liftoff pipeline (the key isn't whitelisted for env or cli options).
 
-  patchedModules.set('resolve', resolve => {
+  patchedModules.set('resolve', realResolve => {
     const mustBeShimmed = caller => {
       const callerLocator = exports.findPackageLocator(caller);
 
@@ -688,7 +688,7 @@ exports.setupCompatibilityLayer = () => {
     const attachCallerToOptions = (caller, options) => {
       if (!options.basedir) {
         options.basedir = path.dirname(caller);
-      };
+      }
     };
 
     const resolveSyncShim = (request, {basedir}) => {
@@ -712,29 +712,12 @@ exports.setupCompatibilityLayer = () => {
       });
     };
 
-    const isCoreShim = request => {
-      return builtinModules.has(request);
-    };
-
-    return Object.assign((request, options, callback) => {
-      if (typeof options === 'function') {
-        callback = options;
-        options = {};
-      } else if (!options) {
-        options = {};
-      }
-
-      const caller = getCaller();
-      attachCallerToOptions(caller, options);
-
-      if (mustBeShimmed(caller)) {
-        return resolveShim(request, options, callback);
-      } else {
-        return realResolve.sync(request, options, callback);
-      }
-    }, {
-      sync: (request, options) => {
-        if (!options) {
+    return Object.assign(
+      (request, options, callback) => {
+        if (typeof options === 'function') {
+          callback = options;
+          options = {};
+        } else if (!options) {
           options = {};
         }
 
@@ -742,15 +725,31 @@ exports.setupCompatibilityLayer = () => {
         attachCallerToOptions(caller, options);
 
         if (mustBeShimmed(caller)) {
-          return resolveSyncShim(request, options);
+          return resolveShim(request, options, callback);
         } else {
-          return realResolve.sync(request, options);
+          return realResolve.sync(request, options, callback);
         }
       },
-      isCore: request => {
-        return realResolve.isCore(request);
-      }
-    });
+      {
+        sync: (request, options) => {
+          if (!options) {
+            options = {};
+          }
+
+          const caller = getCaller();
+          attachCallerToOptions(caller, options);
+
+          if (mustBeShimmed(caller)) {
+            return resolveSyncShim(request, options);
+          } else {
+            return realResolve.sync(request, options);
+          }
+        },
+        isCore: request => {
+          return realResolve.isCore(request);
+        },
+      },
+    );
   });
 };
 
