@@ -4,6 +4,6 @@
     "scripts": {
         "preinstall": "echo 'module.exports.push(100);' >> log.js",
         "install": "echo 'module.exports.push(200);' >> log.js",
-        "postinstall": "echo 'module.exports.push(300);' >> log.js; echo 'module.exports = '\"$RANDOM\"';' > rnd.js"
+        "postinstall": "echo 'module.exports.push(300);' >> log.js; echo 'module.exports = '\"$(node -p 'Math.floor(Math.random() * 512000)')\"';' > rnd.js"
     }
 }
