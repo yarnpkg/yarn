@@ -187,8 +187,9 @@ for (const statusCode of [403, 442, 542]) {
   test(`RequestManager.execute Request ${statusCode} error`, async () => {
     // The await await is just to silence Flow - https://github.com/facebook/flow/issues/6064
     const config = await await Config.create({}, new Reporter());
+    const mockStatusCode = statusCode;
     jest.mock('request', factory => options => {
-      options.callback('', {statusCode}, '');
+      options.callback('', {statusCode: mockStatusCode}, '');
       return {
         on: () => {},
       };
