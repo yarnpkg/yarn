@@ -202,7 +202,7 @@ for (const statusCode of [403, 442]) {
       resolve: body => {},
       reject: err => {
         expect(err.message).toBe(
-          `https://localhost:port/?nocache: Request "https://localhost:port/?nocache" returned a ${statusCode}`,
+          `https://localhost:port/?nocache: Request "https://localhost:port/?nocache" returned a 403`,
         );
       },
     });
