@@ -55,7 +55,7 @@
   "devDependencies": {
     "babel-core": "^6.26.0",
     "babel-eslint": "^7.2.3",
-    "babel-loader": "^6.2.5",
+    "babel-loader": "^8.0.0",
     "babel-plugin-array-includes": "^2.0.3",
     "babel-plugin-inline-import": "^3.0.0",
     "babel-plugin-transform-builtin-extend": "^1.1.2",
