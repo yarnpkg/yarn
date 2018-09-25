@@ -4,7 +4,7 @@ import commands from './index.js';
 import * as constants from '../../constants.js';
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import {sortAlpha, hyphenate} from '../../util/misc.js';
+import {sortAlpha, sortOptionsByFlags, hyphenate} from '../../util/misc.js';
 import aliases from '../aliases';
 const chalk = require('chalk');
 
@@ -53,6 +53,8 @@ export function run(config: Config, reporter: Reporter, commander: Object, args:
     reporter.log(reporter.lang('helpCommandsMore', reporter.rawText(chalk.bold('yarn help COMMAND'))));
     reporter.log(reporter.lang('helpLearnMore', reporter.rawText(chalk.bold(constants.YARN_DOCS))));
   });
+
+  commander.options.sort(sortOptionsByFlags);
 
   commander.help();
   return Promise.resolve();
