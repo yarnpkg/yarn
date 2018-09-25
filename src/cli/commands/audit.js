@@ -6,10 +6,14 @@ import type PackageLinker from '../../package-linker.js';
 import type {Reporter} from '../../reporters/index.js';
 import type {HoistedTrees} from '../../hoisted-tree-builder.js';
 
+import {promisify} from '../../util/promise.js';
 import {buildTree as hoistedTreeBuilder} from '../../hoisted-tree-builder';
 import {Install} from './install.js';
 import Lockfile from '../../lockfile';
 import {YARN_REGISTRY} from '../../constants';
+
+const zlib = require('zlib');
+const gzip = promisify(zlib.gzip);
 
 export type AuditNode = {
   version: ?string,
@@ -193,20 +197,31 @@ export default class Audit {
   }
 
   async _fetchAudit(auditTree: AuditTree): Object {
+    let responseJson;
     const registry = YARN_REGISTRY;
-
     this.reporter.verbose(`Audit Request: ${JSON.stringify(auditTree, null, 2)}`);
+    const requestBody = await gzip(JSON.stringify(auditTree));
     const response = await this.config.requestManager.request({
       url: `${registry}/-/npm/v1/security/audits`,
       method: 'POST',
-      body: auditTree,
-      json: true,
+      body: requestBody,
+      headers: {
+        'Content-Encoding': 'gzip',
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
     });
-    this.reporter.verbose(`Audit Response: ${JSON.stringify(response, null, 2)}`);
-    if (!response || !response.metadata) {
-      throw new Error(`Unexpected audit response: ${JSON.stringify(response, null, 2)}`);
+
+    try {
+      responseJson = JSON.parse(response);
+    } catch (ex) {
+      throw new Error(`Unexpected audit response (Invalid JSON): ${JSON.stringify(response, null, 2)}`);
     }
-    return response;
+    if (!responseJson.metadata) {
+      throw new Error(`Unexpected audit response (Missing Metadata): ${JSON.stringify(responseJson, null, 2)}`);
+    }
+    this.reporter.verbose(`Audit Response: ${JSON.stringify(responseJson, null, 2)}`);
+    return responseJson;
   }
 
   async performAudit(
