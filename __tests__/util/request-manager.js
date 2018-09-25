@@ -183,7 +183,7 @@ test('RequestManager.execute timeout error with default maxRetryAttempts', async
   }
 });
 
-for (const statusCode of [403, 442, 542]) {
+for (const statusCode of [403, 442]) {
   test(`RequestManager.execute Request ${statusCode} error`, async () => {
     // The await await is just to silence Flow - https://github.com/facebook/flow/issues/6064
     const config = await await Config.create({}, new Reporter());
@@ -210,37 +210,40 @@ for (const statusCode of [403, 442, 542]) {
 }
 
 // Cloudflare will occasionally return an html response with a 500 status code on some calls
-test('RequestManager.execute retries on 500 error', async () => {
-  jest.resetModules();
-  // The await await is just to silence Flow - https://github.com/facebook/flow/issues/6064
-  const config = await await Config.create({}, new Reporter());
-  jest.mock('request', factory => {
-    let retryCount = 2;
-    return options => {
-      if (retryCount-- > 0) {
-        options.callback(
-          '',
-          {statusCode: 500},
-          `<!DOCTYPE html><title>Rendering error | registry.yarnpkg.com | Cloudflare</title>...`,
-        );
-      } else {
-        options.callback('', {statusCode: 200}, '');
-      }
-      return {
-        on: () => {},
+for (const statusCode of [408, 500, 542]) {
+  test(`RequestManager.execute retries on ${statusCode} error`, async () => {
+    jest.resetModules();
+    // The await await is just to silence Flow - https://github.com/facebook/flow/issues/6064
+    const config = await await Config.create({}, new Reporter());
+    const mockStatusCode = statusCode;
+    jest.mock('request', factory => {
+      let retryCount = 2;
+      return options => {
+        if (retryCount-- > 0) {
+          options.callback(
+            '',
+            {statusCode: mockStatusCode},
+            `<!DOCTYPE html><title>Rendering error | registry.yarnpkg.com | Cloudflare</title>...`,
+          );
+        } else {
+          options.callback('', {statusCode: 200}, '');
+        }
+        return {
+          on: () => {},
+        };
       };
-    };
+    });
+    await config.requestManager.execute({
+      params: {
+        url: `https://localhost:port/?nocache`,
+        headers: {Connection: 'close'},
+      },
+      resolve: body => {
+        expect(body).not.toEqual(false);
+      },
+    });
   });
-  await config.requestManager.execute({
-    params: {
-      url: `https://localhost:port/?nocache`,
-      headers: {Connection: 'close'},
-    },
-    resolve: body => {
-      expect(body).not.toEqual(false);
-    },
-  });
-});
+}
 
 test('RequestManager.request with offlineNoRequests', async () => {
   const config = await Config.create({offline: true}, new Reporter());
