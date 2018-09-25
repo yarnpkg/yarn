@@ -3,13 +3,16 @@
 import {NoopReporter} from '../../src/reporters/index.js';
 import {run as buildRun} from './_helpers.js';
 import {run as audit} from '../../src/cli/commands/audit.js';
+import {promisify} from '../../src/util/promise.js';
 
 const path = require('path');
+const zlib = require('zlib');
+const gunzip = promisify(zlib.gunzip);
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'audit');
 
 const setupMockRequestManager = function(config) {
-  const apiResponse = getAuditResponse(config);
+  const apiResponse = JSON.stringify(getAuditResponse(config), null, 2);
   // $FlowFixMe
   config.requestManager.request = jest.fn();
   config.requestManager.request.mockReturnValue(
@@ -88,12 +91,10 @@ test.concurrent('sends correct dependency map to audit api for single dependency
     version: '0.0.0',
   };
 
-  return runAudit([], {}, 'single-vulnerable-dep-installed', config => {
-    expect(config.requestManager.request).toBeCalledWith(
-      expect.objectContaining({
-        body: expectedApiPost,
-      }),
-    );
+  return runAudit([], {}, 'single-vulnerable-dep-installed', async config => {
+    const calledWithPipe = config.requestManager.request.mock.calls[0][0].body;
+    const calledWith = JSON.parse(await gunzip(calledWithPipe));
+    expect(calledWith).toEqual(expectedApiPost);
   });
 });
 

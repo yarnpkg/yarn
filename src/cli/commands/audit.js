@@ -215,7 +215,7 @@ export default class Audit {
     try {
       responseJson = JSON.parse(response);
     } catch (ex) {
-      throw new Error(`Unexpected audit response (Invalid JSON): ${JSON.stringify(response, null, 2)}`);
+      throw new Error(`Unexpected audit response (Invalid JSON): ${response}`);
     }
     if (!responseJson.metadata) {
       throw new Error(`Unexpected audit response (Missing Metadata): ${JSON.stringify(responseJson, null, 2)}`);
