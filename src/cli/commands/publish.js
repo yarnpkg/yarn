@@ -141,6 +141,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   }
 
   // validate package fields that are required for publishing
+  // $FlowFixMe
   const pkg = await config.readRootManifest();
   if (pkg.private) {
     throw new MessageError(reporter.lang('publishPrivate'));
@@ -149,13 +150,18 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     throw new MessageError(reporter.lang('noName'));
   }
 
-  //
+  let registry: string = '';
+
+  if (pkg && pkg.publishConfig && pkg.publishConfig.registry) {
+    registry = pkg.publishConfig.registry;
+  }
+
   reporter.step(1, 4, reporter.lang('bumpingVersion'));
   const commitVersion = await setVersion(config, reporter, flags, [], false);
 
   //
   reporter.step(2, 4, reporter.lang('loggingIn'));
-  const revoke = await getToken(config, reporter, pkg.name, flags);
+  const revoke = await getToken(config, reporter, pkg.name, flags, registry);
 
   //
   reporter.step(3, 4, reporter.lang('publishing'));

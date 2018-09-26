@@ -6,6 +6,7 @@ import type {PackageRemote, FetchedMetadata, FetchedOverride} from '../types.js'
 import type {RegistryNames} from '../registries/index.js';
 import type Config from '../config.js';
 import normalizeManifest from '../util/normalize-manifest/index.js';
+import {makePortableProxyScript} from '../util/portable-script.js';
 import * as constants from '../constants.js';
 import * as fs from '../util/fs.js';
 
@@ -61,6 +62,24 @@ export default class BaseFetcher {
           }
         }
       })();
+
+      if (pkg.bin) {
+        for (const binName of Object.keys(pkg.bin)) {
+          const binDest = `${this.dest}/.bin`;
+
+          // Using any sort of absolute path here would prevent makePortableProxyScript from preserving symlinks when
+          // calling the binary
+          const src = path.resolve(this.dest, pkg.bin[binName]);
+
+          if (await fs.exists(src)) {
+            // We ensure that the target is executable
+            await fs.chmod(src, 0o755);
+          }
+
+          await fs.mkdirp(binDest);
+          await fs.symlink(src, `${binDest}/${binName}`);
+        }
+      }
 
       await fs.writeFile(
         path.join(this.dest, constants.METADATA_FILENAME),

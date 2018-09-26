@@ -506,6 +506,7 @@ test('relative cache folder', async () => {
 
   const [stdoutOutput, _] = await runYarn(['cache', 'dir'], {cwd: `${base}/sub`});
 
+  // The dirname is to remove the "v2" part
   expect(await fs.realpath(path.dirname(stdoutOutput.toString()))).toEqual(await fs.realpath(`${base}/foo`));
 });
 

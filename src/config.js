@@ -47,7 +47,10 @@ export type ConfigOptions = {
   childConcurrency?: number,
   networkTimeout?: number,
   nonInteractive?: boolean,
+  enablePnp?: boolean,
+  disablePnp?: boolean,
   scriptsPrependNodePath?: boolean,
+  offlineCacheFolder?: string,
 
   enableDefaultRc?: boolean,
   extraneousYarnrcFiles?: Array<string>,
@@ -167,10 +170,19 @@ export default class Config {
 
   nonInteractive: boolean;
 
+  plugnplayPersist: boolean;
+  plugnplayEnabled: boolean;
+  plugnplayShebang: ?string;
+  plugnplayBlacklist: ?string;
+  plugnplayUnplugged: Array<string>;
+  plugnplayPurgeUnpluggedPackages: boolean;
+
   scriptsPrependNodePath: boolean;
 
   workspacesEnabled: boolean;
   workspacesNohoistEnabled: boolean;
+
+  offlineCacheFolder: ?string;
 
   //
   cwd: string;
@@ -365,8 +377,39 @@ export default class Config {
     } else {
       this._cacheRootFolder = String(cacheRootFolder);
     }
+
+    const manifest = await this.maybeReadManifest(this.cwd);
+
+    const plugnplayByEnv = this.getOption('plugnplay-override');
+    if (plugnplayByEnv != null) {
+      this.plugnplayEnabled = plugnplayByEnv !== 'false' && plugnplayByEnv !== '0';
+      this.plugnplayPersist = false;
+    } else if (opts.enablePnp || opts.disablePnp) {
+      this.plugnplayEnabled = !!opts.enablePnp;
+      this.plugnplayPersist = true;
+    } else if (manifest && manifest.installConfig && manifest.installConfig.pnp) {
+      this.plugnplayEnabled = !!manifest.installConfig.pnp;
+      this.plugnplayPersist = false;
+    } else {
+      this.plugnplayEnabled = false;
+      this.plugnplayEnabled = false;
+    }
+
+    if (process.platform === 'win32') {
+      if (this.plugnplayEnabled) {
+        this.reporter.warn(this.reporter.lang('plugnplayWindowsSupport'));
+      }
+      this.plugnplayEnabled = false;
+      this.plugnplayPersist = false;
+    }
+
+    this.plugnplayShebang = String(this.getOption('plugnplay-shebang') || '') || '/usr/bin/env node';
+    this.plugnplayBlacklist = String(this.getOption('plugnplay-blacklist') || '') || null;
+
     this.workspacesEnabled = this.getOption('workspaces-experimental') !== false;
     this.workspacesNohoistEnabled = this.getOption('workspaces-nohoist-experimental') !== false;
+
+    this.offlineCacheFolder = String(this.getOption('offline-cache-folder') || '') || null;
 
     this.pruneOfflineMirror = Boolean(this.getOption('yarn-offline-mirror-pruning'));
     this.enableMetaFolder = Boolean(this.getOption('enable-meta-folder'));
@@ -374,7 +417,7 @@ export default class Config {
     this.linkFileDependencies = Boolean(this.getOption('yarn-link-file-dependencies'));
     this.packBuiltPackages = Boolean(this.getOption('experimental-pack-script-packages-in-mirror'));
 
-    this.autoAddIntegrity = !Boolean(this.getOption('unsafe-disable-integrity-migration'));
+    this.autoAddIntegrity = !this.getOption('unsafe-disable-integrity-migration');
 
     //init & create cacheFolder, tempFolder
     this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));
@@ -422,6 +465,8 @@ export default class Config {
     this.offline = !!opts.offline;
     this.binLinks = !!opts.binLinks;
     this.updateChecksums = !!opts.updateChecksums;
+    this.plugnplayUnplugged = [];
+    this.plugnplayPurgeUnpluggedPackages = false;
 
     this.ignorePlatform = !!opts.ignorePlatform;
     this.ignoreScripts = !!opts.ignoreScripts;
@@ -447,6 +492,37 @@ export default class Config {
   }
 
   /**
+   * Generate a name suitable as unique filesystem identifier for the specified package.
+   */
+
+  generateUniquePackageSlug(pkg: PackageReference): string {
+    let slug = pkg.name;
+
+    slug = slug.replace(/[^@a-z0-9]+/g, '-');
+    slug = slug.replace(/^-+|-+$/g, '');
+
+    if (pkg.registry) {
+      slug = `${pkg.registry}-${slug}`;
+    } else {
+      slug = `unknown-${slug}`;
+    }
+
+    const {hash} = pkg.remote;
+
+    if (pkg.version) {
+      slug += `-${pkg.version}`;
+    }
+
+    if (pkg.uid && pkg.version !== pkg.uid) {
+      slug += `-${pkg.uid}`;
+    } else if (hash) {
+      slug += `-${hash}`;
+    }
+
+    return slug;
+  }
+
+  /**
    * Generate an absolute module path.
    */
 
@@ -454,21 +530,45 @@ export default class Config {
     invariant(this.cacheFolder, 'No package root');
     invariant(pkg, 'Undefined package');
 
-    let name = pkg.name;
-    let uid = pkg.uid;
-    if (pkg.registry) {
-      name = `${pkg.registry}-${name}`;
+    const slug = this.generateUniquePackageSlug(pkg);
+    return path.join(this.cacheFolder, slug, 'node_modules', pkg.name);
+  }
+
+  /**
+   */
+
+  getUnpluggedPath(): string {
+    return path.join(this.lockfileFolder, '.pnp', 'unplugged');
+  }
+
+  /**
+    */
+
+  generatePackageUnpluggedPath(pkg: PackageReference): string {
+    const slug = this.generateUniquePackageSlug(pkg);
+    return path.join(this.getUnpluggedPath(), slug, 'node_modules', pkg.name);
+  }
+
+  /**
+   */
+
+  async listUnpluggedPackageFolders(): Promise<Map<string, string>> {
+    const unpluggedPackages = new Map();
+    const unpluggedPath = this.getUnpluggedPath();
+
+    if (!await fs.exists(unpluggedPath)) {
+      return unpluggedPackages;
     }
 
-    const {hash} = pkg.remote;
+    for (const unpluggedName of await fs.readdir(unpluggedPath)) {
+      const nmListing = await fs.readdir(path.join(unpluggedPath, unpluggedName, 'node_modules'));
+      invariant(nmListing.length === 1, 'A single folder should be in the unplugged directory');
 
-    if (pkg.version && pkg.version !== pkg.uid) {
-      uid = `${pkg.version}-${uid}`;
-    } else if (hash) {
-      uid += `-${hash}`;
+      const target = path.join(unpluggedPath, unpluggedName, `node_modules`, nmListing[0]);
+      unpluggedPackages.set(unpluggedName, target);
     }
 
-    return path.join(this.cacheFolder, `${name}-${uid}`);
+    return unpluggedPackages;
   }
 
   /**

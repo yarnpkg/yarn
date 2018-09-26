@@ -4,8 +4,7 @@ import type {InstallationMethod} from '../../util/yarn-version.js';
 import type {Reporter} from '../../reporters/index.js';
 import type {ReporterSelectOption} from '../../reporters/types.js';
 import type {Manifest, DependencyRequestPatterns} from '../../types.js';
-import type Config from '../../config.js';
-import type {RootManifests} from '../../config.js';
+import type Config, {RootManifests} from '../../config.js';
 import type {RegistryNames} from '../../registries/index.js';
 import type {LockfileObject} from '../../lockfile';
 import {callThroughHook} from '../../util/hooks.js';
@@ -27,6 +26,7 @@ import {normalizePattern} from '../../util/normalize-pattern.js';
 import * as fs from '../../util/fs.js';
 import map from '../../util/map.js';
 import {version as YARN_VERSION, getInstallationMethod} from '../../util/yarn-version.js';
+import {generatePnpMap} from '../../util/generate-pnp-map.js';
 import WorkspaceLayout from '../../workspace-layout.js';
 import ResolutionMap from '../../resolution-map.js';
 import guessName from '../../util/guess-name';
@@ -382,6 +382,21 @@ export class Install {
         stripExcluded(cwdIsRoot ? virtualDependencyManifest : workspaces[projectManifestJson.name].manifest);
 
         pushDeps('workspaces', {workspaces: virtualDep}, {hint: 'workspaces', optional: false}, true);
+
+        const implicitWorkspaceDependencies = {...workspaceDependencies};
+
+        for (const type of constants.OWNED_DEPENDENCY_TYPES) {
+          for (const dependencyName of Object.keys(projectManifestJson[type] || {})) {
+            delete implicitWorkspaceDependencies[dependencyName];
+          }
+        }
+
+        pushDeps(
+          'dependencies',
+          {dependencies: implicitWorkspaceDependencies},
+          {hint: 'workspaces', optional: false},
+          true,
+        );
       }
 
       break;
@@ -423,6 +438,10 @@ export class Install {
   }
 
   async bailout(patterns: Array<string>, workspaceLayout: ?WorkspaceLayout): Promise<boolean> {
+    // PNP is so fast that the integrity check isn't pertinent
+    if (this.config.plugnplayEnabled) {
+      return false;
+    }
     if (this.flags.skipIntegrityCheck || this.flags.force) {
       return false;
     }
@@ -626,6 +645,31 @@ export class Install {
       }),
     );
 
+    if (this.config.plugnplayEnabled) {
+      steps.push((curr: number, total: number) =>
+        callThroughHook('pnpStep', async () => {
+          const pnpPath = `${this.config.lockfileFolder}/${constants.PNP_FILENAME}`;
+
+          const code = await generatePnpMap(this.config, flattenedTopLevelPatterns, {
+            resolver: this.resolver,
+            reporter: this.reporter,
+            targetPath: pnpPath,
+            workspaceLayout,
+          });
+
+          try {
+            const file = await fs.readFile(pnpPath);
+            if (file === code) {
+              return;
+            }
+          } catch (error) {}
+
+          await fs.writeFile(pnpPath, code);
+          await fs.chmod(pnpPath, 0o755);
+        }),
+      );
+    }
+
     steps.push((curr: number, total: number) =>
       callThroughHook('buildStep', async () => {
         this.reporter.step(
@@ -687,9 +731,45 @@ export class Install {
       this.reporter.warn(this.reporter.lang('auditRunAuditForDetails'));
     }
     await this.saveLockfileAndIntegrity(topLevelPatterns, workspaceLayout);
+    await this.persistChanges();
     this.maybeOutputUpdate();
     this.config.requestManager.clearCache();
     return flattenedTopLevelPatterns;
+  }
+
+  async persistChanges(): Promise<void> {
+    // get all the different registry manifests in this folder
+    const manifests = await this.config.getRootManifests();
+
+    if (await this.applyChanges(manifests)) {
+      await this.config.saveRootManifests(manifests);
+    }
+  }
+
+  applyChanges(manifests: RootManifests): Promise<boolean> {
+    let hasChanged = false;
+
+    if (this.config.plugnplayPersist) {
+      const {object} = manifests.npm;
+
+      if (typeof object.installConfig !== 'object') {
+        object.installConfig = {};
+      }
+
+      if (this.config.plugnplayEnabled && object.installConfig.pnp !== true) {
+        object.installConfig.pnp = true;
+        hasChanged = true;
+      } else if (!this.config.plugnplayEnabled && typeof object.installConfig.pnp !== 'undefined') {
+        delete object.installConfig.pnp;
+        hasChanged = true;
+      }
+
+      if (Object.keys(object.installConfig).length === 0) {
+        delete object.installConfig;
+      }
+    }
+
+    return Promise.resolve(hasChanged);
   }
 
   /**
@@ -848,13 +928,15 @@ export class Install {
     }
 
     // write integrity hash
-    await this.integrityChecker.save(
-      patterns,
-      lockfileBasedOnResolver,
-      this.flags,
-      workspaceLayout,
-      this.scripts.getArtifacts(),
-    );
+    if (!this.config.plugnplayEnabled) {
+      await this.integrityChecker.save(
+        patterns,
+        lockfileBasedOnResolver,
+        this.flags,
+        workspaceLayout,
+        this.scripts.getArtifacts(),
+      );
+    }
 
     // --no-lockfile or --pure-lockfile or --frozen-lockfile
     if (this.flags.lockfile === false || this.flags.pureLockfile || this.flags.frozenLockfile) {

@@ -5,6 +5,7 @@ import type Config from '../../config.js';
 import buildSubCommands from './_build-sub-commands.js';
 import * as fs from '../../util/fs.js';
 
+const invariant = require('invariant');
 const path = require('path');
 const micromatch = require('micromatch');
 
@@ -12,11 +13,7 @@ export function hasWrapper(flags: Object, args: Array<string>): boolean {
   return args[0] !== 'dir';
 }
 
-function isScopedPackageDirectory(packagePath): boolean {
-  return packagePath.indexOf('@') > -1;
-}
-
-async function getPackagesPaths(config, currentPath): Object {
+export async function getCachedPackagesDirs(config: Config, currentPath: string): Object {
   const results = [];
   const stat = await fs.lstat(currentPath);
 
@@ -29,13 +26,33 @@ async function getPackagesPaths(config, currentPath): Object {
     if (folder[0] === '.') {
       continue;
     }
-    const packagePath = path.join(currentPath, folder);
-    if (isScopedPackageDirectory(folder)) {
-      results.push(...(await getPackagesPaths(config, packagePath)));
-    } else {
-      results.push(packagePath);
+    const packageParentPath = path.join(currentPath, folder, 'node_modules');
+
+    const candidates = await fs.readdir(packageParentPath);
+    invariant(
+      candidates.length === 1,
+      `There should only be one folder in a package cache (got ${candidates.join(',')})`,
+    );
+
+    for (const candidate of candidates) {
+      const candidatePath = path.join(packageParentPath, candidate);
+      if (candidate.charAt(0) === '@') {
+        const subCandidates = await fs.readdir(candidatePath);
+        invariant(
+          subCandidates.length === 1,
+          `There should only be one folder in a package cache (got ${subCandidates.join(',')})`,
+        );
+
+        for (const subCandidate of subCandidates) {
+          const subCandidatePath = path.join(candidatePath, subCandidate);
+          results.push(subCandidatePath);
+        }
+      } else {
+        results.push(candidatePath);
+      }
     }
   }
+
   return results;
 }
 
@@ -53,7 +70,7 @@ function _getMetadataWithPath(getMetadataFn: Function, paths: Array<String>): Pr
 }
 
 async function getCachedPackages(config): Object {
-  const paths = await getPackagesPaths(config, config.cacheFolder);
+  const paths = await getCachedPackagesDirs(config, config.cacheFolder);
   return _getMetadataWithPath(config.readPackageMetadata.bind(config), paths).then(packages =>
     packages.filter(p => !!p),
   );
@@ -90,8 +107,13 @@ async function clean(config: Config, reporter: Reporter, flags: Object, args: Ar
       const packagesToDelete = packages.filter(shouldDelete);
 
       for (const manifest of packagesToDelete) {
-        await fs.unlink(manifest._path); // save package path when retrieving
+        let relativePath = path.relative(config.cacheFolder, manifest._path);
+        while (relativePath && relativePath !== '.') {
+          await fs.unlink(path.resolve(config.cacheFolder, relativePath));
+          relativePath = path.dirname(relativePath);
+        }
       }
+
       activity.end();
       reporter.success(reporter.lang('clearedPackageFromCache', args[0]));
     } else {

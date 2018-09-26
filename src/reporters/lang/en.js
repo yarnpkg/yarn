@@ -355,6 +355,11 @@ const messages = {
   downloadGitWithoutCommit: 'Downloading the git repo $0 over plain git without a commit hash',
   downloadHTTPWithoutCommit: 'Downloading the git repo $0 over HTTP without a commit hash',
 
+  unplugDisabled: "Packages can only be unplugged when Plug'n'Play is enabled.",
+
+  plugnplayWindowsSupport:
+    "Plug'n'Play is ignored on Windows for now - contributions welcome! https://github.com/yarnpkg/yarn/issues/6402",
+
   packageInstalledWithBinaries: 'Installed $0 with binaries:',
   packageHasBinaries: '$0 has binaries:',
   packageHasNoBinaries: '$0 has no binaries',
