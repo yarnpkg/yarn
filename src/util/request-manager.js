@@ -431,7 +431,7 @@ export default class RequestManager {
           return;
         }
 
-        if ([400, 401, 404].concat(params.rejectStatusCode || []).indexOf(res.statusCode) !== -1) {
+        if ([400, 404].concat(params.rejectStatusCode || []).indexOf(res.statusCode) !== -1) {
           // So this is actually a rejection ... the hosted git resolver uses this to know whether http is supported
           resolve(false);
         } else if (res.statusCode >= 400) {
