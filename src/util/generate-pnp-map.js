@@ -202,8 +202,12 @@ async function getPackageInformationStores(
     return {pkg, ref, loc};
   };
 
-  const visit = async (seedPatterns: Array<string>, parentData: Array<string> = []) => {
-    const resolutions = new Map();
+  const visit = async (
+    precomputedResolutions: Map<string, string>,
+    seedPatterns: Array<string>,
+    parentData: Array<string> = [],
+  ) => {
+    const resolutions = new Map(precomputedResolutions);
     const locations = new Map();
 
     // This first pass will compute the package reference of each of the given patterns
@@ -337,17 +341,30 @@ async function getPackageInformationStores(
         return !pkg || !peerDependencies.has(pkg.name);
       });
 
-      // We do this in two steps to prevent cyclic dependencies from looping indefinitely
+      // We inject the partial information in the store right now so that we won't cycle indefinitely
       packageInformationStore.set(packageReference, packageInformation);
-      packageInformation.packageDependencies = await visit(directDependencies, [packageName, packageReference]);
 
-      // We now have to inject the peer dependencies
+      // We must inject the peer dependencies before iterating; one of our dependencies might have a peer dependency
+      // on one of our peer dependencies, so it must be available from the start (we don't have to do that for direct
+      // dependencies, because the "visit" function that will iterate over them will automatically add the to the
+      // candidate resolutions as part of the first step, cf above)
+
       for (const dependencyName of peerDependencies) {
         const dependencyReference = resolutions.get(dependencyName);
 
         if (dependencyReference) {
           packageInformation.packageDependencies.set(dependencyName, dependencyReference);
         }
+      }
+
+      const childResolutions = await visit(packageInformation.packageDependencies, directDependencies, [
+        packageName,
+        packageReference,
+      ]);
+
+      // We can now inject into our package the resolutions we got from the visit function
+      for (const [name, reference] of childResolutions.entries()) {
+        packageInformation.packageDependencies.set(name, reference);
       }
 
       // Finally, unless a package depends on a previous version of itself (that would be weird but correct...), we
@@ -389,7 +406,7 @@ async function getPackageInformationStores(
 
       packageInformationStore.set(pkg.version, {
         packageLocation: normalizeDirectoryPath(loc),
-        packageDependencies: await visit(ref.dependencies, [name, pkg.version]),
+        packageDependencies: await visit(new Map(), ref.dependencies, [name, pkg.version]),
       });
     }
   }
@@ -403,7 +420,7 @@ async function getPackageInformationStores(
         null,
         {
           packageLocation: normalizeDirectoryPath(config.lockfileFolder),
-          packageDependencies: await visit(seedPatterns),
+          packageDependencies: await visit(new Map(), seedPatterns),
         },
       ],
     ]),
