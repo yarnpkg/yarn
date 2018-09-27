@@ -36,14 +36,15 @@ export async function getBinEntries(config: Config): Promise<Map<string, string>
   // Same thing, but for the pnp dependencies, located inside the cache
   if (await fs.exists(`${config.lockfileFolder}/${constants.PNP_FILENAME}`)) {
     const pnpApi = dynamicRequire(`${config.lockfileFolder}/${constants.PNP_FILENAME}`);
-    const topLevelInformation = pnpApi.getPackageInformation({name: null, reference: null});
 
-    for (const [name, reference] of topLevelInformation.packageDependencies.entries()) {
+    const packageLocator = pnpApi.findPackageLocator(`${config.cwd}/`);
+    const packageInformation = pnpApi.getPackageInformation(packageLocator);
+
+    for (const [name, reference] of packageInformation.packageDependencies.entries()) {
       const dependencyInformation = pnpApi.getPackageInformation({name, reference});
 
       if (dependencyInformation.packageLocation) {
-        const fullPath = path.resolve(config.lockfileFolder, dependencyInformation.packageLocation);
-        binFolders.add(`${fullPath}/.bin`);
+        binFolders.add(`${dependencyInformation.packageLocation}/.bin`);
       }
     }
   }
