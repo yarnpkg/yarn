@@ -22,8 +22,8 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
           await writeFile(
             `${path}/packages/workspace-a/index.js`,
             `
-        module.exports = 42;
-      `,
+              module.exports = 42;
+            `,
           );
 
           await run(`install`);
@@ -56,8 +56,8 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
           await writeFile(
             `${path}/packages/workspace-a/index.js`,
             `
-        module.exports = require('workspace-b/package.json');
-      `,
+              module.exports = require('workspace-b/package.json');
+            `,
           );
 
           await writeJson(`${path}/packages/workspace-b/package.json`, {
@@ -71,8 +71,8 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
           await writeFile(
             `${path}/packages/workspace-b/index.js`,
             `
-        module.exports = require('workspace-a/package.json');
-      `,
+              module.exports = require('workspace-a/package.json');
+            `,
           );
 
           await run(`install`);
@@ -110,8 +110,8 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
           await writeFile(
             `${path}/packages/workspace/index.js`,
             `
-        module.exports = require('no-deps/package.json');
-      `,
+              module.exports = require('no-deps/package.json');
+            `,
           );
 
           await writeJson(`${path}/packages/no-deps/package.json`, {
@@ -125,6 +125,33 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
             name: `no-deps`,
             version: `2.0.0`,
           });
+        },
+      ),
+    );
+
+    test(
+      `it should allow scripts defined in workspaces to run successfully`,
+      makeTemporaryEnv(
+        {
+          private: true,
+          workspaces: [`packages/*`],
+        },
+        async ({path, run, source}) => {
+          await writeJson(`${path}/packages/workspace/package.json`, {
+            name: `workspace`,
+            version: `1.0.0`,
+            dependencies: {
+              [`has-bin-entries`]: `1.0.0`,
+            },
+          });
+
+          await run(`install`);
+
+          await expect(
+            run(`run`, `has-bin-entries`, `foo`, {
+              cwd: `${path}/packages/workspace`,
+            }),
+          ).resolves.toMatchObject({stdout: `foo\n`});
         },
       ),
     );
