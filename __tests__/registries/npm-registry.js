@@ -866,4 +866,23 @@ describe('checkOutdated functional test', () => {
 
     expect(message).toEqual(expect.stringContaining('No valid versions'));
   });
+
+  test('package with an empty response', async () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
+
+    mockRequestManager.request = () => {
+      return {};
+    };
+
+    let message;
+    try {
+      await npmRegistry.checkOutdated(mockConfig, 'left-pad', '2.0.0');
+    } catch (err) {
+      message = err.message;
+    }
+
+    expect(message).toEqual(expect.stringContaining('malformed response from registry for "left-pad"'));
+  });
 });
