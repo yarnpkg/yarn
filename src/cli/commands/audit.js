@@ -254,28 +254,35 @@ export default class Audit {
     };
 
     if (Object.keys(this.auditData.advisories).length !== 0) {
-      let printedManualReviewHeader = false;
+      // let printedManualReviewHeader = false;
 
       this.auditData.actions.forEach(action => {
-        if (action.action === 'update' || action.action === 'install') {
-          // these advisories can be resolved automatically by running a yarn command
-          const recommendation: AuditActionRecommendation = {
-            cmd: `yarn upgrade ${action.module}@${action.target}`,
-            isBreaking: action.isMajor,
-            action,
-          };
-          this.reporter.auditAction(recommendation);
-          action.resolves.forEach(reportAdvisory);
-        }
+        action.resolves.forEach(reportAdvisory);
 
-        if (action.action === 'review') {
-          // these advisories cannot be resolved automatically and require manual review
-          if (!printedManualReviewHeader) {
-            this.reporter.auditManualReview();
-          }
-          printedManualReviewHeader = true;
-          action.resolves.forEach(reportAdvisory);
-        }
+        /* The following block has been temporarily removed
+         * because the actions returned by npm are not valid for yarn.
+         * Removing this action reporting until we can come up with a way
+         * to correctly resolve issues.
+         */
+        // if (action.action === 'update' || action.action === 'install') {
+        //   // these advisories can be resolved automatically by running a yarn command
+        //   const recommendation: AuditActionRecommendation = {
+        //     cmd: `yarn upgrade ${action.module}@${action.target}`,
+        //     isBreaking: action.isMajor,
+        //     action,
+        //   };
+        //   this.reporter.auditAction(recommendation);
+        //   action.resolves.forEach(reportAdvisory);
+        // }
+
+        // if (action.action === 'review') {
+        //   // these advisories cannot be resolved automatically and require manual review
+        //   if (!printedManualReviewHeader) {
+        //     this.reporter.auditManualReview();
+        //   }
+        //   printedManualReviewHeader = true;
+        //   action.resolves.forEach(reportAdvisory);
+        // }
       });
     }
 

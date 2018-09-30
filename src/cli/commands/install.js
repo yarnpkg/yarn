@@ -586,7 +586,7 @@ export class Install {
         });
         topLevelPatterns = this.preparePatterns(rawPatterns);
         flattenedTopLevelPatterns = await this.flatten(topLevelPatterns);
-        return {bailout: await this.bailout(topLevelPatterns, workspaceLayout)};
+        return {bailout: !this.flags.audit && (await this.bailout(topLevelPatterns, workspaceLayout))};
       }),
     );
 
@@ -613,7 +613,7 @@ export class Install {
             auditVulnerabilityCounts.moderate ||
             auditVulnerabilityCounts.high ||
             auditVulnerabilityCounts.critical;
-          return {bailout: false}; // placeholder for a future option to abort if audit finds security problems.
+          return {bailout: await this.bailout(topLevelPatterns, workspaceLayout)};
         }),
       );
     }
@@ -1118,7 +1118,7 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 export function setFlags(commander: Object) {
   commander.description('Yarn install is used to install all dependencies for a project.');
   commander.usage('install [flags]');
-  commander.option('-A', '--audit', 'Run vulnerability audit on installed packages');
+  commander.option('-A, --audit', 'Run vulnerability audit on installed packages');
   commander.option('-g, --global', 'DEPRECATED');
   commander.option('-S, --save', 'DEPRECATED - save package to your `dependencies`');
   commander.option('-D, --save-dev', 'DEPRECATED - save package to your `devDependencies`');
