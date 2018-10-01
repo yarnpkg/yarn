@@ -395,7 +395,7 @@ export default class Config {
       this.plugnplayEnabled = false;
     }
 
-    if (process.platform === 'win32') {	
+    if (process.platform === 'win32') {
       const cacheRootFolderDrive = path.parse(this._cacheRootFolder).root;
       const lockfileFolderDrive = path.parse(this.lockfileFolder).root;
 
