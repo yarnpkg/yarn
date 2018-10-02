@@ -2,6 +2,7 @@
   "extends": [
     "config:base",
     ":preserveSemverRanges",
+    ":semanticCommitsDisabled",
     "docker:disable"
   ]
 }
