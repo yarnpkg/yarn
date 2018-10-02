@@ -396,11 +396,16 @@ export default class Config {
     }
 
     if (process.platform === 'win32') {
-      if (this.plugnplayEnabled) {
-        this.reporter.warn(this.reporter.lang('plugnplayWindowsSupport'));
+      const cacheRootFolderDrive = path.parse(this._cacheRootFolder).root;
+      const lockfileFolderDrive = path.parse(this.lockfileFolder).root;
+
+      if (cacheRootFolderDrive !== lockfileFolderDrive) {
+        if (this.plugnplayEnabled) {
+          this.reporter.warn(this.reporter.lang('plugnplayWindowsSupport'));
+        }
+        this.plugnplayEnabled = false;
+        this.plugnplayPersist = false;
       }
-      this.plugnplayEnabled = false;
-      this.plugnplayPersist = false;
     }
 
     this.plugnplayShebang = String(this.getOption('plugnplay-shebang') || '') || '/usr/bin/env node';

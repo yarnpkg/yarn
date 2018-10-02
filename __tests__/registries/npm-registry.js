@@ -868,11 +868,6 @@ describe('checkOutdated functional test', () => {
   });
 
   test('latest version fallback to wanted package manifest', async () => {
-    const testCwd = '.';
-    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
-    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
-
-    mockRequestManager.request = () => {
       return {
         'dist-tags': {},
         versions: {
@@ -893,5 +888,24 @@ describe('checkOutdated functional test', () => {
       wanted: '2.0.0',
       url: 'http://package.repo.com',
     });
+  });
+
+  test('package with an empty response', async () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
+
+    mockRequestManager.request = () => {
+      return {};
+    };
+
+    let message;
+    try {
+      await npmRegistry.checkOutdated(mockConfig, 'left-pad', '2.0.0');
+    } catch (err) {
+      message = err.message;
+    }
+
+    expect(message).toEqual(expect.stringContaining('malformed response from registry for "left-pad"'));
   });
 });

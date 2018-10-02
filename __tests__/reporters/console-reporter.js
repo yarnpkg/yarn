@@ -304,3 +304,25 @@ test('ConsoleReporter.tree is silent when isSilent is true', async () => {
     }),
   ).toMatchSnapshot();
 });
+
+test('ConsoleReporter.auditSummary', async () => {
+  const auditMetadata = {
+    vulnerabilities: {
+      info: 0,
+      low: 0,
+      moderate: 0,
+      high: 1,
+      critical: 0,
+    },
+    dependencies: 5,
+    devDependencies: 0,
+    optionalDependencies: 0,
+    totalDependencies: 5,
+  };
+
+  expect(
+    await getConsoleBuff(r => {
+      r.auditSummary(auditMetadata);
+    }),
+  ).toMatchSnapshot();
+});
