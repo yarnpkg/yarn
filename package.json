@@ -9,7 +9,7 @@
     "@zkochan/cmd-shim": "^2.2.4",
     "babel-runtime": "^6.26.0",
     "bytes": "^3.0.0",
-    "camelcase": "^4.0.0",
+    "camelcase": "^5.0.0",
     "chalk": "^2.1.0",
     "cli-table3": "^0.5.1",
     "commander": "^2.9.0",
