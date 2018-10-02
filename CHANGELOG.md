@@ -4,7 +4,9 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
-*Nothing yet*
+- Fixes the `extensions` option when used by `resolveRequest`
+
+  [#6479](https://github.com/yarnpkg/yarn/pull/6479) - [**Maël Nison**](https://twitter.com/arcanis)
 
 ## 1.12.0
 
