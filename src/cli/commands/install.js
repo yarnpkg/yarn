@@ -454,7 +454,6 @@ export class Install {
       return false;
     }
     const lockfileClean = this.lockfile.parseResultType === 'success';
-    const lockfileIntegrityPresent = !this.lockfile.hasEntriesExistWithoutIntegrity();
     const match = await this.integrityChecker.check(patterns, lockfileCache, this.flags, workspaceLayout);
     if (this.flags.frozenLockfile && (!lockfileClean || match.missingPatterns.length > 0)) {
       throw new MessageError(this.reporter.lang('frozenLockfileError'));
@@ -462,7 +461,10 @@ export class Install {
 
     const haveLockfile = await fs.exists(path.join(this.config.lockfileFolder, constants.LOCKFILE_FILENAME));
 
-    if (match.integrityMatches && haveLockfile && lockfileClean && lockfileIntegrityPresent) {
+    const lockfileIntegrityPresent = !this.lockfile.hasEntriesExistWithoutIntegrity();
+    const integrityBailout = lockfileIntegrityPresent || !this.config.autoAddIntegrity;
+
+    if (match.integrityMatches && haveLockfile && lockfileClean && integrityBailout) {
       this.reporter.success(this.reporter.lang('upToDate'));
       return true;
     }

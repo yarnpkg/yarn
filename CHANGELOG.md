@@ -20,6 +20,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#6464](https://github.com/yarnpkg/yarn/pull/6464) - [**Maël Nison**](https://twitter.com/arcanis)
 
+- Disables by default (configurable) the automatic migration of the `integrity` field. **It will be re-enabled in 2.0.**
+
+  [#6465](https://github.com/yarnpkg/yarn/pull/6465) - [**Maël Nison**](https://twitter.com/arcanis)
+
 - Fixes the display name of the faulty package when the NPM registry returns corrupted data
 
   [#6455](https://github.com/yarnpkg/yarn/pull/6455) - [**Grey Baker**](https://github.com/greysteil)
