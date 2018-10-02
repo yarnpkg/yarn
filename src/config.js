@@ -408,6 +408,8 @@ export default class Config {
       }
     }
 
+    const toBool = value => value !== 'false' && value !== 'no' && value !== '0';
+
     this.plugnplayShebang = String(this.getOption('plugnplay-shebang') || '') || '/usr/bin/env node';
     this.plugnplayBlacklist = String(this.getOption('plugnplay-blacklist') || '') || null;
 
@@ -422,7 +424,7 @@ export default class Config {
     this.linkFileDependencies = Boolean(this.getOption('yarn-link-file-dependencies'));
     this.packBuiltPackages = Boolean(this.getOption('experimental-pack-script-packages-in-mirror'));
 
-    this.autoAddIntegrity = !this.getOption('unsafe-disable-integrity-migration');
+    this.autoAddIntegrity = !toBool(this.getOption('unsafe-disable-integrity-migration') || 'true');
 
     //init & create cacheFolder, tempFolder
     this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));
