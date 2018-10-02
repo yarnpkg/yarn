@@ -212,15 +212,13 @@ export async function makeEnv(
     }
   }
 
-  // Otherwise, only add the top-level dependencies to the PATH
-  // Note that this isn't enough when executing scripts from subdependencies, but since dependencies with postinstall
-  // scripts have other issues that require us to make them fallback to regular node_modules installation (like sharing
-  // artifacts), we can sit on this one until we fix everything at once.
   if (await fs.exists(`${config.lockfileFolder}/${constants.PNP_FILENAME}`)) {
     const pnpApi = dynamicRequire(`${config.lockfileFolder}/${constants.PNP_FILENAME}`);
-    const topLevelInformation = pnpApi.getPackageInformation({name: null, reference: null});
 
-    for (const [name, reference] of topLevelInformation.packageDependencies.entries()) {
+    const packageLocator = pnpApi.findPackageLocator(`${config.cwd}/`);
+    const packageInformation = pnpApi.getPackageInformation(packageLocator);
+
+    for (const [name, reference] of packageInformation.packageDependencies.entries()) {
       const dependencyInformation = pnpApi.getPackageInformation({name, reference});
 
       if (!dependencyInformation || !dependencyInformation.packageLocation) {

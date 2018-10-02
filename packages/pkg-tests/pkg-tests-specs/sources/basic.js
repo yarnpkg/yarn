@@ -285,6 +285,51 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
     );
 
     test(
+      `it should install in such a way that peer dependencies can be resolved (two levels deep)`,
+      makeTemporaryEnv(
+        {
+          dependencies: {[`peer-deps-lvl0`]: `1.0.0`},
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await expect(source(`require('peer-deps-lvl0')`)).resolves.toMatchObject({
+            name: `peer-deps-lvl0`,
+            version: `1.0.0`,
+            dependencies: {
+              [`peer-deps-lvl1`]: {
+                name: `peer-deps-lvl1`,
+                version: `1.0.0`,
+                dependencies: {
+                  [`peer-deps-lvl2`]: {
+                    name: `peer-deps-lvl2`,
+                    version: `1.0.0`,
+                    peerDependencies: {
+                      [`no-deps`]: {
+                        name: `no-deps`,
+                        version: `1.0.0`,
+                      },
+                    },
+                  },
+                },
+                peerDependencies: {
+                  [`no-deps`]: {
+                    name: `no-deps`,
+                    version: `1.0.0`,
+                  },
+                },
+              },
+              [`no-deps`]: {
+                name: `no-deps`,
+                version: `1.0.0`,
+              },
+            },
+          });
+        },
+      ),
+    );
+
+    test(
       `it should cache the loaded modules`,
       makeTemporaryEnv(
         {

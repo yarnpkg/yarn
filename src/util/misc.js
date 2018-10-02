@@ -15,6 +15,12 @@ export function sortAlpha(a: string, b: string): number {
   return a.length - b.length;
 }
 
+export function sortOptionsByFlags(a: Object, b: Object): number {
+  const aOpt = a.flags.replace(/-/g, '');
+  const bOpt = b.flags.replace(/-/g, '');
+  return sortAlpha(aOpt, bOpt);
+}
+
 export function entries<T>(obj: ?{[key: string]: T}): Array<[string, T]> {
   const entries = [];
   if (obj) {

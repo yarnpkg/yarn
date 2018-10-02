@@ -1,13 +1,14 @@
 /* @flow */
 
 import fs from 'fs';
+import http from 'http';
 import url from 'url';
 import dnscache from 'dnscache';
 import invariant from 'invariant';
 import RequestCaptureHar from 'request-capture-har';
 
 import type {Reporter} from '../reporters/index.js';
-import {MessageError} from '../errors.js';
+import {MessageError, ResponseError} from '../errors.js';
 import BlockingQueue from './blocking-queue.js';
 import * as constants from '../constants.js';
 import * as network from './network.js';
@@ -67,6 +68,7 @@ type RequestParams<T> = {
 };
 
 type RequestOptions = {
+  retryReason: ?string,
   params: RequestParams<Object>,
   resolve: (body: any) => void,
   reject: (err: any) => void,
@@ -311,9 +313,23 @@ export default class RequestManager {
    * isn't already one.
    */
 
-  queueForOffline(opts: RequestOptions) {
+  queueForRetry(opts: RequestOptions) {
+    if (opts.retryReason) {
+      let containsReason = false;
+
+      for (const queuedOpts of this.offlineQueue) {
+        if (queuedOpts.retryReason === opts.retryReason) {
+          containsReason = true;
+          break;
+        }
+      }
+
+      if (!containsReason) {
+        this.reporter.info(opts.retryReason);
+      }
+    }
+
     if (!this.offlineQueue.length) {
-      this.reporter.info(this.reporter.lang('offlineRetrying'));
       this.initOfflineRetry();
     }
 
@@ -357,6 +373,23 @@ export default class RequestManager {
       rejectNext(err);
     };
 
+    const queueForRetry = reason => {
+      const attempts = params.retryAttempts || 0;
+      if (attempts >= this.maxRetryAttempts - 1) {
+        return false;
+      }
+      if (opts.params.method && opts.params.method.toUpperCase() !== 'GET') {
+        return false;
+      }
+      params.retryAttempts = attempts + 1;
+      if (typeof params.cleanup === 'function') {
+        params.cleanup();
+      }
+      opts.retryReason = reason;
+      this.queueForRetry(opts);
+      return true;
+    };
+
     let calledOnError = false;
     const onError = err => {
       if (calledOnError) {
@@ -364,15 +397,10 @@ export default class RequestManager {
       }
       calledOnError = true;
 
-      const attempts = params.retryAttempts || 0;
-      if (attempts < this.maxRetryAttempts - 1 && this.isPossibleOfflineError(err)) {
-        params.retryAttempts = attempts + 1;
-        if (typeof params.cleanup === 'function') {
-          params.cleanup();
+      if (this.isPossibleOfflineError(err)) {
+        if (!queueForRetry(this.reporter.lang('offlineRetrying'))) {
+          reject(err);
         }
-        this.queueForOffline(opts);
-      } else {
-        reject(err);
       }
     };
 
@@ -389,18 +417,27 @@ export default class RequestManager {
 
         this.reporter.verbose(this.reporter.lang('verboseRequestFinish', params.url, res.statusCode));
 
+        if (res.statusCode === 408 || res.statusCode >= 500) {
+          const description = `${res.statusCode} ${http.STATUS_CODES[res.statusCode]}`;
+          if (!queueForRetry(this.reporter.lang('internalServerErrorRetrying', description))) {
+            throw new ResponseError(this.reporter.lang('requestFailed', description), res.statusCode);
+          } else {
+            return;
+          }
+        }
+
         if (body && typeof body.error === 'string') {
           reject(new Error(body.error));
           return;
         }
 
-        if (res.statusCode === 403) {
+        if ([400, 401, 404].concat(params.rejectStatusCode || []).indexOf(res.statusCode) !== -1) {
+          // So this is actually a rejection ... the hosted git resolver uses this to know whether http is supported
+          resolve(false);
+        } else if (res.statusCode >= 400) {
           const errMsg = (body && body.message) || reporter.lang('requestError', params.url, res.statusCode);
           reject(new Error(errMsg));
         } else {
-          if ([400, 401, 404].concat(params.rejectStatusCode || []).indexOf(res.statusCode) !== -1) {
-            body = false;
-          }
           resolve(body);
         }
       };

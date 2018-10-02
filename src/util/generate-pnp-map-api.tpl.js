@@ -14,7 +14,13 @@ const StringDecoder = require('string_decoder');
 const ignorePattern = $$BLACKLIST ? new RegExp($$BLACKLIST) : null;
 
 const builtinModules = new Set(Module.builtinModules || Object.keys(process.binding('natives')));
+
+const topLevelLocator = {name: null, reference: null};
+const blacklistedLocator = {name: NaN, reference: NaN};
+
+// Used for compatibility purposes - cf setupCompatibilityLayer
 const patchedModules = new Map();
+const fallbackLocators = [topLevelLocator];
 
 // Splits a require request into its components, or return null if the request is a file path
 const pathRegExp = /^(?!\.{0,2}(?:\/|$))((?:@[^\/]+\/)?[^\/]+)\/?(.*|)$/;
@@ -26,9 +32,7 @@ const isStrictRegExp = /^\.{0,2}\//;
 // Matches if the path must point to a directory (ie ends with /)
 const isDirRegExp = /\/$/;
 
-const topLevelLocator = {name: null, reference: null};
-const blacklistedLocator = {name: NaN, reference: NaN};
-
+// Keep a reference around ("module" is a common name in this context, so better rename it to something more significant)
 const pnpModule = module;
 
 /**
@@ -374,13 +378,15 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer, {c
 
     let dependencyReference = issuerInformation.packageDependencies.get(dependencyName);
 
-    // If we can't find it, we check if we can potentially load it from the top-level packages
-    // it's a bit of a hack, but it improves compatibility with the existing Node ecosystem. Hopefully we should
-    // eventually be able to kill it and become stricter once pnp gets enough traction
+    // If we can't find it, we check if we can potentially load it from the packages that have been defined as potential fallbacks.
+    // It's a bit of a hack, but it improves compatibility with the existing Node ecosystem. Hopefully we should eventually be able
+    // to kill this logic and become stricter once pnp gets enough traction and the affected packages fix themselves.
 
-    if (dependencyReference === undefined) {
-      const topLevelInformation = getPackageInformationSafe(topLevelLocator);
-      dependencyReference = topLevelInformation.packageDependencies.get(dependencyName);
+    if (issuerLocator !== topLevelLocator) {
+      for (let t = 0, T = fallbackLocators.length; dependencyReference === undefined && t < T; ++t) {
+        const fallbackInformation = getPackageInformationSafe(fallbackLocators[t]);
+        dependencyReference = fallbackInformation.packageDependencies.get(dependencyName);
+      }
     }
 
     // If we can't find the path, and if the package making the request is the top-level, we can offer nicer error messages
@@ -673,12 +679,26 @@ exports.setupCompatibilityLayer = () => {
     return stack[2].getFileName();
   };
 
+  // ESLint currently doesn't have any portable way for shared configs to specify their own
+  // plugins that should be used (https://github.com/eslint/eslint/issues/10125). This will
+  // likely get fixed at some point, but it'll take time and in the meantime we'll just add
+  // additional fallback entries for common shared configs.
+
+  for (const name of [`react-scripts`]) {
+    const packageInformationStore = packageInformationStores.get(name);
+    if (packageInformationStore) {
+      for (const reference of packageInformationStore.keys()) {
+        fallbackLocators.push({name, reference});
+      }
+    }
+  }
+
   // We need to shim the "resolve" module, because Liftoff uses it in order to find the location
   // of the module in the dependency tree. And Liftoff is used to power Gulp, which doesn't work
   // at all unless modulePath is set, which we cannot configure from any other way than through
   // the Liftoff pipeline (the key isn't whitelisted for env or cli options).
 
-  patchedModules.set('resolve', realResolve => {
+  patchedModules.set(/^resolve$/, realResolve => {
     const mustBeShimmed = caller => {
       const callerLocator = exports.findPackageLocator(caller);
 
@@ -754,11 +774,14 @@ exports.setupCompatibilityLayer = () => {
 };
 
 if (module.parent && module.parent.id === 'internal/preload') {
-  exports.setup();
   exports.setupCompatibilityLayer();
+
+  exports.setup();
 }
 
 if (process.mainModule === module) {
+  exports.setupCompatibilityLayer();
+
   const reportError = (code, message, data) => {
     process.stdout.write(`${JSON.stringify([{code, message, data}, null])}\n`);
   };
