@@ -16,6 +16,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#6449](https://github.com/yarnpkg/yarn/pull/6449) - [**Maël Nison**](https://twitter.com/arcanis)
 
+- Makes the PnP hook inject a `process.versions.pnp` variable when setup (equals to `VERSIONS.std`)
+
+  [#6464](https://github.com/yarnpkg/yarn/pull/6464) - [**Maël Nison**](https://twitter.com/arcanis)
+
 - Fixes the display name of the faulty package when the NPM registry returns corrupted data
 
   [#6455](https://github.com/yarnpkg/yarn/pull/6455) - [**Grey Baker**](https://github.com/greysteil)

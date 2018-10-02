@@ -677,6 +677,8 @@ exports.setup = function setup() {
 
     return false;
   };
+
+  process.versions.pnp = String(exports.VERSIONS.std);
 };
 
 exports.setupCompatibilityLayer = () => {
