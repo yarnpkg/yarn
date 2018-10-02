@@ -207,10 +207,16 @@ export default class NpmRegistry extends Registry {
       homepage = wantedPkg.homepage;
     }
 
+    let latest = req['dist-tags'].latest;
+    // In certain cases, registries do not return a 'latest' tag.
+    if (!latest) {
+      latest = wantedPkg.version;
+    }
+
     const url = homepage || (repository && repository.url) || '';
 
     return {
-      latest: req['dist-tags'].latest,
+      latest,
       wanted: wantedPkg.version,
       url,
     };

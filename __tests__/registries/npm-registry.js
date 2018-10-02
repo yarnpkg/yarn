@@ -867,6 +867,29 @@ describe('checkOutdated functional test', () => {
     expect(message).toEqual(expect.stringContaining('No valid versions'));
   });
 
+  test('latest version fallback to wanted package manifest', async () => {
+      return {
+        'dist-tags': {},
+        versions: {
+          '2.0.0': {
+            version: '2.0.0',
+            repository: {
+              url: 'http://package.repo.com',
+            },
+          },
+        },
+      };
+    };
+
+    const result = await npmRegistry.checkOutdated(mockConfig, 'left-pad', '2.0.0');
+
+    expect(result).toMatchObject({
+      latest: '2.0.0',
+      wanted: '2.0.0',
+      url: 'http://package.repo.com',
+    });
+  });
+
   test('package with an empty response', async () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
