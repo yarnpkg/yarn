@@ -190,14 +190,15 @@ export default class NpmRegistry extends Registry {
   }
 
   async checkOutdated(config: Config, name: string, range: string): CheckOutdatedReturn {
-    const req = await this.request(NpmRegistry.escapeName(name), {unfiltered: true});
+    const escapedName = NpmRegistry.escapeName(name);
+    const req = await this.request(escapedName, {unfiltered: true});
     if (!req) {
       throw new Error('couldnt find ' + name);
     }
 
     // By default use top level 'repository' and 'homepage' values
     let {repository, homepage} = req;
-    const wantedPkg = await NpmResolver.findVersionInRegistryResponse(config, range, req);
+    const wantedPkg = await NpmResolver.findVersionInRegistryResponse(config, escapedName, range, req);
 
     // But some local repositories like Verdaccio do not return 'repository' nor 'homepage'
     // in top level data structure, so we fallback to wanted package manifest
