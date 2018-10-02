@@ -70,10 +70,10 @@ beforeEach(async () => {
   await getPackageRegistry();
 });
 
-//basicSpecs(pkgDriver);
-//lockSpecs(pkgDriver);
-//scriptSpecs(pkgDriver);
-//workspaceSpecs(pkgDriver);
-//pnpSpecs(pkgDriver);
+basicSpecs(pkgDriver);
+lockSpecs(pkgDriver);
+scriptSpecs(pkgDriver);
+workspaceSpecs(pkgDriver);
+pnpSpecs(pkgDriver);
 pnpapiV1Specs(pkgDriver);
-//dragonSpecs(pkgDriver);
+dragonSpecs(pkgDriver);
