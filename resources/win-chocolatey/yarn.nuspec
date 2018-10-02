@@ -35,9 +35,6 @@ utilization.
 		<docsUrl>https://yarnpkg.com/en/docs/</docsUrl>
 		<bugTrackerUrl>https://github.com/yarnpkg/yarn/issues</bugTrackerUrl>
 		<releaseNotes>https://github.com/yarnpkg/yarn/releases/tag/v$version$</releaseNotes>
-		<dependencies>
-			<dependency id="nodejs-lts" version="6.0" />
-		</dependencies>
 	</metadata>
 
 	<files>
