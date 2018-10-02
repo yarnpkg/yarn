@@ -1,10 +1,10 @@
-﻿$ErrorActionPreference = 'Stop'; # stop on all errors
-$packageName = 'yarn'
+$ErrorActionPreference = 'Stop'; # stop on all errors
+
 $packageArgs = @{
-  packageName = $packageName
+  packageName = 'yarn'
   softwareName = 'Yarn*'
   fileType = 'msi'
-  silentArgs = "/qn /norestart /l*v `"$env:TEMP\chocolatey\$($packageName)\$($packageName).MsiInstall.log`""
+  silentArgs = "/qn /norestart"
   validExitCodes = @(0, 3010, 1641)
   checksumType = 'sha256'
 
@@ -20,9 +20,17 @@ if (Test-Path "${env:ProgramFiles(x86)}\Yarn\package.json") {
 } else {
   $path = "$env:ProgramFiles\Yarn\package.json"
 }
+
 $script = @"
   (Get-Content -Path '$path') ``
     -replace 'installationMethod":.+', 'installationMethod": "choco",' ``
     | Set-Content '$path'
 "@
+
 Start-ChocolateyProcessAsAdmin -Statements $script
+
+if (-Not (Get-Command "node" -errorAction SilentlyContinue)) {
+  Write-Host "Yarn requires NodeJS to be installed. To install, use either of the commands below:"
+  Write-Host "choco install nodejs"
+  Write-Host "choco install nodejs-lts"
+}
