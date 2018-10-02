@@ -5,7 +5,7 @@ import type Config from '../../config.js';
 import PackageRequest from '../../package-request.js';
 import Lockfile from '../../lockfile';
 import {Install} from './install.js';
-import colorForVersions from '../../util/color-for-versions';
+import {colorForVersions, symbolForVersions} from '../../util/info-for-versions';
 import colorizeDiff from '../../util/colorize-diff.js';
 
 export const requireLockfile = true;
@@ -37,6 +37,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     const usesWorkspaces = !!config.workspaceRootFolder;
     const body = deps.map((info): Array<string> => {
       const row = [
+        symbolForVersions(info.current, info.latest),
         colorizeName(info),
         info.current,
         colorizeDiff(info.current, info.wanted, reporter),
@@ -46,19 +47,19 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
         reporter.format.cyan(info.url),
       ];
       if (!usesWorkspaces) {
-        row.splice(4, 1);
+        row.splice(5, 1);
       }
       return row;
     });
 
-    const red = reporter.format.red('<red>');
-    const yellow = reporter.format.yellow('<yellow>');
-    const green = reporter.format.green('<green>');
-    reporter.info(reporter.lang('legendColorsForVersionUpdates', red, yellow, green));
+    const major = 'M ' + reporter.format.red('package-name');
+    const minor = 'm ' + reporter.format.yellow('package-name');
+    const patch = 'p ' + reporter.format.green('package-name');
+    reporter.info(reporter.lang('legendColorsForVersionUpdates', major, minor, patch));
 
-    const header = ['Package', 'Current', 'Wanted', 'Latest', 'Workspace', 'Package Type', 'URL'];
+    const header = [' ', 'Package', 'Current', 'Wanted', 'Latest', 'Workspace', 'Package Type', 'URL'];
     if (!usesWorkspaces) {
-      header.splice(4, 1);
+      header.splice(5, 1);
     }
     reporter.table(header, body);
 

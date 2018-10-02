@@ -120,7 +120,7 @@ const messages = {
   noGlobalFolder: 'Cannot find a suitable global folder. Tried these: $0',
   allDependenciesUpToDate: 'All of your dependencies are up to date.',
   legendColorsForVersionUpdates:
-    'Color legend : \n $0    : Major Update backward-incompatible updates \n $1 : Minor Update backward-compatible features \n $2  : Patch Update backward-compatible bug fixes',
+    'Legend : \n $0 : Major Update backward-incompatible updates \n $1 : Minor Update backward-compatible features \n $2 : Patch Update backward-compatible bug fixes \n',
   frozenLockfileError: 'Your lockfile needs to be updated, but yarn was run with `--frozen-lockfile`.',
   fileWriteError: 'Could not write file $0: $1',
   multiplePackagesCantUnpackInSameDestination:
