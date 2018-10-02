@@ -16,6 +16,14 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#6449](https://github.com/yarnpkg/yarn/pull/6449) - [**Maël Nison**](https://twitter.com/arcanis)
 
+- Fixes the display name of the faulty package when the NPM registry returns corrupted data
+
+  [#6455](https://github.com/yarnpkg/yarn/pull/6455) - [**Grey Baker**](https://github.com/greysteil)
+
+- Prevents crashes when running `yarn outdated` and the NPM registry forgets to return the `latest` tag
+
+  [#6454](https://github.com/yarnpkg/yarn/pull/6454) - [**mad-mike**](https://github.com/mad-mike)
+
 - Fixes `yarn run` when used together with workspaces and PnP
 
   [#6444](https://github.com/yarnpkg/yarn/pull/6444) - [**Maël Nison**](https://twitter.com/arcanis)
