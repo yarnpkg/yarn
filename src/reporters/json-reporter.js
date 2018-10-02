@@ -1,6 +1,7 @@
 /* @flow */
 
 import type {ReporterSpinnerSet, Trees, ReporterSpinner} from './types.js';
+import type {AuditMetadata, AuditActionRecommendation, AuditAdvisory, AuditResolution} from '../cli/commands/audit';
 import BaseReporter from './base-reporter.js';
 
 export default class JSONReporter extends BaseReporter {
@@ -159,5 +160,17 @@ export default class JSONReporter extends BaseReporter {
         this._dump('progressFinish', {id});
       }
     };
+  }
+
+  auditAction(recommendation: AuditActionRecommendation) {
+    this._dump('auditAction', recommendation);
+  }
+
+  auditAdvisory(resolution: AuditResolution, auditAdvisory: AuditAdvisory) {
+    this._dump('auditAdvisory', {resolution, advisory: auditAdvisory});
+  }
+
+  auditSummary(auditMetadata: AuditMetadata) {
+    this._dump('auditSummary', auditMetadata);
   }
 }

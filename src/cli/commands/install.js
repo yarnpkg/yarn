@@ -30,6 +30,7 @@ import {generatePnpMap} from '../../util/generate-pnp-map.js';
 import WorkspaceLayout from '../../workspace-layout.js';
 import ResolutionMap from '../../resolution-map.js';
 import guessName from '../../util/guess-name';
+import Audit from './audit';
 
 const deepEqual = require('deep-equal');
 const emoji = require('node-emoji');
@@ -65,6 +66,7 @@ type Flags = {
   frozenLockfile: boolean,
   skipIntegrityCheck: boolean,
   checkFiles: boolean,
+  audit: boolean,
 
   // add
   peer: boolean,
@@ -143,6 +145,7 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
     frozenLockfile: !!rawFlags.frozenLockfile,
     linkDuplicates: !!rawFlags.linkDuplicates,
     checkFiles: !!rawFlags.checkFiles,
+    audit: !!rawFlags.audit,
 
     // add
     peer: !!rawFlags.peer,
@@ -429,7 +432,16 @@ export class Install {
     return patterns;
   }
 
+  async prepareManifests(): Promise<RootManifests> {
+    const manifests = await this.config.getRootManifests();
+    return manifests;
+  }
+
   async bailout(patterns: Array<string>, workspaceLayout: ?WorkspaceLayout): Promise<boolean> {
+    // We don't want to skip the audit - it could yield important errors
+    if (this.flags.audit) {
+      return false;
+    }
     // PNP is so fast that the integrity check isn't pertinent
     if (this.config.plugnplayEnabled) {
       return false;
@@ -565,6 +577,9 @@ export class Install {
       });
     }
 
+    const audit = new Audit(this.config, this.reporter);
+    let auditFoundProblems = false;
+
     steps.push((curr: number, total: number) =>
       callThroughHook('resolveStep', async () => {
         this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
@@ -575,9 +590,37 @@ export class Install {
         });
         topLevelPatterns = this.preparePatterns(rawPatterns);
         flattenedTopLevelPatterns = await this.flatten(topLevelPatterns);
-        return {bailout: await this.bailout(topLevelPatterns, workspaceLayout)};
+        return {bailout: !this.flags.audit && (await this.bailout(topLevelPatterns, workspaceLayout))};
       }),
     );
+
+    if (this.flags.audit) {
+      steps.push((curr: number, total: number) =>
+        callThroughHook('auditStep', async () => {
+          this.reporter.step(curr, total, this.reporter.lang('auditRunning'), emoji.get('mag'));
+          if (this.flags.offline) {
+            this.reporter.warn(this.reporter.lang('auditOffline'));
+            return {bailout: false};
+          }
+          const preparedManifests = await this.prepareManifests();
+          // $FlowFixMe - Flow considers `m` in the map operation to be "mixed", so does not recognize `m.object`
+          const mergedManifest = Object.assign({}, ...Object.values(preparedManifests).map(m => m.object));
+          const auditVulnerabilityCounts = await audit.performAudit(
+            mergedManifest,
+            this.resolver,
+            this.linker,
+            topLevelPatterns,
+          );
+          auditFoundProblems =
+            auditVulnerabilityCounts.info ||
+            auditVulnerabilityCounts.low ||
+            auditVulnerabilityCounts.moderate ||
+            auditVulnerabilityCounts.high ||
+            auditVulnerabilityCounts.critical;
+          return {bailout: await this.bailout(topLevelPatterns, workspaceLayout)};
+        }),
+      );
+    }
 
     steps.push((curr: number, total: number) =>
       callThroughHook('fetchStep', async () => {
@@ -673,12 +716,24 @@ export class Install {
     for (const step of steps) {
       const stepResult = await step(++currentStep, steps.length);
       if (stepResult && stepResult.bailout) {
+        if (this.flags.audit) {
+          audit.summary();
+        }
+        if (auditFoundProblems) {
+          this.reporter.warn(this.reporter.lang('auditRunAuditForDetails'));
+        }
         this.maybeOutputUpdate();
         return flattenedTopLevelPatterns;
       }
     }
 
     // fin!
+    if (this.flags.audit) {
+      audit.summary();
+    }
+    if (auditFoundProblems) {
+      this.reporter.warn(this.reporter.lang('auditRunAuditForDetails'));
+    }
     await this.saveLockfileAndIntegrity(topLevelPatterns, workspaceLayout);
     await this.persistChanges();
     this.maybeOutputUpdate();
@@ -1067,6 +1122,7 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 export function setFlags(commander: Object) {
   commander.description('Yarn install is used to install all dependencies for a project.');
   commander.usage('install [flags]');
+  commander.option('-A, --audit', 'Run vulnerability audit on installed packages');
   commander.option('-g, --global', 'DEPRECATED');
   commander.option('-S, --save', 'DEPRECATED - save package to your `dependencies`');
   commander.option('-D, --save-dev', 'DEPRECATED - save package to your `devDependencies`');
