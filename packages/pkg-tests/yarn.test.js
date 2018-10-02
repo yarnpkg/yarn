@@ -12,6 +12,7 @@ const {
   dragon: dragonSpecs,
   lock: lockSpecs,
   pnp: pnpSpecs,
+  pnpapiV1: pnpapiV1Specs,
   script: scriptSpecs,
   workspace: workspaceSpecs,
 } = require(`pkg-tests-specs`);
@@ -69,9 +70,10 @@ beforeEach(async () => {
   await getPackageRegistry();
 });
 
-basicSpecs(pkgDriver);
-lockSpecs(pkgDriver);
-scriptSpecs(pkgDriver);
-workspaceSpecs(pkgDriver);
-pnpSpecs(pkgDriver);
-dragonSpecs(pkgDriver);
+//basicSpecs(pkgDriver);
+//lockSpecs(pkgDriver);
+//scriptSpecs(pkgDriver);
+//workspaceSpecs(pkgDriver);
+//pnpSpecs(pkgDriver);
+pnpapiV1Specs(pkgDriver);
+//dragonSpecs(pkgDriver);
