@@ -868,6 +868,11 @@ describe('checkOutdated functional test', () => {
   });
 
   test('latest version fallback to wanted package manifest', async () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
+
+    mockRequestManager.request = () => {
       return {
         'dist-tags': {},
         versions: {
