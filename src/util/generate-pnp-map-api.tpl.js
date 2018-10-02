@@ -518,7 +518,7 @@ exports.resolveRequest = function resolveRequest(request, issuer, {considerBuilt
         }
 
         try {
-          exports.resolveToUnqualified(request, realIssuer);
+          exports.resolveToUnqualified(request, realIssuer, {considerBuiltins});
         } catch (error) {
           // If an error was thrown, the problem doesn't seem to come from a path not being normalized, so we
           // can just throw the original error which was legit.
