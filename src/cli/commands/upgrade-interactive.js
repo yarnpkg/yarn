@@ -29,6 +29,10 @@ export function setFlags(commander: Object) {
     '-C, --caret',
     'install most recent release with the same major version. Only used when --latest is specified.',
   );
+  commander.option(
+    '-D, --prefer-locked-dependencies',
+    'conservatively keep transitive dependencies at their locked version if possible.',
+  );
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
@@ -176,7 +180,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
         const cwd = config.cwd;
         for (const loc of Object.keys(depsByWorkspace)) {
           const patterns = depsByWorkspace[loc].map(getPattern);
-          cleanLockfile(lockfile, deps, packagePatterns, reporter);
+          cleanLockfile(lockfile, deps, packagePatterns, reporter, flags);
           reporter.info(reporter.lang('updateInstalling', getNameFromHint(hint)));
           if (loc !== '') {
             config.cwd = path.resolve(path.dirname(loc));
