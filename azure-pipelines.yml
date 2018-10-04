@@ -6,10 +6,17 @@
 pool:
   vmImage: 'Ubuntu 16.04'
 
+strategy:
+  matrix:
+    node_8_x:
+      node_version: 8.x
+    node_10_x:
+      node_version: 10.x
+
 steps:
 - task: NodeTool@0
   inputs:
-    versionSpec: '8.x'
+    versionSpec: $(node_version)
   displayName: 'Install Node.js'
 
 - script: |
