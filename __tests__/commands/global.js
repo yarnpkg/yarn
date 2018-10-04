@@ -153,6 +153,17 @@ test.concurrent('list', async (): Promise<void> => {
   });
 });
 
+test.concurrent('outdated', async (): Promise<void> => {
+  const tmpGlobalFolder = await createTempGlobalFolder();
+  const tmpPrefixFolder = await createTempPrefixFolder();
+  const flags = {globalFolder: tmpGlobalFolder, prefix: tmpPrefixFolder};
+  const upgradeFlags = {globalFolder: tmpGlobalFolder, prefix: tmpPrefixFolder, latest: true};
+  await runGlobal(['add', 'react-native-cli@2.0.0'], flags, 'add-with-prefix-flag', () => {});
+  return runGlobal(['outdated'], upgradeFlags, 'add-with-prefix-flag', (config, reporter, install, getStdout) => {
+    expect(getStdout()).toContain('react-native-cli');
+  });
+});
+
 test.concurrent('upgrade', async (): Promise<void> => {
   const tmpGlobalFolder = await createTempGlobalFolder();
   const tmpPrefixFolder = await createTempPrefixFolder();

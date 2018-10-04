@@ -10,6 +10,7 @@ import buildSubCommands from './_build-sub-commands.js';
 import Lockfile from '../../lockfile';
 import {Install} from './install.js';
 import {Add} from './add.js';
+import {run as runOutdated} from './outdated.js';
 import {run as runRemove} from './remove.js';
 import {run as runUpgrade} from './upgrade.js';
 import {run as runUpgradeInteractive} from './upgrade-interactive.js';
@@ -240,6 +241,13 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
 
   async list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
     await list(config, reporter, flags, args);
+  },
+
+  async outdated(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+    await updateCwd(config);
+
+    // upgrade module
+    await runOutdated(config, reporter, flags, args);
   },
 
   async remove(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
