@@ -7,6 +7,7 @@ import Lockfile from '../../lockfile';
 import {Install} from './install.js';
 import colorForVersions from '../../util/color-for-versions';
 import colorizeDiff from '../../util/colorize-diff.js';
+import {categorizeDependencies} from '../../util/categorizeDependencies';
 
 export const requireLockfile = true;
 
@@ -35,21 +36,43 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   if (deps.length) {
     const usesWorkspaces = !!config.workspaceRootFolder;
-    const body = deps.map((info): Array<string> => {
-      const row = [
-        colorizeName(info),
-        info.current,
-        colorizeDiff(info.current, info.wanted, reporter),
-        reporter.format.cyan(info.latest),
-        info.workspaceName || '',
-        getNameFromHint(info.hint),
-        reporter.format.cyan(info.url),
-      ];
-      if (!usesWorkspaces) {
-        row.splice(4, 1);
+    const categorizedDependecies = categorizeDependencies(deps);
+
+    const createRows = function(dependencies, category): Array<Array<string>> {
+      // Prevent creating a heading row for empty categories.
+      if (dependencies.length === 0) {
+        return [];
       }
-      return row;
-    });
+
+      // Start with a heading row.
+      const rows = [[category, '', '', '', '', '']];
+      dependencies.map((info): void => {
+        const row = [
+          colorizeName(info),
+          info.current,
+          colorizeDiff(info.current, info.wanted, reporter),
+          reporter.format.cyan(info.latest),
+          info.workspaceName || '',
+          getNameFromHint(info.hint),
+          reporter.format.cyan(info.url),
+        ];
+        if (!usesWorkspaces) {
+          row.splice(4, 1);
+        }
+        rows.push(row);
+      });
+
+      // End with an empty row for spacing.
+      rows.push(['', '', '', '', '', '']);
+      return rows;
+    };
+
+    const majorRows = createRows(categorizedDependecies.major, 'Major Update backward-incompatible updates');
+    const minorRows = createRows(categorizedDependecies.minor, 'Minor Update backward-compatible features');
+    const patchRows = createRows(categorizedDependecies.patch, 'Patch Update backward-compatible bug fixes');
+    const otherRows = createRows(categorizedDependecies.other, 'Other');
+
+    const body = majorRows.concat(minorRows, patchRows, otherRows);
 
     const red = reporter.format.red('<red>');
     const yellow = reporter.format.yellow('<yellow>');
