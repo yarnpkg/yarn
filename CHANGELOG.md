@@ -4,13 +4,11 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
-*Nothing yet*
-
-## 1.12.0
-
 - Adds `yarn global outdated`
 
   [#6488](https://github.com/yarnpkg/yarn/pull/6485) - [**Matthias Winkelmann**](https://github.com/MatthiasWinkelmann)
+
+## 1.12.0
 
 - Adds initial support for PnP on Windows
 
