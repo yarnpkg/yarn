@@ -36,7 +36,7 @@ jobs:
 
   - script: |
       cd packages/pkg-tests
-      yarn jest yarn
+      yarn jest yarn --detectOpenHandles
     displayName: 'run the acceptance tests'
 
 # - job: Linux
