@@ -11,8 +11,8 @@ jobs:
 
   strategy:
     matrix:
-      node_8_x:
-        node_version: 8.x
+#       node_8_x:
+#         node_version: 8.x
       node_10_x:
         node_version: 10.x
 
@@ -25,6 +25,8 @@ jobs:
   - script: |
       yarn
       yarn build
+      ls -lhR bin
+      ls -lhR lib
     displayName: 'install and build'
 
   - script: |
@@ -37,68 +39,69 @@ jobs:
       yarn jest yarn
     displayName: 'run the acceptance tests'
 
-- job: Linux
-
-  pool:
-    vmImage: 'Ubuntu 16.04'
-
-  strategy:
-    matrix:
-      node_8_x:
-        node_version: 8.x
-      node_10_x:
-        node_version: 10.x
-
-  steps:
-  - task: NodeTool@0
-    inputs:
-      versionSpec: $(node_version)
-    displayName: 'Install Node.js'
-
-  - script: |
-      yarn
-      yarn build
-    displayName: 'install and build'
-
-  - script: |
-      cd packages/pkg-tests
-      yarn
-    displayName: 'install the acceptance tests'
-
-  - script: |
-      cd packages/pkg-tests
-      yarn jest yarn
-    displayName: 'run the acceptance tests'
-
-- job: OSX
-
-  pool:
-    vmImage: 'macOS 10.13'
-
-  strategy:
-    matrix:
-      node_8_x:
-        node_version: 8.x
-      node_10_x:
-        node_version: 10.x
-
-  steps:
-  - task: NodeTool@0
-    inputs:
-      versionSpec: $(node_version)
-    displayName: 'Install Node.js'
-
-  - script: |
-      yarn
-      yarn build
-    displayName: 'install and build'
-
-  - script: |
-      cd packages/pkg-tests
-      yarn
-    displayName: 'install the acceptance tests'
-
-  - script: |
-      cd packages/pkg-tests
-      yarn jest yarn
-    displayName: 'run the acceptance tests'
+# - job: Linux
+#
+#   pool:
+#     vmImage: 'Ubuntu 16.04'
+#
+#   strategy:
+#     matrix:
+#       node_8_x:
+#         node_version: 8.x
+#       node_10_x:
+#         node_version: 10.x
+#
+#   steps:
+#   - task: NodeTool@0
+#     inputs:
+#       versionSpec: $(node_version)
+#     displayName: 'Install Node.js'
+#
+#   - script: |
+#       yarn
+#       yarn build
+#     displayName: 'install and build'
+#
+#   - script: |
+#       cd packages/pkg-tests
+#       yarn
+#     displayName: 'install the acceptance tests'
+#
+#   - script: |
+#       cd packages/pkg-tests
+#       yarn jest yarn
+#     displayName: 'run the acceptance tests'
+#
+# - job: OSX
+#
+#   pool:
+#     vmImage: 'macOS 10.13'
+#
+#   strategy:
+#     matrix:
+#       node_8_x:
+#         node_version: 8.x
+#       node_10_x:
+#         node_version: 10.x
+#
+#   steps:
+#   - task: NodeTool@0
+#     inputs:
+#       versionSpec: $(node_version)
+#     displayName: 'Install Node.js'
+#
+#   - script: |
+#       yarn
+#       yarn build
+#     displayName: 'install and build'
+#
+#   - script: |
+#       cd packages/pkg-tests
+#       yarn
+#     displayName: 'install the acceptance tests'
+#
+#   - script: |
+#       cd packages/pkg-tests
+#       yarn jest yarn
+#     displayName: 'run the acceptance tests'
+#
