@@ -22,9 +22,9 @@ jobs:
       versionSpec: $(node_version)
     displayName: 'Install Node.js'
 
-  - script: |
+  - bash: |
       yarn
-      yarn build
+      yarn run build
       ls -lhR bin
       ls -lhR lib
     displayName: 'install and build'
