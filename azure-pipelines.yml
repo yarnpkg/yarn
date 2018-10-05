@@ -3,33 +3,102 @@
 # Add steps that analyze code, save build artifacts, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 
-pool:
-  vmImage: 'Ubuntu 16.04'
+jobs:
 
-strategy:
-  matrix:
-    node_8_x:
-      node_version: 8.x
-    node_10_x:
-      node_version: 10.x
+- job: Windows
 
-steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: $(node_version)
-  displayName: 'Install Node.js'
+  pool: 'Hosted VS2017'
 
-- script: |
-    yarn
-    yarn build
-  displayName: 'install and build'
+  strategy:
+    matrix:
+      node_8_x:
+        node_version: 8.x
+      node_10_x:
+        node_version: 10.x
 
-- script: |
-    cd packages/pkg-tests
-    yarn
-  displayName: 'install the acceptance tests'
+  steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: $(node_version)
+    displayName: 'Install Node.js'
 
-- script: |
-    cd packages/pkg-tests
-    yarn jest yarn
-  displayName: 'run the acceptance tests'
+  - script: |
+      yarn
+      yarn build
+    displayName: 'install and build'
+
+  - script: |
+      cd packages/pkg-tests
+      yarn
+    displayName: 'install the acceptance tests'
+
+  - script: |
+      cd packages/pkg-tests
+      yarn jest yarn
+    displayName: 'run the acceptance tests'
+
+- job: Linux
+
+  pool:
+    vmImage: 'Ubuntu 16.04'
+
+  strategy:
+    matrix:
+      node_8_x:
+        node_version: 8.x
+      node_10_x:
+        node_version: 10.x
+
+  steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: $(node_version)
+    displayName: 'Install Node.js'
+
+  - script: |
+      yarn
+      yarn build
+    displayName: 'install and build'
+
+  - script: |
+      cd packages/pkg-tests
+      yarn
+    displayName: 'install the acceptance tests'
+
+  - script: |
+      cd packages/pkg-tests
+      yarn jest yarn
+    displayName: 'run the acceptance tests'
+
+- job: OSX
+
+  pool:
+    vmImage: 'macOS 10.13'
+
+  strategy:
+    matrix:
+      node_8_x:
+        node_version: 8.x
+      node_10_x:
+        node_version: 10.x
+
+  steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: $(node_version)
+    displayName: 'Install Node.js'
+
+  - script: |
+      yarn
+      yarn build
+    displayName: 'install and build'
+
+  - script: |
+      cd packages/pkg-tests
+      yarn
+    displayName: 'install the acceptance tests'
+
+  - script: |
+      cd packages/pkg-tests
+      yarn jest yarn
+    displayName: 'run the acceptance tests'
