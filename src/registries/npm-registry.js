@@ -179,7 +179,7 @@ export default class NpmRegistry extends Registry {
     const requestParts = urlParts(requestUrl);
     return !!Object.keys(config).find(option => {
       const parts = option.split(':');
-      if (parts.length === 2 && parts[1] === '_authToken') {
+      if ((parts.length === 2 && parts[1] === '_authToken') || parts[1] === '_password') {
         const registryParts = urlParts(parts[0]);
         if (requestParts.host === registryParts.host && requestParts.path.startsWith(registryParts.path)) {
           return true;

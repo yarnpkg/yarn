@@ -4,7 +4,9 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
-*Nothing yet*
+- Adds support for basic auth for registries with paths, such as artifactory
+
+  [#5322](https://github.com/yarnpkg/yarn/pull/5322) - [**Karolis Narkevicius**](https://twitter.com/KidkArolis)
 
 ## 1.12.0
 
