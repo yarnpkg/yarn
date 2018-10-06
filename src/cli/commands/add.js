@@ -47,14 +47,14 @@ export class Add extends Install {
    * TODO
    */
 
-  prepareRequests(requests: DependencyRequestPatterns): DependencyRequestPatterns {
+  prepareRequests(requests: DependencyRequestPatterns, manifest: Manifest): DependencyRequestPatterns {
     const requestsWithArgs = requests.slice();
 
     for (const pattern of this.args) {
       requestsWithArgs.push({
         pattern,
         registry: 'npm',
-        optional: false,
+        optional: !!manifest.optionalDependencies && !!manifest.optionalDependencies[pattern.split('@')[0]],
       });
     }
     return requestsWithArgs;

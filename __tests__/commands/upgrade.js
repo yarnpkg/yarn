@@ -33,6 +33,10 @@ const expectInstalledDevDependency = async (config, name, range, expectedVersion
   await _expectDependency('devDependencies', config, name, range, expectedVersion);
 };
 
+const expectInstalledOptionalDependency = async (config, name, range, expectedVersion) => {
+  await _expectDependency('optionalDependencies', config, name, range, expectedVersion);
+};
+
 const expectInstalledTransitiveDependency = async (config, name, range, expectedVersion) => {
   const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
   expect(lockfile).toContainPackage(`${name}@${range}:`, expectedVersion);
@@ -481,3 +485,34 @@ test.concurrent('latest flag does not downgrade from a beta', (): Promise<void> 
     await expectInstalledDependency(config, 'react-refetch', '^1.0.3-0', '1.0.3-0');
   });
 });
+
+// this tests for a problem occurring due to optional dependency incompatible with os, in this case fsevents
+// this test would pass on os's incompatible with fsevents, which is everything except osx.
+if (process.platform !== 'darwin') {
+  test.concurrent('upgrade --latest should skip incompatible dependency', () => {
+    return buildRun(
+      reporters.BufferReporter,
+      fixturesLoc,
+      async (args, flags, config, reporter): Promise<void> => {
+        config.commandName = 'upgrade';
+
+        try {
+          await upgrade(config, reporter, flags, args);
+        } catch (err) {}
+
+        const output = reporter.getBuffer();
+        const errors = output.filter(entry => entry.type === 'error');
+        expect(errors.length).toEqual(0);
+        expect(output).toContainEqual({
+          type: 'info',
+          error: false,
+          data: reporter.lang('optionalCompatibilityExcluded', 'fsevents@1.1.1'),
+        });
+        await expectInstalledOptionalDependency(config, 'left-pad', '<=1.1.3', '1.1.3');
+      },
+      [],
+      {latest: true},
+      'should-skip-incompatible-dep',
+    );
+  });
+}

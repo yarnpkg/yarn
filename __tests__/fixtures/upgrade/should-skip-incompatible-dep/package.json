@@ -1,0 +1,6 @@
+{
+  "optionalDependencies": {
+    "left-pad":"<=1.1.1",
+    "fsevents": "1.0.0"
+ }
+}
