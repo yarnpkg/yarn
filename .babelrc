@@ -3,56 +3,60 @@
   "env": {
     "pre-node5": {
       "presets": [
-        ["env", {
-          "targets": {
-            "node": "4"
-          },
-          "modules": false,
-          "loose": true,
-          "exclude": [
-            "transform-regenerator"
-          ]
-        }],
-        "flow",
-        "stage-0"
-     ],
-     "plugins": [
-       ["array-includes"],
-       ["transform-inline-imports-commonjs"],
-       ["transform-runtime", { "polyfill": true, "regenerator": false }],
-       ["transform-builtin-extend", { "globals": ["Error"] }]
-     ]
-   },
-   "test": {
-     "presets": [
-       ["env", {
-         "targets": {
-           "node": "current"
-         },
-         "modules": false,
-         "loose": true
-        }],
+        [
+          "env",
+          {
+            "targets": {
+              "node": "4"
+            },
+            "modules": false,
+            "loose": true,
+            "exclude": ["transform-regenerator"]
+          }
+        ],
         "flow",
         "stage-0"
       ],
       "plugins": [
-        ["transform-inline-imports-commonjs"]
+        ["array-includes"],
+        ["transform-inline-imports-commonjs"],
+        ["transform-runtime", { "polyfill": true, "regenerator": false }]
       ]
+    },
+    "test": {
+      "presets": [
+        [
+          "env",
+          {
+            "targets": {
+              "node": "current"
+            },
+            "modules": false,
+            "loose": true
+          }
+        ],
+        "flow",
+        "stage-0"
+      ],
+      "plugins": [["transform-inline-imports-commonjs"]]
     }
   },
   "presets": [
-    ["env", {
-      "targets": {
-        "node": "6"
-      },
-      "modules": false,
-      "loose": true
-    }],
+    [
+      "env",
+      {
+        "targets": {
+          "node": "6"
+        },
+        "modules": false,
+        "loose": true
+      }
+    ],
     "flow",
     "stage-0"
   ],
   "plugins": [
-    ["babel-plugin-inline-import", { "extensions": [ ".tpl.js" ] }],
+    ["babel-plugin-inline-import", { "extensions": [".tpl.js"] }],
     ["transform-inline-imports-commonjs"],
     ["transform-runtime", { "polyfill": false, "regenerator": true }]
   ]
