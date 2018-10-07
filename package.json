@@ -115,6 +115,7 @@
     "yargs": "^6.3.0"
   },
   "resolutions": {
+    "babel-core": "7.0.0-bridge.0",
     "sshpk": "^1.14.2"
   },
   "engines": {
@@ -146,9 +147,7 @@
     "commit": "git-cz"
   },
   "jest": {
-    "collectCoverageFrom": [
-      "src/**/*.js"
-    ],
+    "collectCoverageFrom": ["src/**/*.js"],
     "testEnvironment": "node",
     "modulePathIgnorePatterns": [
       "__tests__/fixtures/",
