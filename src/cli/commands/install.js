@@ -4,7 +4,7 @@ import type {InstallationMethod} from '../../util/yarn-version.js';
 import type {Reporter} from '../../reporters/index.js';
 import type {ReporterSelectOption} from '../../reporters/types.js';
 import type {Manifest, DependencyRequestPatterns} from '../../types.js';
-import type Config from '../../config.js';
+import type Config, {RootManifests} from '../../config.js';
 import type {RegistryNames} from '../../registries/index.js';
 import type {LockfileObject} from '../../lockfile';
 import {callThroughHook} from '../../util/hooks.js';
@@ -26,9 +26,11 @@ import {normalizePattern} from '../../util/normalize-pattern.js';
 import * as fs from '../../util/fs.js';
 import map from '../../util/map.js';
 import {version as YARN_VERSION, getInstallationMethod} from '../../util/yarn-version.js';
+import {generatePnpMap} from '../../util/generate-pnp-map.js';
 import WorkspaceLayout from '../../workspace-layout.js';
 import ResolutionMap from '../../resolution-map.js';
 import guessName from '../../util/guess-name';
+import Audit from './audit';
 
 const deepEqual = require('deep-equal');
 const emoji = require('node-emoji');
@@ -64,6 +66,7 @@ type Flags = {
   frozenLockfile: boolean,
   skipIntegrityCheck: boolean,
   checkFiles: boolean,
+  audit: boolean,
 
   // add
   peer: boolean,
@@ -142,6 +145,7 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
     frozenLockfile: !!rawFlags.frozenLockfile,
     linkDuplicates: !!rawFlags.linkDuplicates,
     checkFiles: !!rawFlags.checkFiles,
+    audit: !!rawFlags.audit,
 
     // add
     peer: !!rawFlags.peer,
@@ -378,6 +382,21 @@ export class Install {
         stripExcluded(cwdIsRoot ? virtualDependencyManifest : workspaces[projectManifestJson.name].manifest);
 
         pushDeps('workspaces', {workspaces: virtualDep}, {hint: 'workspaces', optional: false}, true);
+
+        const implicitWorkspaceDependencies = {...workspaceDependencies};
+
+        for (const type of constants.OWNED_DEPENDENCY_TYPES) {
+          for (const dependencyName of Object.keys(projectManifestJson[type] || {})) {
+            delete implicitWorkspaceDependencies[dependencyName];
+          }
+        }
+
+        pushDeps(
+          'dependencies',
+          {dependencies: implicitWorkspaceDependencies},
+          {hint: 'workspaces', optional: false},
+          true,
+        );
       }
 
       break;
@@ -413,7 +432,20 @@ export class Install {
     return patterns;
   }
 
+  async prepareManifests(): Promise<RootManifests> {
+    const manifests = await this.config.getRootManifests();
+    return manifests;
+  }
+
   async bailout(patterns: Array<string>, workspaceLayout: ?WorkspaceLayout): Promise<boolean> {
+    // We don't want to skip the audit - it could yield important errors
+    if (this.flags.audit) {
+      return false;
+    }
+    // PNP is so fast that the integrity check isn't pertinent
+    if (this.config.plugnplayEnabled) {
+      return false;
+    }
     if (this.flags.skipIntegrityCheck || this.flags.force) {
       return false;
     }
@@ -422,7 +454,6 @@ export class Install {
       return false;
     }
     const lockfileClean = this.lockfile.parseResultType === 'success';
-    const lockfileIntegrityPresent = !this.lockfile.hasEntriesExistWithoutIntegrity();
     const match = await this.integrityChecker.check(patterns, lockfileCache, this.flags, workspaceLayout);
     if (this.flags.frozenLockfile && (!lockfileClean || match.missingPatterns.length > 0)) {
       throw new MessageError(this.reporter.lang('frozenLockfileError'));
@@ -430,7 +461,10 @@ export class Install {
 
     const haveLockfile = await fs.exists(path.join(this.config.lockfileFolder, constants.LOCKFILE_FILENAME));
 
-    if (match.integrityMatches && haveLockfile && lockfileClean && lockfileIntegrityPresent) {
+    const lockfileIntegrityPresent = !this.lockfile.hasEntriesExistWithoutIntegrity();
+    const integrityBailout = lockfileIntegrityPresent || !this.config.autoAddIntegrity;
+
+    if (match.integrityMatches && haveLockfile && lockfileClean && integrityBailout) {
       this.reporter.success(this.reporter.lang('upToDate'));
       return true;
     }
@@ -545,6 +579,9 @@ export class Install {
       });
     }
 
+    const audit = new Audit(this.config, this.reporter);
+    let auditFoundProblems = false;
+
     steps.push((curr: number, total: number) =>
       callThroughHook('resolveStep', async () => {
         this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
@@ -555,9 +592,37 @@ export class Install {
         });
         topLevelPatterns = this.preparePatterns(rawPatterns);
         flattenedTopLevelPatterns = await this.flatten(topLevelPatterns);
-        return {bailout: await this.bailout(topLevelPatterns, workspaceLayout)};
+        return {bailout: !this.flags.audit && (await this.bailout(topLevelPatterns, workspaceLayout))};
       }),
     );
+
+    if (this.flags.audit) {
+      steps.push((curr: number, total: number) =>
+        callThroughHook('auditStep', async () => {
+          this.reporter.step(curr, total, this.reporter.lang('auditRunning'), emoji.get('mag'));
+          if (this.flags.offline) {
+            this.reporter.warn(this.reporter.lang('auditOffline'));
+            return {bailout: false};
+          }
+          const preparedManifests = await this.prepareManifests();
+          // $FlowFixMe - Flow considers `m` in the map operation to be "mixed", so does not recognize `m.object`
+          const mergedManifest = Object.assign({}, ...Object.values(preparedManifests).map(m => m.object));
+          const auditVulnerabilityCounts = await audit.performAudit(
+            mergedManifest,
+            this.resolver,
+            this.linker,
+            topLevelPatterns,
+          );
+          auditFoundProblems =
+            auditVulnerabilityCounts.info ||
+            auditVulnerabilityCounts.low ||
+            auditVulnerabilityCounts.moderate ||
+            auditVulnerabilityCounts.high ||
+            auditVulnerabilityCounts.critical;
+          return {bailout: await this.bailout(topLevelPatterns, workspaceLayout)};
+        }),
+      );
+    }
 
     steps.push((curr: number, total: number) =>
       callThroughHook('fetchStep', async () => {
@@ -585,6 +650,31 @@ export class Install {
         });
       }),
     );
+
+    if (this.config.plugnplayEnabled) {
+      steps.push((curr: number, total: number) =>
+        callThroughHook('pnpStep', async () => {
+          const pnpPath = `${this.config.lockfileFolder}/${constants.PNP_FILENAME}`;
+
+          const code = await generatePnpMap(this.config, flattenedTopLevelPatterns, {
+            resolver: this.resolver,
+            reporter: this.reporter,
+            targetPath: pnpPath,
+            workspaceLayout,
+          });
+
+          try {
+            const file = await fs.readFile(pnpPath);
+            if (file === code) {
+              return;
+            }
+          } catch (error) {}
+
+          await fs.writeFile(pnpPath, code);
+          await fs.chmod(pnpPath, 0o755);
+        }),
+      );
+    }
 
     steps.push((curr: number, total: number) =>
       callThroughHook('buildStep', async () => {
@@ -628,16 +718,64 @@ export class Install {
     for (const step of steps) {
       const stepResult = await step(++currentStep, steps.length);
       if (stepResult && stepResult.bailout) {
+        if (this.flags.audit) {
+          audit.summary();
+        }
+        if (auditFoundProblems) {
+          this.reporter.warn(this.reporter.lang('auditRunAuditForDetails'));
+        }
         this.maybeOutputUpdate();
         return flattenedTopLevelPatterns;
       }
     }
 
     // fin!
+    if (this.flags.audit) {
+      audit.summary();
+    }
+    if (auditFoundProblems) {
+      this.reporter.warn(this.reporter.lang('auditRunAuditForDetails'));
+    }
     await this.saveLockfileAndIntegrity(topLevelPatterns, workspaceLayout);
+    await this.persistChanges();
     this.maybeOutputUpdate();
     this.config.requestManager.clearCache();
     return flattenedTopLevelPatterns;
+  }
+
+  async persistChanges(): Promise<void> {
+    // get all the different registry manifests in this folder
+    const manifests = await this.config.getRootManifests();
+
+    if (await this.applyChanges(manifests)) {
+      await this.config.saveRootManifests(manifests);
+    }
+  }
+
+  applyChanges(manifests: RootManifests): Promise<boolean> {
+    let hasChanged = false;
+
+    if (this.config.plugnplayPersist) {
+      const {object} = manifests.npm;
+
+      if (typeof object.installConfig !== 'object') {
+        object.installConfig = {};
+      }
+
+      if (this.config.plugnplayEnabled && object.installConfig.pnp !== true) {
+        object.installConfig.pnp = true;
+        hasChanged = true;
+      } else if (!this.config.plugnplayEnabled && typeof object.installConfig.pnp !== 'undefined') {
+        delete object.installConfig.pnp;
+        hasChanged = true;
+      }
+
+      if (Object.keys(object.installConfig).length === 0) {
+        delete object.installConfig;
+      }
+    }
+
+    return Promise.resolve(hasChanged);
   }
 
   /**
@@ -796,13 +934,15 @@ export class Install {
     }
 
     // write integrity hash
-    await this.integrityChecker.save(
-      patterns,
-      lockfileBasedOnResolver,
-      this.flags,
-      workspaceLayout,
-      this.scripts.getArtifacts(),
-    );
+    if (!this.config.plugnplayEnabled) {
+      await this.integrityChecker.save(
+        patterns,
+        lockfileBasedOnResolver,
+        this.flags,
+        workspaceLayout,
+        this.scripts.getArtifacts(),
+      );
+    }
 
     // --no-lockfile or --pure-lockfile or --frozen-lockfile
     if (this.flags.lockfile === false || this.flags.pureLockfile || this.flags.frozenLockfile) {
@@ -984,6 +1124,7 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 export function setFlags(commander: Object) {
   commander.description('Yarn install is used to install all dependencies for a project.');
   commander.usage('install [flags]');
+  commander.option('-A, --audit', 'Run vulnerability audit on installed packages');
   commander.option('-g, --global', 'DEPRECATED');
   commander.option('-S, --save', 'DEPRECATED - save package to your `dependencies`');
   commander.option('-D, --save-dev', 'DEPRECATED - save package to your `devDependencies`');

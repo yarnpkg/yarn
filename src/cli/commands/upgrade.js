@@ -158,6 +158,7 @@ export function setFlags(commander: Object) {
     '-C, --caret',
     'install most recent release with the same major version. Only used when --latest is specified.',
   );
+  commander.option('-A', '--audit', 'Run vulnerability audit on installed packages');
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {

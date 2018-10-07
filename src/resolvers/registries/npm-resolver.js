@@ -1,11 +1,12 @@
 /* @flow */
 
+import {getCachedPackagesDirs} from '../../cli/commands/cache.js';
 import type {Manifest} from '../../types.js';
 import type Config from '../../config.js';
 import type PackageRequest from '../../package-request.js';
 import {MessageError} from '../../errors.js';
 import RegistryResolver from './registry-resolver.js';
-import NpmRegistry, {SCOPE_SEPARATOR} from '../../registries/npm-registry.js';
+import NpmRegistry from '../../registries/npm-registry.js';
 import map from '../../util/map.js';
 import * as fs from '../../util/fs.js';
 import {YARN_REGISTRY, NPM_REGISTRY_RE} from '../../constants.js';
@@ -13,7 +14,6 @@ import {getPlatformSpecificPackageFilename} from '../../util/package-name-utils.
 
 const inquirer = require('inquirer');
 const tty = require('tty');
-const invariant = require('invariant');
 const path = require('path');
 const semver = require('semver');
 const ssri = require('ssri');
@@ -31,6 +31,7 @@ export default class NpmResolver extends RegistryResolver {
 
   static async findVersionInRegistryResponse(
     config: Config,
+    name: string,
     range: string,
     body: RegistryResponse,
     request: ?PackageRequest,
@@ -40,7 +41,7 @@ export default class NpmResolver extends RegistryResolver {
     }
 
     if (!body['dist-tags'] || !body.versions) {
-      throw new MessageError(config.reporter.lang('malformedRegistryResponse', body.name));
+      throw new MessageError(config.reporter.lang('malformedRegistryResponse', name));
     }
 
     if (range in body['dist-tags']) {
@@ -91,64 +92,29 @@ export default class NpmResolver extends RegistryResolver {
       }
     }
 
-    const body = await this.config.registries.npm.request(NpmRegistry.escapeName(this.name));
+    const escapedName = NpmRegistry.escapeName(this.name);
+    const desiredRange = desiredVersion || this.range;
+    const body = await this.config.registries.npm.request(escapedName);
 
     if (body) {
-      return NpmResolver.findVersionInRegistryResponse(this.config, desiredVersion || this.range, body, this.request);
+      return NpmResolver.findVersionInRegistryResponse(this.config, escapedName, desiredRange, body, this.request);
     } else {
       return null;
     }
   }
 
   async resolveRequestOffline(): Promise<?Manifest> {
-    const escapedName = NpmRegistry.escapeName(this.name);
-    const scope = this.config.registries.npm.getScope(escapedName);
-
-    // find modules of this name
-    const prefix = scope ? escapedName.split(SCOPE_SEPARATOR)[1] : `${NPM_REGISTRY_ID}-${this.name}-`;
-
-    invariant(this.config.cacheFolder, 'expected packages root');
-    const cacheFolder = path.join(this.config.cacheFolder, scope ? `${NPM_REGISTRY_ID}-${scope}` : '');
-
-    const files = await this.config.getCache('cachedPackages', async (): Promise<Array<string>> => {
-      // Try to read the folder.
-      let files = [];
-      try {
-        files = await fs.readdir(cacheFolder);
-      } catch (err) {
-        if (err.code === 'ENOENT') {
-          return [];
-        }
-        throw err;
-      }
-
-      const validFiles = [];
-
-      for (const name of files) {
-        // no hidden files
-        if (name[0] === '.') {
-          continue;
-        }
-
-        // ensure valid module cache
-        const dir = path.join(cacheFolder, name);
-        if (await this.config.isValidModuleDest(dir)) {
-          validFiles.push(name);
-        }
-      }
-
-      return validFiles;
+    const packageDirs = await this.config.getCache('cachedPackages', (): Promise<Array<string>> => {
+      return getCachedPackagesDirs(this.config, this.config.cacheFolder);
     });
 
     const versions = map();
 
-    for (const name of files) {
-      // check if folder starts with our prefix
-      if (name.indexOf(prefix) !== 0) {
+    for (const dir of packageDirs) {
+      // check if folder contains the registry prefix
+      if (dir.indexOf(`${NPM_REGISTRY_ID}-`) === -1) {
         continue;
       }
-
-      const dir = path.join(cacheFolder, name);
 
       // read manifest and validate correct name
       const pkg = await this.config.readManifest(dir, NPM_REGISTRY_ID);

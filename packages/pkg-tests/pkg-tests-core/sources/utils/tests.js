@@ -22,6 +22,17 @@ export type PackageRunDriver = (
 
 export type PackageDriver = any;
 
+let whitelist = new Map();
+
+exports.setPackageWhitelist = async function whitelistPackages(
+  packages: Map<string, Set<string>>,
+  fn: () => Promise<void>,
+) {
+  whitelist = packages;
+  await fn();
+  whitelist = new Map();
+};
+
 exports.getPackageRegistry = function getPackageRegistry(): Promise<PackageRegistry> {
   if (getPackageRegistry.promise) {
     return getPackageRegistry.promise;
@@ -182,7 +193,12 @@ exports.startPackageServer = function startPackageServer(): Promise<string> {
       return processError(res, 404, `Package not found: ${name}`);
     }
 
-    const versions = Array.from(packageEntry.keys());
+    let versions = Array.from(packageEntry.keys());
+
+    const whitelistedVersions = whitelist.get(name);
+    if (whitelistedVersions) {
+      versions = versions.filter(version => whitelistedVersions.has(version));
+    }
 
     const data = JSON.stringify({
       name,
@@ -300,7 +316,7 @@ exports.generatePkgDriver = function generatePkgDriver({runDriver}: {|runDriver:
       }
 
       return async function(): Promise<void> {
-        const path = await fsUtils.createTemporaryFolder();
+        const path = await fsUtils.realpath(await fsUtils.createTemporaryFolder());
 
         const registryUrl = await exports.startPackageServer();
 
@@ -308,21 +324,34 @@ exports.generatePkgDriver = function generatePkgDriver({runDriver}: {|runDriver:
         await fsUtils.writeJson(`${path}/package.json`, await deepResolve(packageJson));
 
         const run = (...args) => {
+          let callDefinition = {};
+
+          if (args.length > 0 && typeof args[args.length - 1] === 'object') {
+            callDefinition = args.pop();
+          }
+
           return runDriver(path, args, {
             registryUrl,
+            ...definition,
             ...subDefinition,
+            ...callDefinition,
           });
         };
 
         const source = async script => {
-          return JSON.parse((await run('node', '-p', `JSON.stringify(${script})`)).stdout.toString());
+          return JSON.parse((await run('node', '-p', `JSON.stringify((() => ${script})())`)).stdout.toString());
         };
 
-        await fn({
-          path,
-          run,
-          source,
-        });
+        try {
+          await fn({
+            path,
+            run,
+            source,
+          });
+        } catch (error) {
+          error.message = `Temporary fixture folder: ${path}\n\n` + error.message;
+          throw error;
+        }
       };
     };
 

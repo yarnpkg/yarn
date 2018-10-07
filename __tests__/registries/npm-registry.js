@@ -6,6 +6,11 @@ import NpmRegistry from '../../src/registries/npm-registry.js';
 import {BufferReporter} from '../../src/reporters/index.js';
 import homeDir, {home} from '../../src/util/user-home-dir.js';
 
+function basicAuth(username, password): string {
+  const pw = Buffer.from(String(password), 'base64').toString();
+  return Buffer.from(String(username) + ':' + pw).toString('base64');
+}
+
 describe('normalizeConfig', () => {
   beforeAll(() => {
     process.env.REPLACE = 'REPLACED';
@@ -554,6 +559,46 @@ describe('request', () => {
         },
       ],
     },
+    {
+      title: 'using username/password config for registries where pathnames play a role',
+      config: {
+        '@private:registry': 'https://registry.myorg.com/api/npm/registry/',
+        '//registry.myorg.com/api/npm/registry/:username': 'scopedPrivateUsername',
+        '//registry.myorg.com/api/npm/registry/:_password': 'scopedPrivatePassword',
+        '//registry.myorg.com/api/packages/:username': 'scopedPrivateUsername',
+        '//registry.myorg.com/api/packages/:_password': 'scopedPrivatePassword',
+      },
+      requests: [
+        {
+          url: '@private/pkg',
+          pkg: '@private/pkg',
+          expect: {
+            root: 'https://registry.myorg.com/api/npm/registry/',
+            auth: basicAuth('scopedPrivateUsername', 'scopedPrivatePassword'),
+            basicAuth: true,
+          },
+        },
+        {
+          url: 'https://some.cdn.com/some-hash/@private-pkg-1.0.0.tar.gz',
+          pkg: '@private/pkg',
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: 'https://some.cdn.com/@private/pkg',
+          pkg: null,
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: 'https://registry.myorg.com/api/packages/private---pkg.tar.gz',
+          pkg: '@private/pkg',
+          expect: {
+            root: 'https://registry.myorg.com/api/packages/',
+            auth: basicAuth('scopedPrivateUsername', 'scopedPrivatePassword'),
+            basicAuth: true,
+          },
+        },
+      ],
+    },
   ];
 
   testCases.forEach(testCase => {
@@ -566,7 +611,11 @@ describe('request', () => {
         (req.skip ? it.skip : req.only ? it.only : it)(desc, () => {
           const requestParams = registry.request(req.url, {}, req.pkg);
           expect(requestParams.url.substr(0, req.expect.root.length)).toBe(req.expect.root);
-          expect(requestParams.headers.authorization).toBe(req.expect.auth ? `Bearer ${req.expect.auth}` : undefined);
+          if (req.expect.basicAuth) {
+            expect(requestParams.headers.authorization).toBe(req.expect.auth ? `Basic ${req.expect.auth}` : undefined);
+          } else {
+            expect(requestParams.headers.authorization).toBe(req.expect.auth ? `Bearer ${req.expect.auth}` : undefined);
+          }
         });
       });
     });
@@ -865,5 +914,52 @@ describe('checkOutdated functional test', () => {
     }
 
     expect(message).toEqual(expect.stringContaining('No valid versions'));
+  });
+
+  test('latest version fallback to wanted package manifest', async () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
+
+    mockRequestManager.request = () => {
+      return {
+        'dist-tags': {},
+        versions: {
+          '2.0.0': {
+            version: '2.0.0',
+            repository: {
+              url: 'http://package.repo.com',
+            },
+          },
+        },
+      };
+    };
+
+    const result = await npmRegistry.checkOutdated(mockConfig, 'left-pad', '2.0.0');
+
+    expect(result).toMatchObject({
+      latest: '2.0.0',
+      wanted: '2.0.0',
+      url: 'http://package.repo.com',
+    });
+  });
+
+  test('package with an empty response', async () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
+
+    mockRequestManager.request = () => {
+      return {};
+    };
+
+    let message;
+    try {
+      await npmRegistry.checkOutdated(mockConfig, 'left-pad', '2.0.0');
+    } catch (err) {
+      message = err.message;
+    }
+
+    expect(message).toEqual(expect.stringContaining('malformed response from registry for "left-pad"'));
   });
 });

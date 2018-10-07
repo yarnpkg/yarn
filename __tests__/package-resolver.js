@@ -13,8 +13,8 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
 const path = require('path');
 
-// regexp which verifies that cache path contains semver + hash
-const cachePathRe = /-\d+\.\d+\.\d+-[\dabcdef]{40}$/;
+// regexp which verifies that the cache path contains a path component ending with semver + hash
+const cachePathRe = /-\d+\.\d+\.\d+-[\dabcdef]{40}[\\\/]/;
 
 async function createEnv(configOptions): Object {
   const lockfile = new Lockfile();
@@ -82,7 +82,7 @@ addTest(
   '@foo/bar@1.2.3',
   'npm',
   async cacheFolder => {
-    const folder = path.join(cacheFolder, 'npm-@foo', 'bar');
+    const folder = path.join(cacheFolder, 'npm-@foo-bar', 'node_modules', '@foo', 'bar');
     await fs.mkdirp(folder);
     await fs.writeFile(
       path.join(folder, constants.METADATA_FILENAME),

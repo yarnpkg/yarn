@@ -11,6 +11,8 @@ type Env = {
 };
 
 export const DEPENDENCY_TYPES = ['devDependencies', 'dependencies', 'optionalDependencies', 'peerDependencies'];
+export const OWNED_DEPENDENCY_TYPES = ['devDependencies', 'dependencies', 'optionalDependencies'];
+
 export const RESOLUTIONS = 'resolutions';
 export const MANIFEST_FIELDS = [RESOLUTIONS, ...DEPENDENCY_TYPES];
 
@@ -26,7 +28,7 @@ export const YARN_INSTALLER_MSI = 'https://yarnpkg.com/latest.msi';
 export const SELF_UPDATE_VERSION_URL = 'https://yarnpkg.com/latest-version';
 
 // cache version, bump whenever we make backwards incompatible changes
-export const CACHE_VERSION = 2;
+export const CACHE_VERSION = 3;
 
 // lockfile version, bump whenever we make backwards incompatible changes
 export const LOCKFILE_VERSION = 1;
@@ -75,6 +77,8 @@ function getYarnBinPath(): string {
 
 export const NODE_MODULES_FOLDER = 'node_modules';
 export const NODE_PACKAGE_JSON = 'package.json';
+
+export const PNP_FILENAME = '.pnp.js';
 
 export const POSIX_GLOBAL_PREFIX = `${process.env.DESTDIR || ''}/usr/local`;
 export const FALLBACK_GLOBAL_PREFIX = path.join(userHome, '.yarn');

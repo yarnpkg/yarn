@@ -1,9 +1,10 @@
 /* @flow */
 
+import type {RegistryNames} from '../../registries/index.js';
 import type {Reporter} from '../../reporters/index.js';
 import type {InstallCwdRequest} from './install.js';
 import type {DependencyRequestPatterns, Manifest} from '../../types.js';
-import type Config from '../../config.js';
+import type Config, {RootManifests} from '../../config.js';
 import type {ListOptions} from './list.js';
 import Lockfile from '../../lockfile';
 import {normalizePattern} from '../../util/normalize-pattern.js';
@@ -180,8 +181,30 @@ export class Add extends Install {
     this.addedPatterns = [];
     const patterns = await Install.prototype.init.call(this);
     await this.maybeOutputSaveTree(patterns);
-    await this.savePackages();
     return patterns;
+  }
+
+  async applyChanges(manifests: RootManifests): Promise<boolean> {
+    await Install.prototype.applyChanges.call(this, manifests);
+
+    // fill rootPatternsToOrigin without `excludePatterns`
+    await Install.prototype.fetchRequestFromCwd.call(this);
+
+    this._iterateAddedPackages((pattern, registry, dependencyType, pkgName, version) => {
+      // add it to manifest
+      const {object} = manifests[registry];
+
+      object[dependencyType] = object[dependencyType] || {};
+      object[dependencyType][pkgName] = version;
+      if (
+        SILENCE_DEPENDENCY_TYPE_WARNINGS.indexOf(this.config.commandName) === -1 &&
+        dependencyType !== this.flagToOrigin
+      ) {
+        this.reporter.warn(this.reporter.lang('moduleAlreadyInManifest', pkgName, dependencyType, this.flagToOrigin));
+      }
+    });
+
+    return true;
   }
 
   /**
@@ -234,31 +257,10 @@ export class Add extends Install {
    * Save added packages to manifest if any of the --save flags were used.
    */
 
-  async savePackages(): Promise<void> {
-    // fill rootPatternsToOrigin without `excludePatterns`
-    await Install.prototype.fetchRequestFromCwd.call(this);
-    // // get all the different registry manifests in this folder
-    const manifests: Object = await this.config.getRootManifests();
-
-    this._iterateAddedPackages((pattern, registry, dependencyType, pkgName, version) => {
-      // add it to manifest
-      const {object} = manifests[registry];
-
-      object[dependencyType] = object[dependencyType] || {};
-      object[dependencyType][pkgName] = version;
-      if (
-        SILENCE_DEPENDENCY_TYPE_WARNINGS.indexOf(this.config.commandName) === -1 &&
-        dependencyType !== this.flagToOrigin
-      ) {
-        this.reporter.warn(this.reporter.lang('moduleAlreadyInManifest', pkgName, dependencyType, this.flagToOrigin));
-      }
-    });
-
-    await this.config.saveRootManifests(manifests);
-  }
+  async savePackages(): Promise<void> {}
 
   _iterateAddedPackages(
-    f: (pattern: string, registry: string, dependencyType: string, pkgName: string, version: string) => void,
+    f: (pattern: string, registry: RegistryNames, dependencyType: string, pkgName: string, version: string) => void,
   ) {
     const patternOrigins = Object.keys(this.rootPatternsToOrigin);
 
@@ -298,6 +300,7 @@ export function setFlags(commander: Object) {
   commander.option('-O, --optional', 'save package to your `optionalDependencies`');
   commander.option('-E, --exact', 'install exact version');
   commander.option('-T, --tilde', 'install most recent release with the same minor version');
+  commander.option('-A', '--audit', 'Run vulnerability audit on installed packages');
 }
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {

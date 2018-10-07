@@ -2,7 +2,10 @@
 
 import type {PackageDriver} from 'pkg-tests-core';
 
-const {tests: {getPackageArchivePath, getPackageHttpArchivePath, getPackageDirectoryPath}} = require('pkg-tests-core');
+const {
+  fs: {createTemporaryFolder, writeFile, writeJson},
+  tests: {getPackageArchivePath, getPackageHttpArchivePath, getPackageDirectoryPath},
+} = require('pkg-tests-core');
 
 module.exports = (makeTemporaryEnv: PackageDriver) => {
   describe(`Basic tests`, () => {
@@ -221,6 +224,159 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
             name: `no-deps`,
             version: `1.0.0`,
           });
+        },
+      ),
+    );
+
+    test(
+      `it should install in such a way that peer dependencies can be resolved (from top-level)`,
+      makeTemporaryEnv(
+        {
+          dependencies: {[`peer-deps`]: `1.0.0`, [`no-deps`]: `1.0.0`},
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await expect(source(`require('peer-deps')`)).resolves.toMatchObject({
+            name: `peer-deps`,
+            version: `1.0.0`,
+            peerDependencies: {
+              [`no-deps`]: {
+                name: `no-deps`,
+                version: `1.0.0`,
+              },
+            },
+          });
+        },
+      ),
+    );
+
+    test(
+      `it should install in such a way that peer dependencies can be resolved (from within a dependency)`,
+      makeTemporaryEnv(
+        {
+          dependencies: {[`provides-peer-deps-1-0-0`]: `1.0.0`},
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await expect(source(`require('provides-peer-deps-1-0-0')`)).resolves.toMatchObject({
+            name: `provides-peer-deps-1-0-0`,
+            version: `1.0.0`,
+            dependencies: {
+              [`peer-deps`]: {
+                name: `peer-deps`,
+                version: `1.0.0`,
+                peerDependencies: {
+                  [`no-deps`]: {
+                    name: `no-deps`,
+                    version: `1.0.0`,
+                  },
+                },
+              },
+              [`no-deps`]: {
+                name: `no-deps`,
+                version: `1.0.0`,
+              },
+            },
+          });
+        },
+      ),
+    );
+
+    test(
+      `it should install in such a way that peer dependencies can be resolved (two levels deep)`,
+      makeTemporaryEnv(
+        {
+          dependencies: {[`peer-deps-lvl0`]: `1.0.0`},
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await expect(source(`require('peer-deps-lvl0')`)).resolves.toMatchObject({
+            name: `peer-deps-lvl0`,
+            version: `1.0.0`,
+            dependencies: {
+              [`peer-deps-lvl1`]: {
+                name: `peer-deps-lvl1`,
+                version: `1.0.0`,
+                dependencies: {
+                  [`peer-deps-lvl2`]: {
+                    name: `peer-deps-lvl2`,
+                    version: `1.0.0`,
+                    peerDependencies: {
+                      [`no-deps`]: {
+                        name: `no-deps`,
+                        version: `1.0.0`,
+                      },
+                    },
+                  },
+                },
+                peerDependencies: {
+                  [`no-deps`]: {
+                    name: `no-deps`,
+                    version: `1.0.0`,
+                  },
+                },
+              },
+              [`no-deps`]: {
+                name: `no-deps`,
+                version: `1.0.0`,
+              },
+            },
+          });
+        },
+      ),
+    );
+
+    test(
+      `it should cache the loaded modules`,
+      makeTemporaryEnv(
+        {
+          dependencies: {[`no-deps`]: `1.0.0`},
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await expect(
+            source(
+              `{ let before = require('no-deps/package.json'); let after = require('no-deps/package.json'); return before === after }`,
+            ),
+          ).resolves.toEqual(true);
+        },
+      ),
+    );
+
+    test(
+      `it should expose the cached modules into require.cache`,
+      makeTemporaryEnv(
+        {
+          dependencies: {[`no-deps`]: `1.0.0`},
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await expect(
+            source(`require('no-deps') === require.cache[require.resolve('no-deps')].exports`),
+          ).resolves.toEqual(true);
+        },
+      ),
+    );
+
+    test(
+      `it should allow resetting a loaded module by deleting its entry from require.cache`,
+      makeTemporaryEnv(
+        {
+          dependencies: {[`no-deps`]: `1.0.0`},
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await expect(
+            source(
+              `{ let before = require('no-deps/package.json'); delete require.cache[require.resolve('no-deps/package.json')]; let after = require('no-deps/package.json'); return before === after }`,
+            ),
+          ).resolves.toEqual(false);
         },
       ),
     );
