@@ -6,7 +6,7 @@
   "preferGlobal": true,
   "description": "📦🐈 Fast, reliable, and secure dependency management.",
   "dependencies": {
-    "@babel/runtime": "^7.0.0",
+    "@babel/runtime": "^7.1.2",
     "@zkochan/cmd-shim": "^2.2.4",
     "bytes": "^3.0.0",
     "camelcase": "^4.0.0",
@@ -54,14 +54,14 @@
     "yn": "^2.0.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.0.0",
-    "@babel/plugin-proposal-class-properties": "^7.0.0",
-    "@babel/plugin-proposal-decorators": "^7.0.0",
+    "@babel/core": "^7.1.2",
+    "@babel/plugin-proposal-class-properties": "^7.1.0",
+    "@babel/plugin-proposal-decorators": "^7.1.2",
     "@babel/plugin-proposal-do-expressions": "^7.0.0",
     "@babel/plugin-proposal-export-default-from": "^7.0.0",
     "@babel/plugin-proposal-export-namespace-from": "^7.0.0",
     "@babel/plugin-proposal-function-bind": "^7.0.0",
-    "@babel/plugin-proposal-function-sent": "^7.0.0",
+    "@babel/plugin-proposal-function-sent": "^7.1.0",
     "@babel/plugin-proposal-json-strings": "^7.0.0",
     "@babel/plugin-proposal-logical-assignment-operators": "^7.0.0",
     "@babel/plugin-proposal-nullish-coalescing-operator": "^7.0.0",
@@ -71,12 +71,12 @@
     "@babel/plugin-proposal-throw-expressions": "^7.0.0",
     "@babel/plugin-syntax-dynamic-import": "^7.0.0",
     "@babel/plugin-syntax-import-meta": "^7.0.0",
-    "@babel/plugin-transform-runtime": "^7.0.0",
+    "@babel/plugin-transform-runtime": "^7.1.0",
     "@babel/preset-env": "^7.0.0",
     "@babel/preset-flow": "^7.0.0",
     "babel-core": "^7.0.0-bridge.0",
     "babel-eslint": "^7.2.3",
-    "babel-loader": "^8.0.0",
+    "babel-loader": "^8.0.4",
     "babel-plugin-array-includes": "^2.0.3",
     "babel-plugin-inline-import": "^3.0.0",
     "babel-plugin-transform-inline-imports-commonjs": "^1.0.0",
@@ -146,9 +146,7 @@
     "commit": "git-cz"
   },
   "jest": {
-    "collectCoverageFrom": [
-      "src/**/*.js"
-    ],
+    "collectCoverageFrom": ["src/**/*.js"],
     "testEnvironment": "node",
     "modulePathIgnorePatterns": [
       "__tests__/fixtures/",
