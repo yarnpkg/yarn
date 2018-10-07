@@ -4,7 +4,7 @@
     "pre-node5": {
       "presets": [
         [
-          "env",
+          "@babel/preset-env",
           {
             "targets": {
               "node": "4"
@@ -14,8 +14,7 @@
             "exclude": ["transform-regenerator"]
           }
         ],
-        "flow",
-        "stage-0"
+        "@babel/preset-flow"
       ],
       "plugins": [
         ["array-includes"],
@@ -26,7 +25,7 @@
     "test": {
       "presets": [
         [
-          "env",
+          "@babel/preset-env",
           {
             "targets": {
               "node": "current"
@@ -35,15 +34,14 @@
             "loose": true
           }
         ],
-        "flow",
-        "stage-0"
+        "@babel/preset-flow"
       ],
       "plugins": [["transform-inline-imports-commonjs"]]
     }
   },
   "presets": [
     [
-      "env",
+      "@babel/preset-env",
       {
         "targets": {
           "node": "6"
@@ -52,8 +50,7 @@
         "loose": true
       }
     ],
-    "flow",
-    "stage-0"
+    "@babel/preset-flow"
   ],
   "plugins": [
     ["babel-plugin-inline-import", { "extensions": [".tpl.js"] }],
