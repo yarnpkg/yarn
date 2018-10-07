@@ -18,7 +18,10 @@
       ],
       "plugins": [
         ["array-includes"],
-        ["transform-inline-imports-commonjs"],
+        [
+          "@babel/plugin-transform-modules-commonjs",
+          { "allowTopLevelThis": true }
+        ],
         ["transform-runtime", { "polyfill": true, "regenerator": false }]
       ]
     },
@@ -36,7 +39,12 @@
         ],
         "@babel/preset-flow"
       ],
-      "plugins": [["transform-inline-imports-commonjs"]]
+      "plugins": [
+        [
+          "@babel/plugin-transform-modules-commonjs",
+          { "allowTopLevelThis": true }
+        ]
+      ]
     }
   },
   "presets": [
@@ -54,7 +62,7 @@
   ],
   "plugins": [
     ["babel-plugin-inline-import", { "extensions": [".tpl.js"] }],
-    ["transform-inline-imports-commonjs"],
+    ["@babel/plugin-transform-modules-commonjs", { "allowTopLevelThis": true }],
     ["transform-runtime", { "polyfill": false, "regenerator": true }]
   ]
 }
