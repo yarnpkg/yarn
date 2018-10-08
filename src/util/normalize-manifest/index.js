@@ -46,4 +46,4 @@ export default (async function(info: Object, moduleLoc: string, config: Config, 
   }
 
   return info;
-});
+}
