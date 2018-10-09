@@ -175,6 +175,16 @@ test('can use link protocol to install a package that would not be found via nod
   });
 });
 
+test('empty bin string does not create a link', (): Promise<void> => {
+  return runInstall({binLinks: true}, 'install-empty-bin', async config => {
+    const binScripts = await fs.walk(path.join(config.cwd, 'node_modules', '.bin'));
+    const linkCount = process.platform === 'win32' ? 2 : 1;
+    expect(binScripts).toHaveLength(linkCount);
+
+    expect(await linkAt(config, 'node_modules', '.bin', 'depB')).toEqual('../depB/depb.js');
+  });
+});
+
 describe('with nohoist', () => {
   // address https://github.com/yarnpkg/yarn/issues/5487
   test('nohoist bin should be linked to its own local module', (): Promise<void> => {

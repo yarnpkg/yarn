@@ -90,6 +90,12 @@ Array [
 ]
 `;
 
+exports[`empty bin string: empty bin string 1`] = `
+Array [
+  "foo: No license field",
+]
+`;
+
 exports[`engines array: engines array 1`] = `
 Array [
   "No license field",
