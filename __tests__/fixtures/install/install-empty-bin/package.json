@@ -1,0 +1,9 @@
+{
+  "name": "test",
+  "version": "0.0.0",
+  "bin": "",
+  "dependencies": {
+    "depA": "file:depA",
+    "depB": "file:depB"
+  }
+}
