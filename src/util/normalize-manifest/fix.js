@@ -153,7 +153,7 @@ export default (async function(
   // if the `bin` field is as string then expand it to an object with a single property
   // based on the original `bin` field and `name field`
   // { name: "foo", bin: "cli.js" } -> { name: "foo", bin: { foo: "cli.js" } }
-  if (typeof info.name === 'string' && typeof info.bin === 'string') {
+  if (typeof info.name === 'string' && typeof info.bin === 'string' && info.bin.length > 0) {
     // Remove scoped package name for consistency with NPM's bin field fixing behaviour
     const name = info.name.replace(/^@[^\/]+\//, '');
     info.bin = {[name]: info.bin};
