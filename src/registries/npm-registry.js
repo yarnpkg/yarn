@@ -179,7 +179,7 @@ export default class NpmRegistry extends Registry {
     const requestParts = urlParts(requestUrl);
     return !!Object.keys(config).find(option => {
       const parts = option.split(':');
-      if (parts.length === 2 && parts[1] === '_authToken') {
+      if ((parts.length === 2 && parts[1] === '_authToken') || parts[1] === '_password') {
         const registryParts = urlParts(parts[0]);
         if (requestParts.host === registryParts.host && requestParts.path.startsWith(registryParts.path)) {
           return true;
@@ -190,14 +190,15 @@ export default class NpmRegistry extends Registry {
   }
 
   async checkOutdated(config: Config, name: string, range: string): CheckOutdatedReturn {
-    const req = await this.request(NpmRegistry.escapeName(name), {unfiltered: true});
+    const escapedName = NpmRegistry.escapeName(name);
+    const req = await this.request(escapedName, {unfiltered: true});
     if (!req) {
       throw new Error('couldnt find ' + name);
     }
 
     // By default use top level 'repository' and 'homepage' values
     let {repository, homepage} = req;
-    const wantedPkg = await NpmResolver.findVersionInRegistryResponse(config, range, req);
+    const wantedPkg = await NpmResolver.findVersionInRegistryResponse(config, escapedName, range, req);
 
     // But some local repositories like Verdaccio do not return 'repository' nor 'homepage'
     // in top level data structure, so we fallback to wanted package manifest
@@ -206,10 +207,16 @@ export default class NpmRegistry extends Registry {
       homepage = wantedPkg.homepage;
     }
 
+    let latest = req['dist-tags'].latest;
+    // In certain cases, registries do not return a 'latest' tag.
+    if (!latest) {
+      latest = wantedPkg.version;
+    }
+
     const url = homepage || (repository && repository.url) || '';
 
     return {
-      latest: req['dist-tags'].latest,
+      latest,
       wanted: wantedPkg.version,
       url,
     };

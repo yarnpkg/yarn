@@ -74,7 +74,7 @@ const messages = {
   configNoPackageJson: 'Could not find a package.json file in $0',
   configNpm: 'npm config',
   configPlugNPlayWindowsSupport:
-    'Plug-n-Play is ignored on Windows for now - contributions welcome! https://github.com/yarnpkg/yarn/issues/6402',
+    'Plug-n-Play on Windows does not support the cache and project to be kept on separate drives',
   configSet: 'Set $0 to $1.',
   configWorkspacesFocusRootCheck: 'This command can only be run inside an individual workspace.',
   configWorkspacesRequirePrivateProjects: 'Workspaces can only be enabled in private projects.',
@@ -91,6 +91,17 @@ const messages = {
   configYarn: 'yarn config',
 
   consoleReporterAnswerRequired: 'An answer is required.',
+  consoleReporterAuditCritical: '$0 Critical',
+  consoleReporterAuditHigh: '$0 High',
+  consoleReporterAuditInfo: '$0 Info',
+  consoleReporterAuditLow: '$0 Low',
+  consoleReporterAuditManualReview:
+    'Manual Review\nSome vulnerabilities require your attention to resolve\n\nVisit https://go.npm.me/audit-guide for additional guidance',
+  consoleReporterAuditModerate: '$0 Moderate',
+  consoleReporterAuditResolveCommand: '# Run $0 to resolve $1 $2',
+  consoleReporterAuditSemverMajorChange: 'SEMVER WARNING: Recommended action is a potentially breaking change',
+  consoleReporterAuditSummary: '$0 vulnerabilities found - Packages audited: $1',
+  consoleReporterAuditSummarySeverity: 'Severity:',
 
   coreBugReport: 'If you think this is a bug, please open a bug report with the information provided in $0.',
   coreDoubleDashDeprecation:
@@ -158,6 +169,9 @@ const messages = {
   infoFail: 'Received invalid response from npm.',
 
   installAnswerPrompt: 'Answer?',
+  installAuditOffline: 'Skipping audit. Security audit cannot be performed in offline mode.',
+  installAuditRunAuditForDetails: 'Security audit found potential problems. Run "yarn audit" for additional details.',
+  installAuditRunning: 'Auditing packages',
   installBuildingFreshPackages: 'Building fresh packages',
   installCheckingManifest: 'Validating package.json',
   installCleaningModules: 'Cleaning modules',
@@ -291,7 +305,7 @@ const messages = {
   packageLinkerUnmetPeer: '$0 has unmet peer dependency $1.',
 
   packageRequestFlatGlobalError:
-    'The package $0@$1 requires a flat dependency graph. Add `"flat": true` to your package.json and try again.',
+    'The package $0 requires a flat dependency graph. Add `"flat": true` to your package.json and try again.',
   packageRequestImplicitFileDeprecated:
     'Using the "file:" protocol implicitly is deprecated. Please either prepend the protocol or prepend the path $0 with `./`.',
   packageRequestInvalidPackageVersion: 'Cannot add $0: invalid package version $1.',
@@ -380,7 +394,6 @@ const messages = {
 
   verboseRequestFinish: 'Request $0 finished with status code $1.',
   verboseRequestStart: 'Performing $0 request to $1.',
-
   versionCurrentVersion: 'Current version',
   versionInvalidSemver: 'Invalid semver version',
   versionInvalidVersion: 'Invalid version supplied.',

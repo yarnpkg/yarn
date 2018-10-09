@@ -2,6 +2,8 @@
   "extends": [
     "config:base",
     ":preserveSemverRanges",
+    ":semanticCommitsDisabled",
+    ":masterIssueApproval",
     "docker:disable"
   ]
 }

@@ -266,7 +266,7 @@ export default class PackageRequest {
     }
 
     if (info.flat && !this.resolver.flat) {
-      throw new MessageError(this.reporter.lang('packageRequestFlatGlobalError'));
+      throw new MessageError(this.reporter.lang('packageRequestFlatGlobalError', `${info.name}@${info.version}`));
     }
 
     // validate version info

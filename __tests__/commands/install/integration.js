@@ -724,7 +724,7 @@ test('install should fail to authenticate on sha1 integrity mismatch', () =>
     message: expect.stringContaining('computed integrity does not match our records'),
   }));
 
-test('install should create integrity field if not present', () =>
+test.skip('install should create integrity field if not present', () =>
   runInstall({}, 'install-update-auth-no-integrity-field', async config => {
     const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileContent);
@@ -736,7 +736,8 @@ test('install should create integrity field if not present', () =>
     ).toEqual(2);
     expect(lockFileLines[2].indexOf('#893312af69b2123def71f57889001671eeb2c853')).toBeGreaterThan(0);
     // backwards-compatibility
-  }));
+  }),
+);
 
 test('install should not create the integrity field if missing and auto-add-integrity is false', () =>
   runInstall({}, 'install-update-auth-no-integrity-field-no-auto-add', async config => {

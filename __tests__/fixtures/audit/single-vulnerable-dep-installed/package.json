@@ -1,0 +1,7 @@
+{
+  "name": "yarn-test",
+  "version": "0.0.0",
+  "dependencies": {
+    "minimatch": "^3.0.0"
+  }
+}

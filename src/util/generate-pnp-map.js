@@ -11,6 +11,8 @@ const crypto = require('crypto');
 const invariant = require('invariant');
 const path = require('path');
 
+const backwardSlashRegExp = /\\/g;
+
 const OFFLINE_CACHE_EXTENSION = `.zip`;
 
 type PackageInformation = {|
@@ -100,7 +102,7 @@ function generateFindPackageLocator(packageInformationStores: PackageInformation
 
   // Generate a function that, given a file path, returns the associated package name
   code += `exports.findPackageLocator = function findPackageLocator(location) {\n`;
-  code += `  let relativeLocation = path.relative(__dirname, location);\n`;
+  code += `  let relativeLocation = normalizePath(path.relative(__dirname, location));\n`;
   code += `\n`;
   code += `  if (!relativeLocation.match(isStrictRegExp))\n`;
   code += `    relativeLocation = \`./\${relativeLocation}\`;\n`;
@@ -136,7 +138,7 @@ async function getPackageInformationStores(
   const blacklistedLocations: Set<string> = new Set();
 
   const getCachePath = (fsPath: string) => {
-    const cacheRelativePath = path.relative(config.cacheFolder, fsPath);
+    const cacheRelativePath = normalizePath(path.relative(config.cacheFolder, fsPath));
 
     // if fsPath is not inside cacheRelativePath, we just skip it
     if (cacheRelativePath.match(/^\.\.\//)) {
@@ -164,8 +166,12 @@ async function getPackageInformationStores(
     return path.resolve(offlineCacheFolder, `${cacheEntry}${OFFLINE_CACHE_EXTENSION}`, internalPath.join('/'));
   };
 
+  const normalizePath = (fsPath: string) => {
+    return process.platform === 'win32' ? fsPath.replace(backwardSlashRegExp, '/') : fsPath;
+  };
+
   const normalizeDirectoryPath = (fsPath: string) => {
-    let relativePath = path.relative(targetDirectory, resolveOfflineCacheFolder(fsPath));
+    let relativePath = normalizePath(path.relative(targetDirectory, resolveOfflineCacheFolder(fsPath)));
 
     if (!relativePath.match(/^\.{0,2}\//)) {
       relativePath = `./${relativePath}`;

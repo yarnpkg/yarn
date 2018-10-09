@@ -31,6 +31,7 @@ export default class NpmResolver extends RegistryResolver {
 
   static async findVersionInRegistryResponse(
     config: Config,
+    name: string,
     range: string,
     body: RegistryResponse,
     request: ?PackageRequest,
@@ -40,7 +41,7 @@ export default class NpmResolver extends RegistryResolver {
     }
 
     if (!body['dist-tags'] || !body.versions) {
-      throw new MessageError(config.reporter.lang('npmResolverMalformedRegistryResponse', body.name));
+      throw new MessageError(config.reporter.lang('npmResolverMalformedRegistryResponse', name));
     }
 
     if (range in body['dist-tags']) {
@@ -91,10 +92,12 @@ export default class NpmResolver extends RegistryResolver {
       }
     }
 
-    const body = await this.config.registries.npm.request(NpmRegistry.escapeName(this.name));
+    const escapedName = NpmRegistry.escapeName(this.name);
+    const desiredRange = desiredVersion || this.range;
+    const body = await this.config.registries.npm.request(escapedName);
 
     if (body) {
-      return NpmResolver.findVersionInRegistryResponse(this.config, desiredVersion || this.range, body, this.request);
+      return NpmResolver.findVersionInRegistryResponse(this.config, escapedName, desiredRange, body, this.request);
     } else {
       return null;
     }

@@ -6,6 +6,7 @@ import type {Manifest, PackageRemote, WorkspacesManifestMap, WorkspacesConfig} f
 import type PackageReference from './package-reference.js';
 import {execFromManifest} from './util/execute-lifecycle-script.js';
 import {resolveWithHome} from './util/path.js';
+import {boolifyWithDefault} from './util/conversion.js';
 import normalizeManifest from './util/normalize-manifest/index.js';
 import {MessageError} from './errors.js';
 import * as fs from './util/fs.js';
@@ -396,11 +397,16 @@ export default class Config {
     }
 
     if (process.platform === 'win32') {
-      if (this.plugnplayEnabled) {
-        this.reporter.warn(this.reporter.lang('configPlugNPlayWindowsSupport'));
+      const cacheRootFolderDrive = path.parse(this._cacheRootFolder).root;
+      const lockfileFolderDrive = path.parse(this.lockfileFolder).root;
+
+      if (cacheRootFolderDrive !== lockfileFolderDrive) {
+        if (this.plugnplayEnabled) {
+          this.reporter.warn(this.reporter.lang('configPlugNPlayWindowsSupport'));
+        }
+        this.plugnplayEnabled = false;
+        this.plugnplayPersist = false;
       }
-      this.plugnplayEnabled = false;
-      this.plugnplayPersist = false;
     }
 
     this.plugnplayShebang = String(this.getOption('plugnplay-shebang') || '') || '/usr/bin/env node';
@@ -417,7 +423,7 @@ export default class Config {
     this.linkFileDependencies = Boolean(this.getOption('yarn-link-file-dependencies'));
     this.packBuiltPackages = Boolean(this.getOption('experimental-pack-script-packages-in-mirror'));
 
-    this.autoAddIntegrity = !this.getOption('unsafe-disable-integrity-migration');
+    this.autoAddIntegrity = !boolifyWithDefault(String(this.getOption('unsafe-disable-integrity-migration')), true);
 
     //init & create cacheFolder, tempFolder
     this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));

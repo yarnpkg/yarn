@@ -22,15 +22,18 @@ const blacklistedLocator = {name: NaN, reference: NaN};
 const patchedModules = new Map();
 const fallbackLocators = [topLevelLocator];
 
-// Splits a require request into its components, or return null if the request is a file path
-const pathRegExp = /^(?!\.{0,2}(?:\/|$))((?:@[^\/]+\/)?[^\/]+)\/?(.*|)$/;
+// Matches backslashes of Windows paths
+const backwardSlashRegExp = /\\/g;
+
+// Matches if the path must point to a directory (ie ends with /)
+const isDirRegExp = /\/$/;
 
 // Matches if the path starts with a valid path qualifier (./, ../, /)
 // eslint-disable-next-line no-unused-vars
 const isStrictRegExp = /^\.{0,2}\//;
 
-// Matches if the path must point to a directory (ie ends with /)
-const isDirRegExp = /\/$/;
+// Splits a require request into its components, or return null if the request is a file path
+const pathRegExp = /^(?!\.{0,2}(?:\/|$))((?:@[^\/]+\/)?[^\/]+)\/?(.*|)$/;
 
 // Keep a reference around ("module" is a common name in this context, so better rename it to something more significant)
 const pnpModule = module;
@@ -227,6 +230,15 @@ function makeFakeModule(path) {
   fakeModule.filename = path;
   fakeModule.paths = Module._nodeModulePaths(path);
   return fakeModule;
+}
+
+/**
+ * Normalize path to posix format.
+ */
+
+// eslint-disable-next-line no-unused-vars
+function normalizePath(fsPath) {
+  return process.platform === 'win32' ? fsPath.replace(backwardSlashRegExp, '/') : fsPath;
 }
 
 /**
@@ -506,7 +518,7 @@ exports.resolveRequest = function resolveRequest(request, issuer, {considerBuilt
         }
 
         try {
-          exports.resolveToUnqualified(request, realIssuer, {extensions});
+          exports.resolveToUnqualified(request, realIssuer, {considerBuiltins});
         } catch (error) {
           // If an error was thrown, the problem doesn't seem to come from a path not being normalized, so we
           // can just throw the original error which was legit.
@@ -535,7 +547,7 @@ exports.resolveRequest = function resolveRequest(request, issuer, {considerBuilt
   }
 
   try {
-    return exports.resolveUnqualified(unqualifiedPath);
+    return exports.resolveUnqualified(unqualifiedPath, {extensions});
   } catch (resolutionError) {
     if (resolutionError.code === 'QUALIFIED_PATH_RESOLUTION_FAILED') {
       Object.assign(resolutionError.data, {request, issuer});
@@ -665,6 +677,8 @@ exports.setup = function setup() {
 
     return false;
   };
+
+  process.versions.pnp = String(exports.VERSIONS.std);
 };
 
 exports.setupCompatibilityLayer = () => {

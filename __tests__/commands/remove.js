@@ -110,7 +110,7 @@ test.concurrent('removes a single scoped package', (): Promise<void> => {
 
     const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileContent);
-    expect(lockFileLines).toHaveLength(4);
+    expect(lockFileLines).toHaveLength(3);
   });
 });
 
@@ -179,7 +179,7 @@ test.concurrent('removes from workspace packages', async () => {
     const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
     const lockFileLines = explodeLockfile(lockFileContent);
 
-    expect(lockFileLines).toHaveLength(12);
+    expect(lockFileLines).toHaveLength(9);
     expect(lockFileLines[0]).toEqual('left-pad@1.1.3:');
   });
 });

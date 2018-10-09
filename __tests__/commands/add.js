@@ -65,10 +65,10 @@ test.concurrent('adding to the workspace root should preserve workspace packages
     expect(pkg.dependencies).toEqual({'left-pad': '1.1.3', 'max-safe-integer': '1.0.0'});
 
     const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
-    expect(lockfile).toHaveLength(20);
+    expect(lockfile).toHaveLength(16);
     expect(lockfile.indexOf('isarray@2.0.1:')).toEqual(0);
-    expect(lockfile.indexOf('left-pad@1.1.3:')).toEqual(4);
-    expect(lockfile.indexOf('max-safe-integer@1.0.0:')).toEqual(8);
+    expect(lockfile.indexOf('left-pad@1.1.3:')).toEqual(3);
+    expect(lockfile.indexOf('max-safe-integer@1.0.0:')).toEqual(6);
   });
 });
 
@@ -432,7 +432,7 @@ test.concurrent('add with new dependency should be deterministic', async () => {
       const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
       const lockFileLines = explodeLockfile(lockFileWritten);
 
-      expect(lockFileLines).toHaveLength(14);
+      expect(lockFileLines).toHaveLength(12);
       expect(lockFileLines.indexOf('mime-db@~1.0.1:')).toBeGreaterThanOrEqual(0);
       expect(lockFileLines.indexOf('mime-db@1.23.0:')).toBeGreaterThanOrEqual(0);
       expect(lockFileLines.indexOf('mime-types@2.0.0:')).toBeGreaterThanOrEqual(0);
@@ -471,7 +471,7 @@ test.concurrent('add with new dependency should be deterministic 2', async () =>
       const lockFileWritten = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
       const lockFileLines = explodeLockfile(lockFileWritten);
       // see why we don't cleanup lockfile https://github.com/yarnpkg/yarn/issues/79
-      expect(lockFileLines).toHaveLength(14);
+      expect(lockFileLines).toHaveLength(12);
 
       const mirror = await fs.walk(path.join(config.cwd, mirrorPath));
       expect(mirror).toHaveLength(3);

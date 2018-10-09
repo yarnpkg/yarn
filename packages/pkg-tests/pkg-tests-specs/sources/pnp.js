@@ -523,7 +523,7 @@ module.exports = makeTemporaryEnv => {
     test(
       `it should export the PnP API through the 'pnpapi' name`,
       makeTemporaryEnv(
-        {dependencies: {[`no-deps`]: `1.0.0`}},
+        {},
         {
           plugNPlay: true,
         },
@@ -533,6 +533,19 @@ module.exports = makeTemporaryEnv => {
           await expect(source(`typeof require('pnpapi').VERSIONS.std`)).resolves.toEqual(`number`);
         },
       ),
+    );
+
+    test(
+      `it should expose the PnP version through 'process.versions.pnp'`,
+      makeTemporaryEnv({}, {plugNPlay: true}, async ({path, run, source}) => {
+        await run(`install`);
+
+        const pnpapiVersionsStd = await source(`require('pnpapi').VERSIONS.std`);
+        const processVersionsPnp = await source(`process.versions.pnp`);
+
+        await expect(typeof processVersionsPnp).toEqual(`string`);
+        await expect(processVersionsPnp).toEqual(String(pnpapiVersionsStd));
+      }),
     );
 
     test(
