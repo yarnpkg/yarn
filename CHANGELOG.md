@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Fix parsing of environment variables when merging env into config
+
+  [#6518](https://github.com/yarnpkg/yarn/pull/6518) - [**Michael Gmelin**](https://blog.grem.de)
+
 - Adds support for basic auth for registries with paths, such as artifactory
 
   [#5322](https://github.com/yarnpkg/yarn/pull/5322) - [**Karolis Narkevicius**](https://twitter.com/KidkArolis)
