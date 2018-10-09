@@ -139,7 +139,7 @@ export default class ConsoleReporter extends BaseReporter {
         //colors: this.isTTY,
         depth: null,
         maxArrayLength: null,
-        stylize(str, styleType): String {
+        stylize(str, styleType): string {
           if (_this.isTTY) {
             if (styleType === 'name') {
               str = `'${str}'`;
