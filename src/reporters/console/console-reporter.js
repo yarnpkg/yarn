@@ -133,11 +133,28 @@ export default class ConsoleReporter extends BaseReporter {
 
   inspect(value: mixed) {
     if (typeof value !== 'number' && typeof value !== 'string') {
+      const _this = this;
       value = inspect(value, {
         breakLength: 0,
-        colors: this.isTTY,
+        //colors: this.isTTY,
         depth: null,
         maxArrayLength: null,
+        stylize(str, styleType): String {
+          if (_this.isTTY) {
+            if (styleType === 'name') {
+              str = `'${str}'`;
+              styleType = 'string';
+            }
+            const style = inspect.styles[styleType];
+            if (style !== undefined) {
+              const color = inspect.colors[style];
+              return `\u001b[${color[0]}m${str}\u001b[${color[1]}m`;
+            }
+            return str;
+          } else {
+            return str;
+          }
+        },
       });
     }
 
