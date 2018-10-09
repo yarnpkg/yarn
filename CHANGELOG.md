@@ -4,7 +4,11 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
-- Fixes handling of empty string entries for bin in package.json
+- Fixes the `extensions` option when used by `resolveRequest`
+
+  [#6479](https://github.com/yarnpkg/yarn/pull/6479) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Fixes handling of empty string entries for `bin` in package.json
 
   [#6515](https://github.com/yarnpkg/yarn/pull/6515) - [**Ryan Burrows**](https://github.com/rhburrows)
 
