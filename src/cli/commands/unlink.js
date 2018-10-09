@@ -34,7 +34,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     const manifest = await config.readRootManifest();
     const name = manifest.name;
     if (!name) {
-      throw new MessageError(reporter.lang('unknownPackageName'));
+      throw new MessageError(reporter.lang('commonUnknownPackageName'));
     }
 
     const linkLoc = path.join(config.linkFolder, name);

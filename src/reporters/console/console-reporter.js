@@ -218,7 +218,7 @@ export default class ConsoleReporter extends BaseReporter {
             reject(err);
           } else {
             if (!answer && options.required) {
-              this.error(this.lang('answerRequired'));
+              this.error(this.lang('consoleReporterAnswerRequired'));
               resolve(this.question(question, options));
             } else {
               resolve(answer);

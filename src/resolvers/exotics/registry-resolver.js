@@ -14,7 +14,7 @@ export default class RegistryResolver extends ExoticResolver {
       this.range = match[4] || 'latest';
       this.name = match[2];
     } else {
-      throw new MessageError(this.reporter.lang('invalidFragment', fragment));
+      throw new MessageError(this.reporter.lang('registryResolverInvalidFragment', fragment));
     }
 
     // $FlowFixMe

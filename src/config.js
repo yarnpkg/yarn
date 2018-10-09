@@ -257,7 +257,7 @@ export default class Config {
 
     // using focus in a workspace root is not allowed
     if (this.focus && (!this.workspaceRootFolder || this.cwd === this.workspaceRootFolder)) {
-      throw new MessageError(this.reporter.lang('workspacesFocusRootCheck'));
+      throw new MessageError(this.reporter.lang('configWorkspacesFocusRootCheck'));
     }
 
     if (this.focus) {
@@ -363,17 +363,17 @@ export default class Config {
         fs.constants.W_OK | fs.constants.X_OK | fs.constants.R_OK, // eslint-disable-line no-bitwise
       );
       for (const skippedEntry of cacheFolderQuery.skipped) {
-        this.reporter.warn(this.reporter.lang('cacheFolderSkipped', skippedEntry.folder));
+        this.reporter.warn(this.reporter.lang('configCacheFolderSkipped', skippedEntry.folder));
       }
 
       cacheRootFolder = cacheFolderQuery.folder;
       if (cacheRootFolder && cacheFolderQuery.skipped.length > 0) {
-        this.reporter.warn(this.reporter.lang('cacheFolderSelected', cacheRootFolder));
+        this.reporter.warn(this.reporter.lang('configCacheFolderSelected', cacheRootFolder));
       }
     }
 
     if (!cacheRootFolder) {
-      throw new MessageError(this.reporter.lang('cacheFolderMissing'));
+      throw new MessageError(this.reporter.lang('configCacheFolderMissing'));
     } else {
       this._cacheRootFolder = String(cacheRootFolder);
     }
@@ -397,7 +397,7 @@ export default class Config {
 
     if (process.platform === 'win32') {
       if (this.plugnplayEnabled) {
-        this.reporter.warn(this.reporter.lang('plugnplayWindowsSupport'));
+        this.reporter.warn(this.reporter.lang('configPlugNPlayWindowsSupport'));
       }
       this.plugnplayEnabled = false;
       this.plugnplayPersist = false;
@@ -436,7 +436,7 @@ export default class Config {
     }
 
     if (this.workspaceRootFolder && !this.workspacesEnabled) {
-      throw new MessageError(this.reporter.lang('workspacesDisabled'));
+      throw new MessageError(this.reporter.lang('configWorkspacesDisabled'));
     }
   }
 
@@ -681,7 +681,7 @@ export default class Config {
       if (manifest) {
         return manifest;
       } else {
-        throw new MessageError(this.reporter.lang('couldntFindPackagejson', dir), 'ENOENT');
+        throw new MessageError(this.reporter.lang('configNoPackageJson', dir), 'ENOENT');
       }
     });
   }
@@ -768,7 +768,7 @@ export default class Config {
     let previous = null;
     let current = path.normalize(initial);
     if (!await fs.exists(current)) {
-      throw new MessageError(this.reporter.lang('folderMissing', current));
+      throw new MessageError(this.reporter.lang('configFolderMissing', current));
     }
 
     do {
@@ -800,7 +800,7 @@ export default class Config {
     const patterns = ws && ws.packages ? ws.packages : [];
 
     if (!Array.isArray(patterns)) {
-      throw new MessageError(this.reporter.lang('workspacesSettingMustBeArray'));
+      throw new MessageError(this.reporter.lang('configWorkspacesSettingMustBeArray'));
     }
 
     const registryFilenames = registryNames
@@ -828,16 +828,16 @@ export default class Config {
       }
 
       if (!manifest.name) {
-        this.reporter.warn(this.reporter.lang('workspaceNameMandatory', loc));
+        this.reporter.warn(this.reporter.lang('configWorkspaceNameMandatory', loc));
         continue;
       }
       if (!manifest.version) {
-        this.reporter.warn(this.reporter.lang('workspaceVersionMandatory', loc));
+        this.reporter.warn(this.reporter.lang('configWorkspaceVersionMandatory', loc));
         continue;
       }
 
       if (Object.prototype.hasOwnProperty.call(workspaces, manifest.name)) {
-        throw new MessageError(this.reporter.lang('workspaceNameDuplicate', manifest.name));
+        throw new MessageError(this.reporter.lang('configWorkspaceNameDuplicate', manifest.name));
       }
 
       workspaces[manifest.name] = {loc, manifest};
@@ -865,16 +865,16 @@ export default class Config {
 
     // packages
     if (wsCopy.packages && wsCopy.packages.length > 0 && !manifest.private) {
-      errors.push(this.reporter.lang('workspacesRequirePrivateProjects'));
+      errors.push(this.reporter.lang('configWorkspacesRequirePrivateProjects'));
       wsCopy = undefined;
     }
     // nohoist
     if (wsCopy && wsCopy.nohoist && wsCopy.nohoist.length > 0) {
       if (!this.workspacesNohoistEnabled) {
-        warnings.push(this.reporter.lang('workspacesNohoistDisabled', manifest.name));
+        warnings.push(this.reporter.lang('configWorkspacesNoHoistDisabled', manifest.name));
         wsCopy.nohoist = undefined;
       } else if (!manifest.private) {
-        errors.push(this.reporter.lang('workspacesNohoistRequirePrivatePackages', manifest.name));
+        errors.push(this.reporter.lang('configWorkspacesNoHoistRequirePrivatePackages', manifest.name));
         wsCopy.nohoist = undefined;
       }
     }
@@ -961,7 +961,7 @@ export default class Config {
       return factory(loc);
     } catch (err) {
       if (err instanceof SyntaxError) {
-        throw new MessageError(this.reporter.lang('jsonError', loc, err.message));
+        throw new MessageError(this.reporter.lang('configJsonError', loc, err.message));
       } else {
         throw err;
       }

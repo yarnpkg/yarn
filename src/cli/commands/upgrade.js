@@ -49,7 +49,7 @@ function setUserRequestedPackageVersions(
       if (normalized.hasVersion && dep.name === normalized.name) {
         found = true;
         dep.upgradeTo = newPattern;
-        reporter.verbose(reporter.lang('verboseUpgradeBecauseRequested', requestedPattern, newPattern));
+        reporter.verbose(reporter.lang('upgradeBecauseRequested', requestedPattern, newPattern));
       }
     });
 
@@ -68,7 +68,7 @@ function setUserRequestedPackageVersions(
         workspaceName: '',
         workspaceLoc: '',
       });
-      reporter.verbose(reporter.lang('verboseUpgradeBecauseRequested', requestedPattern, newPattern));
+      reporter.verbose(reporter.lang('upgradeBecauseRequested', requestedPattern, newPattern));
     }
   });
 }
@@ -128,13 +128,13 @@ export function cleanLockfile(
   function cleanDepFromLockfile(pattern: string, depth: number) {
     const lockManifest = lockfile.getLocked(pattern);
     if (!lockManifest || (depth > 1 && packagePatterns.some(packagePattern => packagePattern.pattern === pattern))) {
-      reporter.verbose(reporter.lang('verboseUpgradeNotUnlocking', pattern));
+      reporter.verbose(reporter.lang('upgradeNotUnlocking', pattern));
       return;
     }
 
     const dependencies = Object.assign({}, lockManifest.dependencies || {}, lockManifest.optionalDependencies || {});
     const depPatterns = Object.keys(dependencies).map(key => `${key}@${dependencies[key]}`);
-    reporter.verbose(reporter.lang('verboseUpgradeUnlocking', pattern));
+    reporter.verbose(reporter.lang('upgradeUnlocking', pattern));
     lockfile.removePattern(pattern);
     depPatterns.forEach(pattern => cleanDepFromLockfile(pattern, depth + 1));
   }
@@ -232,7 +232,7 @@ export async function getOutdated(
     .filter(scopeFilter.bind(this, flags));
   deps.forEach(dep => {
     dep.upgradeTo = buildPatternToUpgradeTo(dep, flags);
-    reporter.verbose(reporter.lang('verboseUpgradeBecauseOutdated', dep.name, dep.upgradeTo));
+    reporter.verbose(reporter.lang('upgradeBecauseOutdated', dep.name, dep.upgradeTo));
   });
 
   return deps;

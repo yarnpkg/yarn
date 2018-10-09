@@ -38,8 +38,8 @@ test('run version with no arguments and --new-version flag', (): Promise<void> =
     const rprtr = new reporters.BufferReporter({stdout: null, stdin: null});
 
     // Emulate run output
-    rprtr.info(`${rprtr.lang('currentVersion')}: ${oldVersion}`);
-    rprtr.info(`${rprtr.lang('newVersion')}: ${newVersion}`);
+    rprtr.info(`${rprtr.lang('versionCurrentVersion')}: ${oldVersion}`);
+    rprtr.info(`${rprtr.lang('versionNewVersion')}: ${newVersion}`);
 
     expect(reporter.getBuffer()).toEqual(rprtr.getBuffer());
   });

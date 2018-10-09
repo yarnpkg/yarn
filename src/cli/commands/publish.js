@@ -39,7 +39,7 @@ async function publish(config: Config, pkg: any, flags: Object, dir: string): Pr
 
   // validate access argument
   if (access && access !== 'public' && access !== 'restricted') {
-    throw new MessageError(config.reporter.lang('invalidAccess'));
+    throw new MessageError(config.reporter.lang('publishInvalidAccess'));
   }
 
   // TODO this might modify package.json, do we need to reload it?
@@ -127,10 +127,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   // validate arguments
   const dir = args[0] ? path.resolve(config.cwd, args[0]) : config.cwd;
   if (args.length > 1) {
-    throw new MessageError(reporter.lang('tooManyArguments', 1));
+    throw new MessageError(reporter.lang('commonTooManyArguments', 1));
   }
   if (!await fs.exists(dir)) {
-    throw new MessageError(reporter.lang('unknownFolderOrTarball'));
+    throw new MessageError(reporter.lang('publishUnknownFolderOrTarball'));
   }
 
   const stat = await fs.lstat(dir);
@@ -147,7 +147,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     throw new MessageError(reporter.lang('publishPrivate'));
   }
   if (!pkg.name) {
-    throw new MessageError(reporter.lang('noName'));
+    throw new MessageError(reporter.lang('commonNoPackageName'));
   }
 
   let registry: string = '';
@@ -156,20 +156,20 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     registry = pkg.publishConfig.registry;
   }
 
-  reporter.step(1, 4, reporter.lang('bumpingVersion'));
+  reporter.step(1, 4, reporter.lang('publishBumpingVersion'));
   const commitVersion = await setVersion(config, reporter, flags, [], false);
 
   //
-  reporter.step(2, 4, reporter.lang('loggingIn'));
+  reporter.step(2, 4, reporter.lang('commonLoggingIn'));
   const revoke = await getToken(config, reporter, pkg.name, flags, registry);
 
   //
-  reporter.step(3, 4, reporter.lang('publishing'));
+  reporter.step(3, 4, reporter.lang('publishPending'));
   await publish(config, pkg, flags, publishPath);
   await commitVersion();
-  reporter.success(reporter.lang('published'));
+  reporter.success(reporter.lang('publishSuccess'));
 
   //
-  reporter.step(4, 4, reporter.lang('revokingToken'));
+  reporter.step(4, 4, reporter.lang('commonRevokingToken'));
   await revoke();
 }

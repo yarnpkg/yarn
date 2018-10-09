@@ -43,7 +43,7 @@ test.concurrent('throws error with no arguments', (): Promise<void> => {
     try {
       await runWhy({}, [], 'basic');
     } catch (err) {
-      expect(err.message).toContain(reporter.lang('missingWhyDependency'));
+      expect(err.message).toContain(reporter.lang('whyMissingDependency'));
     } finally {
       resolve();
     }
@@ -57,7 +57,7 @@ test.concurrent('throws error with too many arguments', (): Promise<void> => {
     try {
       await runWhy({}, ['one', 'two'], 'basic');
     } catch (err) {
-      expect(err.message).toContain(reporter.lang('tooManyArguments', 1));
+      expect(err.message).toContain(reporter.lang('commonTooManyArguments', 1));
     } finally {
       resolve();
     }

@@ -97,7 +97,7 @@ export async function verifyTreeCheck(
       continue;
     }
     if (!await fs.exists(manifestLoc)) {
-      reportError('packageNotInstalled', `${dep.originalKey}`);
+      reportError('checkPackageNotInstalled', `${dep.originalKey}`);
       continue;
     }
     if (!await fs.exists(path.join(manifestLoc, 'package.json'))) {
@@ -108,7 +108,7 @@ export async function verifyTreeCheck(
       semver.validRange(dep.version, config.looseSemver) &&
       !semver.satisfies(pkg.version, dep.version, config.looseSemver)
     ) {
-      reportError('packageWrongVersion', dep.originalKey, dep.version, pkg.version);
+      reportError('checkPackageWrongVersion', dep.originalKey, dep.version, pkg.version);
       continue;
     }
     const dependencies = pkg.dependencies;
@@ -142,16 +142,16 @@ export async function verifyTreeCheck(
           locations.pop();
         }
         if (!found) {
-          reportError('packageNotInstalled', `${dep.originalKey}#${subdep}`);
+          reportError('checkPackageNotInstalled', `${dep.originalKey}#${subdep}`);
         }
       }
     }
   }
 
   if (errCount > 0) {
-    throw new MessageError(reporter.lang('foundErrors', errCount));
+    throw new MessageError(reporter.lang('checkFoundErrors', errCount));
   } else {
-    reporter.success(reporter.lang('folderInSync'));
+    reporter.success(reporter.lang('checkFolderInSync'));
   }
 }
 
@@ -176,20 +176,20 @@ async function integrityHashCheck(
 
   const match = await integrityChecker.check(patterns, lockfile.cache, flags, workspaceLayout);
   for (const pattern of match.missingPatterns) {
-    reportError('lockfileNotContainPattern', pattern);
+    reportError('checkLockfileNotContainPattern', pattern);
   }
   if (match.integrityFileMissing) {
-    reportError('noIntegrityFile');
+    reportError('checkNoIntegrityFile');
   }
   if (match.integrityMatches === false) {
     reporter.warn(reporter.lang(integrityErrors[match.integrityError]));
-    reportError('integrityCheckFailed');
+    reportError('checkIntegrityCheckFailed');
   }
 
   if (errCount > 0) {
-    throw new MessageError(reporter.lang('foundErrors', errCount));
+    throw new MessageError(reporter.lang('checkFoundErrors', errCount));
   } else {
-    reporter.success(reporter.lang('folderInSync'));
+    reporter.success(reporter.lang('checkFolderInSync'));
   }
 }
 
@@ -233,7 +233,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   // check if patterns exist in lockfile
   for (const pattern of patterns) {
     if (!lockfile.getLocked(pattern) && (!workspaceLayout || !workspaceLayout.getManifestByPattern(pattern))) {
-      reportError('lockfileNotContainPattern', pattern);
+      reportError('checkLockfileNotContainPattern', pattern);
     }
   }
 
@@ -281,9 +281,9 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
     if (!await fs.exists(loc)) {
       if (pkg._reference.optional) {
-        reporter.warn(reporter.lang('optionalDepNotInstalled', human));
+        reporter.warn(reporter.lang('checkOptionalDepNotInstalled', human));
       } else {
-        reportError('packageNotInstalled', human);
+        reportError('checkPackageNotInstalled', human);
       }
       continue;
     }
@@ -296,7 +296,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
       if (pkg.version !== packageJson.version) {
         // node_modules contains wrong version
-        reportError('packageWrongVersion', human, pkg.version, packageJson.version);
+        reportError('checkPackageWrongVersion', human, pkg.version, packageJson.version);
       }
 
       const deps = Object.assign({}, packageJson.dependencies, packageJson.peerDependencies);
@@ -346,13 +346,13 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
               const {range: resRange} = normalizePattern(resPattern);
 
               if (semver.satisfies(depPkg.version, resRange, config.looseSemver)) {
-                reporter.warn(reporter.lang('incompatibleResolutionVersion', foundHuman, subHuman));
+                reporter.warn(reporter.lang('resolutionMapIncompatibleResolutionVersion', foundHuman, subHuman));
                 warningCount++;
               } else {
-                reportError('packageDontSatisfy', resHuman, foundHuman);
+                reportError('checkPackageDoesntSatisfy', resHuman, foundHuman);
               }
             } else {
-              reportError('packageDontSatisfy', subHuman, foundHuman);
+              reportError('checkPackageDoesntSatisfy', subHuman, foundHuman);
             }
 
             continue;
@@ -380,7 +380,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
             ) {
               reporter.warn(
                 reporter.lang(
-                  'couldBeDeduped',
+                  'checkCouldBeDeduped',
                   subHuman,
                   packageJson.version,
                   `${humaniseLocation(path.dirname(locPkg)).join('#')}@${packageJson.version}`,
@@ -396,12 +396,12 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   }
 
   if (warningCount > 1) {
-    reporter.info(reporter.lang('foundWarnings', warningCount));
+    reporter.info(reporter.lang('checkFoundWarnings', warningCount));
   }
 
   if (errCount > 0) {
-    throw new MessageError(reporter.lang('foundErrors', errCount));
+    throw new MessageError(reporter.lang('checkFoundErrors', errCount));
   } else {
-    reporter.success(reporter.lang('folderInSync'));
+    reporter.success(reporter.lang('checkFolderInSync'));
   }
 }

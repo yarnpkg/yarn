@@ -620,7 +620,7 @@ export default class PackageLinker {
         const range = peerDeps[peerDepName];
         const peerPkgs = this.resolver.getAllInfoForPackageName(peerDepName);
 
-        let peerError = 'unmetPeer';
+        let peerError = 'packageLinkerUnmetPeer';
         let resolvedLevelDistance = Infinity;
         let resolvedPeerPkg;
         for (const peerPkg of peerPkgs) {
@@ -634,7 +634,7 @@ export default class PackageLinker {
               resolvedLevelDistance = levelDistance;
               resolvedPeerPkg = peerPkgRef;
             } else {
-              peerError = 'incorrectPeer';
+              peerError = 'packageLinkerIncorrectPeer';
             }
           }
         }
@@ -643,7 +643,7 @@ export default class PackageLinker {
           ref.addDependencies(resolvedPeerPkg.patterns);
           this.reporter.verbose(
             this.reporter.lang(
-              'selectedPeer',
+              'packageLinkerSelectedPeer',
               `${pkg.name}@${pkg.version}`,
               `${peerDepName}@${resolvedPeerPkg.version}`,
               resolvedPeerPkg.level,
@@ -677,7 +677,7 @@ export default class PackageLinker {
         if (locsExist.some(e => !e)) {
           //if any of the locs do not exist
           const pkgHuman = `${pkg.name}@${pkg.version}`;
-          this.reporter.warn(this.reporter.lang('missingBundledDependency', pkgHuman, depName));
+          this.reporter.warn(this.reporter.lang('packageLinkerMissingBundledDependency', pkgHuman, depName));
         }
       }
     }

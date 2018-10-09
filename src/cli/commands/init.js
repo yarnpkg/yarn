@@ -62,7 +62,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       question: 'name',
       default: path.basename(config.cwd),
       validation: validate.isValidPackageName,
-      validationError: 'invalidPackageName',
+      validationError: 'commonInvalidPackageName',
     },
     {
       key: 'version',
@@ -147,7 +147,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
           if (entry.validation(String(answer))) {
             validAnswer = true;
           } else {
-            reporter.error(reporter.lang('invalidPackageName'));
+            reporter.error(reporter.lang('commonInvalidPackageName'));
           }
         }
       } else {

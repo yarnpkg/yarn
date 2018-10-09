@@ -120,7 +120,7 @@ export class Add extends Install {
     try {
       manifest = this.resolver.getStrictResolvedPattern(cwdPackage);
     } catch (e) {
-      this.reporter.warn(this.reporter.lang('unknownPackage', cwdPackage));
+      this.reporter.warn(this.reporter.lang('commonUnknownPackage', cwdPackage));
       return patterns;
     }
 
@@ -175,7 +175,7 @@ export class Add extends Install {
 
     // running "yarn add something" in a workspace root is often a mistake
     if (isWorkspaceRoot && !this.flags.ignoreWorkspaceRootCheck) {
-      throw new MessageError(this.reporter.lang('workspacesAddRootCheck'));
+      throw new MessageError(this.reporter.lang('addWorkspacesAddRootCheck'));
     }
 
     this.addedPatterns = [];
@@ -200,7 +200,9 @@ export class Add extends Install {
         SILENCE_DEPENDENCY_TYPE_WARNINGS.indexOf(this.config.commandName) === -1 &&
         dependencyType !== this.flagToOrigin
       ) {
-        this.reporter.warn(this.reporter.lang('moduleAlreadyInManifest', pkgName, dependencyType, this.flagToOrigin));
+        this.reporter.warn(
+          this.reporter.lang('addModuleAlreadyInManifest', pkgName, dependencyType, this.flagToOrigin),
+        );
       }
     });
 
@@ -231,9 +233,9 @@ export class Add extends Install {
     const {trees, count} = await buildTree(this.resolver, this.linker, merged, opts, true, true);
 
     if (count === 1) {
-      this.reporter.success(this.reporter.lang('savedNewDependency'));
+      this.reporter.success(this.reporter.lang('addSavedNewDependency'));
     } else {
-      this.reporter.success(this.reporter.lang('savedNewDependencies', count));
+      this.reporter.success(this.reporter.lang('addSavedNewDependencies', count));
     }
 
     if (!count) {
@@ -247,9 +249,9 @@ export class Add extends Install {
     }
     const directRequireDependencies = trees.filter(({name}) => resolverPatterns.has(name));
 
-    this.reporter.info(this.reporter.lang('directDependencies'));
+    this.reporter.info(this.reporter.lang('addDirectDependencies'));
     this.reporter.tree('newDirectDependencies', directRequireDependencies);
-    this.reporter.info(this.reporter.lang('allDependencies'));
+    this.reporter.info(this.reporter.lang('addAllDependencies'));
     this.reporter.tree('newAllDependencies', trees);
   }
 
@@ -304,7 +306,7 @@ export function setFlags(commander: Object) {
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   if (!args.length) {
-    throw new MessageError(reporter.lang('missingAddDependencies'));
+    throw new MessageError(reporter.lang('addMissingAddDependencies'));
   }
 
   const lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);

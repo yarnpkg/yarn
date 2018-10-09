@@ -14,18 +14,18 @@ async function getCredentials(
   let {username, email} = config.registries.yarn.config;
 
   if (username) {
-    reporter.info(`${reporter.lang('npmUsername')}: ${username}`);
+    reporter.info(`${reporter.lang('loginNpmUsername')}: ${username}`);
   } else {
-    username = await reporter.question(reporter.lang('npmUsername'));
+    username = await reporter.question(reporter.lang('loginNpmUsername'));
     if (!username) {
       return null;
     }
   }
 
   if (email) {
-    reporter.info(`${reporter.lang('npmEmail')}: ${email}`);
+    reporter.info(`${reporter.lang('loginNpmEmail')}: ${email}`);
   } else {
-    email = await reporter.question(reporter.lang('npmEmail'));
+    email = await reporter.question(reporter.lang('loginNpmEmail'));
     if (!email) {
       return null;
     }
@@ -48,7 +48,7 @@ export async function getToken(
   if (auth) {
     config.registries.npm.setToken(auth);
     return function revoke(): Promise<void> {
-      reporter.info(reporter.lang('notRevokingConfigToken'));
+      reporter.info(reporter.lang('loginNotRevokingConfigToken'));
       return Promise.resolve();
     };
   }
@@ -57,14 +57,14 @@ export async function getToken(
   if (env) {
     config.registries.npm.setToken(`Bearer ${env}`);
     return function revoke(): Promise<void> {
-      reporter.info(reporter.lang('notRevokingEnvToken'));
+      reporter.info(reporter.lang('loginNotRevokingEnvToken'));
       return Promise.resolve();
     };
   }
 
   // make sure we're not running in non-interactive mode before asking for login
   if (flags.nonInteractive || config.nonInteractive) {
-    throw new MessageError(reporter.lang('nonInteractiveNoToken'));
+    throw new MessageError(reporter.lang('loginNonInteractiveNoToken'));
   }
 
   //
@@ -72,13 +72,13 @@ export async function getToken(
   if (!creds) {
     reporter.warn(reporter.lang('loginAsPublic'));
     return function revoke(): Promise<void> {
-      reporter.info(reporter.lang('noTokenToRevoke'));
+      reporter.info(reporter.lang('loginNoTokenToRevoke'));
       return Promise.resolve();
     };
   }
 
   const {username, email} = creds;
-  const password = await reporter.question(reporter.lang('npmPassword'), {
+  const password = await reporter.question(reporter.lang('loginNpmPassword'), {
     password: true,
     required: true,
   });
@@ -102,19 +102,19 @@ export async function getToken(
   });
 
   if (res && res.ok) {
-    reporter.success(reporter.lang('loggedIn'));
+    reporter.success(reporter.lang('loginLoggedIn'));
 
     const token = res.token;
     config.registries.npm.setToken(`Bearer ${token}`);
 
     return async function revoke(): Promise<void> {
-      reporter.success(reporter.lang('revokedToken'));
+      reporter.success(reporter.lang('loginRevokedToken'));
       await config.registries.npm.request(`-/user/token/${token}`, {
         method: 'DELETE',
       });
     };
   } else {
-    throw new MessageError(reporter.lang('incorrectCredentials'));
+    throw new MessageError(reporter.lang('loginIncorrectCredentials'));
   }
 }
 

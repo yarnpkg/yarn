@@ -42,7 +42,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const deps = await getOutdated(config, reporter, {...flags, includeWorkspaceDeps: true}, lockfile, args);
 
   if (deps.length === 0) {
-    reporter.success(reporter.lang('allDependenciesUpToDate'));
+    reporter.success(reporter.lang('upgradeInteractiveUpToDate'));
     return;
   }
 
@@ -140,7 +140,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     const red = reporter.format.red('<red>');
     const yellow = reporter.format.yellow('<yellow>');
     const green = reporter.format.green('<green>');
-    reporter.info(reporter.lang('legendColorsForVersionUpdates', red, yellow, green));
+    reporter.info(reporter.lang('commonLegendColorsForVersionUpdates', red, yellow, green));
 
     const answers: Array<Dependency> = await reporter.prompt('Choose which packages to update.', choices, {
       name: 'packages',
@@ -173,7 +173,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
         for (const loc of Object.keys(depsByWorkspace)) {
           const patterns = depsByWorkspace[loc].map(getPattern);
           cleanLockfile(lockfile, deps, packagePatterns, reporter);
-          reporter.info(reporter.lang('updateInstalling', getNameFromHint(hint)));
+          reporter.info(reporter.lang('upgradeInteractiveUpdateInstalling', getNameFromHint(hint)));
           if (loc !== '') {
             config.cwd = path.resolve(path.dirname(loc));
           }

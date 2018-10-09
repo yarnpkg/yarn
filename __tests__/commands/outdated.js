@@ -50,7 +50,7 @@ test.concurrent('throws if lockfile is out of date', (): Promise<void> => {
     try {
       await runOutdated([], {}, 'lockfile-outdated');
     } catch (err) {
-      expect(err.message).toContain(reporter.lang('lockfileOutdated'));
+      expect(err.message).toContain(reporter.lang('packageRequestLockfileOutdated'));
     } finally {
       resolve();
     }

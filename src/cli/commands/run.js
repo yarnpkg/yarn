@@ -156,9 +156,9 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   // list possible scripts if none specified
   if (args.length === 0) {
     if (binCommands.size > 0) {
-      reporter.info(`${reporter.lang('binCommands') + Array.from(binCommands).join(', ')}`);
+      reporter.info(`${reporter.lang('runBinCommands') + Array.from(binCommands).join(', ')}`);
     } else {
-      reporter.error(reporter.lang('noBinAvailable'));
+      reporter.error(reporter.lang('runNoBinAvailable'));
     }
 
     const printedCommands: Map<string, string> = new Map();
@@ -170,18 +170,18 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
 
     if (pkgCommands.size > 0) {
-      reporter.info(`${reporter.lang('possibleCommands')}`);
-      reporter.list('possibleCommands', Array.from(pkgCommands), toObject(printedCommands));
+      reporter.info(`${reporter.lang('runPossibleCommands')}`);
+      reporter.list('runPossibleCommands', Array.from(pkgCommands), toObject(printedCommands));
       if (!flags.nonInteractive) {
         await reporter
-          .question(reporter.lang('commandQuestion'))
+          .question(reporter.lang('runCommandQuestion'))
           .then(
             answer => runCommand(answer.trim().split(' ')),
-            () => reporter.error(reporter.lang('commandNotSpecified')),
+            () => reporter.error(reporter.lang('runCommandNotSpecified')),
           );
       }
     } else {
-      reporter.error(reporter.lang('noScriptsAvailable'));
+      reporter.error(reporter.lang('runNoScriptsAvailable'));
     }
     return Promise.resolve();
   } else {

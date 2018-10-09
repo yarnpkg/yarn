@@ -49,7 +49,7 @@ export default class FileResolver extends ExoticResolver {
       return manifest;
     }
     if (!await fs.exists(loc)) {
-      throw new MessageError(this.reporter.lang('doesntExist', loc, this.pattern.split('@')[0]));
+      throw new MessageError(this.reporter.lang('fileResolverPackageDoesntExist', loc, this.pattern.split('@')[0]));
     }
 
     const manifest: Manifest = await (async () => {

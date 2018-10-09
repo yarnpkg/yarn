@@ -65,7 +65,7 @@ test.concurrent("throws an error if existing lockfile isn't satisfied with --fro
     await runInstall({frozenLockfile: true}, 'install-throws-error-if-not-satisfied-and-frozen-lockfile', () => {});
   } catch (err) {
     thrown = true;
-    expect(err.message).toContain(reporter.lang('frozenLockfileError'));
+    expect(err.message).toContain(reporter.lang('installFrozenLockfileError'));
   }
   expect(thrown).toEqual(true);
 });

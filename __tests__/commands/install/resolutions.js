@@ -42,7 +42,7 @@ test.concurrent('install with --frozen-lockfile with resolutions', async (): Pro
       expect(await getPackageVersion(config, 'left-pad')).toEqual('1.1.3');
     });
   } catch (err) {
-    expect(err.message).not.toContain(reporter.lang('frozenLockfileError'));
+    expect(err.message).not.toContain(reporter.lang('installFrozenLockfileError'));
   }
 });
 

@@ -62,10 +62,10 @@ test('lists all available commands with no arguments', (): Promise<void> =>
     const bins = ['cat-names'];
 
     // Emulate run output
-    rprtr.info(`${rprtr.lang('binCommands')}${bins.join(', ')}`);
-    rprtr.info(rprtr.lang('possibleCommands'));
-    rprtr.list('possibleCommands', scripts, hints);
-    rprtr.error(rprtr.lang('commandNotSpecified'));
+    rprtr.info(`${rprtr.lang('runBinCommands')}${bins.join(', ')}`);
+    rprtr.info(rprtr.lang('runPossibleCommands'));
+    rprtr.list('runPossibleCommands', scripts, hints);
+    rprtr.error(rprtr.lang('runCommandNotSpecified'));
 
     expect(reporter.getBuffer()).toEqual(rprtr.getBuffer());
   }));
@@ -82,9 +82,9 @@ test('lists all available commands with no arguments and --non-interactive', ():
     const bins = ['cat-names'];
 
     // Emulate run output
-    rprtr.info(`${rprtr.lang('binCommands')}${bins.join(', ')}`);
-    rprtr.info(rprtr.lang('possibleCommands'));
-    rprtr.list('possibleCommands', scripts, hints);
+    rprtr.info(`${rprtr.lang('runBinCommands')}${bins.join(', ')}`);
+    rprtr.info(rprtr.lang('runPossibleCommands'));
+    rprtr.list('runPossibleCommands', scripts, hints);
 
     expect(reporter.getBuffer()).toEqual(rprtr.getBuffer());
   }));

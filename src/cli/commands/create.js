@@ -53,7 +53,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const [builderName, ...rest] = args;
 
   if (!builderName) {
-    throw new MessageError(reporter.lang('invalidPackageName'));
+    throw new MessageError(reporter.lang('commonInvalidPackageName'));
   }
 
   const {fullName: packageName, name: commandName} = coerceCreatePackageName(builderName);

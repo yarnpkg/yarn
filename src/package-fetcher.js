@@ -35,7 +35,7 @@ export async function fetchOneRemote(
 
   const Fetcher = fetchers[remote.type];
   if (!Fetcher) {
-    throw new MessageError(config.reporter.lang('unknownFetcherFor', remote.type));
+    throw new MessageError(config.reporter.lang('packageFetcherUnknownFetcher', remote.type));
   }
 
   const fetcher = new Fetcher(dest, remote, config);
@@ -91,7 +91,7 @@ export function fetch(pkgs: Array<Manifest>, config: Config): Promise<Array<Mani
     const otherPkg = pkgsPerDest.get(dest);
     if (otherPkg) {
       config.reporter.warn(
-        config.reporter.lang('multiplePackagesCantUnpackInSameDestination', ref.patterns, dest, otherPkg.patterns),
+        config.reporter.lang('packageFetcherMultiplePackagesSameDestination', ref.patterns, dest, otherPkg.patterns),
       );
       return false;
     }

@@ -176,7 +176,7 @@ export default class Lockfile {
 
       lockfile = parseResult.object;
     } else if (reporter) {
-      reporter.info(reporter.lang('noLockfileFound'));
+      reporter.info(reporter.lang('lockfileNotFound'));
     }
 
     return new Lockfile({cache: lockfile, source: rawLockfile, parseResultType: parseResult && parseResult.type});

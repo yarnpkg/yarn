@@ -13,14 +13,14 @@ const invariant = require('invariant');
 const path = require('path');
 
 export const integrityErrors = {
-  EXPECTED_IS_NOT_A_JSON: 'integrityFailedExpectedIsNotAJSON',
-  FILES_MISSING: 'integrityFailedFilesMissing',
-  LOCKFILE_DONT_MATCH: 'integrityLockfilesDontMatch',
-  FLAGS_DONT_MATCH: 'integrityFlagsDontMatch',
-  LINKED_MODULES_DONT_MATCH: 'integrityCheckLinkedModulesDontMatch',
-  PATTERNS_DONT_MATCH: 'integrityPatternsDontMatch',
-  MODULES_FOLDERS_MISSING: 'integrityModulesFoldersMissing',
-  SYSTEM_PARAMS_DONT_MATCH: 'integritySystemParamsDontMatch',
+  EXPECTED_IS_NOT_A_JSON: 'integrityCheckerFileNotJson',
+  FILES_MISSING: 'integrityCheckerFailedFilesMissing',
+  LOCKFILE_DONT_MATCH: 'integrityCheckerLockfilesDontMatch',
+  FLAGS_DONT_MATCH: 'integrityCheckerFlagsDontMatch',
+  LINKED_MODULES_DONT_MATCH: 'integrityCheckerLinkedModulesDontMatch',
+  PATTERNS_DONT_MATCH: 'integrityCheckerPatternsDontMatch',
+  MODULES_FOLDERS_MISSING: 'integrityCheckerModulesFoldersMissing',
+  SYSTEM_PARAMS_DONT_MATCH: 'integrityCheckerSystemParamsDontMatch',
 };
 
 type IntegrityError = $Keys<typeof integrityErrors>;

@@ -26,7 +26,7 @@ test.concurrent('throws error with no arguments', (): Promise<void> => {
     try {
       await runRemove([], {}, '');
     } catch (err) {
-      expect(err.message).toContain(reporter.lang('tooFewArguments', 1));
+      expect(err.message).toContain(reporter.lang('commonTooFewArguments', 1));
     } finally {
       resolve();
     }
@@ -40,7 +40,7 @@ test.concurrent('throws error when package is not found', (): Promise<void> => {
     try {
       await runRemove(['dep-b'], {}, 'npm-registry');
     } catch (err) {
-      expect(err.message).toContain(reporter.lang('moduleNotInManifest'));
+      expect(err.message).toContain(reporter.lang('removeModuleNotInManifest'));
     } finally {
       resolve();
     }
@@ -50,7 +50,7 @@ test.concurrent('throws error when package is not found', (): Promise<void> => {
 test.concurrent('remove without --ignore-workspace-root-check should fail on the workspace root', async () => {
   await runInstall({}, 'workspaces-install-basic', async (config, reporter): Promise<void> => {
     await expect(remove(config, reporter, {}, ['left-pad'])).rejects.toThrow(
-      reporter.lang('workspacesRemoveRootCheck'),
+      reporter.lang('removeWorkspacesRemoveRootCheck'),
     );
   });
 });

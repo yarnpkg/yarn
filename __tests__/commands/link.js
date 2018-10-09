@@ -22,7 +22,7 @@ test.concurrent('throws error if package.json does not have name', async (): Pro
   try {
     await runLink([], {linkFolder}, 'package-no-name', () => {});
   } catch (err) {
-    expect(err.message).toContain(reporter.lang('unknownPackageName'));
+    expect(err.message).toContain(reporter.lang('commonUnknownPackageName'));
   }
 });
 

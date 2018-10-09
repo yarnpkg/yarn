@@ -19,19 +19,19 @@ export async function getName(args: Array<string>, config: Config): Promise<stri
 
   if (name) {
     if (!isValidPackageName(name)) {
-      throw new MessageError(config.reporter.lang('invalidPackageName'));
+      throw new MessageError(config.reporter.lang('commonInvalidPackageName'));
     }
 
     return NpmRegistry.escapeName(name);
   } else {
-    throw new MessageError(config.reporter.lang('unknownPackageName'));
+    throw new MessageError(config.reporter.lang('commonUnknownPackageName'));
   }
 }
 
 async function list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const name = await getName(args, config);
 
-  reporter.step(1, 1, reporter.lang('gettingTags'));
+  reporter.step(1, 1, reporter.lang('tagGettingTags'));
   const tags = await config.registries.npm.request(`-/package/${name}/dist-tags`);
 
   if (tags) {
@@ -42,7 +42,7 @@ async function list(config: Config, reporter: Reporter, flags: Object, args: Arr
   }
 
   if (!tags) {
-    throw new MessageError(reporter.lang('packageNotFoundRegistry', name, 'npm'));
+    throw new MessageError(reporter.lang('commonPackageNotFoundRegistry', name, 'npm'));
   }
 }
 
@@ -54,21 +54,21 @@ async function remove(config: Config, reporter: Reporter, flags: Object, args: A
   const name = await getName(args, config);
   const tag = args.shift();
 
-  reporter.step(1, 3, reporter.lang('loggingIn'));
+  reporter.step(1, 3, reporter.lang('commonLoggingIn'));
   const revoke = await getToken(config, reporter, name);
 
-  reporter.step(2, 3, reporter.lang('deletingTags'));
+  reporter.step(2, 3, reporter.lang('tagDeletingTags'));
   const result = await config.registries.npm.request(`-/package/${name}/dist-tags/${encodeURI(tag)}`, {
     method: 'DELETE',
   });
 
   if (result === false) {
-    reporter.error(reporter.lang('deletedTagFail'));
+    reporter.error(reporter.lang('tagDeletedTagFail'));
   } else {
-    reporter.success(reporter.lang('deletedTag'));
+    reporter.success(reporter.lang('tagDeletedTag'));
   }
 
-  reporter.step(3, 3, reporter.lang('revokingToken'));
+  reporter.step(3, 3, reporter.lang('commonRevokingToken'));
   await revoke();
 
   if (result === false) {
@@ -92,18 +92,18 @@ export const {run, hasWrapper, examples} = buildSubCommands(
 
       const {name, range, hasVersion} = normalizePattern(args.shift());
       if (!hasVersion) {
-        throw new MessageError(reporter.lang('requiredVersionInRange'));
+        throw new MessageError(reporter.lang('tagRequiredVersionInRange'));
       }
       if (!isValidPackageName(name)) {
-        throw new MessageError(reporter.lang('invalidPackageName'));
+        throw new MessageError(reporter.lang('commonInvalidPackageName'));
       }
 
       const tag = args.shift();
 
-      reporter.step(1, 3, reporter.lang('loggingIn'));
+      reporter.step(1, 3, reporter.lang('commonLoggingIn'));
       const revoke = await getToken(config, reporter, name);
 
-      reporter.step(2, 3, reporter.lang('creatingTag', tag, range));
+      reporter.step(2, 3, reporter.lang('tagCreatingTag', tag, range));
       const result = await config.registries.npm.request(
         `-/package/${NpmRegistry.escapeName(name)}/dist-tags/${encodeURI(tag)}`,
         {
@@ -113,12 +113,12 @@ export const {run, hasWrapper, examples} = buildSubCommands(
       );
 
       if (result != null && result.ok) {
-        reporter.success(reporter.lang('createdTag'));
+        reporter.success(reporter.lang('tagCreatedTag'));
       } else {
-        reporter.error(reporter.lang('createdTagFail'));
+        reporter.error(reporter.lang('tagCreatedTagFail'));
       }
 
-      reporter.step(3, 3, reporter.lang('revokingToken'));
+      reporter.step(3, 3, reporter.lang('commonRevokingToken'));
       await revoke();
 
       if (result != null && result.ok) {

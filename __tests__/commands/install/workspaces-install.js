@@ -19,7 +19,7 @@ test.concurrent("workspaces don't work with disabled configuration in .yarnrc", 
   } catch (e) {
     error = e.message;
   }
-  expect(error).toContain(reporter.lang('workspacesDisabled'));
+  expect(error).toContain(reporter.lang('configWorkspacesDisabled'));
 });
 
 test.concurrent("workspaces don't work on non private projects", async (): Promise<void> => {
@@ -30,7 +30,7 @@ test.concurrent("workspaces don't work on non private projects", async (): Promi
   } catch (e) {
     error = e.message;
   }
-  expect(error).toContain(reporter.lang('workspacesRequirePrivateProjects'));
+  expect(error).toContain(reporter.lang('configWorkspacesRequirePrivateProjects'));
 });
 
 test.concurrent("workspaces don't work with duplicate names", async (): Promise<void> => {
@@ -41,7 +41,7 @@ test.concurrent("workspaces don't work with duplicate names", async (): Promise<
   } catch (e) {
     error = e.message;
   }
-  expect(error).toContain(reporter.lang('workspaceNameDuplicate', 'workspace-1'));
+  expect(error).toContain(reporter.lang('configWorkspaceNameDuplicate', 'workspace-1'));
 });
 
 test.concurrent("workspaces warn and get ignored if they don't have a name and a version", (): Promise<void> => {

@@ -17,10 +17,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     manifest = await config.readRootManifest();
   }
   if (!manifest.name) {
-    throw new MessageError(reporter.lang('noName'));
+    throw new MessageError(reporter.lang('commonNoPackageName'));
   }
   if (!manifest.version) {
-    throw new MessageError(reporter.lang('noVersion'));
+    throw new MessageError(reporter.lang('commonNoPackageVersion'));
   }
 
   const entry = {

@@ -200,7 +200,7 @@ export default class Git implements GitRefResolvingInterface {
       if (await Git.repoExists(secureUrl)) {
         return secureUrl;
       } else {
-        reporter.warn(reporter.lang('downloadGitWithoutCommit', ref.repository));
+        reporter.warn(reporter.lang('getDownloadGitWithoutCommit', ref.repository));
         return ref;
       }
     }
@@ -210,7 +210,7 @@ export default class Git implements GitRefResolvingInterface {
       if (await Git.repoExists(secureRef)) {
         return secureRef;
       } else {
-        reporter.warn(reporter.lang('downloadHTTPWithoutCommit', ref.repository));
+        reporter.warn(reporter.lang('getDownloadHttpWithoutCommit', ref.repository));
         return ref;
       }
     }
@@ -500,7 +500,7 @@ export default class Git implements GitRefResolvingInterface {
     });
     if (!resolvedResult) {
       throw new MessageError(
-        this.reporter.lang('couldntFindMatch', version, Array.from(refs.keys()).join(','), this.gitUrl.repository),
+        this.reporter.lang('gitNoMatch', version, Array.from(refs.keys()).join(','), this.gitUrl.repository),
       );
     }
 
