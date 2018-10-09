@@ -599,9 +599,9 @@ export class Install {
     if (this.flags.audit) {
       steps.push((curr: number, total: number) =>
         callThroughHook('auditStep', async () => {
-          this.reporter.step(curr, total, this.reporter.lang('auditRunning'), emoji.get('mag'));
+          this.reporter.step(curr, total, this.reporter.lang('installAuditRunning'), emoji.get('mag'));
           if (this.flags.offline) {
-            this.reporter.warn(this.reporter.lang('auditOffline'));
+            this.reporter.warn(this.reporter.lang('installAuditOffline'));
             return {bailout: false};
           }
           const preparedManifests = await this.prepareManifests();
@@ -724,7 +724,7 @@ export class Install {
           audit.summary();
         }
         if (auditFoundProblems) {
-          this.reporter.warn(this.reporter.lang('auditRunAuditForDetails'));
+          this.reporter.warn(this.reporter.lang('installAuditRunAuditForDetails'));
         }
         this.maybeOutputUpdate();
         return flattenedTopLevelPatterns;
@@ -736,7 +736,7 @@ export class Install {
       audit.summary();
     }
     if (auditFoundProblems) {
-      this.reporter.warn(this.reporter.lang('auditRunAuditForDetails'));
+      this.reporter.warn(this.reporter.lang('installAuditRunAuditForDetails'));
     }
     await this.saveLockfileAndIntegrity(topLevelPatterns, workspaceLayout);
     await this.persistChanges();

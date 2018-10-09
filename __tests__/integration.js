@@ -402,7 +402,7 @@ for (const withDoubleDash of [false, true]) {
     );
 
     expect(stdoutOutput.toString().trim()).toEqual('--opt');
-    (exp => (withDoubleDash ? exp : exp.not))(expect(stderrOutput.toString())).toBe(en.coreDoubleDashDeprecation);
+    (exp => (withDoubleDash ? exp : exp.not))(expect(stderrOutput.toString())).toContain(en.coreDoubleDashDeprecation);
   });
 }
 

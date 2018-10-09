@@ -50,6 +50,7 @@ const messages = {
   checkPackageNotInstalled: '$0 not installed',
   checkPackageWrongVersion: '$0 is wrong version: expected $1, got $2',
 
+  commonIncompatibleResolutionVersion: 'Resolution field $0 is incompatible with requested version $1',
   commonInvalidPackageName: 'Invalid package name.',
   commonLegendColorsForVersionUpdates:
     'Legend : \n $0 : Major Update backward-incompatible updates \n $1 : Minor Update backward-compatible features \n $2 : Patch Update backward-compatible bug fixes \n',
@@ -76,17 +77,17 @@ const messages = {
   configPlugNPlayWindowsSupport:
     'Plug-n-Play on Windows does not support the cache and project to be kept on separate drives',
   configSet: 'Set $0 to $1.',
+  configWorkspaceNameDuplicate: 'There are more than one workspace with name $0',
+  configWorkspaceNameMandatory: 'Missing name in workspace at $0, ignoring.',
+  configWorkspacesDisabled:
+    'Your project root defines workspaces but the feature is disabled in your Yarn config. Please check `workspaces-experimental` in your .yarnrc file.',
   configWorkspacesFocusRootCheck: 'This command can only be run inside an individual workspace.',
   configWorkspacesRequirePrivateProjects: 'Workspaces can only be enabled in private projects.',
   configWorkspacesSettingMustBeArray: 'The workspaces field in package.json must be an array.',
-  configWorkspacesDisabled:
-    'Your project root defines workspaces but the feature is disabled in your Yarn config. Please check `workspaces-experimental` in your .yarnrc file.',
-  configWorkspaceNameDuplicate: 'There are more than one workspace with name $0',
-  configWorkspaceNameMandatory: 'Missing name in workspace at $0, ignoring.',
-  configWorkspacesNoHoistRequirePrivatePackages:
-    'nohoist config is ignored in $0 because it is not a private package. If you think nohoist should be allowed in public packages, please submit an issue for your use case.',
   configWorkspacesNoHoistDisabled:
     '$0 defines nohoist but the feature is disabled in your Yarn config (`workspaces-nohoist-experimental` in .yarnrc file)',
+  configWorkspacesNoHoistRequirePrivatePackages:
+    'nohoist config is ignored in $0 because it is not a private package. If you think nohoist should be allowed in public packages, please submit an issue for your use case.',
   configWorkspaceVersionMandatory: 'Missing version in workspace at $0, ignoring.',
   configYarn: 'yarn config',
 
@@ -158,10 +159,10 @@ const messages = {
   hostedGitResolverInvalidHostedGitFragment: 'Invalid hosted git fragment $0.',
 
   importLockfileExists: 'Lockfile already exists, not importing.',
-  importSkipping: 'Skipping import of $0 for $1',
   importFailed: 'Import of $0 for $1 failed, resolving normally.',
   importResolveFailed: 'Import of $0 failed starting in $1',
   importResolvedRangeMatch: 'Using version $0 of $1 instead of $2 for $3',
+  importSkipping: 'Skipping import of $0 for $1',
   importSourceFilesCorrupted: 'Failed to import from package-lock.json, source file(s) corrupted',
   importPackageLock: 'found npm package-lock.json, converting to yarn.lock',
   importNodeModules: 'creating yarn.lock from local node_modules folder',
@@ -339,7 +340,6 @@ const messages = {
   requestManagerNotSetupHar: 'RequestManager was not setup to capture HAR files',
   requestManagerOfflineRetrying: 'There appears to be trouble with your network connection. Retrying...',
 
-  resolutionMapIncompatibleResolutionVersion: 'Resolution field $0 is incompatible with requested version $1',
   resolutionMapInvalidResolutionName: 'Resolution field $0 does not end with a valid package name and will be ignored',
   resolutionMapInvalidResolutionVersion: 'Resolution field $0 has an invalid version entry and may be ignored',
 
