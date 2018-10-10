@@ -151,7 +151,7 @@ export default class BaseRegistry {
       let key = envKey.toLowerCase();
 
       // only accept keys prefixed with the prefix
-      if (key.indexOf(prefix.toLowerCase()) < 0) {
+      if (key.indexOf(prefix.toLowerCase()) !== 0) {
         continue;
       }
 
