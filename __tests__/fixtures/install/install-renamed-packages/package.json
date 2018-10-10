@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "left-pad": "npm:left-pad@1.0.0",
-    "left-pad2": "npm:left-pad@1.1.0"
+    "left-pad2": "npm:left-pad@1.1.0",
+    "unscoped-turf-helpers": "npm:@turf/helpers@3.0.16"
   }
 }

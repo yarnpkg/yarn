@@ -512,6 +512,10 @@ test('install renamed packages', () =>
 
     const json2 = await fs.readJson(path.join(dir, 'left-pad2', 'package.json'));
     expect(json2.version).toEqual('1.1.0');
+
+    const json3 = await fs.readJson(path.join(dir, 'unscoped-turf-helpers', 'package.json'));
+    expect(json3.version).toEqual('3.0.16');
+    expect(json3.name).toEqual('@turf/helpers');
   }));
 
 test('install from git cache', () =>
