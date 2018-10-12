@@ -1766,13 +1766,14 @@ cli-cursor@^2.1.0:
   dependencies:
     restore-cursor "^2.0.0"
 
-cli-table3@^0.5.1:
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/cli-table3/-/cli-table3-0.5.1.tgz#0252372d94dfc40dbd8df06005f48f31f656f202"
-  integrity sha512-7Qg2Jrep1S/+Q3EceiZtQcDPWxhAvBw+ERf1162v4sikJrvojMHFqXt8QIVha8UlH9rgU0BeWPytZ9/TzYqlUw==
+cli-table3@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/cli-table3/-/cli-table3-0.4.0.tgz#a7fd50f011d734e3f16403cfcbedbea97659e417"
+  integrity sha512-o0slI6EFJNI2aKE9jG1bVN6jXJG2vjzYsGhyd9RqRV/YiiEmzSwNNXb5qJmfLDSOdvfA6sUvdKVvi3p3Y1apxA==
   dependencies:
+    kind-of "^3.0.4"
     object-assign "^4.1.0"
-    string-width "^2.1.1"
+    string-width "^1.0.1"
   optionalDependencies:
     colors "^1.1.2"
 
@@ -4774,7 +4775,7 @@ kind-of@^1.1.0:
   resolved "https://registry.yarnpkg.com/kind-of/-/kind-of-1.1.0.tgz#140a3d2d41a36d2efcfa9377b62c24f8495a5c44"
   integrity sha1-FAo9LUGjbS78+pN3tiwk+ElaXEQ=
 
-kind-of@^3.0.2, kind-of@^3.0.3, kind-of@^3.2.0:
+kind-of@^3.0.2, kind-of@^3.0.3, kind-of@^3.0.4, kind-of@^3.2.0:
   version "3.2.2"
   resolved "https://registry.yarnpkg.com/kind-of/-/kind-of-3.2.2.tgz#31ea21a734bab9bbb0f32466d893aea51e4a3c64"
   integrity sha1-MeohpzS6ubuw8yRm2JOupR5KPGQ=
