@@ -267,7 +267,7 @@ class ImportPackageRequest extends PackageRequest {
 
   findVersionInfo(): Promise<Manifest> {
     if (!this.import) {
-      this.reporter.verbose(this.reporter.lang('skippingImport', this.pattern, this.getParentHumanName()));
+      this.reporter.verbose(this.reporter.lang('importSkipping', this.pattern, this.getParentHumanName()));
       return super.findVersionInfo();
     }
     const resolver = new ImportResolver(this, this.pattern);
@@ -369,7 +369,7 @@ export class Import extends Install {
   }
   async init(): Promise<Array<string>> {
     if (await fs.exists(path.join(this.config.cwd, LOCKFILE_FILENAME))) {
-      throw new MessageError(this.reporter.lang('lockfileExists'));
+      throw new MessageError(this.reporter.lang('importLockfileExists'));
     }
     const {packageJson, packageLock} = await this.getExternalLockfileContents();
     const importSource =

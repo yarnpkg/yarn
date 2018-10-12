@@ -106,7 +106,7 @@ async function getGlobalPrefix(config: Config, flags: Object): Promise<string> {
   if (!prefix) {
     config.reporter.warn(
       config.reporter.lang(
-        'noGlobalFolder',
+        'globalNoFolder',
         prefixFolderQueryResult.skipped.map(item => path.dirname(item.folder)).join(', '),
       ),
     );
@@ -128,7 +128,7 @@ async function initUpdateBins(config: Config, reporter: Reporter, flags: Object)
 
   function throwPermError(err: Error & {[code: string]: string}, dest: string) {
     if (err.code === 'EACCES') {
-      throw new MessageError(reporter.lang('noPermission', dest));
+      throw new MessageError(reporter.lang('globalNoPermission', dest));
     } else {
       throw err;
     }
@@ -181,13 +181,13 @@ function ls(manifest: Manifest, reporter: Reporter, saved: boolean) {
   const human = `${manifest.name}@${manifest.version}`;
   if (bins.length) {
     if (saved) {
-      reporter.success(reporter.lang('packageInstalledWithBinaries', human));
+      reporter.success(reporter.lang('globalPackageInstalledWithBinaries', human));
     } else {
-      reporter.info(reporter.lang('packageHasBinaries', human));
+      reporter.info(reporter.lang('globalPackageHasBinaries', human));
     }
     reporter.list(`bins-${manifest.name}`, bins);
   } else if (saved) {
-    reporter.warn(reporter.lang('packageHasNoBinaries', human));
+    reporter.warn(reporter.lang('globalPackageHasNoBinaries', human));
   }
 }
 
@@ -212,7 +212,7 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
 
     const updateBins = await initUpdateBins(config, reporter, flags);
     if (args.indexOf('yarn') !== -1) {
-      reporter.warn(reporter.lang('packageContainsYarnAsGlobal'));
+      reporter.warn(reporter.lang('globalPackageContainsYarnAsGlobal'));
     }
 
     // install module

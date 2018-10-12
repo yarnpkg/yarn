@@ -46,7 +46,7 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   if (args.length > 2) {
-    reporter.error(reporter.lang('tooManyArguments', 2));
+    reporter.error(reporter.lang('commonTooManyArguments', 2));
     return;
   }
 

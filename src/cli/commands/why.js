@@ -127,10 +127,10 @@ function toStandardPathString(pathString: string): string {
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   if (!args.length) {
-    throw new MessageError(reporter.lang('missingWhyDependency'));
+    throw new MessageError(reporter.lang('whyMissingDependency'));
   }
   if (args.length > 1) {
-    throw new MessageError(reporter.lang('tooManyArguments', 1));
+    throw new MessageError(reporter.lang('commonTooManyArguments', 1));
   }
 
   const query = await cleanQuery(config, args[0]);

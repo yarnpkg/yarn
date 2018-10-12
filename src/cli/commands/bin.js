@@ -28,7 +28,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     if (binPath) {
       reporter.log(binPath, {force: true});
     } else {
-      reporter.error(reporter.lang('packageBinaryNotFound', binName));
+      reporter.error(reporter.lang('binPackageBinaryNotFound', binName));
     }
   }
 }

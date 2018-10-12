@@ -29,12 +29,12 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const isWorkspaceRoot = config.workspaceRootFolder && config.cwd === config.workspaceRootFolder;
 
   if (!args.length) {
-    throw new MessageError(reporter.lang('tooFewArguments', 1));
+    throw new MessageError(reporter.lang('commonTooFewArguments', 1));
   }
 
   // running "yarn remove something" in a workspace root is often a mistake
   if (isWorkspaceRoot && !flags.ignoreWorkspaceRootCheck) {
-    throw new MessageError(reporter.lang('workspacesRemoveRootCheck'));
+    throw new MessageError(reporter.lang('removeWorkspacesRemoveRootCheck'));
   }
 
   const totalSteps = args.length + 1;
@@ -72,7 +72,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
 
     if (!found) {
-      throw new MessageError(reporter.lang('moduleNotInManifest'));
+      throw new MessageError(reporter.lang('removeModuleNotInManifest'));
     }
   }
 
@@ -87,11 +87,11 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   }
 
   // reinstall so we can get the updated lockfile
-  reporter.step(++step, totalSteps, reporter.lang('uninstallRegenerate'), emoji.get('page_with_curl'));
+  reporter.step(++step, totalSteps, reporter.lang('removeUninstallRegenerate'), emoji.get('page_with_curl'));
   const installFlags = {force: true, workspaceRootIsCwd: true, ...flags};
   const reinstall = new Install(installFlags, config, new NoopReporter(), lockfile);
   await reinstall.init();
 
   //
-  reporter.success(reporter.lang('uninstalledPackages'));
+  reporter.success(reporter.lang('removeUninstalledPackages'));
 }

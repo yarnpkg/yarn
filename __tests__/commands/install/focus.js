@@ -18,7 +18,7 @@ test.concurrent('focus does not work from a non-workspaces project', async (): P
   } catch (e) {
     error = e.message;
   }
-  expect(error).toContain(reporter.lang('workspacesFocusRootCheck'));
+  expect(error).toContain(reporter.lang('configWorkspacesFocusRootCheck'));
 });
 
 test.concurrent('focus does not work from the root of a workspaces project', async (): Promise<void> => {
@@ -29,7 +29,7 @@ test.concurrent('focus does not work from the root of a workspaces project', asy
   } catch (e) {
     error = e.message;
   }
-  expect(error).toContain(reporter.lang('workspacesFocusRootCheck'));
+  expect(error).toContain(reporter.lang('configWorkspacesFocusRootCheck'));
 });
 
 test.concurrent('focus does a normal workspace installation', (): Promise<void> => {

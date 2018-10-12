@@ -180,10 +180,10 @@ export async function run(
 ): Promise<void> {
   const pkg = await config.readRootManifest();
   if (!pkg.name) {
-    throw new MessageError(reporter.lang('noName'));
+    throw new MessageError(reporter.lang('commonNoPackageName'));
   }
   if (!pkg.version) {
-    throw new MessageError(reporter.lang('noVersion'));
+    throw new MessageError(reporter.lang('commonNoPackageVersion'));
   }
 
   const normaliseScope = name => (name[0] === '@' ? name.substr(1).replace('/', '-') : name);

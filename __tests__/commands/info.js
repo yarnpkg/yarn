@@ -47,7 +47,7 @@ const expectedKeys = [
 const unexpectedKeys = ['dependencies', 'devDependencies', 'scripts'];
 
 beforeEach(() => {
-  // the mocked requests have stripped metadata, don't use it in the following tests
+  // the mocked requests have stripped metadata, do not use it in the following tests
   jest.unmock('request');
 });
 
@@ -142,6 +142,6 @@ test.concurrent('reports error on invalid package names', (): Promise<void> => {
 test.concurrent('reports error with too many arguments', (): Promise<void> => {
   const reporter = new reporters.ConsoleReporter({});
   return runInfo(['yarn', 'version', 'extra.invalid.arg'], {}, '', (config, output): ?Promise<void> => {
-    expect(output).toContain(reporter.lang('tooManyArguments', 2));
+    expect(output).toContain(reporter.lang('commonTooManyArguments', 2));
   });
 });

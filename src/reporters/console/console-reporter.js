@@ -231,7 +231,7 @@ export default class ConsoleReporter extends BaseReporter {
             reject(err);
           } else {
             if (!answer && options.required) {
-              this.error(this.lang('answerRequired'));
+              this.error(this.lang('consoleReporterAnswerRequired'));
               resolve(this.question(question, options));
             } else {
               resolve(answer);
@@ -489,7 +489,7 @@ export default class ConsoleReporter extends BaseReporter {
       vulnerabilities.high +
       vulnerabilities.critical;
     const summary = this.lang(
-      'auditSummary',
+      'consoleReporterAuditSummary',
       totalVulnerabilities > 0 ? this.rawText(chalk.red(totalVulnerabilities.toString())) : totalVulnerabilities,
       totalDependencies,
     );
@@ -498,21 +498,21 @@ export default class ConsoleReporter extends BaseReporter {
     if (totalVulnerabilities) {
       const severities = [];
       if (vulnerabilities.info) {
-        severities.push(this.lang('auditInfo', vulnerabilities.info));
+        severities.push(this.lang('consoleReporterAuditInfo', vulnerabilities.info));
       }
       if (vulnerabilities.low) {
-        severities.push(this.lang('auditLow', vulnerabilities.low));
+        severities.push(this.lang('consoleReporterAuditLow', vulnerabilities.low));
       }
       if (vulnerabilities.moderate) {
-        severities.push(this.lang('auditModerate', vulnerabilities.moderate));
+        severities.push(this.lang('consoleReporterAuditModerate', vulnerabilities.moderate));
       }
       if (vulnerabilities.high) {
-        severities.push(this.lang('auditHigh', vulnerabilities.high));
+        severities.push(this.lang('consoleReporterAuditHigh', vulnerabilities.high));
       }
       if (vulnerabilities.critical) {
-        severities.push(this.lang('auditCritical', vulnerabilities.critical));
+        severities.push(this.lang('consoleReporterAuditCritical', vulnerabilities.critical));
       }
-      this._log(`${this.lang('auditSummarySeverity')} ${severities.join(' | ')}`);
+      this._log(`${this.lang('consoleReporterAuditSummarySeverity')} ${severities.join(' | ')}`);
     }
   }
 
@@ -520,14 +520,14 @@ export default class ConsoleReporter extends BaseReporter {
     const label = recommendation.action.resolves.length === 1 ? 'vulnerability' : 'vulnerabilities';
     this._log(
       this.lang(
-        'auditResolveCommand',
+        'consoleReporterAuditResolveCommand',
         this.rawText(chalk.inverse(recommendation.cmd)),
         recommendation.action.resolves.length,
         this.rawText(label),
       ),
     );
     if (recommendation.isBreaking) {
-      this._log(this.lang('auditSemverMajorChange'));
+      this._log(this.lang('consoleReporterAuditSemverMajorChange'));
     }
   }
 
@@ -538,7 +538,7 @@ export default class ConsoleReporter extends BaseReporter {
     const table = new Table(tableOptions);
     table.push([
       {
-        content: this.lang('auditManualReview'),
+        content: this.lang('consoleReporterAuditManualReview'),
         vAlign: 'center',
         hAlign: 'center',
       },

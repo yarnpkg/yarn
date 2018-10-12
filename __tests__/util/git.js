@@ -147,7 +147,10 @@ describe('secureGitUrl()', function() {
         {
           type: 'warning',
           error: true,
-          data: reporter.lang(protocol == 'git:' ? 'downloadGitWithoutCommit' : 'downloadHTTPWithoutCommit', inputurl),
+          data: reporter.lang(
+            protocol == 'git:' ? 'getDownloadGitWithoutCommit' : 'getDownloadHttpWithoutCommit',
+            inputurl,
+          ),
         },
       ]);
     }

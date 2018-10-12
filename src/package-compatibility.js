@@ -117,7 +117,7 @@ export function checkOne(info: Manifest, config: Config, ignoreEngines: boolean)
 
       reporter.info(`${human}: ${msg}`);
       if (!didIgnore) {
-        reporter.info(reporter.lang('optionalCompatibilityExcluded', human));
+        reporter.info(reporter.lang('packageCompatibilityOptionalCompatibilityExcluded', human));
         didIgnore = true;
       }
     } else {
@@ -130,13 +130,13 @@ export function checkOne(info: Manifest, config: Config, ignoreEngines: boolean)
     !config.ignorePlatform && Array.isArray(info.os) && info.os.length > 0 && !isValidPlatform(info.os);
 
   if (invalidPlatform) {
-    pushError(reporter.lang('incompatibleOS', process.platform));
+    pushError(reporter.lang('packageCompatibilityIncompatibleOs', process.platform));
   }
 
   const invalidCpu = !config.ignorePlatform && Array.isArray(info.cpu) && info.cpu.length > 0 && !isValidArch(info.cpu);
 
   if (invalidCpu) {
-    pushError(reporter.lang('incompatibleCPU', process.arch));
+    pushError(reporter.lang('packageCompatibilityIncompatibleCpu', process.arch));
   }
 
   if (!ignoreEngines && typeof info.engines === 'object') {
@@ -150,16 +150,16 @@ export function checkOne(info: Manifest, config: Config, ignoreEngines: boolean)
 
       if (VERSIONS[name]) {
         if (!testEngine(name, range, VERSIONS, config.looseSemver)) {
-          pushError(reporter.lang('incompatibleEngine', name, range, VERSIONS[name]));
+          pushError(reporter.lang('packageCompatibilityIncompatibleEngine', name, range, VERSIONS[name]));
         }
       } else if (ignore.indexOf(name) < 0) {
-        reporter.warn(`${human}: ${reporter.lang('invalidEngine', name)}`);
+        reporter.warn(`${human}: ${reporter.lang('packageCompatibilityInvalidEngine', name)}`);
       }
     }
   }
 
   if (didError) {
-    throw new MessageError(reporter.lang('foundIncompatible'));
+    throw new MessageError(reporter.lang('packageCompatibilityFoundIncompatible'));
   }
 }
 

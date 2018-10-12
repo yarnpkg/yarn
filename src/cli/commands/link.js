@@ -53,7 +53,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     const manifest = await config.readRootManifest();
     const name = manifest.name;
     if (!name) {
-      throw new MessageError(reporter.lang('unknownPackageName'));
+      throw new MessageError(reporter.lang('commonUnknownPackageName'));
     }
 
     const linkLoc = path.join(config.linkFolder, name);
@@ -72,7 +72,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
           const binSrcLoc = path.join(linkLoc, binSrc);
           const binDestLoc = path.join(globalBinFolder, binName);
           if (await fs.exists(binDestLoc)) {
-            reporter.warn(reporter.lang('binLinkCollision', binName));
+            reporter.warn(reporter.lang('linkBinCollision', binName));
           } else {
             if (process.platform === 'win32') {
               await cmdShim(binSrcLoc, binDestLoc);

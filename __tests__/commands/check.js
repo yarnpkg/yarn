@@ -160,7 +160,7 @@ test.concurrent('--integrity should fail if yarn.lock has new pattern', async ()
         thrown = true;
       }
       expect(thrown).toEqual(true);
-      expect(getStdout()).toContain("Integrity check: Lock files don't match");
+      expect(getStdout()).toContain('Integrity check: Lock files do not match');
     },
   );
 });
@@ -184,7 +184,7 @@ test.concurrent('--integrity should fail if yarn.lock has resolved changed', asy
         thrown = true;
       }
       expect(thrown).toEqual(true);
-      expect(getStdout()).toContain("Integrity check: Lock files don't match");
+      expect(getStdout()).toContain('Integrity check: Lock files do not match');
     },
   );
 });
@@ -220,7 +220,7 @@ test.concurrent('--integrity should fail if --ignore-scripts is changed', async 
         thrown = true;
       }
       expect(thrown).toEqual(true);
-      expect(getStdout()).toContain("Integrity check: Flags don't match");
+      expect(getStdout()).toContain('Integrity check: Flags do not match');
     },
   );
 });
@@ -284,7 +284,7 @@ test.concurrent('--integrity should fail if integrity file have different linked
         thrown = true;
       }
       expect(thrown).toEqual(true);
-      expect(getStdout()).toContain("Integrity check: Linked modules don't match");
+      expect(getStdout()).toContain('Integrity check: Linked modules do not match');
     },
   );
 });
@@ -306,7 +306,7 @@ test.concurrent('--integrity should fail if integrity file has different systemP
         thrown = true;
       }
       expect(thrown).toEqual(true);
-      expect(getStdout()).toContain(reporter.lang('integritySystemParamsDontMatch'));
+      expect(getStdout()).toContain(reporter.lang('integrityCheckerSystemParamsDontMatch'));
     },
   );
 });

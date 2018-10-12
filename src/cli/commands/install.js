@@ -456,7 +456,7 @@ export class Install {
     const lockfileClean = this.lockfile.parseResultType === 'success';
     const match = await this.integrityChecker.check(patterns, lockfileCache, this.flags, workspaceLayout);
     if (this.flags.frozenLockfile && (!lockfileClean || match.missingPatterns.length > 0)) {
-      throw new MessageError(this.reporter.lang('frozenLockfileError'));
+      throw new MessageError(this.reporter.lang('installFrozenLockfileError'));
     }
 
     const haveLockfile = await fs.exists(path.join(this.config.lockfileFolder, constants.LOCKFILE_FILENAME));
@@ -465,7 +465,7 @@ export class Install {
     const integrityBailout = lockfileIntegrityPresent || !this.config.autoAddIntegrity;
 
     if (match.integrityMatches && haveLockfile && lockfileClean && integrityBailout) {
-      this.reporter.success(this.reporter.lang('upToDate'));
+      this.reporter.success(this.reporter.lang('installUpToDate'));
       return true;
     }
 
@@ -482,7 +482,7 @@ export class Install {
     }
 
     if (!patterns.length && !match.integrityFileMissing) {
-      this.reporter.success(this.reporter.lang('nothingToInstall'));
+      this.reporter.success(this.reporter.lang('installNothingToInstall'));
       await this.createEmptyManifestFolders();
       await this.saveLockfileAndIntegrity(patterns, workspaceLayout);
       return true;
@@ -547,12 +547,12 @@ export class Install {
 
     // warn if we have a shrinkwrap
     if (await fs.exists(path.join(this.config.lockfileFolder, constants.NPM_SHRINKWRAP_FILENAME))) {
-      this.reporter.warn(this.reporter.lang('shrinkwrapWarning'));
+      this.reporter.warn(this.reporter.lang('installShrinkWrapWarning'));
     }
 
     // warn if we have an npm lockfile
     if (await fs.exists(path.join(this.config.lockfileFolder, constants.NPM_LOCK_FILENAME))) {
-      this.reporter.warn(this.reporter.lang('npmLockfileWarning'));
+      this.reporter.warn(this.reporter.lang('installNpmLockfileWarning'));
     }
 
     let flattenedTopLevelPatterns: Array<string> = [];
@@ -574,7 +574,7 @@ export class Install {
 
     if (!this.flags.ignoreEngines && typeof manifest.engines === 'object') {
       steps.push(async (curr: number, total: number) => {
-        this.reporter.step(curr, total, this.reporter.lang('checkingManifest'), emoji.get('mag'));
+        this.reporter.step(curr, total, this.reporter.lang('installCheckingManifest'), emoji.get('mag'));
         await compatibility.checkOne({_reference: {}, ...manifest}, this.config, this.flags.ignoreEngines);
       });
     }
@@ -584,7 +584,7 @@ export class Install {
 
     steps.push((curr: number, total: number) =>
       callThroughHook('resolveStep', async () => {
-        this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
+        this.reporter.step(curr, total, this.reporter.lang('installResolvingPackages'), emoji.get('mag'));
         await this.resolver.init(this.prepareRequests(depRequests), {
           isFlat: this.flags.flat,
           isFrozen: this.flags.frozenLockfile,
@@ -599,9 +599,9 @@ export class Install {
     if (this.flags.audit) {
       steps.push((curr: number, total: number) =>
         callThroughHook('auditStep', async () => {
-          this.reporter.step(curr, total, this.reporter.lang('auditRunning'), emoji.get('mag'));
+          this.reporter.step(curr, total, this.reporter.lang('installAuditRunning'), emoji.get('mag'));
           if (this.flags.offline) {
-            this.reporter.warn(this.reporter.lang('auditOffline'));
+            this.reporter.warn(this.reporter.lang('installAuditOffline'));
             return {bailout: false};
           }
           const preparedManifests = await this.prepareManifests();
@@ -627,7 +627,7 @@ export class Install {
     steps.push((curr: number, total: number) =>
       callThroughHook('fetchStep', async () => {
         this.markIgnored(ignorePatterns);
-        this.reporter.step(curr, total, this.reporter.lang('fetchingPackages'), emoji.get('truck'));
+        this.reporter.step(curr, total, this.reporter.lang('installFetchingPackages'), emoji.get('truck'));
         const manifests: Array<Manifest> = await fetcher.fetch(this.resolver.getManifests(), this.config);
         this.resolver.updateManifests(manifests);
         await compatibility.check(this.resolver.getManifests(), this.config, this.flags.ignoreEngines);
@@ -638,7 +638,7 @@ export class Install {
       callThroughHook('linkStep', async () => {
         // remove integrity hash to make this operation atomic
         await this.integrityChecker.removeIntegrityFile();
-        this.reporter.step(curr, total, this.reporter.lang('linkingDependencies'), emoji.get('link'));
+        this.reporter.step(curr, total, this.reporter.lang('installLinkingDependencies'), emoji.get('link'));
         flattenedTopLevelPatterns = this.preparePatternsForLinking(
           flattenedTopLevelPatterns,
           manifest,
@@ -681,12 +681,14 @@ export class Install {
         this.reporter.step(
           curr,
           total,
-          this.flags.force ? this.reporter.lang('rebuildingPackages') : this.reporter.lang('buildingFreshPackages'),
+          this.flags.force
+            ? this.reporter.lang('installRebuildingPackages')
+            : this.reporter.lang('installBuildingFreshPackages'),
           emoji.get('page_with_curl'),
         );
 
         if (this.flags.ignoreScripts) {
-          this.reporter.warn(this.reporter.lang('ignoredScripts'));
+          this.reporter.warn(this.reporter.lang('installIgnoredScripts'));
         } else {
           await this.scripts.init(flattenedTopLevelPatterns);
         }
@@ -700,7 +702,7 @@ export class Install {
         this.reporter.step(
           curr,
           total,
-          this.reporter.lang('savingHar', filename),
+          this.reporter.lang('installSavingHar', filename),
           emoji.get('black_circle_for_record'),
         );
         await this.config.requestManager.saveHar(filename);
@@ -709,7 +711,7 @@ export class Install {
 
     if (await this.shouldClean()) {
       steps.push(async (curr: number, total: number) => {
-        this.reporter.step(curr, total, this.reporter.lang('cleaningModules'), emoji.get('recycle'));
+        this.reporter.step(curr, total, this.reporter.lang('installCleaningModules'), emoji.get('recycle'));
         await clean(this.config, this.reporter);
       });
     }
@@ -722,7 +724,7 @@ export class Install {
           audit.summary();
         }
         if (auditFoundProblems) {
-          this.reporter.warn(this.reporter.lang('auditRunAuditForDetails'));
+          this.reporter.warn(this.reporter.lang('installAuditRunAuditForDetails'));
         }
         this.maybeOutputUpdate();
         return flattenedTopLevelPatterns;
@@ -734,7 +736,7 @@ export class Install {
       audit.summary();
     }
     if (auditFoundProblems) {
-      this.reporter.warn(this.reporter.lang('auditRunAuditForDetails'));
+      this.reporter.warn(this.reporter.lang('installAuditRunAuditForDetails'));
     }
     await this.saveLockfileAndIntegrity(topLevelPatterns, workspaceLayout);
     await this.persistChanges();
@@ -820,7 +822,7 @@ export class Install {
         invariant(ref, 'expected reference');
         return {
           // TODO `and is required by {PARENT}`,
-          name: this.reporter.lang('manualVersionResolutionOption', ref.patterns.join(', '), info.version),
+          name: this.reporter.lang('installManualVersionResolutionOption', ref.patterns.join(', '), info.version),
 
           value: info.version,
         };
@@ -834,8 +836,8 @@ export class Install {
         version = resolutionVersion;
       } else {
         version = await this.reporter.select(
-          this.reporter.lang('manualVersionResolution', name),
-          this.reporter.lang('answer'),
+          this.reporter.lang('installManualVersionResolution', name),
+          this.reporter.lang('installAnswerPrompt'),
           options,
         );
         this.resolutions[name] = version;
@@ -997,7 +999,7 @@ export class Install {
   }
 
   _logSuccessSaveLockfile() {
-    this.reporter.success(this.reporter.lang('savedLockfile'));
+    this.reporter.success(this.reporter.lang('installSavedLockfile'));
   }
 
   /**
@@ -1093,16 +1095,16 @@ export class Install {
     if (semver.gt(latestVersion, YARN_VERSION)) {
       const installationMethod = await getInstallationMethod();
       this.maybeOutputUpdate = () => {
-        this.reporter.warn(this.reporter.lang('yarnOutdated', latestVersion, YARN_VERSION));
+        this.reporter.warn(this.reporter.lang('installYarnOutdated', latestVersion, YARN_VERSION));
 
         const command = getUpdateCommand(installationMethod);
         if (command) {
-          this.reporter.info(this.reporter.lang('yarnOutdatedCommand'));
+          this.reporter.info(this.reporter.lang('installYarnOutdatedCommand'));
           this.reporter.command(command);
         } else {
           const installer = getUpdateInstaller(installationMethod);
           if (installer) {
-            this.reporter.info(this.reporter.lang('yarnOutdatedInstaller', installer));
+            this.reporter.info(this.reporter.lang('installYarnOutdatedInstaller', installer));
           }
         }
       };
@@ -1170,7 +1172,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
     let command = 'add';
     if (flags.global) {
-      error = 'globalFlagRemoved';
+      error = 'installGlobalFlagRemoved';
       command = 'global add';
     }
     throw new MessageError(reporter.lang(error, `yarn ${command} ${exampleArgs.join(' ')}`));

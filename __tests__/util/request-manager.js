@@ -253,7 +253,7 @@ test('RequestManager.request with offlineNoRequests', async () => {
       headers: {Connection: 'close'},
     });
   } catch (err) {
-    expect(err.message).toBe('Can\'t make a request in offline mode ("https://localhost:port/?nocache")');
+    expect(err.message).toBe('Cannot make a request in offline mode ("https://localhost:port/?nocache")');
   }
 });
 

@@ -27,10 +27,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     throw new MessageError(reporter.lang('unplugDisabled'));
   }
   if (!args.length && flags.clear) {
-    throw new MessageError(reporter.lang('tooFewArguments', 1));
+    throw new MessageError(reporter.lang('commonTooFewArguments', 1));
   }
   if (args.length && flags.clearAll) {
-    throw new MessageError(reporter.lang('noArguments'));
+    throw new MessageError(reporter.lang('commonNoArguments'));
   }
 
   if (flags.clearAll) {

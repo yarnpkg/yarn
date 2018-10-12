@@ -254,9 +254,9 @@ export default class NpmRegistry extends Registry {
 
     const actuals = [];
     for (const [isHome, loc] of possibles) {
-      reporter.verbose(reporter.lang('configPossibleFile', loc));
+      reporter.verbose(reporter.lang('npmRegistryConfigPossibleFile', loc));
       if (await fs.exists(loc)) {
-        reporter.verbose(reporter.lang('configFileFound', loc));
+        reporter.verbose(reporter.lang('npmRegistryConfigFileFound', loc));
         actuals.push([isHome, loc, await fs.readFile(loc)]);
       }
     }

@@ -132,17 +132,17 @@ export async function clean(
 }
 
 async function runInit(cwd: string, reporter: Reporter): Promise<void> {
-  reporter.step(1, 1, reporter.lang('cleanCreatingFile', CLEAN_FILENAME));
+  reporter.step(1, 1, reporter.lang('autoCleanCreatingFile', CLEAN_FILENAME));
   const cleanLoc = path.join(cwd, CLEAN_FILENAME);
   await fs.writeFile(cleanLoc, `${DEFAULT_FILTER}\n`, {flag: 'wx'});
-  reporter.info(reporter.lang('cleanCreatedFile', CLEAN_FILENAME));
+  reporter.info(reporter.lang('autoCleanCreatedFile', CLEAN_FILENAME));
 }
 
 async function runAutoClean(config: Config, reporter: Reporter): Promise<void> {
-  reporter.step(1, 1, reporter.lang('cleaning'));
+  reporter.step(1, 1, reporter.lang('autoCleanCleaning'));
   const {removedFiles, removedSize} = await clean(config, reporter);
-  reporter.info(reporter.lang('cleanRemovedFiles', removedFiles));
-  reporter.info(reporter.lang('cleanSavedSize', Number((removedSize / 1024 / 1024).toFixed(2))));
+  reporter.info(reporter.lang('autoCleanRemovedFiles', removedFiles));
+  reporter.info(reporter.lang('autoCleanSavedSize', Number((removedSize / 1024 / 1024).toFixed(2))));
 }
 
 async function checkForCleanFile(cwd: string): Promise<boolean> {
@@ -155,15 +155,15 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const cleanFileExists = await checkForCleanFile(config.cwd);
 
   if (flags.init && cleanFileExists) {
-    reporter.info(reporter.lang('cleanAlreadyExists', CLEAN_FILENAME));
+    reporter.info(reporter.lang('autoCleanAlreadyExists', CLEAN_FILENAME));
   } else if (flags.init) {
     await runInit(config.cwd, reporter);
   } else if (flags.force && cleanFileExists) {
     await runAutoClean(config, reporter);
   } else if (cleanFileExists) {
-    reporter.info(reporter.lang('cleanRequiresForce', CLEAN_FILENAME));
+    reporter.info(reporter.lang('autoCleanRequiresForce', CLEAN_FILENAME));
   } else {
-    reporter.info(reporter.lang('cleanDoesNotExist', CLEAN_FILENAME));
+    reporter.info(reporter.lang('autoCleanDoesNotExist', CLEAN_FILENAME));
   }
 }
 

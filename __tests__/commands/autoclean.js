@@ -32,19 +32,19 @@ async function runAutoclean(
 
 test.concurrent('tells user to run with --init when .yarnclean does not exist', (): Promise<void> => {
   return runAutoclean({}, 'not-initialized', (config, reporter, output): ?Promise<void> => {
-    expect(output).toContain(reporter.lang('cleanDoesNotExist', CLEAN_FILENAME));
+    expect(output).toContain(reporter.lang('autoCleanDoesNotExist', CLEAN_FILENAME));
   });
 });
 
 test.concurrent('tells user to run with --init when .yarnclean does not exist and --force', (): Promise<void> => {
   return runAutoclean({force: true}, 'not-initialized', (config, reporter, output): ?Promise<void> => {
-    expect(output).toContain(reporter.lang('cleanDoesNotExist', CLEAN_FILENAME));
+    expect(output).toContain(reporter.lang('autoCleanDoesNotExist', CLEAN_FILENAME));
   });
 });
 
 test.concurrent('tells user to edit .yarnclean after init', (): Promise<void> => {
   return runAutoclean({init: true}, 'not-initialized', (config, reporter, output): ?Promise<void> => {
-    expect(output).toContain(reporter.lang('cleanCreatedFile', CLEAN_FILENAME));
+    expect(output).toContain(reporter.lang('autoCleanCreatedFile', CLEAN_FILENAME));
   });
 });
 
@@ -56,13 +56,13 @@ test.concurrent('creates .yarnclean when --init passed', async () => {
 
 test.concurrent('tells user to run with --force when .yarnclean exists', (): Promise<void> => {
   return runAutoclean({}, 'initialized', (config, reporter, output): ?Promise<void> => {
-    expect(output).toContain(reporter.lang('cleanRequiresForce', CLEAN_FILENAME));
+    expect(output).toContain(reporter.lang('autoCleanRequiresForce', CLEAN_FILENAME));
   });
 });
 
 test.concurrent('tells user file exists already when --init and .yarnclean exists', (): Promise<void> => {
   return runAutoclean({init: true}, 'initialized', (config, reporter, output): ?Promise<void> => {
-    expect(output).toContain(reporter.lang('cleanAlreadyExists', CLEAN_FILENAME));
+    expect(output).toContain(reporter.lang('autoCleanAlreadyExists', CLEAN_FILENAME));
   });
 });
 

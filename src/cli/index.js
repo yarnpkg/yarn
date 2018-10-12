@@ -250,11 +250,13 @@ export async function main({
   }
 
   if (commander.nodeVersionCheck && !semver.satisfies(process.versions.node, constants.SUPPORTED_NODE_VERSIONS)) {
-    reporter.warn(reporter.lang('unsupportedNodeVersion', process.versions.node, constants.SUPPORTED_NODE_VERSIONS));
+    reporter.warn(
+      reporter.lang('coreUnsupportedNodeVersion', process.versions.node, constants.SUPPORTED_NODE_VERSIONS),
+    );
   }
 
-  if (command.noArguments && commander.args.length) {
-    reporter.error(reporter.lang('noArguments'));
+  if (command.commonNoArguments && commander.args.length) {
+    reporter.error(reporter.lang('commonNoArguments'));
     reporter.info(command.getDocsInfo);
     exit(1);
     return;
@@ -262,12 +264,12 @@ export async function main({
 
   //
   if (commander.yes) {
-    reporter.warn(reporter.lang('yesWarning'));
+    reporter.warn(reporter.lang('coreYesWarning'));
   }
 
   //
   if (!commander.offline && network.isOffline()) {
-    reporter.warn(reporter.lang('networkWarning'));
+    reporter.warn(reporter.lang('coreNetworkWarning'));
   }
 
   //
@@ -275,7 +277,7 @@ export async function main({
     invariant(command, 'missing command');
 
     if (warnAboutRunDashDash) {
-      reporter.warn(reporter.lang('dashDashDeprecation'));
+      reporter.warn(reporter.lang('coreDoubleDashDeprecation'));
     }
 
     return command.run(config, reporter, commander, commander.args).then(exitCode => {
@@ -293,7 +295,7 @@ export async function main({
       lockfile.lock(lockFilename, {realpath: false}, (err: mixed, release: () => void) => {
         if (err) {
           if (isFirstTime) {
-            reporter.warn(reporter.lang('waitingInstance'));
+            reporter.warn(reporter.lang('coreWaitingInstance'));
           }
           setTimeout(() => {
             resolve(runEventuallyWithFile(mutexFilename, false));
@@ -406,10 +408,10 @@ export async function main({
           response.on('end', () => {
             try {
               const {cwd, pid} = JSON.parse(Buffer.concat(buffers).toString());
-              reporter.warn(reporter.lang('waitingNamedInstance', pid, cwd));
+              reporter.warn(reporter.lang('coreWaitingNamedInstance', pid, cwd));
             } catch (error) {
               reporter.verbose(error);
-              reject(new Error(reporter.lang('mutexPortBusy', connectionOptions.port)));
+              reject(new Error(reporter.lang('coreMutexPortBusy', connectionOptions.port)));
               return;
             }
             waitForTheNetwork();
@@ -472,10 +474,10 @@ export async function main({
 
     const errorReportLoc = writeErrorReport(log);
 
-    reporter.error(reporter.lang('unexpectedError', err.message));
+    reporter.error(reporter.lang('coreUnexpectedError', err.message));
 
     if (errorReportLoc) {
-      reporter.info(reporter.lang('bugReport', errorReportLoc));
+      reporter.info(reporter.lang('coreBugReport', errorReportLoc));
     }
   }
 
@@ -487,7 +489,7 @@ export async function main({
     try {
       fs.writeFileSync(errorReportLoc, log.join('\n\n') + '\n');
     } catch (err) {
-      reporter.error(reporter.lang('fileWriteError', errorReportLoc, err.message));
+      reporter.error(reporter.lang('coreFileWriteError', errorReportLoc, err.message));
       return undefined;
     }
 
@@ -531,7 +533,7 @@ export async function main({
     .then(() => {
       // lockfile check must happen after config.init sets lockfileFolder
       if (command.requireLockfile && !fs.existsSync(path.join(config.lockfileFolder, constants.LOCKFILE_FILENAME))) {
-        throw new MessageError(reporter.lang('noRequiredLockfile'));
+        throw new MessageError(reporter.lang('coreNoRequiredLockfile'));
       }
 
       // option "no-progress" stored in yarn config

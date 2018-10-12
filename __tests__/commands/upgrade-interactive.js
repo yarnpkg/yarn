@@ -21,7 +21,7 @@ test.concurrent('throws if lockfile is out of date', (): Promise<void> => {
     try {
       await runUpgrade([], {}, 'lockfile-outdated');
     } catch (err) {
-      expect(err.message).toContain(reporter.lang('lockfileOutdated'));
+      expect(err.message).toContain(reporter.lang('packageRequestLockfileOutdated'));
     } finally {
       resolve();
     }
@@ -31,6 +31,6 @@ test.concurrent('throws if lockfile is out of date', (): Promise<void> => {
 test.concurrent('exits with success if no upgrades', (): Promise<void> => {
   const reporter = new reporters.ConsoleReporter({});
   return runUpgrade([], {}, 'up-to-date', (config, rep, install, output): ?Promise<void> => {
-    expect(output()).toContain(reporter.lang('allDependenciesUpToDate'));
+    expect(output()).toContain(reporter.lang('upgradeInteractiveUpToDate'));
   });
 });

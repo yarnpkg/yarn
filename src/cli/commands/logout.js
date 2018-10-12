@@ -17,5 +17,5 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     email: undefined,
   });
 
-  reporter.success(reporter.lang('clearedCredentials'));
+  reporter.success(reporter.lang('logoutClearedCredentials'));
 }

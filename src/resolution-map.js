@@ -59,7 +59,7 @@ export default class ResolutionMap {
 
   parsePatternInfo(globPattern: string, range: string): ?Object {
     if (!isValidPackagePath(globPattern)) {
-      this.reporter.warn(this.reporter.lang('invalidResolutionName', globPattern));
+      this.reporter.warn(this.reporter.lang('resolutionMapInvalidResolutionName', globPattern));
       return null;
     }
 
@@ -67,7 +67,7 @@ export default class ResolutionMap {
     const name = directories.pop();
 
     if (!semver.validRange(range) && !getExoticResolver(range)) {
-      this.reporter.warn(this.reporter.lang('invalidResolutionVersion', range));
+      this.reporter.warn(this.reporter.lang('resolutionMapInvalidResolutionVersion', range));
       return null;
     }
 
@@ -97,7 +97,7 @@ export default class ResolutionMap {
 
     if (pattern) {
       if (semver.validRange(reqRange) && semver.valid(range) && !semver.satisfies(range, reqRange)) {
-        this.reporter.warn(this.reporter.lang('incompatibleResolutionVersion', pattern, reqPattern));
+        this.reporter.warn(this.reporter.lang('commonIncompatibleResolutionVersion', pattern, reqPattern));
       }
     }
 

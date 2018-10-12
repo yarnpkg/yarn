@@ -309,12 +309,12 @@ async function _checkForGyp(config: Config, paths: Array<string>): Promise<void>
     return;
   }
 
-  reporter.info(reporter.lang('packageRequiresNodeGyp'));
+  reporter.info(reporter.lang('executeLifecycleScriptPackageRequiresNodeGyp'));
 
   try {
     await globalRun(config, reporter, {}, ['add', 'node-gyp']);
   } catch (e) {
-    throw new MessageError(reporter.lang('nodeGypAutoInstallFailed', e.message));
+    throw new MessageError(reporter.lang('executeLifecycleScriptNodeGypAutoInstallFailed', e.message));
   }
 }
 
@@ -354,8 +354,8 @@ export async function execCommand({
     if (err instanceof ProcessTermError) {
       throw new MessageError(
         err.EXIT_SIGNAL
-          ? reporter.lang('commandFailedWithSignal', err.EXIT_SIGNAL)
-          : reporter.lang('commandFailedWithCode', err.EXIT_CODE),
+          ? reporter.lang('executeLifecycleScriptCommandFailedWithSignal', err.EXIT_SIGNAL)
+          : reporter.lang('executeLifecycleScriptCommandFailedWithCode', err.EXIT_CODE),
       );
     } else {
       throw err;

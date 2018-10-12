@@ -50,7 +50,7 @@ test('queue', async function(): Promise<void> {
   }
 
   await promise.queue([], function() {
-    throw new Error("Shouldn't be called");
+    throw new Error('Should not be called');
   });
 
   await promise.queue(Array(10), create, 5);

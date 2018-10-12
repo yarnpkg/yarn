@@ -47,7 +47,7 @@ function warnDeprecation(reporter: Reporter, deprecationWarning: DeprecationWarn
   const command = 'yarn team';
   reporter.warn(
     reporter.lang(
-      'deprecatedCommand',
+      'teamDeprecatedCommand',
       `${command} ${deprecationWarning.deprecatedCommand}`,
       `${command} ${deprecationWarning.currentCommand}`,
     ),
@@ -73,7 +73,7 @@ function wrapRequired(
       return false;
     }
 
-    reporter.step(1, 3, reporter.lang('loggingIn'));
+    reporter.step(1, 3, reporter.lang('commonLoggingIn'));
     const revoke = await getToken(config, reporter);
 
     const res = await callback(parts, config, reporter, flags, args);
@@ -81,7 +81,7 @@ function wrapRequired(
       return res;
     }
 
-    reporter.step(3, 3, reporter.lang('revokingToken'));
+    reporter.step(3, 3, reporter.lang('commonRevokingToken'));
     await revoke();
     return true;
   };

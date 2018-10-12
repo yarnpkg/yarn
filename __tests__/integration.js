@@ -168,7 +168,7 @@ test('--mutex network with busy port', async () => {
 
   const server = http.createServer((request, response) => {
     response.writeHead(200);
-    response.end("I'm a broken JSON string to crash Yarn network mutex.");
+    response.end('I am a broken JSON string to crash Yarn network mutex.');
   });
   server.listen({
     port,
@@ -194,7 +194,7 @@ test('--mutex network with busy port', async () => {
 
   expect(mutexError).toBeDefined();
   invariant(mutexError != null, 'mutexError should be defined at this point otherwise Jest will throw above');
-  expect(mutexError.message).toMatch(new RegExp(en.mutexPortBusy.replace(/\$\d/g, '\\d+')));
+  expect(mutexError.message).toMatch(new RegExp(en.coreMutexPortBusy.replace(/\$\d/g, '\\d+')));
 });
 
 describe('--registry option', () => {
@@ -402,9 +402,7 @@ for (const withDoubleDash of [false, true]) {
     );
 
     expect(stdoutOutput.toString().trim()).toEqual('--opt');
-    (exp => (withDoubleDash ? exp : exp.not))(expect(stderrOutput.toString())).toMatch(
-      /From Yarn 1\.0 onwards, scripts don't require "--" for options to be forwarded/,
-    );
+    (exp => (withDoubleDash ? exp : exp.not))(expect(stderrOutput.toString())).toContain(en.coreDoubleDashDeprecation);
   });
 }
 

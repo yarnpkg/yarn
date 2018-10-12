@@ -37,12 +37,14 @@ export default function(rootCommandName: string, subCommands: SubCommands, usage
     }
 
     if (usage && usage.length) {
-      reporter.error(`${reporter.lang('usage')}:`);
+      reporter.error(`${reporter.lang('buildSubCommandsUsage')}:`);
       for (const msg of usage) {
         reporter.error(`yarn ${rootCommandName} ${msg}`);
       }
     }
-    return Promise.reject(new MessageError(reporter.lang('invalidCommand', subCommandNames.join(', '))));
+    return Promise.reject(
+      new MessageError(reporter.lang('buildSubCommandsInvalidCommand', subCommandNames.join(', '))),
+    );
   }
 
   function hasWrapper(commander: Object, args: Array<string>): boolean {

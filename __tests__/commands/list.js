@@ -33,7 +33,7 @@ describe('list', () => {
       try {
         await runList([], {}, 'lockfile-outdated');
       } catch (err) {
-        expect(err.message).toContain(reporter.lang('lockfileOutdated'));
+        expect(err.message).toContain(reporter.lang('packageRequestLockfileOutdated'));
       } finally {
         resolve();
       }
@@ -124,7 +124,7 @@ describe('list', () => {
       const tree = reporter.getBuffer().slice(-1);
       const trees = [makeTree('gulp@3.9.1', {color: 'bold'})];
 
-      const messageParts = reporter.lang('deprecatedListArgs').split('undefined');
+      const messageParts = reporter.lang('listDeprecatedArgs').split('undefined');
       const output = reporter.getBuffer();
       const hasWarningMessage = output.some(messages => messageParts.indexOf(String(messages.data)) > -1);
       expect(hasWarningMessage).toBe(true);

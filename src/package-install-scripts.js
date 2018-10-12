@@ -153,8 +153,8 @@ export default class PackageInstallScripts {
       if (ref.optional) {
         ref.ignore = true;
         ref.incompatible = true;
-        this.reporter.warn(this.reporter.lang('optionalModuleScriptFail', err.message));
-        this.reporter.info(this.reporter.lang('optionalModuleFail'));
+        this.reporter.warn(this.reporter.lang('packageInstallScriptsOptionalModuleScriptFail', err.message));
+        this.reporter.info(this.reporter.lang('packageInstallScriptsOptionalModuleFail'));
 
         // Cleanup node_modules
         try {
@@ -164,7 +164,7 @@ export default class PackageInstallScripts {
             }),
           );
         } catch (e) {
-          this.reporter.error(this.reporter.lang('optionalModuleCleanupFail', e.message));
+          this.reporter.error(this.reporter.lang('packageInstallScriptsOptionalModuleCleanupFail', e.message));
         }
       } else {
         throw err;

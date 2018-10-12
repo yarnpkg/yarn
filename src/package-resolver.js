@@ -514,7 +514,7 @@ export default class PackageResolver {
         const {range, hasVersion} = normalizePattern(req.pattern);
 
         if (this.isLockfileEntryOutdated(lockfileEntry.version, range, hasVersion)) {
-          this.reporter.warn(this.reporter.lang('incorrectLockfileEntry', req.pattern));
+          this.reporter.warn(this.reporter.lang('packageResolverIncorrectLockfileEntry', req.pattern));
           this.removePattern(req.pattern);
           this.lockfile.removePattern(req.pattern);
           fresh = true;

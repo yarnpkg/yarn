@@ -76,7 +76,7 @@ export default class GitFetcher extends BaseFetcher {
 
     return new Promise((resolve, reject) => {
       if (!stream) {
-        reject(new MessageError(this.reporter.lang('tarballNotInNetworkOrCache', this.reference, tarPaths)));
+        reject(new MessageError(this.reporter.lang('fetchersTarballNotInNetworkOrCache', this.reference, tarPaths)));
         return;
       }
       invariant(stream, 'cachedStream should be available at this point');
@@ -105,7 +105,7 @@ export default class GitFetcher extends BaseFetcher {
             reject(
               new SecurityError(
                 this.config.reporter.lang(
-                  'fetchBadHashWithPath',
+                  'fetchersBadHashWithPath',
                   this.packageName,
                   this.remote.reference,
                   expectHash,
@@ -116,7 +116,7 @@ export default class GitFetcher extends BaseFetcher {
           }
         })
         .on('error', function(err) {
-          reject(new MessageError(this.reporter.lang('fetchErrorCorrupt', err.message, tarballPath)));
+          reject(new MessageError(this.reporter.lang('fetchersErrorCorrupt', err.message, tarballPath)));
         });
     });
   }

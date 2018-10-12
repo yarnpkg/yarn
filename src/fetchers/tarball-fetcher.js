@@ -145,7 +145,9 @@ export default class TarballFetcher extends BaseFetcher {
     });
 
     untarStream.on('error', err => {
-      reject(new MessageError(this.config.reporter.lang('errorExtractingTarball', err.message, tarballPath)));
+      reject(
+        new MessageError(this.config.reporter.lang('tarballFetcherErrorExtractingTarball', err.message, tarballPath)),
+      );
     });
 
     extractorStream.pipe(untarStream).on('finish', () => {
@@ -163,7 +165,7 @@ export default class TarballFetcher extends BaseFetcher {
       if (integrityInfo.algorithms.length === 0) {
         return reject(
           new SecurityError(
-            this.config.reporter.lang('fetchBadIntegrityAlgorithm', this.packageName, this.remote.reference),
+            this.config.reporter.lang('tarballFetcherBadIntegrityAlgorithm', this.packageName, this.remote.reference),
           ),
         );
       }
@@ -175,7 +177,7 @@ export default class TarballFetcher extends BaseFetcher {
           return reject(
             new SecurityError(
               this.config.reporter.lang(
-                'fetchBadHashWithPath',
+                'fetchersBadHashWithPath',
                 this.packageName,
                 this.remote.reference,
                 error.found.toString(),
@@ -209,7 +211,7 @@ export default class TarballFetcher extends BaseFetcher {
 
     return new Promise((resolve, reject) => {
       if (!stream) {
-        reject(new MessageError(this.reporter.lang('tarballNotInNetworkOrCache', this.reference, tarPaths)));
+        reject(new MessageError(this.reporter.lang('fetchersTarballNotInNetworkOrCache', this.reference, tarPaths)));
         return;
       }
       invariant(stream, 'stream should be available at this point');
@@ -218,7 +220,7 @@ export default class TarballFetcher extends BaseFetcher {
       const {validateStream, extractorStream} = this.createExtractor(resolve, reject, tarballPath);
 
       stream.pipe(validateStream).pipe(extractorStream).on('error', err => {
-        reject(new MessageError(this.config.reporter.lang('fetchErrorCorrupt', err.message, tarballPath)));
+        reject(new MessageError(this.config.reporter.lang('fetchersErrorCorrupt', err.message, tarballPath)));
       });
     });
   }

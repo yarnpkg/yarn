@@ -217,7 +217,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   let {trees}: {trees: Trees} = await buildTree(install.resolver, install.linker, activePatterns, opts);
 
   if (args.length) {
-    reporter.warn(reporter.lang('deprecatedListArgs'));
+    reporter.warn(reporter.lang('listDeprecatedArgs'));
   }
   if (args.length || flags.pattern) {
     trees = trees.filter(tree => filterTree(tree, args, flags.pattern));

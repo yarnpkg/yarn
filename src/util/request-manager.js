@@ -223,7 +223,7 @@ export default class RequestManager {
 
   request<T>(params: RequestParams<T>): Promise<T> {
     if (this.offlineNoRequests) {
-      return Promise.reject(new MessageError(this.reporter.lang('cantRequestOffline', params.url)));
+      return Promise.reject(new MessageError(this.reporter.lang('requestManagerCantRequestOffline', params.url)));
     }
 
     const cached = this.cache[params.url];
@@ -398,7 +398,7 @@ export default class RequestManager {
       calledOnError = true;
 
       if (this.isPossibleOfflineError(err)) {
-        if (!queueForRetry(this.reporter.lang('offlineRetrying'))) {
+        if (!queueForRetry(this.reporter.lang('requestManagerOfflineRetrying'))) {
           reject(err);
         }
       }
@@ -419,8 +419,8 @@ export default class RequestManager {
 
         if (res.statusCode === 408 || res.statusCode >= 500) {
           const description = `${res.statusCode} ${http.STATUS_CODES[res.statusCode]}`;
-          if (!queueForRetry(this.reporter.lang('internalServerErrorRetrying', description))) {
-            throw new ResponseError(this.reporter.lang('requestFailed', description), res.statusCode);
+          if (!queueForRetry(this.reporter.lang('requestManagerInternalErrorRetrying', description))) {
+            throw new ResponseError(this.reporter.lang('requestManagerFailed', description), res.statusCode);
           } else {
             return;
           }
@@ -435,7 +435,7 @@ export default class RequestManager {
           // So this is actually a rejection ... the hosted git resolver uses this to know whether http is supported
           resolve(false);
         } else if (res.statusCode >= 400) {
-          const errMsg = (body && body.message) || reporter.lang('requestError', params.url, res.statusCode);
+          const errMsg = (body && body.message) || reporter.lang('requestManagerError', params.url, res.statusCode);
           reject(new Error(errMsg));
         } else {
           resolve(body);
@@ -511,7 +511,7 @@ export default class RequestManager {
 
   saveHar(filename: string) {
     if (!this.captureHar) {
-      throw new Error(this.reporter.lang('requestManagerNotSetupHAR'));
+      throw new Error(this.reporter.lang('requestManagerNotSetupHar'));
     }
     // No request may have occurred at all.
     this._getRequestModule();

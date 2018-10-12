@@ -115,13 +115,13 @@ async function clean(config: Config, reporter: Reporter, flags: Object, args: Ar
       }
 
       activity.end();
-      reporter.success(reporter.lang('clearedPackageFromCache', args[0]));
+      reporter.success(reporter.lang('cacheClearedPackageFromCache', args[0]));
     } else {
       // Clear all cache
       await fs.unlink(config._cacheRootFolder);
       await fs.mkdirp(config.cacheFolder);
       activity.end();
-      reporter.success(reporter.lang('clearedCache'));
+      reporter.success(reporter.lang('cacheClearedCache'));
     }
   }
 }

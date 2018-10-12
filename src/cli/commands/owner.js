@@ -29,11 +29,11 @@ export async function mutate(
   const username = args.shift();
   const name = await getName(args, config);
   if (!isValidPackageName(name)) {
-    throw new MessageError(reporter.lang('invalidPackageName'));
+    throw new MessageError(reporter.lang('commonInvalidPackageName'));
   }
 
   const msgs = buildMessages(username, name);
-  reporter.step(1, 3, reporter.lang('loggingIn'));
+  reporter.step(1, 3, reporter.lang('commonLoggingIn'));
   const revoke = await getToken(config, reporter, name);
 
   reporter.step(2, 3, msgs.info);
@@ -47,7 +47,7 @@ export async function mutate(
       error = mutator({name: user.name, email: user.email}, pkg);
     } else {
       error = true;
-      reporter.error(reporter.lang('unknownPackage', name));
+      reporter.error(reporter.lang('commonUnknownPackage', name));
     }
 
     // update package
@@ -70,10 +70,10 @@ export async function mutate(
     }
   } else {
     error = true;
-    reporter.error(reporter.lang('unknownUser', username));
+    reporter.error(reporter.lang('ownerUnknownUser', username));
   }
 
-  reporter.step(3, 3, reporter.lang('revokingToken'));
+  reporter.step(3, 3, reporter.lang('commonRevokingToken'));
   await revoke();
 
   if (error) {
@@ -130,7 +130,7 @@ function remove(config: Config, reporter: Reporter, flags: Object, args: Array<s
       });
 
       if (!found) {
-        reporter.error(reporter.lang('userNotAnOwner', user.name));
+        reporter.error(reporter.lang('ownerUserNotAnOwner', user.name));
       }
 
       return found;

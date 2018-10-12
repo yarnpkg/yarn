@@ -194,7 +194,7 @@ describe('workspaces config', () => {
     config.workspacesNohoistEnabled = false;
     expect(getNohoist(config.getWorkspaces(manifest, false))).toBeUndefined();
     expect(mockReporter.numberOfCalls()).toEqual(1);
-    expect(mockReporter.findCalls('workspacesNohoistDisabled').length).toEqual(1);
+    expect(mockReporter.findCalls('configWorkspacesNoHoistDisabled').length).toEqual(1);
 
     mockReporter.reset();
 
@@ -202,7 +202,7 @@ describe('workspaces config', () => {
     manifest.private = false;
     expect(getNohoist(config.getWorkspaces(manifest, false))).toBeUndefined();
     expect(mockReporter.numberOfCalls()).toEqual(1);
-    expect(mockReporter.findCalls('workspacesNohoistRequirePrivatePackages').length).toEqual(1);
+    expect(mockReporter.findCalls('configWorkspacesNoHoistRequirePrivatePackages').length).toEqual(1);
   });
 });
 

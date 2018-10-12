@@ -47,7 +47,7 @@ export async function setVersion(
   invariant(pkgLoc, 'expected package location');
 
   if (args.length && !newVersion) {
-    throw new MessageError(reporter.lang('invalidVersionArgument', NEW_VERSION_FLAG));
+    throw new MessageError(reporter.lang('versionInvalidVersionArgument', NEW_VERSION_FLAG));
   }
 
   function runLifecycle(lifecycle: string): Promise<void> {
@@ -70,14 +70,14 @@ export async function setVersion(
   // get old version
   let oldVersion = pkg.version;
   if (oldVersion) {
-    reporter.info(`${reporter.lang('currentVersion')}: ${oldVersion}`);
+    reporter.info(`${reporter.lang('versionCurrentVersion')}: ${oldVersion}`);
   } else {
     oldVersion = '0.0.0';
   }
 
   // get new version
   if (newVersion && !isValidNewVersion(oldVersion, newVersion, config.looseSemver)) {
-    throw new MessageError(reporter.lang('invalidVersion'));
+    throw new MessageError(reporter.lang('versionInvalidVersion'));
   }
 
   // get new version by bumping old version, if requested
@@ -100,10 +100,10 @@ export async function setVersion(
       break;
     }
 
-    newVersion = await reporter.question(reporter.lang('newVersion'));
+    newVersion = await reporter.question(reporter.lang('versionNewVersion'));
 
     if (!required && !newVersion) {
-      reporter.info(`${reporter.lang('noVersionOnPublish')}: ${oldVersion}`);
+      reporter.info(`${reporter.lang('versionNoVersionOnPublish')}: ${oldVersion}`);
       return function(): Promise<void> {
         return Promise.resolve();
       };
@@ -113,7 +113,7 @@ export async function setVersion(
       break;
     } else {
       newVersion = null;
-      reporter.error(reporter.lang('invalidSemver'));
+      reporter.error(reporter.lang('versionInvalidSemver'));
     }
   }
   if (newVersion) {
@@ -130,7 +130,7 @@ export async function setVersion(
   await runLifecycle('preversion');
 
   // update version
-  reporter.info(`${reporter.lang('newVersion')}: ${newVersion}`);
+  reporter.info(`${reporter.lang('versionNewVersion')}: ${newVersion}`);
   pkg.version = newVersion;
 
   // update versions in manifests

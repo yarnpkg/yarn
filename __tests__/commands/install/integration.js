@@ -436,17 +436,17 @@ test('install with file: protocol as default', () =>
   runInstall({}, 'install-file-as-default', async (config, reporter, install, getOutput) => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js'))).toEqual('foobar;\n');
 
-    expect(getOutput()).toContain(reporter.lang('implicitFileDeprecated', 'bar'));
+    expect(getOutput()).toContain(reporter.lang('packageRequestImplicitFileDeprecated', 'bar'));
   }));
 
 test("don't install with file: protocol as default if target is a file", () =>
   expect(runInstall({lockfile: false}, 'install-file-as-default-no-file')).rejects.toMatchObject({
-    message: expect.stringContaining('Couldn\'t find any versions for "foo" that matches "bar"'),
+    message: expect.stringContaining('Could not find any versions for "foo" that matches "bar"'),
   }));
 
 test("don't install with implicit file: protocol if target does not have package.json", () =>
   expect(runInstall({lockfile: false}, 'install-file-as-default-no-package')).rejects.toMatchObject({
-    message: expect.stringContaining('Couldn\'t find any versions for "foo" that matches "bar"'),
+    message: expect.stringContaining('Could not find any versions for "foo" that matches "bar"'),
   }));
 
 test('install with explicit file: protocol if target does not have package.json', () =>
@@ -493,7 +493,7 @@ test('install file: dedupe dependencies 3', () =>
     const stdout = getStdout();
     // Need to check if message is logged, but don't need to check for any specific parameters
     // so splitting on undefined and testing if all message parts are in stdout
-    const messageParts = reporter.lang('multiplePackagesCantUnpackInSameDestination').split('undefined');
+    const messageParts = reporter.lang('packageFetcherMultiplePackagesSameDestination').split('undefined');
     const warningMessage = messageParts.every(part => stdout.includes(part));
     expect(warningMessage).toBe(false);
   }));
@@ -577,7 +577,7 @@ test('install with comments in manifest resolutions does not result in warning',
 
       expect(
         warnings.some(warning => {
-          return warning.data.toString().indexOf(reporter.lang('invalidResolutionName', '//')) > -1;
+          return warning.data.toString().indexOf(reporter.lang('resolutionMapInvalidResolutionName', '//')) > -1;
         }),
       ).toEqual(false);
     },
@@ -715,17 +715,17 @@ test('install should authenticate integrity with wrong sha1 and right sha512 che
 
 test('install should fail to authenticate integrity with correct sha1 and incorrect sha512', () =>
   expect(runInstall({}, 'install-update-auth-right-sha1-wrong-sha512')).rejects.toMatchObject({
-    message: expect.stringContaining("computed integrity doesn't match our records"),
+    message: expect.stringContaining('computed integrity does not match our records'),
   }));
 
 test('install should fail to authenticate on sha512 integrity mismatch', () =>
   expect(runInstall({}, 'install-update-auth-wrong-sha512')).rejects.toMatchObject({
-    message: expect.stringContaining("computed integrity doesn't match our records"),
+    message: expect.stringContaining('computed integrity does not match our records'),
   }));
 
 test('install should fail to authenticate on sha1 integrity mismatch', () =>
   expect(runInstall({}, 'install-update-auth-wrong-sha1')).rejects.toMatchObject({
-    message: expect.stringContaining("computed integrity doesn't match our records"),
+    message: expect.stringContaining('computed integrity does not match our records'),
   }));
 
 test.skip('install should create integrity field if not present', () =>
@@ -759,7 +759,7 @@ test('install should not create integrity field if not present and in offline mo
 
 test('install should ignore existing hash if integrity is present even if it fails to authenticate it', () =>
   expect(runInstall({}, 'install-update-auth-bad-sha512-good-hash')).rejects.toMatchObject({
-    message: expect.stringContaining("computed integrity doesn't match our records"),
+    message: expect.stringContaining('computed integrity does not match our records'),
   }));
 
 test('install should ignore unknown integrity algorithms if it has other options in the sri', () =>
@@ -1036,7 +1036,9 @@ test('warns for missing bundledDependencies', () =>
       expect(
         warnings.some(warning => {
           return (
-            warning.data.toString().indexOf(reporter.lang('missingBundledDependency', 'tap@0.3.1', 'tap-consumer')) > -1
+            warning.data
+              .toString()
+              .indexOf(reporter.lang('packageLinkerMissingBundledDependency', 'tap@0.3.1', 'tap-consumer')) > -1
           );
         }),
       ).toEqual(true);
@@ -1114,7 +1116,7 @@ test('file: dependency ending with `.git` should work', () =>
 test('install will not warn for missing peerDep when both shallower and deeper', () =>
   runInstall({}, 'peer-dep-included-at-2-levels', (config, reporter, install, getStdout) => {
     const stdout = getStdout();
-    const messageParts = reporter.lang('unmetPeer').split('undefined');
+    const messageParts = reporter.lang('packageLinkerUnmetPeer').split('undefined');
     const warningMessage = messageParts.every(part => stdout.includes(part));
     expect(warningMessage).toBe(false);
   }));

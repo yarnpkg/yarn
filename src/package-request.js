@@ -124,7 +124,12 @@ export default class PackageRequest {
       // thow a more readable error
       if (!(err instanceof MessageError) && this.parentRequest && this.parentRequest.pattern) {
         throw new MessageError(
-          this.reporter.lang('requiredPackageNotFoundRegistry', pattern, this.parentRequest.pattern, this.registry),
+          this.reporter.lang(
+            'packageRequestRequiredPackageNotFoundRegistry',
+            pattern,
+            this.parentRequest.pattern,
+            this.registry,
+          ),
         );
       }
       throw err;
@@ -140,7 +145,7 @@ export default class PackageRequest {
     if (Resolver) {
       return Resolver;
     } else {
-      throw new MessageError(this.reporter.lang('unknownRegistryResolver', this.registry));
+      throw new MessageError(this.reporter.lang('packageRequestUnknownRegistryResolver', this.registry));
     }
   }
 
@@ -152,7 +157,7 @@ export default class PackageRequest {
     if (!semver.validRange(pattern)) {
       try {
         if (await fs.exists(path.join(this.config.cwd, pattern, constants.NODE_PACKAGE_JSON))) {
-          this.reporter.warn(this.reporter.lang('implicitFileDeprecated', pattern));
+          this.reporter.warn(this.reporter.lang('packageRequestImplicitFileDeprecated', pattern));
           return `file:${pattern}`;
         }
       } catch (err) {
@@ -238,7 +243,7 @@ export default class PackageRequest {
     const info: Manifest = await this.findVersionInfo();
 
     if (!semver.valid(info.version)) {
-      throw new MessageError(this.reporter.lang('invalidPackageVersion', info.name, info.version));
+      throw new MessageError(this.reporter.lang('packageRequestInvalidPackageVersion', info.name, info.version));
     }
 
     info.fresh = fresh;
@@ -261,7 +266,7 @@ export default class PackageRequest {
     }
 
     if (info.flat && !this.resolver.flat) {
-      throw new MessageError(this.reporter.lang('flatGlobalError', `${info.name}@${info.version}`));
+      throw new MessageError(this.reporter.lang('packageRequestFlatGlobalError', `${info.name}@${info.version}`));
     }
 
     // validate version info
@@ -355,7 +360,7 @@ export default class PackageRequest {
 
     for (const key of constants.REQUIRED_PACKAGE_KEYS) {
       if (!info[key]) {
-        throw new MessageError(reporter.lang('missingRequiredPackageKey', human, key));
+        throw new MessageError(reporter.lang('packageRequestMissingRequiredPackageKey', human, key));
       }
     }
   }
@@ -406,7 +411,7 @@ export default class PackageRequest {
       depReqPatterns.map(async ({pattern, hint, workspaceName, workspaceLoc}): Promise<Dependency> => {
         const locked = lockfile.getLocked(pattern);
         if (!locked) {
-          throw new MessageError(reporter.lang('lockfileOutdated'));
+          throw new MessageError(reporter.lang('packageRequestLockfileOutdated'));
         }
 
         const {name, version: current} = locked;

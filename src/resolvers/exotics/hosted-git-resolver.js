@@ -39,7 +39,7 @@ export function explodeHostedGitFragment(fragment: string, reporter: Reporter): 
   const repo = parts[parts.length - 1];
 
   if (user === undefined || repo === undefined) {
-    throw new MessageError(reporter.lang('invalidHostedGitFragment', fragment));
+    throw new MessageError(reporter.lang('hostedGitResolverInvalidHostedGitFragment', fragment));
   }
 
   return {
@@ -118,7 +118,7 @@ export default class HostedGitResolver extends ExoticResolver {
 
       out = lines.join('\n');
     } else {
-      throw new Error(this.reporter.lang('hostedGitResolveError'));
+      throw new Error(this.reporter.lang('hostedGitResolverError'));
     }
 
     return client.setRefHosted(out);

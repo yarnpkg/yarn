@@ -18,7 +18,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const {workspaceRootFolder} = config;
 
   if (!workspaceRootFolder) {
-    throw new MessageError(reporter.lang('workspaceRootNotFound', config.cwd));
+    throw new MessageError(reporter.lang('workspacesRootNotFound', config.cwd));
   }
 
   if (flags.originalArgs < 1) {

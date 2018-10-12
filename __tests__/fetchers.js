@@ -163,7 +163,7 @@ test('TarballFetcher.fetch throws on invalid hash', async () => {
   );
 
   expect(fetcher.fetch()).rejects.toMatchObject({
-    message: expect.stringContaining("computed integrity doesn't match our records"),
+    message: expect.stringContaining('computed integrity does not match our records'),
   });
   expect(readdirSync(path.join(offlineMirrorDir))).toEqual([]);
 });
@@ -210,7 +210,7 @@ test('TarballFetcher.fetch throws on invalid integrity', async () => {
   );
 
   expect(fetcher.fetch()).rejects.toMatchObject({
-    message: expect.stringContaining("computed integrity doesn't match our records"),
+    message: expect.stringContaining('computed integrity does not match our records'),
   });
   expect(readdirSync(path.join(offlineMirrorDir))).toEqual([]);
 });
@@ -336,8 +336,8 @@ test('TarballFetcher.fetch throws on truncated tar data', async () => {
     await Config.create({}, reporter),
   );
   await expect(fetcher.fetch()).rejects.toThrow(
-    // The "." in ".tgz" should be escaped, but that doesn't work with reporter.lang
-    new RegExp(reporter.lang('errorExtractingTarball', '.*', '.*broken-tar-data.tgz')),
+    // The "." in ".tgz" should be escaped, but that does not work with reporter.lang
+    new RegExp(reporter.lang('tarballFetcherErrorExtractingTarball', '.*', '.*broken-tar-data.tgz')),
   );
 });
 
@@ -355,7 +355,7 @@ test('TarballFetcher.fetch throws on truncated tar header', async () => {
     await Config.create({}, reporter),
   );
   await expect(fetcher.fetch()).rejects.toThrow(
-    // The "." in ".tgz" should be escaped, but that doesn't work with reporter.lang
-    new RegExp(reporter.lang('errorExtractingTarball', '.*', '.*broken-tar-header.tgz')),
+    // The "." in ".tgz" should be escaped, but that does not work with reporter.lang
+    new RegExp(reporter.lang('tarballFetcherErrorExtractingTarball', '.*', '.*broken-tar-header.tgz')),
   );
 });

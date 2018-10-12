@@ -20,7 +20,7 @@ export async function info(config: Config, reporter: Reporter, flags: Object, ar
   const {workspaceRootFolder} = config;
 
   if (!workspaceRootFolder) {
-    throw new MessageError(reporter.lang('workspaceRootNotFound', config.cwd));
+    throw new MessageError(reporter.lang('workspacesRootNotFound', config.cwd));
   }
 
   const manifest = await config.findManifest(workspaceRootFolder, false);
@@ -66,7 +66,7 @@ export async function runScript(config: Config, reporter: Reporter, flags: Objec
   const {workspaceRootFolder} = config;
 
   if (!workspaceRootFolder) {
-    throw new MessageError(reporter.lang('workspaceRootNotFound', config.cwd));
+    throw new MessageError(reporter.lang('workspacesRootNotFound', config.cwd));
   }
 
   const manifest = await config.findManifest(workspaceRootFolder, false);

@@ -37,11 +37,11 @@ export default class NpmResolver extends RegistryResolver {
     request: ?PackageRequest,
   ): Promise<Manifest> {
     if (body.versions && Object.keys(body.versions).length === 0) {
-      throw new MessageError(config.reporter.lang('registryNoVersions', body.name));
+      throw new MessageError(config.reporter.lang('npmResolverRegistryNoVersions', body.name));
     }
 
     if (!body['dist-tags'] || !body.versions) {
-      throw new MessageError(config.reporter.lang('malformedRegistryResponse', name));
+      throw new MessageError(config.reporter.lang('npmResolverMalformedRegistryResponse', name));
     }
 
     if (range in body['dist-tags']) {
@@ -63,7 +63,7 @@ export default class NpmResolver extends RegistryResolver {
       if (request.resolver && request.resolver.activity) {
         request.resolver.activity.end();
       }
-      config.reporter.log(config.reporter.lang('couldntFindVersionThatMatchesRange', body.name, range));
+      config.reporter.log(config.reporter.lang('npmResolverNoVersionMatchesRange', body.name, range));
       let pageSize;
       if (process.stdout instanceof tty.WriteStream) {
         pageSize = process.stdout.rows - 2;
@@ -72,7 +72,7 @@ export default class NpmResolver extends RegistryResolver {
         {
           name: 'package',
           type: 'list',
-          message: config.reporter.lang('chooseVersionFromList', body.name),
+          message: config.reporter.lang('npmResolverChooseVersionFromList', body.name),
           choices: (semver: Object).rsort(Object.keys(body.versions)),
           pageSize,
         },
@@ -81,7 +81,7 @@ export default class NpmResolver extends RegistryResolver {
         return body.versions[response.package];
       }
     }
-    throw new MessageError(config.reporter.lang('couldntFindVersionThatMatchesRange', body.name, range));
+    throw new MessageError(config.reporter.lang('npmResolverNoVersionMatchesRange', body.name, range));
   }
 
   async resolveRequest(desiredVersion: ?string): Promise<?Manifest> {
@@ -138,7 +138,7 @@ export default class NpmResolver extends RegistryResolver {
       return versions[satisfied];
     } else if (!this.config.preferOffline) {
       throw new MessageError(
-        this.reporter.lang('couldntFindPackageInCache', this.name, this.range, Object.keys(versions).join(', ')),
+        this.reporter.lang('npmResolverNoPackageInCache', this.name, this.range, Object.keys(versions).join(', ')),
       );
     } else {
       return null;
@@ -185,7 +185,7 @@ export default class NpmResolver extends RegistryResolver {
     const desiredVersion = shrunk && shrunk.version ? shrunk.version : null;
     const info: ?Manifest = await this.resolveRequest(desiredVersion);
     if (info == null) {
-      throw new MessageError(this.reporter.lang('packageNotFoundRegistry', this.name, NPM_REGISTRY_ID));
+      throw new MessageError(this.reporter.lang('commonPackageNotFoundRegistry', this.name, NPM_REGISTRY_ID));
     }
 
     const {deprecated, dist} = info;
