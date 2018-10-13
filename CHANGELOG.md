@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Run the engines check before showing the UI for `upgrade-interactive`
+
+  [#6536](https://github.com/yarnpkg/yarn/pull/6536) - [**Orta Therox**](https://github.com/orta)
+
 - Restore Node v4 support by downgrading `cli-table3`
 
   [#6535](https://github.com/yarnpkg/yarn/pull/6535) - [**Mark Stacey**](https://github.com/Gudahtt)
