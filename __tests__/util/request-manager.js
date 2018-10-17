@@ -1,7 +1,7 @@
 /* @flow */
 /* eslint max-len: 0 */
 
-import {OneTimePasswordRequiredError} from '../../src/errors.js';
+import {OneTimePasswordError} from '../../src/errors.js';
 import {Reporter} from '../../src/reporters/index.js';
 import Config from '../../src/config.js';
 import * as fs from '../../src/util/fs.js';
@@ -210,7 +210,7 @@ for (const statusCode of [403, 442]) {
   });
 }
 
-test('RequestManager.execute one time password required error on npm request', async () => {
+test('RequestManager.execute one time password error on npm request', async () => {
   jest.resetModules();
   jest.mock('request', factory => options => {
     options.callback(
@@ -229,11 +229,11 @@ test('RequestManager.execute one time password required error on npm request', a
       url: 'https://registry.npmjs.org/yarn',
     });
   } catch (err) {
-    expect(err).toBeInstanceOf(OneTimePasswordRequiredError);
+    expect(err).toBeInstanceOf(OneTimePasswordError);
   }
 });
 
-test('RequestManager.execute one time password required error on npm login request', async () => {
+test('RequestManager.execute one time password error on npm login request', async () => {
   jest.resetModules();
   jest.mock('request', factory => options => {
     options.callback('', {statusCode: 401, headers: {'www-authenticate': 'otp'}}, {ok: false});
@@ -248,7 +248,7 @@ test('RequestManager.execute one time password required error on npm login reque
       url: 'https://registry.npmjs.org/-/user/org.couchdb.user:user',
     });
   } catch (err) {
-    expect(err).toBeInstanceOf(OneTimePasswordRequiredError);
+    expect(err).toBeInstanceOf(OneTimePasswordError);
   }
 });
 

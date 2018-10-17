@@ -34,4 +34,4 @@ export class ResponseError extends Error {
   responseCode: number;
 }
 
-export class OneTimePasswordRequiredError extends Error {}
+export class OneTimePasswordError extends Error {}

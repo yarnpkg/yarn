@@ -8,7 +8,7 @@ import invariant from 'invariant';
 import RequestCaptureHar from 'request-capture-har';
 
 import type {Reporter} from '../reporters/index.js';
-import {MessageError, ResponseError, OneTimePasswordRequiredError} from '../errors.js';
+import {MessageError, ResponseError, OneTimePasswordError} from '../errors.js';
 import BlockingQueue from './blocking-queue.js';
 import * as constants from '../constants.js';
 import * as network from './network.js';
@@ -430,7 +430,7 @@ export default class RequestManager {
           const authMethods = res.headers['www-authenticate'].split(/,\s*/).map(s => s.toLowerCase());
 
           if (authMethods.indexOf('otp') !== -1) {
-            reject(new OneTimePasswordRequiredError());
+            reject(new OneTimePasswordError());
             return;
           }
         }

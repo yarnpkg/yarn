@@ -15,7 +15,7 @@ import {addSuffix} from '../util/misc';
 import {getPosixPath, resolveWithHome} from '../util/path';
 import normalizeUrl from 'normalize-url';
 import {default as userHome, home} from '../util/user-home-dir';
-import {MessageError, OneTimePasswordRequiredError} from '../errors.js';
+import {MessageError, OneTimePasswordError} from '../errors.js';
 import {getOneTimePassword} from '../cli/commands/login.js';
 import path from 'path';
 import url from 'url';
@@ -180,7 +180,7 @@ export default class NpmRegistry extends Registry {
         gzip: true,
       });
     } catch (error) {
-      if (error instanceof OneTimePasswordRequiredError) {
+      if (error instanceof OneTimePasswordError) {
         if (this.otp) {
           throw new MessageError(this.reporter.lang('incorrectOneTimePassword'));
         }
