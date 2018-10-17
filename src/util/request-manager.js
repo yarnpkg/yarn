@@ -8,7 +8,7 @@ import invariant from 'invariant';
 import RequestCaptureHar from 'request-capture-har';
 
 import type {Reporter} from '../reporters/index.js';
-import {MessageError, ResponseError} from '../errors.js';
+import {MessageError, ResponseError, OneTimePasswordRequiredError} from '../errors.js';
 import BlockingQueue from './blocking-queue.js';
 import * as constants from '../constants.js';
 import * as network from './network.js';
@@ -422,6 +422,15 @@ export default class RequestManager {
           if (!queueForRetry(this.reporter.lang('internalServerErrorRetrying', description))) {
             throw new ResponseError(this.reporter.lang('requestFailed', description), res.statusCode);
           } else {
+            return;
+          }
+        }
+
+        if (res.statusCode === 401 && res.headers['www-authenticate']) {
+          const authMethods = res.headers['www-authenticate'].split(/,\s*/).map(s => s.toLowerCase());
+
+          if (authMethods.indexOf('otp') !== -1) {
+            reject(new OneTimePasswordRequiredError());
             return;
           }
         }

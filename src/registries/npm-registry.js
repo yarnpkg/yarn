@@ -15,6 +15,8 @@ import {addSuffix} from '../util/misc';
 import {getPosixPath, resolveWithHome} from '../util/path';
 import normalizeUrl from 'normalize-url';
 import {default as userHome, home} from '../util/user-home-dir';
+import {MessageError, OneTimePasswordRequiredError} from '../errors.js';
+import {getOneTimePassword} from '../cli/commands/login.js';
 import path from 'path';
 import url from 'url';
 import ini from 'ini';
@@ -133,7 +135,7 @@ export default class NpmRegistry extends Registry {
     return (requestToRegistryHost || requestToYarn) && (requestToRegistryPath || customHostSuffixInUse);
   }
 
-  request(pathname: string, opts?: RegistryRequestOptions = {}, packageName: ?string): Promise<*> {
+  async request(pathname: string, opts?: RegistryRequestOptions = {}, packageName: ?string): Promise<*> {
     // packageName needs to be escaped when if it is passed
     const packageIdent = (packageName && NpmRegistry.escapeName(packageName)) || pathname;
     const registry = opts.registry || this.getRegistry(packageIdent);
@@ -161,17 +163,38 @@ export default class NpmRegistry extends Registry {
       }
     }
 
-    return this.requestManager.request({
-      url: requestUrl,
-      method: opts.method,
-      body: opts.body,
-      auth: opts.auth,
-      headers,
-      json: !opts.buffer,
-      buffer: opts.buffer,
-      process: opts.process,
-      gzip: true,
-    });
+    if (this.otp) {
+      headers['npm-otp'] = this.otp;
+    }
+
+    try {
+      return await this.requestManager.request({
+        url: requestUrl,
+        method: opts.method,
+        body: opts.body,
+        auth: opts.auth,
+        headers,
+        json: !opts.buffer,
+        buffer: opts.buffer,
+        process: opts.process,
+        gzip: true,
+      });
+    } catch (error) {
+      if (error instanceof OneTimePasswordRequiredError) {
+        if (this.otp) {
+          throw new MessageError(this.reporter.lang('incorrectOneTimePassword'));
+        }
+
+        this.reporter.info(this.reporter.lang('twoFactorAuthenticationEnabled'));
+        this.otp = await getOneTimePassword(this.config, this.reporter);
+
+        this.requestManager.clearCache();
+
+        return this.request(pathname, opts, packageName);
+      } else {
+        throw error;
+      }
+    }
   }
 
   requestNeedsAuth(requestUrl: string): boolean {

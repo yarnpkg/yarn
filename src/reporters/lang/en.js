@@ -311,6 +311,7 @@ const messages = {
   npmUsername: 'npm username',
   npmPassword: 'npm password',
   npmEmail: 'npm email',
+  npmOneTimePassword: 'npm one-time password',
 
   loggingIn: 'Logging in',
   loggedIn: 'Logged in.',
@@ -322,6 +323,8 @@ const messages = {
 
   loginAsPublic: 'Logging in as public',
   incorrectCredentials: 'Incorrect username or password.',
+  incorrectOneTimePassword: 'Incorrect one-time password.',
+  twoFactorAuthenticationEnabled: 'Two factor authentication enabled.',
   clearedCredentials: 'Cleared login credentials.',
 
   publishFail: "Couldn't publish package: $0",
