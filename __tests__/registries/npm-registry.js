@@ -85,6 +85,10 @@ describe('request', () => {
     const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
     npmRegistry.config = config;
     return {
+      setOtp(otp: string) {
+        npmRegistry.otp = otp;
+      },
+
       request(url: string, options: Object, packageName: string): Object {
         npmRegistry.request(url, options, packageName);
         const lastIndex = mockRequestManager.request.mock.calls.length - 1;
@@ -99,6 +103,17 @@ describe('request', () => {
     const config = {};
     const requestParams = createRegistry(config).request(url);
     expect(requestParams.url).toBe(url);
+  });
+
+  test('should add `npm-otp` header', () => {
+    const url = 'https://registry.npmjs.org/yarn';
+    const config = {};
+    const registry = createRegistry(config);
+
+    registry.setOtp('123 456');
+
+    const requestParams = registry.request(url);
+    expect(requestParams.headers['npm-otp']).toBe('123 456');
   });
 
   const testCases = [
