@@ -1181,7 +1181,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     throw new MessageError(reporter.lang(error, `yarn ${command} ${exampleArgs.join(' ')}`));
   }
 
-  await install(config, reporter, flags, lockfile);
+  await install(config, reporter, {...flags, includeWorkspaceDeps: true}, lockfile);
 }
 
 export async function wrapLifecycle(config: Config, flags: Object, factory: () => Promise<void>): Promise<void> {
