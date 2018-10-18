@@ -86,7 +86,7 @@ describe('request', () => {
     npmRegistry.config = config;
     return {
       setOtp(otp: string) {
-        npmRegistry.otp = otp;
+        npmRegistry.setOtp(otp);
       },
 
       request(url: string, options: Object, packageName: string): Object {
