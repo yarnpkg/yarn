@@ -36,7 +36,7 @@ async function getCredentials(
   return {username, email};
 }
 
-export function getOneTimePassword(config: Config, reporter: Reporter): Promise<string> {
+export function getOneTimePassword(reporter: Reporter): Promise<string> {
   return reporter.question(reporter.lang('npmOneTimePassword'));
 }
 

@@ -186,7 +186,7 @@ export default class NpmRegistry extends Registry {
         }
 
         this.reporter.info(this.reporter.lang('twoFactorAuthenticationEnabled'));
-        this.otp = await getOneTimePassword(this.config, this.reporter);
+        this.otp = await getOneTimePassword(this.reporter);
 
         this.requestManager.clearCache();
 
