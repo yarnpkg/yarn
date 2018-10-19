@@ -12,6 +12,8 @@ exports.execFile = function(
       if (error) {
         reject(error);
       } else {
+        stdout = stdout.replace(/\r\n?/g, `\n`);
+        stderr = stderr.replace(/\r\n?/g, `\n`);
         resolve({stdout, stderr});
       }
     });

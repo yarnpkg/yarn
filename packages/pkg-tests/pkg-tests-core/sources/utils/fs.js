@@ -75,13 +75,13 @@ exports.packToStream = function packToStream(
   const packStream = tarFs.pack(source, {
     map: header => {
       if (true) {
-        header.name = path.resolve('/', header.name);
-        header.name = path.relative('/', header.name);
+        header.name = path.posix.resolve('/', header.name);
+        header.name = path.posix.relative('/', header.name);
       }
 
       if (virtualPath) {
-        header.name = path.resolve('/', virtualPath, header.name);
-        header.name = path.relative('/', header.name);
+        header.name = path.posix.resolve('/', virtualPath, header.name);
+        header.name = path.posix.relative('/', header.name);
       }
 
       return header;

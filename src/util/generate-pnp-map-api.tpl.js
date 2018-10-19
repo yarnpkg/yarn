@@ -33,7 +33,7 @@ const isDirRegExp = /\/$/;
 const isStrictRegExp = /^\.{0,2}\//;
 
 // Splits a require request into its components, or return null if the request is a file path
-const pathRegExp = /^(?!\.{0,2}(?:\/|$))((?:@[^\/]+\/)?[^\/]+)\/?(.*|)$/;
+const pathRegExp = /^(?![a-zA-Z]:[\\\/]|\\\\|\.{0,2}(?:\/|$))((?:@[^\/]+\/)?[^\/]+)\/?(.*|)$/;
 
 // Keep a reference around ("module" is a common name in this context, so better rename it to something more significant)
 const pnpModule = module;
@@ -323,7 +323,7 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer, {c
   // contain multiple levels of dependencies (ie. a yarn.lock inside a subfolder of a yarn.lock). This is
   // typically solved using workspaces, but not all of them have been converted already.
 
-  if (ignorePattern && ignorePattern.test(issuer)) {
+  if (ignorePattern && ignorePattern.test(normalizePath(path.normalize(issuer)))) {
     const result = callNativeResolution(request, issuer);
 
     if (result === false) {
