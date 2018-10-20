@@ -51,7 +51,7 @@ export function forwardSignalToSpawnedProcesses(signal: string) {
   }
 }
 
-type ProcessFn = (
+export type ProcessFn = (
   proc: child_process$ChildProcess,
   update: (chunk: string) => void,
   reject: (err: mixed) => void,

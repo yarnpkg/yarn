@@ -10,6 +10,7 @@ import {createWriteStream} from 'fs';
 import type Config from '../config.js';
 import type {Reporter} from '../reporters/index.js';
 import type {ResolvedSha, GitRefResolvingInterface, GitRefs} from './git/git-ref-resolver.js';
+import type {ProcessFn} from './child.js';
 import {MessageError, ProcessSpawnError} from '../errors.js';
 import {spawn as spawnGit} from './git/git-spawn.js';
 import {resolveVersion, isCommitSha, parseRefs} from './git/git-ref-resolver.js';
@@ -233,16 +234,7 @@ export default class Git implements GitRefResolvingInterface {
   async _archiveViaRemoteArchive(dest: string): Promise<string> {
     const hashStream = new crypto.HashStream();
     await spawnGit(['archive', `--remote=${this.gitUrl.repository}`, this.ref], {
-      process(proc, resolve, reject, done) {
-        const writeStream = createWriteStream(dest);
-        proc.on('error', reject);
-        writeStream.on('error', reject);
-        writeStream.on('end', done);
-        writeStream.on('open', function() {
-          proc.stdout.pipe(hashStream).pipe(writeStream);
-        });
-        writeStream.once('finish', done);
-      },
+      process: this._writeArchive(dest, hashStream),
     });
     return hashStream.getHash();
   }
@@ -251,17 +243,21 @@ export default class Git implements GitRefResolvingInterface {
     const hashStream = new crypto.HashStream();
     await spawnGit(['archive', this.hash], {
       cwd: this.cwd,
-      process(proc, resolve, reject, done) {
-        const writeStream = createWriteStream(dest);
-        proc.on('error', reject);
-        writeStream.on('error', reject);
-        writeStream.on('open', function() {
-          proc.stdout.pipe(hashStream).pipe(writeStream);
-        });
-        writeStream.once('finish', done);
-      },
+      process: this._writeArchive(dest, hashStream),
     });
     return hashStream.getHash();
+  }
+
+  _writeArchive(dest: string, hashStream: crypto.HashStream): ProcessFn {
+    return (proc, resolve, reject, done) => {
+      const writeStream = createWriteStream(dest);
+      proc.on('error', reject);
+      writeStream.on('error', reject);
+      writeStream.on('open', function() {
+        proc.stdout.pipe(hashStream).pipe(writeStream);
+      });
+      writeStream.once('finish', done);
+    };
   }
 
   /**
@@ -279,35 +275,29 @@ export default class Git implements GitRefResolvingInterface {
 
   async _cloneViaRemoteArchive(dest: string): Promise<void> {
     await spawnGit(['archive', `--remote=${this.gitUrl.repository}`, this.ref], {
-      process(proc, update, reject, done) {
-        const extractor = tarFs.extract(dest, {
-          dmode: 0o555, // all dirs should be readable
-          fmode: 0o444, // all files should be readable
-        });
-        extractor.on('error', reject);
-        extractor.on('finish', done);
-
-        proc.stdout.pipe(extractor);
-        proc.on('error', reject);
-      },
+      process: this._extractArchive(dest),
     });
   }
 
   async _cloneViaLocalFetched(dest: string): Promise<void> {
     await spawnGit(['archive', this.hash], {
       cwd: this.cwd,
-      process(proc, resolve, reject, done) {
-        const extractor = tarFs.extract(dest, {
-          dmode: 0o555, // all dirs should be readable
-          fmode: 0o444, // all files should be readable
-        });
-
-        extractor.on('error', reject);
-        extractor.on('finish', done);
-
-        proc.stdout.pipe(extractor);
-      },
+      process: this._extractArchive(dest),
     });
+  }
+
+  _extractArchive(dest: string): ProcessFn {
+    return (proc, update, reject, done) => {
+      const extractor = tarFs.extract(dest, {
+        dmode: 0o555, // all dirs should be readable
+        fmode: 0o444, // all files should be readable
+      });
+      extractor.on('error', reject);
+      extractor.on('finish', done);
+
+      proc.stdout.pipe(extractor);
+      proc.on('error', reject);
+    };
   }
 
   /**
