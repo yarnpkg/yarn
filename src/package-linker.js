@@ -119,22 +119,19 @@ export default class PackageLinker {
     }
 
     // link up the `bin` scripts in bundled dependencies
-    if (pkg.bundleDependencies) {
-      for (const depName of pkg.bundleDependencies) {
-        const locs = ref.locations.map(loc => path.join(loc, this.config.getFolder(pkg), depName));
-        try {
-          const dep = await this.config.readManifest(locs[0], remote.registry); //all of them should be the same
+    for (const {locs} of this._bundledDependencyLocations(pkg, ref)) {
+      try {
+        const dep = await this.config.readManifest(locs[0], remote.registry); //all of them should be the same
 
-          if (dep.bin && Object.keys(dep.bin).length) {
-            deps.push(...locs.map(loc => ({dep, loc})));
-          }
-        } catch (ex) {
-          if (ex.code !== 'ENOENT') {
-            throw ex;
-          }
-          // intentionally ignoring ENOENT error.
-          // bundledDependency either does not exist or does not contain a package.json
+        if (dep.bin && Object.keys(dep.bin).length) {
+          deps.push(...locs.map(loc => ({dep, loc})));
         }
+      } catch (ex) {
+        if (ex.code !== 'ENOENT') {
+          throw ex;
+        }
+        // intentionally ignoring ENOENT error.
+        // bundledDependency either does not exist or does not contain a package.json
       }
     }
 
@@ -670,15 +667,12 @@ export default class PackageLinker {
     const ref = pkg._reference;
     invariant(ref, 'missing package ref ' + pkg.name);
 
-    if (pkg.bundleDependencies) {
-      for (const depName of pkg.bundleDependencies) {
-        const locs = ref.locations.map(loc => path.join(loc, this.config.getFolder(pkg), depName));
-        const locsExist = await Promise.all(locs.map(loc => fs.exists(loc)));
-        if (locsExist.some(e => !e)) {
-          //if any of the locs do not exist
-          const pkgHuman = `${pkg.name}@${pkg.version}`;
-          this.reporter.warn(this.reporter.lang('missingBundledDependency', pkgHuman, depName));
-        }
+    for (const {depName, locs} of this._bundledDependencyLocations(pkg, ref)) {
+      const locsExist = await Promise.all(locs.map(loc => fs.exists(loc)));
+      if (locsExist.some(e => !e)) {
+        //if any of the locs do not exist
+        const pkgHuman = `${pkg.name}@${pkg.version}`;
+        this.reporter.warn(this.reporter.lang('missingBundledDependency', pkgHuman, depName));
       }
     }
   }
@@ -699,6 +693,16 @@ export default class PackageLinker {
       const {name, range, hasVersion} = normalizePattern(patternToUnplug);
       const satisfiesSemver = hasVersion ? semver.satisfies(ref.version, range) : true;
       return name === ref.name && satisfiesSemver;
+    });
+  }
+
+  _bundledDependencyLocations(pkg: Manifest, ref: PackageReference): Array<{depName: string, locs: Array<string>}> {
+    if (!pkg.bundleDependencies) {
+      return [];
+    }
+    return pkg.bundleDependencies.map(depName => {
+      const locs = ref.locations.map(loc => path.join(loc, this.config.getFolder(pkg), depName));
+      return {depName, locs};
     });
   }
 
