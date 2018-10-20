@@ -45,25 +45,6 @@ export default class NoopReporter extends BaseReporter {
   footer(showPeakMemory: boolean) {}
   table(head: Array<string>, body: Array<Array<string>>) {}
 
-  activity(): ReporterSpinner {
-    return {
-      tick(name: string) {},
-      end() {},
-    };
-  }
-
-  activitySet(total: number, workers: number): ReporterSpinnerSet {
-    return {
-      spinners: Array(workers).fill({
-        clear() {},
-        setPrefix() {},
-        tick() {},
-        end() {},
-      }),
-      end() {},
-    };
-  }
-
   question(question: string, options?: QuestionOptions = {}): Promise<string> {
     return Promise.reject(new Error('Not implemented'));
   }
