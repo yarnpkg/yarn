@@ -88,7 +88,7 @@ export async function packTarball(
       onlyFiles.map((filename: string): string => `!${filename}`),
       onlyFiles.map((filename: string): string => `!${path.join(filename, '**')}`),
     );
-    const regexes = ignoreLinesToRegex(lines, '.');
+    const regexes = ignoreLinesToRegex(lines, './');
     filters = filters.concat(regexes);
   }
 
