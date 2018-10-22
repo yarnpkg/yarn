@@ -646,15 +646,18 @@ exports.setup = function setup() {
     if (!enableNativeHooks) {
       return originalModuleResolveFilename.call(Module, request, parent, isMain, options);
     }
-    
+
     let issuers;
-    
+
     if (options) {
-      const optionNames = new Set(Object.keys(optionNames));
+      const optionNames = new Set(Object.keys(options));
       optionNames.delete('paths');
-      
-      if (options.size > 0) {
-        throw makeError(`UNSUPPORTED`, `Some options passed to require() aren't supported by PnP yet (${Array.from(optionNames).join(', ')})`);
+
+      if (optionNames.size > 0) {
+        throw makeError(
+          `UNSUPPORTED`,
+          `Some options passed to require() aren't supported by PnP yet (${Array.from(optionNames).join(', ')})`,
+        );
       }
 
       if (options.paths) {
@@ -665,15 +668,15 @@ exports.setup = function setup() {
     if (!issuers) {
       const issuerModule = getIssuerModule(parent);
       const issuer = issuerModule ? issuerModule.filename : `${process.cwd()}/`;
-      
+
       issuers = [issuer];
     }
-    
+
     let firstError;
 
     for (const issuer of issuers) {
       let resolution;
-      
+
       try {
         resolution = exports.resolveRequest(request, issuer);
       } catch (error) {
@@ -683,7 +686,7 @@ exports.setup = function setup() {
 
       return resolution !== null ? resolution : request;
     }
-    
+
     throw firstError;
   };
 
