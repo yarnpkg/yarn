@@ -67,6 +67,18 @@ test.concurrent('pack should include all files listed in the files array', (): P
   });
 });
 
+test.concurrent('pack should include files based from the package’s root', (): Promise<void> => {
+  return runPack([], {}, 'files-include-from-root', async (config): Promise<void> => {
+    const {cwd} = config;
+    const files = await getFilesFromArchive(
+      path.join(cwd, 'files-include-from-root-v1.0.0.tgz'),
+      path.join(cwd, 'files-include-from-root-v1.0.0'),
+    );
+    expect(files.indexOf('index.js')).toBeGreaterThanOrEqual(0);
+    expect(files.indexOf('sub/index.js')).toEqual(-1);
+  });
+});
+
 test.concurrent('pack should included globbed files', (): Promise<void> => {
   return runPack([], {}, 'files-glob', async (config): Promise<void> => {
     const {cwd} = config;

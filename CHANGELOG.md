@@ -4,15 +4,15 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
-- Run the engines check before showing the UI for `upgrade-interactive`
+- Ensures the engine check is ran before showing the UI for `upgrade-interactive`
 
   [#6536](https://github.com/yarnpkg/yarn/pull/6536) - [**Orta Therox**](https://github.com/orta)
 
-- Restore Node v4 support by downgrading `cli-table3`
+- Restores Node v4 support by downgrading `cli-table3`
 
   [#6535](https://github.com/yarnpkg/yarn/pull/6535) - [**Mark Stacey**](https://github.com/Gudahtt)
 
-- Prevent infinite loop when parsing corrupted lockfile with unterminated string
+- Prevents infinite loop when parsing corrupted lockfiles with unterminated strings
 
   [#4965](https://github.com/yarnpkg/yarn/pull/4965) - [**Ryan Hendrickson**](https://github.com/rhendric)
 
@@ -35,6 +35,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 - Adds 2FA (Two Factor Authentication) support to publish & alike
 
   [#6555](https://github.com/yarnpkg/yarn/pull/6555) - [**Krzysztof Zbudniewek**](https://github.com/neonowy)
+
+- Fixes how the `files` property is interpreted to bring it in line with npm
+
+  [#6562](https://github.com/yarnpkg/yarn/pull/6562) - [**Bertrand Marron**](https://github.com/tusbar)
 
 ## 1.12.0
 
