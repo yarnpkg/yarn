@@ -32,6 +32,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#5322](https://github.com/yarnpkg/yarn/pull/5322) - [**Karolis Narkevicius**](https://twitter.com/KidkArolis)
 
+- Adds 2FA (Two Factor Authentication) support to publish & alike
+
+  [#6555](https://github.com/yarnpkg/yarn/pull/6555) - [**Krzysztof Zbudniewek**](https://github.com/neonowy)
+
 - Fixes how the `files` property is interpreted to bring it in line with npm
 
   [#6562](https://github.com/yarnpkg/yarn/pull/6562) - [**Bertrand Marron**](https://github.com/tusbar)

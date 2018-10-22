@@ -122,6 +122,7 @@ export async function main({
   );
   commander.option('--no-node-version-check', 'do not warn when using a potentially unsupported Node version');
   commander.option('--focus', 'Focus on a single workspace by installing remote copies of its sibling workspaces.');
+  commander.option('--otp <otpcode>', 'one-time password for two factor authentication');
 
   // if -v is the first command, then always exit after returning the version
   if (args[0] === '-v') {
@@ -527,6 +528,7 @@ export async function main({
       nonInteractive: commander.nonInteractive,
       updateChecksums: commander.updateChecksums,
       focus: commander.focus,
+      otp: commander.otp,
     })
     .then(() => {
       // lockfile check must happen after config.init sets lockfileFolder
