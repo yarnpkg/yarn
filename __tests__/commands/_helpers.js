@@ -92,6 +92,7 @@ export function makeConfigFromDirectory(cwd: string, reporter: Reporter, flags: 
       production: flags.production,
       updateChecksums: !!flags.updateChecksums,
       offline: !!flags.offline,
+      nonInteractive: typeof flags.nonInteractive !== 'undefined' ? Boolean(flags.nonInteractive) : true,
       focus: !!flags.focus,
       enableDefaultRc: !flags.noDefaultRc,
       extraneousYarnrcFiles: flags.useYarnrc,
