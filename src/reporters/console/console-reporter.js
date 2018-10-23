@@ -28,6 +28,7 @@ const chalk = require('chalk');
 const stripAnsi = require('strip-ansi');
 const read = require('read');
 const tty = require('tty');
+const emoji = require('node-emoji');
 
 const AUDIT_COL_WIDTHS = [15, 62];
 
@@ -189,16 +190,19 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   success(msg: string) {
-    this._logCategory('success', 'green', msg);
+    const category = this._prependEmoji('success', emoji.get('white_check_mark'));
+    this._logCategory(category, 'green', msg);
   }
 
   error(msg: string) {
+    const category = this._prependEmoji('error', emoji.get('red_cirle'));
     clearLine(this.stderr);
-    this.stderr.write(`${this.format.red('error')} ${msg}\n`);
+    this.stderr.write(`${this.format.red(category)} ${msg}\n`);
   }
 
   info(msg: string) {
-    this._logCategory('info', 'blue', msg);
+    const category = this._prependEmoji('info', emoji.get('information_source'));
+    this._logCategory(category, 'blue', msg);
   }
 
   command(command: string) {
@@ -206,8 +210,9 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   warn(msg: string) {
+    const category = this._prependEmoji('warning', emoji.get('warning'));
     clearLine(this.stderr);
-    this.stderr.write(`${this.format.yellow('warning')} ${msg}\n`);
+    this.stderr.write(`${this.format.yellow(category)} ${msg}\n`);
   }
 
   question(question: string, options?: QuestionOptions = {}): Promise<string> {
