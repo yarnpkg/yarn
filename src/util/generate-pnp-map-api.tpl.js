@@ -647,11 +647,47 @@ exports.setup = function setup() {
       return originalModuleResolveFilename.call(Module, request, parent, isMain, options);
     }
 
-    const issuerModule = getIssuerModule(parent);
-    const issuer = issuerModule ? issuerModule.filename : process.cwd() + '/';
+    let issuers;
 
-    const resolution = exports.resolveRequest(request, issuer);
-    return resolution !== null ? resolution : request;
+    if (options) {
+      const optionNames = new Set(Object.keys(options));
+      optionNames.delete('paths');
+
+      if (optionNames.size > 0) {
+        throw makeError(
+          `UNSUPPORTED`,
+          `Some options passed to require() aren't supported by PnP yet (${Array.from(optionNames).join(', ')})`,
+        );
+      }
+
+      if (options.paths) {
+        issuers = options.paths.map(entry => `${path.normalize(entry)}/`);
+      }
+    }
+
+    if (!issuers) {
+      const issuerModule = getIssuerModule(parent);
+      const issuer = issuerModule ? issuerModule.filename : `${process.cwd()}/`;
+
+      issuers = [issuer];
+    }
+
+    let firstError;
+
+    for (const issuer of issuers) {
+      let resolution;
+
+      try {
+        resolution = exports.resolveRequest(request, issuer);
+      } catch (error) {
+        firstError = firstError || error;
+        continue;
+      }
+
+      return resolution !== null ? resolution : request;
+    }
+
+    throw firstError;
   };
 
   const originalFindPath = Module._findPath;
