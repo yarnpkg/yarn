@@ -44,7 +44,7 @@ export default function<T>(
       stdin: new Stdin(),
       stdout: buildStream('stdout'),
       stderr: buildStream('stderr'),
-      emoji: true,
+      emoji: false,
       ...(opts || {}),
     };
 
