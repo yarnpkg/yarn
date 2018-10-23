@@ -40,6 +40,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#6562](https://github.com/yarnpkg/yarn/pull/6562) - [**Bertrand Marron**](https://github.com/tusbar)
 
+- Fixes `require.resolve` when used together with the `paths` option
+
+  [#6565](https://github.com/yarnpkg/yarn/pull/6565) - [**Maël Nison**](https://twitter.com/arcanis)
+
 ## 1.12.0
 
 - Adds initial support for PnP on Windows
