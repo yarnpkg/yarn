@@ -40,6 +40,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#6562](https://github.com/yarnpkg/yarn/pull/6562) - [**Bertrand Marron**](https://github.com/tusbar)
 
+- Fixes Yarn invocations on Darwin when the `yarn` binary was symlinked
+
+  [#6568](https://github.com/yarnpkg/yarn/pull/6568) - [**Hidde Boomsma**](https://github.com/hboomsma)
+
 ## 1.12.0
 
 - Adds initial support for PnP on Windows
