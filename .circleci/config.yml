@@ -155,9 +155,9 @@ jobs:
           name: Install Node 10
           command: |
             brew uninstall --ignore-dependencies node
-            brew update
             HOMEBREW_NO_AUTO_UPDATE=1 brew install node@10
-            brew link --force node@10
+            brew link --overwrite --force node@10
+            [[ $(node --version) =~ ^v10\. ]]
       - *attach_workspace
       - *test_build
       - *test_run
@@ -169,7 +169,8 @@ jobs:
           command: |
             brew uninstall --ignore-dependencies node
             HOMEBREW_NO_AUTO_UPDATE=1 brew install node@8
-            brew link --force node@8
+            brew link --overwrite --force node@8
+            [[ $(node --version) =~ ^v8\. ]]
       - *attach_workspace
       - *test_build
       - *test_run
@@ -181,7 +182,8 @@ jobs:
           command: |
             brew uninstall --ignore-dependencies node
             HOMEBREW_NO_AUTO_UPDATE=1 brew install node@6
-            brew link --force node@6
+            brew link --overwrite --force node@6
+            [[ $(node --version) =~ ^v6\. ]]
       - *attach_workspace
       - *test_build
       - *test_run
