@@ -430,6 +430,7 @@ const messages = {
   supportInfo: 'Yarn version: $0\nNode version: $1\nOperating System: $2',
   supportInfoPackageJson: 'Current package.json:\n $0',
   supportInfoYarnLock: 'Current yarn.lock:\n $0',
+  supportInfoCopied: 'Details have been copied to your clipboard.',
   supportYarnOutdated:
     "Please update to the latest version of yarn before opening an issue. The latest version is $0, while you're on $1.",
 };

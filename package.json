@@ -12,6 +12,7 @@
     "camelcase": "^4.0.0",
     "chalk": "^2.1.0",
     "cli-table3": "^0.4.0",
+    "clipboardy": "1.2.3",
     "commander": "^2.9.0",
     "death": "^1.0.0",
     "debug": "^3.0.0",
