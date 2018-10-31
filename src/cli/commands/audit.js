@@ -160,13 +160,18 @@ export default class Audit {
   _mapHoistedNodes(auditNode: AuditNode, hoistedNodes: HoistedTrees) {
     for (const node of hoistedNodes) {
       const pkg = node.manifest.pkg;
+      const requires = Object.assign({}, pkg.dependencies || {}, pkg.optionalDependencies || {});
+      for (const name of Object.keys(requires)) {
+        if (!requires[name]) {
+          requires[name] = '*';
+        }
+      }
       auditNode.dependencies[node.name] = {
         version: node.version,
         integrity: pkg._remote ? pkg._remote.integrity || '' : '',
-        requires: Object.assign({}, pkg.dependencies || {}, pkg.optionalDependencies || {}),
+        requires,
         dependencies: {},
       };
-
       if (node.children) {
         this._mapHoistedNodes(auditNode.dependencies[node.name], node.children);
       }
