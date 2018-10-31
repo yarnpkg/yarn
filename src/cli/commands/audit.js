@@ -175,7 +175,7 @@ export default class Audit {
 
   _mapHoistedTreesToAuditTree(manifest: Object, hoistedTrees: HoistedTrees): AuditTree {
     const auditTree: AuditTree = {
-      name: manifest.name,
+      name: manifest.name || undefined,
       version: manifest.version || undefined,
       install: [],
       remove: [],
