@@ -196,7 +196,7 @@ export default class Audit {
       integrity: undefined,
       dependencies: {},
     };
-
+ 
     this._mapHoistedNodes(auditTree, hoistedTrees);
     return auditTree;
   }
