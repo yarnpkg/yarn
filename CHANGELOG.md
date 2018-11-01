@@ -4,6 +4,14 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Fixes an issue with `yarn audit` when the root package was missing a name
+
+  [#6611](https://github.com/yarnpkg/yarn/pull/6611) - [**Jack Zhao**](https://github.com/bugzpodder)
+
+- Fixes an issue with `yarn audit` when a package was depending on an empty range
+
+  [#6611](https://github.com/yarnpkg/yarn/pull/6611) - [**Jack Zhao**](https://github.com/bugzpodder)
+
 ## 1.12.1
 
 - Ensures the engine check is ran before showing the UI for `upgrade-interactive`
