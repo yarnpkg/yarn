@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Fixes Gulp when used with Plug'n'Play
+
+  [#6623](https://github.com/yarnpkg/yarn/pull/6623) - [**Maël Nison**](https://twitter.com/arcanis)
+
 - Fixes an issue with `yarn audit` when the root package was missing a name
 
   [#6611](https://github.com/yarnpkg/yarn/pull/6611) - [**Jack Zhao**](https://github.com/bugzpodder)
