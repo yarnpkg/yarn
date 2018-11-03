@@ -1340,5 +1340,58 @@ module.exports = makeTemporaryEnv => {
         },
       ),
     );
+
+    test(
+      `it should not break spawning new Node processes ('node' command)`,
+      makeTemporaryEnv(
+        {
+          dependencies: {[`no-deps`]: `1.0.0`},
+        },
+        {plugNPlay: true},
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await writeFile(`${path}/script.js`, `console.log(JSON.stringify(require('no-deps')))`);
+
+          await expect(
+            source(
+              `JSON.parse(require('child_process').execFileSync(process.execPath, [${JSON.stringify(
+                `${path}/script.js`,
+              )}]).toString())`,
+            ),
+          ).resolves.toMatchObject({
+            name: `no-deps`,
+            version: `1.0.0`,
+          });
+        },
+      ),
+    );
+
+    test(
+      `it should not break spawning new Node processes ('run' command)`,
+      makeTemporaryEnv(
+        {
+          dependencies: {[`no-deps`]: `1.0.0`},
+          scripts: {[`script`]: `node main.js`},
+        },
+        {plugNPlay: true},
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await writeFile(`${path}/sub.js`, `console.log(JSON.stringify(require('no-deps')))`);
+          await writeFile(
+            `${path}/main.js`,
+            `console.log(require('child_process').execFileSync(process.execPath, [${JSON.stringify(
+              `${path}/sub.js`,
+            )}]).toString())`,
+          );
+
+          expect(JSON.parse((await run(`run`, `script`)).stdout)).toMatchObject({
+            name: `no-deps`,
+            version: `1.0.0`,
+          });
+        },
+      ),
+    );
   });
 };
