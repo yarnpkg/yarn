@@ -82,7 +82,7 @@ export default class BaseFetcher {
           if (process.platform === 'win32') {
             const unlockMutex = await lockMutex(src);
             try {
-              await cmdShim(src, `${binDest}/${binName}`);
+              await cmdShim.ifExists(src, `${binDest}/${binName}`);
             } finally {
               unlockMutex();
             }
