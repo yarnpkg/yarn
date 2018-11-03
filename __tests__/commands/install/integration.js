@@ -48,6 +48,11 @@ async function mockConstants(base: Config, mocks: Object, cb: (config: Config) =
 beforeEach(request.__resetAuthedRequests);
 afterEach(request.__resetAuthedRequests);
 
+test('install should not copy the .bin folders from the cache', () =>
+  runInstall({}, 'install-no-bin', async config => {
+    expect(await fs.exists(`${config.cwd}/node_modules/is-pnp/.bin`)).toEqual(false);
+  }));
+
 test('install should not hoist packages above their peer dependencies', () =>
   runInstall({}, 'install-should-not-hoist-through-peer-deps', async config => {
     expect(await fs.exists(`${config.cwd}/node_modules/a/node_modules/c`)).toEqual(true);
