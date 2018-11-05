@@ -186,6 +186,12 @@ exports.makeFakeBinary = async function(
   target: string,
   {output = `Fake binary`, exitCode = 1}: {|output: string, exitCode: number|} = {},
 ): Promise<void> {
-  await exports.writeFile(target, `#!/bin/sh\necho "${output}"\nexit ${exitCode}\n`);
+  let header = "#!/bin/sh\n";
+  if (process.platform === 'win32') {
+    target += ".cmd";
+    header = "@echo off\n";
+  }
+
+  await exports.writeFile(target, `${header}echo "${output}"\nexit ${exitCode}\n`);
   await exports.chmod(target, 0o755);
 };
