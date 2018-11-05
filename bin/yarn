@@ -3,6 +3,7 @@ argv0=$(echo "$0" | sed -e 's,\\,/,g')
 basedir=$(dirname "$(readlink "$0" || echo "$argv0")")
 
 case "$(uname -s)" in
+  Darwin) basedir="$( cd "$( dirname "$argv0" )" && pwd )";;
   Linux) basedir=$(dirname "$(readlink -f "$0" || echo "$argv0")");;
   *CYGWIN*) basedir=`cygpath -w "$basedir"`;;
   *MSYS*) basedir=`cygpath -w "$basedir"`;;

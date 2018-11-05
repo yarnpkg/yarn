@@ -575,7 +575,7 @@ export class Install {
     if (!this.flags.ignoreEngines && typeof manifest.engines === 'object') {
       steps.push(async (curr: number, total: number) => {
         this.reporter.step(curr, total, this.reporter.lang('checkingManifest'), emoji.get('mag'));
-        await compatibility.checkOne({_reference: {}, ...manifest}, this.config, this.flags.ignoreEngines);
+        await this.checkCompatibility();
       });
     }
 
@@ -741,6 +741,11 @@ export class Install {
     this.maybeOutputUpdate();
     this.config.requestManager.clearCache();
     return flattenedTopLevelPatterns;
+  }
+
+  async checkCompatibility(): Promise<void> {
+    const {manifest} = await this.fetchRequestFromCwd();
+    await compatibility.checkOne({_reference: {}, ...manifest}, this.config, this.flags.ignoreEngines);
   }
 
   async persistChanges(): Promise<void> {

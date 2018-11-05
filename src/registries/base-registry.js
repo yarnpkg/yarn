@@ -66,6 +66,9 @@ export default class BaseRegistry {
   token: string;
 
   //
+  otp: string;
+
+  //
   cwd: string;
 
   //
@@ -79,6 +82,10 @@ export default class BaseRegistry {
 
   setToken(token: string) {
     this.token = token;
+  }
+
+  setOtp(otp: string) {
+    this.otp = otp;
   }
 
   getOption(key: string): mixed {
@@ -151,7 +158,7 @@ export default class BaseRegistry {
       let key = envKey.toLowerCase();
 
       // only accept keys prefixed with the prefix
-      if (key.indexOf(prefix.toLowerCase()) < 0) {
+      if (key.indexOf(prefix.toLowerCase()) !== 0) {
         continue;
       }
 

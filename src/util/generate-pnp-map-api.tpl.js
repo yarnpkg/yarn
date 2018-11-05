@@ -518,7 +518,7 @@ exports.resolveRequest = function resolveRequest(request, issuer, {considerBuilt
         }
 
         try {
-          exports.resolveToUnqualified(request, realIssuer, {extensions});
+          exports.resolveToUnqualified(request, realIssuer, {considerBuiltins});
         } catch (error) {
           // If an error was thrown, the problem doesn't seem to come from a path not being normalized, so we
           // can just throw the original error which was legit.
@@ -547,7 +547,7 @@ exports.resolveRequest = function resolveRequest(request, issuer, {considerBuilt
   }
 
   try {
-    return exports.resolveUnqualified(unqualifiedPath);
+    return exports.resolveUnqualified(unqualifiedPath, {extensions});
   } catch (resolutionError) {
     if (resolutionError.code === 'QUALIFIED_PATH_RESOLUTION_FAILED') {
       Object.assign(resolutionError.data, {request, issuer});
@@ -647,11 +647,47 @@ exports.setup = function setup() {
       return originalModuleResolveFilename.call(Module, request, parent, isMain, options);
     }
 
-    const issuerModule = getIssuerModule(parent);
-    const issuer = issuerModule ? issuerModule.filename : process.cwd() + '/';
+    let issuers;
 
-    const resolution = exports.resolveRequest(request, issuer);
-    return resolution !== null ? resolution : request;
+    if (options) {
+      const optionNames = new Set(Object.keys(options));
+      optionNames.delete('paths');
+
+      if (optionNames.size > 0) {
+        throw makeError(
+          `UNSUPPORTED`,
+          `Some options passed to require() aren't supported by PnP yet (${Array.from(optionNames).join(', ')})`,
+        );
+      }
+
+      if (options.paths) {
+        issuers = options.paths.map(entry => `${path.normalize(entry)}/`);
+      }
+    }
+
+    if (!issuers) {
+      const issuerModule = getIssuerModule(parent);
+      const issuer = issuerModule ? issuerModule.filename : `${process.cwd()}/`;
+
+      issuers = [issuer];
+    }
+
+    let firstError;
+
+    for (const issuer of issuers) {
+      let resolution;
+
+      try {
+        resolution = exports.resolveRequest(request, issuer);
+      } catch (error) {
+        firstError = firstError || error;
+        continue;
+      }
+
+      return resolution !== null ? resolution : request;
+    }
+
+    throw firstError;
   };
 
   const originalFindPath = Module._findPath;
@@ -712,7 +748,7 @@ exports.setupCompatibilityLayer = () => {
   // at all unless modulePath is set, which we cannot configure from any other way than through
   // the Liftoff pipeline (the key isn't whitelisted for env or cli options).
 
-  patchedModules.set(/^resolve$/, realResolve => {
+  patchedModules.set('resolve', realResolve => {
     const mustBeShimmed = caller => {
       const callerLocator = exports.findPackageLocator(caller);
 

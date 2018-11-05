@@ -6,6 +6,11 @@ import NpmRegistry from '../../src/registries/npm-registry.js';
 import {BufferReporter} from '../../src/reporters/index.js';
 import homeDir, {home} from '../../src/util/user-home-dir.js';
 
+function basicAuth(username, password): string {
+  const pw = Buffer.from(String(password), 'base64').toString();
+  return Buffer.from(String(username) + ':' + pw).toString('base64');
+}
+
 describe('normalizeConfig', () => {
   beforeAll(() => {
     process.env.REPLACE = 'REPLACED';
@@ -80,6 +85,10 @@ describe('request', () => {
     const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
     npmRegistry.config = config;
     return {
+      setOtp(otp: string) {
+        npmRegistry.setOtp(otp);
+      },
+
       request(url: string, options: Object, packageName: string): Object {
         npmRegistry.request(url, options, packageName);
         const lastIndex = mockRequestManager.request.mock.calls.length - 1;
@@ -94,6 +103,17 @@ describe('request', () => {
     const config = {};
     const requestParams = createRegistry(config).request(url);
     expect(requestParams.url).toBe(url);
+  });
+
+  test('should add `npm-otp` header', () => {
+    const url = 'https://registry.npmjs.org/yarn';
+    const config = {};
+    const registry = createRegistry(config);
+
+    registry.setOtp('123 456');
+
+    const requestParams = registry.request(url);
+    expect(requestParams.headers['npm-otp']).toBe('123 456');
   });
 
   const testCases = [
@@ -554,6 +574,46 @@ describe('request', () => {
         },
       ],
     },
+    {
+      title: 'using username/password config for registries where pathnames play a role',
+      config: {
+        '@private:registry': 'https://registry.myorg.com/api/npm/registry/',
+        '//registry.myorg.com/api/npm/registry/:username': 'scopedPrivateUsername',
+        '//registry.myorg.com/api/npm/registry/:_password': 'scopedPrivatePassword',
+        '//registry.myorg.com/api/packages/:username': 'scopedPrivateUsername',
+        '//registry.myorg.com/api/packages/:_password': 'scopedPrivatePassword',
+      },
+      requests: [
+        {
+          url: '@private/pkg',
+          pkg: '@private/pkg',
+          expect: {
+            root: 'https://registry.myorg.com/api/npm/registry/',
+            auth: basicAuth('scopedPrivateUsername', 'scopedPrivatePassword'),
+            basicAuth: true,
+          },
+        },
+        {
+          url: 'https://some.cdn.com/some-hash/@private-pkg-1.0.0.tar.gz',
+          pkg: '@private/pkg',
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: 'https://some.cdn.com/@private/pkg',
+          pkg: null,
+          expect: {root: 'https://some.cdn.com', auth: false},
+        },
+        {
+          url: 'https://registry.myorg.com/api/packages/private---pkg.tar.gz',
+          pkg: '@private/pkg',
+          expect: {
+            root: 'https://registry.myorg.com/api/packages/',
+            auth: basicAuth('scopedPrivateUsername', 'scopedPrivatePassword'),
+            basicAuth: true,
+          },
+        },
+      ],
+    },
   ];
 
   testCases.forEach(testCase => {
@@ -566,7 +626,11 @@ describe('request', () => {
         (req.skip ? it.skip : req.only ? it.only : it)(desc, () => {
           const requestParams = registry.request(req.url, {}, req.pkg);
           expect(requestParams.url.substr(0, req.expect.root.length)).toBe(req.expect.root);
-          expect(requestParams.headers.authorization).toBe(req.expect.auth ? `Bearer ${req.expect.auth}` : undefined);
+          if (req.expect.basicAuth) {
+            expect(requestParams.headers.authorization).toBe(req.expect.auth ? `Basic ${req.expect.auth}` : undefined);
+          } else {
+            expect(requestParams.headers.authorization).toBe(req.expect.auth ? `Bearer ${req.expect.auth}` : undefined);
+          }
         });
       });
     });

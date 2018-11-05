@@ -4,7 +4,67 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
-*Nothing yet*
+- Fixes Gulp when used with Plug'n'Play
+
+  [#6623](https://github.com/yarnpkg/yarn/pull/6623) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Fixes an issue with `yarn audit` when the root package was missing a name
+
+  [#6611](https://github.com/yarnpkg/yarn/pull/6611) - [**Jack Zhao**](https://github.com/bugzpodder)
+
+- Fixes an issue with `yarn audit` when a package was depending on an empty range
+
+  [#6611](https://github.com/yarnpkg/yarn/pull/6611) - [**Jack Zhao**](https://github.com/bugzpodder)
+
+- Fixes an issue with how symlinks are setup into the cache on Windows
+
+  [#6621](https://github.com/yarnpkg/yarn/pull/6621) - [**Yoad Snapir**](https://github.com/yoadsn)
+
+## 1.12.1
+
+- Ensures the engine check is ran before showing the UI for `upgrade-interactive`
+
+  [#6536](https://github.com/yarnpkg/yarn/pull/6536) - [**Orta Therox**](https://github.com/orta)
+
+- Restores Node v4 support by downgrading `cli-table3`
+
+  [#6535](https://github.com/yarnpkg/yarn/pull/6535) - [**Mark Stacey**](https://github.com/Gudahtt)
+
+- Prevents infinite loop when parsing corrupted lockfiles with unterminated strings
+
+  [#4965](https://github.com/yarnpkg/yarn/pull/4965) - [**Ryan Hendrickson**](https://github.com/rhendric)
+
+- Environment variables now have to **start** with `YARN_` (instead of just contain it) to be considered
+
+  [#6518](https://github.com/yarnpkg/yarn/pull/6518) - [**Michael Gmelin**](https://blog.grem.de)
+
+- Fixes the `extensions` option when used by `resolveRequest`
+
+  [#6479](https://github.com/yarnpkg/yarn/pull/6479) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Fixes handling of empty string entries for `bin` in package.json
+
+  [#6515](https://github.com/yarnpkg/yarn/pull/6515) - [**Ryan Burrows**](https://github.com/rhburrows)
+
+- Adds support for basic auth for registries with paths, such as artifactory
+
+  [#5322](https://github.com/yarnpkg/yarn/pull/5322) - [**Karolis Narkevicius**](https://twitter.com/KidkArolis)
+
+- Adds 2FA (Two Factor Authentication) support to publish & alike
+
+  [#6555](https://github.com/yarnpkg/yarn/pull/6555) - [**Krzysztof Zbudniewek**](https://github.com/neonowy)
+
+- Fixes how the `files` property is interpreted to bring it in line with npm
+
+  [#6562](https://github.com/yarnpkg/yarn/pull/6562) - [**Bertrand Marron**](https://github.com/tusbar)
+
+- Fixes Yarn invocations on Darwin when the `yarn` binary was symlinked
+
+  [#6568](https://github.com/yarnpkg/yarn/pull/6568) - [**Hidde Boomsma**](https://github.com/hboomsma)
+
+- Fixes `require.resolve` when used together with the `paths` option
+
+  [#6565](https://github.com/yarnpkg/yarn/pull/6565) - [**Maël Nison**](https://twitter.com/arcanis)
 
 ## 1.12.0
 

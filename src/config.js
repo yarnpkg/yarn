@@ -68,6 +68,8 @@ export type ConfigOptions = {
   updateChecksums?: boolean,
 
   focus?: boolean,
+
+  otp?: string,
 };
 
 type PackageMetadata = {
@@ -206,6 +208,8 @@ export default class Config {
   focusedWorkspaceName: string;
 
   autoAddIntegrity: boolean;
+
+  otp: ?string;
 
   /**
    * Execute a promise produced by factory if it doesn't exist in our cache with
@@ -495,6 +499,8 @@ export default class Config {
 
     this.focus = !!opts.focus;
     this.focusedWorkspaceName = '';
+
+    this.otp = opts.otp || '';
   }
 
   /**

@@ -123,3 +123,42 @@ test('calls reporter auditSummary with correct data', () => {
     expect(reporter.auditSummary).toBeCalledWith(apiResponse.metadata);
   });
 });
+
+test.concurrent('sends correct dependency map to audit api for private package.', () => {
+  const expectedApiPost = {
+    install: [],
+    remove: [],
+    metadata: {},
+    requires: {
+      'left-pad': '^1.3.0',
+    },
+    dependencies: {
+      'left-pad': {
+        version: '1.3.0',
+        integrity: 'sha512-XI5MPzVNApjAyhQzphX8BkmKsKUxD4LdyK24iZeQGinBN9yTQT3bFlCBy/aVx2HrNcqQGsdot8ghrjyrvMCoEA==',
+        requires: {},
+        dependencies: {},
+      },
+    },
+  };
+
+  return runAudit([], {}, 'private-package', async config => {
+    const calledWithPipe = config.requestManager.request.mock.calls[0][0].body;
+    const calledWith = JSON.parse(await gunzip(calledWithPipe));
+    expect(calledWith).toEqual(expectedApiPost);
+  });
+});
+
+test('calls reporter auditAdvisory with correct data for private package', () => {
+  return runAudit([], {}, 'single-vulnerable-dep-installed', (config, reporter) => {
+    const apiResponse = getAuditResponse(config);
+    expect(reporter.auditAdvisory).toBeCalledWith(apiResponse.actions[0].resolves[0], apiResponse.advisories['118']);
+  });
+});
+
+test('calls reporter auditSummary with correct data for private package', () => {
+  return runAudit([], {}, 'single-vulnerable-dep-installed', (config, reporter) => {
+    const apiResponse = getAuditResponse(config);
+    expect(reporter.auditSummary).toBeCalledWith(apiResponse.metadata);
+  });
+});

@@ -48,6 +48,11 @@ async function mockConstants(base: Config, mocks: Object, cb: (config: Config) =
 beforeEach(request.__resetAuthedRequests);
 afterEach(request.__resetAuthedRequests);
 
+test('install should not copy the .bin folders from the cache', () =>
+  runInstall({}, 'install-no-bin', async config => {
+    expect(await fs.exists(`${config.cwd}/node_modules/is-pnp/.bin`)).toEqual(false);
+  }));
+
 test('install should not hoist packages above their peer dependencies', () =>
   runInstall({}, 'install-should-not-hoist-through-peer-deps', async config => {
     expect(await fs.exists(`${config.cwd}/node_modules/a/node_modules/c`)).toEqual(true);
@@ -512,6 +517,10 @@ test('install renamed packages', () =>
 
     const json2 = await fs.readJson(path.join(dir, 'left-pad2', 'package.json'));
     expect(json2.version).toEqual('1.1.0');
+
+    const json3 = await fs.readJson(path.join(dir, 'unscoped-turf-helpers', 'package.json'));
+    expect(json3.version).toEqual('3.0.16');
+    expect(json3.name).toEqual('@turf/helpers');
   }));
 
 test('install from git cache', () =>
