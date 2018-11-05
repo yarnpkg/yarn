@@ -17,29 +17,31 @@ jobs:
         node_version: 10.x
 
   steps:
-  - task: NodeTool@0
+  - displayName: 'Install Node.js'
+    task: NodeTool@0
     inputs:
       versionSpec: $(node_version)
-    displayName: 'Install Node.js'
 
-  - bash: |
+  - displayName: 'Install and build'
+    bash: |
       yarn
       yarn run build
       ls -lhR bin
       ls -lhR lib
-    displayName: 'install and build'
 
-  - script: |
+  - displayName: 'Install the acceptance tests'
+    script: |
       cd packages/pkg-tests
       yarn
-    displayName: 'install the acceptance tests'
 
-  - script: |
+  - displayName: 'Run the acceptance tests'
+    script: |
       cd packages/pkg-tests
       yarn jest yarn --detectOpenHandles --reporters=default --reporters=jest-junit
-    displayName: 'run the acceptance tests'
 
-  - task: PublishTestResults@2
+  - displayName: 'Publishing the test results'
+    condition: always()
+    task: PublishTestResults@2
     inputs:
       testResultsFiles: '**/junit.xml'
 
