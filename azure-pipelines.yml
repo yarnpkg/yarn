@@ -39,9 +39,10 @@ jobs:
       yarn jest yarn --detectOpenHandles --reporters=default --reporters=jest-junit
     displayName: 'run the acceptance tests'
 
-- task: PublishTestResults@2
-  inputs:
-    testResultsFiles: '**/junit.xml'
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFiles: '**/junit.xml'
+
 # - job: Linux
 #
 #   pool:
