@@ -11,6 +11,8 @@ const zlib = require('zlib');
 
 const miscUtils = require('./misc');
 
+const IS_WIN32 = process.platform === `win32`;
+
 exports.walk = function walk(
   source: string,
   {filter, relative = false}: {|filter?: Array<string>, relative?: boolean|} = {},
@@ -186,12 +188,9 @@ exports.makeFakeBinary = async function(
   target: string,
   {output = `Fake binary`, exitCode = 1}: {|output: string, exitCode: number|} = {},
 ): Promise<void> {
-  let header = "#!/bin/sh\n";
-  if (process.platform === 'win32') {
-    target += ".cmd";
-    header = "@echo off\n";
-  }
+  const realTarget = IS_WIN32 ? `${target}.cmd` : target;
+  const header = IS_WIN32 ? `@echo off\n` : `#!/bin/sh\n`;
 
-  await exports.writeFile(target, `${header}echo "${output}"\nexit ${exitCode}\n`);
-  await exports.chmod(target, 0o755);
+  await exports.writeFile(realTarget, `${header}echo ${output}\nexit ${exitCode}\n`);
+  await exports.chmod(realTarget, 0o755);
 };
