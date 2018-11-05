@@ -16,6 +16,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#6611](https://github.com/yarnpkg/yarn/pull/6611) - [**Jack Zhao**](https://github.com/bugzpodder)
 
+- Fixes an issue with how symlinks are setup into the cache on Windows
+
+  [#6621](https://github.com/yarnpkg/yarn/pull/6621) - [**Yoad Snapir**](https://github.com/yoadsn)
+
 ## 1.12.1
 
 - Ensures the engine check is ran before showing the UI for `upgrade-interactive`
