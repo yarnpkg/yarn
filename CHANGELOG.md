@@ -28,7 +28,7 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#6621](https://github.com/yarnpkg/yarn/pull/6621) - [**Yoad Snapir**](https://github.com/yoadsn)
   
-- Upgrades `enquirer`, fixing `upgrade-interactive` for users using both Node 10 and Windows
+- Upgrades `inquirer`, fixing `upgrade-interactive` for users using both Node 10 and Windows
 
   [#6635](https://github.com/yarnpkg/yarn/pull/6635) - [**Philipp Feigl**](https://github.com/pfeigl)
 
