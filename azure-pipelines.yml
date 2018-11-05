@@ -36,9 +36,12 @@ jobs:
 
   - script: |
       cd packages/pkg-tests
-      yarn jest yarn --detectOpenHandles
+      yarn jest yarn --detectOpenHandles --reporters=default --reporters=jest-junit
     displayName: 'run the acceptance tests'
 
+- task: PublishTestResults@2
+  inputs:
+    testResultsFiles: '**/junit.xml'
 # - job: Linux
 #
 #   pool:
