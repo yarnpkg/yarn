@@ -148,7 +148,7 @@ export default class TarballFetcher extends BaseFetcher {
       reject(new MessageError(this.config.reporter.lang('errorExtractingTarball', err.message, tarballPath)));
     });
 
-    const end = () => {
+    extractorStream.pipe(untarStream).on('finish', () => {
       const error = this.validateError;
       const hexDigest = this.validateIntegrity ? this.validateIntegrity.hexDigest() : '';
       if (
@@ -190,10 +190,6 @@ export default class TarballFetcher extends BaseFetcher {
         hash: this.hash || hexDigest,
       });
     };
-
-    extractorStream.pipe(untarStream).on('finish', () => {
-      setTimeout(end, 1000);
-    });
 
     return {validateStream, extractorStream};
   }
