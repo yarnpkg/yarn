@@ -189,7 +189,7 @@ export default class TarballFetcher extends BaseFetcher {
       return resolve({
         hash: this.hash || hexDigest,
       });
-    };
+    });
 
     return {validateStream, extractorStream};
   }
