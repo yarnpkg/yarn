@@ -16,7 +16,7 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#6611](https://github.com/yarnpkg/yarn/pull/6611) - [**Jack Zhao**](https://github.com/bugzpodder)
 
-- Fixes an issue with symlink usage in base-fetcher running inside Azure win32 App Services sandbox
+- Fixes an issue with how symlinks are setup into the cache on Windows
 
   [#6621](https://github.com/yarnpkg/yarn/pull/6621) - [**Yoad Snapir**](https://github.com/yoadsn)
 
