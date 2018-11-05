@@ -748,7 +748,7 @@ exports.setupCompatibilityLayer = () => {
   // at all unless modulePath is set, which we cannot configure from any other way than through
   // the Liftoff pipeline (the key isn't whitelisted for env or cli options).
 
-  patchedModules.set(/^resolve$/, realResolve => {
+  patchedModules.set('resolve', realResolve => {
     const mustBeShimmed = caller => {
       const callerLocator = exports.findPackageLocator(caller);
 

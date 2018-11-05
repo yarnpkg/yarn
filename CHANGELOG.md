@@ -12,6 +12,22 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#6479](https://github.com/yarnpkg/yarn/pull/6629) - [**Maël Nison**](https://twitter.com/arcanis)
 
+- Fixes Gulp when used with Plug'n'Play
+
+  [#6623](https://github.com/yarnpkg/yarn/pull/6623) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Fixes an issue with `yarn audit` when the root package was missing a name
+
+  [#6611](https://github.com/yarnpkg/yarn/pull/6611) - [**Jack Zhao**](https://github.com/bugzpodder)
+
+- Fixes an issue with `yarn audit` when a package was depending on an empty range
+
+  [#6611](https://github.com/yarnpkg/yarn/pull/6611) - [**Jack Zhao**](https://github.com/bugzpodder)
+
+- Fixes an issue with how symlinks are setup into the cache on Windows
+
+  [#6621](https://github.com/yarnpkg/yarn/pull/6621) - [**Yoad Snapir**](https://github.com/yoadsn)
+
 ## 1.12.1
 
 - Ensures the engine check is ran before showing the UI for `upgrade-interactive`
