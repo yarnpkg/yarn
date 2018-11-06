@@ -34,7 +34,7 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 - Exposes the path to the PnP file using `require.resolve('pnpapi')`
 
-  [#6623](https://github.com/yarnpkg/yarn/pull/6623) - [**Maël Nison**](https://twitter.com/arcanis)
+  [#6643](https://github.com/yarnpkg/yarn/pull/6643) - [**Maël Nison**](https://twitter.com/arcanis)
 
 ## 1.12.1
 
