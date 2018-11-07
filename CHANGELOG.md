@@ -4,6 +4,8 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+## 1.12.3
+
 **Important:** This release contains a cache bump. It will cause the very first install following the upgrade to take slightly more time, especially if you don't use the [Offline Mirror](https://yarnpkg.com/blog/2016/11/24/offline-mirror/) feature. After that everything will be back to normal.
 
 - Fixes an issue with `yarn audit` when using workspaces
@@ -39,6 +41,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 - Exposes the path to the PnP file using `require.resolve('pnpapi')`
 
   [#6643](https://github.com/yarnpkg/yarn/pull/6643) - [**Maël Nison**](https://twitter.com/arcanis)
+
+## 1.12.2
+
+This release doesn't actually exists and was caused by a quirk in our systems.
 
 ## 1.12.1
 
