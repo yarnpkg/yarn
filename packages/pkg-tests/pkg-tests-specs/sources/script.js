@@ -12,22 +12,18 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
     test(
       `it should run scripts using the same Node than the one used by Yarn`,
       makeTemporaryEnv({scripts: {myScript: `node --version`}}, async ({path, run, source}) => {
-        await makeFakeBinary(`${path}/bin/node`, {exitCode: 0, output: `local-node`});
+        await makeFakeBinary(`${path}/bin/node`, {exitCode: 1});
 
-        await expect(run(`run`, `myScript`)).resolves.toMatchObject({
-          stdout: `local-node\n`,
-        });
+        await expect(run(`run`, `myScript`)).resolves.toBeTruthy();
       }),
     );
 
     test(
       `it should run scripts using the same package manager than the one running the scripts`,
       makeTemporaryEnv({scripts: {myScript: `yarn --version`}}, async ({path, run, source}) => {
-        await makeFakeBinary(`${path}/bin/yarn`, {exitCode: 0, output: `local-yarn`});
+        await makeFakeBinary(`${path}/bin/yarn`, {exitCode: 1});
 
-        await expect(run(`run`, `myScript`)).resolves.toMatchObject({
-          stdout: `local-yarn\n`,
-        });
+        await expect(run(`run`, `myScript`)).resolves.toBeTruthy();
       }),
     );
 
