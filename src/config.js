@@ -90,11 +90,7 @@ export type RootManifests = {
 };
 
 function sortObject(object: Object): Object {
-  const sortedObject = {};
-  Object.keys(object).sort().forEach(item => {
-    sortedObject[item] = object[item];
-  });
-  return sortedObject;
+  return Object.keys(object).sort().reduce((acc, key) => (acc[key] = object[key], acc), {});
 }
 
 export default class Config {
