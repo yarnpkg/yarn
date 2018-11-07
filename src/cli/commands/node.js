@@ -21,14 +21,16 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const pnpPath = `${config.lockfileFolder}/${PNP_FILENAME}`;
 
+  let nodeOptions = process.env.NODE_OPTIONS || '';
   if (await fs.exists(pnpPath)) {
-    args = ['-r', pnpPath, ...args];
+    nodeOptions += ` --require ${pnpPath}`;
   }
 
   try {
     await child.spawn(NODE_BIN_PATH, args, {
       stdio: 'inherit',
       cwd: flags.into || config.cwd,
+      env: {...process.env, NODE_OPTIONS: nodeOptions},
     });
   } catch (err) {
     throw err;

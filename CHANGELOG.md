@@ -4,6 +4,44 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## 1.12.1
 
+**Important:** This release contains a cache bump. It will cause the very first install following the upgrade to take slightly more time, especially if you don't use the [Offline Mirror](https://yarnpkg.com/blog/2016/11/24/offline-mirror/) feature. After that everything will be back to normal.
+
+- Fixes an issue with `yarn audit` when using workspaces
+
+  [#6625](https://github.com/yarnpkg/yarn/pull/6639) - [**Jeff Valore**](https://twitter.com/codingwithspike)
+
+- Uses `NODE_OPTIONS` to instruct Node to load the PnP hook, instead of raw CLI arguments
+
+  **Caveat:** This change might cause issues for PnP users having a space inside their cwd (cf [nodejs/node#24065](https://github.com/nodejs/node/pull/24065))
+
+  [#6479](https://github.com/yarnpkg/yarn/pull/6629) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Fixes Gulp when used with Plug'n'Play
+
+  [#6623](https://github.com/yarnpkg/yarn/pull/6623) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Fixes an issue with `yarn audit` when the root package was missing a name
+
+  [#6611](https://github.com/yarnpkg/yarn/pull/6611) - [**Jack Zhao**](https://github.com/bugzpodder)
+
+- Fixes an issue with `yarn audit` when a package was depending on an empty range
+
+  [#6611](https://github.com/yarnpkg/yarn/pull/6611) - [**Jack Zhao**](https://github.com/bugzpodder)
+
+- Fixes an issue with how symlinks are setup into the cache on Windows
+
+  [#6621](https://github.com/yarnpkg/yarn/pull/6621) - [**Yoad Snapir**](https://github.com/yoadsn)
+
+- Upgrades `inquirer`, fixing `upgrade-interactive` for users using both Node 10 and Windows
+
+  [#6635](https://github.com/yarnpkg/yarn/pull/6635) - [**Philipp Feigl**](https://github.com/pfeigl)
+
+- Exposes the path to the PnP file using `require.resolve('pnpapi')`
+
+  [#6643](https://github.com/yarnpkg/yarn/pull/6643) - [**Maël Nison**](https://twitter.com/arcanis)
+
+## 1.12.1
+
 - Ensures the engine check is ran before showing the UI for `upgrade-interactive`
 
   [#6536](https://github.com/yarnpkg/yarn/pull/6536) - [**Orta Therox**](https://github.com/orta)

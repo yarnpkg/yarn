@@ -160,13 +160,18 @@ export default class Audit {
   _mapHoistedNodes(auditNode: AuditNode, hoistedNodes: HoistedTrees) {
     for (const node of hoistedNodes) {
       const pkg = node.manifest.pkg;
+      const requires = Object.assign({}, pkg.dependencies || {}, pkg.optionalDependencies || {});
+      for (const name of Object.keys(requires)) {
+        if (!requires[name]) {
+          requires[name] = '*';
+        }
+      }
       auditNode.dependencies[node.name] = {
         version: node.version,
         integrity: pkg._remote ? pkg._remote.integrity || '' : '',
-        requires: Object.assign({}, pkg.dependencies || {}, pkg.optionalDependencies || {}),
+        requires,
         dependencies: {},
       };
-
       if (node.children) {
         this._mapHoistedNodes(auditNode.dependencies[node.name], node.children);
       }
@@ -175,7 +180,7 @@ export default class Audit {
 
   _mapHoistedTreesToAuditTree(manifest: Object, hoistedTrees: HoistedTrees): AuditTree {
     const auditTree: AuditTree = {
-      name: manifest.name,
+      name: manifest.name || undefined,
       version: manifest.version || undefined,
       install: [],
       remove: [],
@@ -224,12 +229,27 @@ export default class Audit {
     return responseJson;
   }
 
+  _insertWorkspacePackagesIntoManifest(manifest: Object, resolver: PackageResolver) {
+    if (resolver.workspaceLayout) {
+      const workspaceAggregatorName = resolver.workspaceLayout.virtualManifestName;
+      const workspaceManifest = resolver.workspaceLayout.workspaces[workspaceAggregatorName].manifest;
+
+      manifest.dependencies = Object.assign(manifest.dependencies || {}, workspaceManifest.dependencies);
+      manifest.devDependencies = Object.assign(manifest.devDependencies || {}, workspaceManifest.devDependencies);
+      manifest.optionalDependencies = Object.assign(
+        manifest.optionalDependencies || {},
+        workspaceManifest.optionalDependencies,
+      );
+    }
+  }
+
   async performAudit(
     manifest: Object,
     resolver: PackageResolver,
     linker: PackageLinker,
     patterns: Array<string>,
   ): Promise<AuditVulnerabilityCounts> {
+    this._insertWorkspacePackagesIntoManifest(manifest, resolver);
     const hoistedTrees = await hoistedTreeBuilder(resolver, linker, patterns);
     const auditTree = this._mapHoistedTreesToAuditTree(manifest, hoistedTrees);
     this.auditData = await this._fetchAudit(auditTree);

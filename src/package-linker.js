@@ -444,7 +444,7 @@ export default class PackageLinker {
       possibleExtraneous,
       artifactFiles,
 
-      ignoreBasenames: [constants.METADATA_FILENAME, constants.TARBALL_FILENAME],
+      ignoreBasenames: [constants.METADATA_FILENAME, constants.TARBALL_FILENAME, '.bin'],
 
       onStart: (num: number) => {
         tick = this.reporter.progress(num);
