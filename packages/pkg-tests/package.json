@@ -27,6 +27,5 @@
         "modulePathIgnorePatterns": [
             "<rootDir>[/\\\\]pkg-tests-fixtures[/\\\\]packages[/\\\\]"
         ]
-    },
-    "version": "1.12.2"
+    }
 }
