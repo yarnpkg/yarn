@@ -105,7 +105,7 @@ test('calls reporter auditAdvisory with correct data', () => {
   });
 });
 
-// *** Test temporarily removed due to inability to correctly puggest actions to the user.
+// *** Test temporarily removed due to inability to correctly suggest actions to the user.
 // test('calls reporter auditAction with correct data', () => {
 //   return runAudit([], {}, 'single-vulnerable-dep-installed', (config, reporter) => {
 //     const apiResponse = getAuditResponse(config);
@@ -160,5 +160,63 @@ test('calls reporter auditSummary with correct data for private package', () => 
   return runAudit([], {}, 'single-vulnerable-dep-installed', (config, reporter) => {
     const apiResponse = getAuditResponse(config);
     expect(reporter.auditSummary).toBeCalledWith(apiResponse.metadata);
+  });
+});
+
+test.concurrent('sends correct dependency map to audit api for workspaces.', () => {
+  const expectedApiPost = {
+    dependencies: {
+      'balanced-match': {
+        dependencies: {},
+        integrity: 'sha1-ibTRmasr7kneFk6gK4nORi1xt2c=',
+        requires: {},
+        version: '1.0.0',
+      },
+      'brace-expansion': {
+        dependencies: {},
+        integrity: 'sha512-iCuPHDFgrHX7H2vEI/5xpz07zSHB00TpugqhmYtVmMO6518mCuRMoOYFldEBl0g187ufozdaHgWKcYFb61qGiA==',
+        requires: {
+          'balanced-match': '^1.0.0',
+          'concat-map': '0.0.1',
+        },
+        version: '1.1.11',
+      },
+      'concat-map': {
+        dependencies: {},
+        integrity: 'sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=',
+        requires: {},
+        version: '0.0.1',
+      },
+      minimatch: {
+        dependencies: {},
+        integrity: 'sha1-UjYVelHk8ATBd/s8Un/33Xjw74M=',
+        requires: {
+          'brace-expansion': '^1.0.0',
+        },
+        version: '3.0.0',
+      },
+      prj1: {
+        dependencies: {},
+        integrity: '',
+        requires: {
+          minimatch: '3.0.0',
+        },
+        version: '0.0.0',
+      },
+    },
+    install: [],
+    metadata: {},
+    name: 'yarn-test',
+    remove: [],
+    requires: {
+      prj1: '0.0.0',
+    },
+    version: '1.0.0',
+  };
+
+  return runAudit([], {}, 'workspace', async config => {
+    const calledWithPipe = config.requestManager.request.mock.calls[0][0].body;
+    const calledWith = JSON.parse(await gunzip(calledWithPipe));
+    expect(calledWith).toEqual(expectedApiPost);
   });
 });

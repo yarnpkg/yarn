@@ -229,12 +229,27 @@ export default class Audit {
     return responseJson;
   }
 
+  _insertWorkspacePackagesIntoManifest(manifest: Object, resolver: PackageResolver) {
+    if (resolver.workspaceLayout) {
+      const workspaceAggregatorName = resolver.workspaceLayout.virtualManifestName;
+      const workspaceManifest = resolver.workspaceLayout.workspaces[workspaceAggregatorName].manifest;
+
+      manifest.dependencies = Object.assign(manifest.dependencies || {}, workspaceManifest.dependencies);
+      manifest.devDependencies = Object.assign(manifest.devDependencies || {}, workspaceManifest.devDependencies);
+      manifest.optionalDependencies = Object.assign(
+        manifest.optionalDependencies || {},
+        workspaceManifest.optionalDependencies,
+      );
+    }
+  }
+
   async performAudit(
     manifest: Object,
     resolver: PackageResolver,
     linker: PackageLinker,
     patterns: Array<string>,
   ): Promise<AuditVulnerabilityCounts> {
+    this._insertWorkspacePackagesIntoManifest(manifest, resolver);
     const hoistedTrees = await hoistedTreeBuilder(resolver, linker, patterns);
     const auditTree = this._mapHoistedTreesToAuditTree(manifest, hoistedTrees);
     this.auditData = await this._fetchAudit(auditTree);
