@@ -91,7 +91,7 @@ export type RootManifests = {
 
 function sortObject(object: Object): Object {
   return Object.keys(object).sort().reduce((acc, key) => {
-    acc[key] = object[key]; 
+    acc[key] = object[key] 
     return acc;
   }, {});
 }
