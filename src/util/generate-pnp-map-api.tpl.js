@@ -13,6 +13,7 @@ const StringDecoder = require('string_decoder');
 
 const ignorePattern = $$BLACKLIST ? new RegExp($$BLACKLIST) : null;
 
+const pnpFile = path.resolve(__dirname, __filename);
 const builtinModules = new Set(Module.builtinModules || Object.keys(process.binding('natives')));
 
 const topLevelLocator = {name: null, reference: null};
@@ -313,6 +314,12 @@ exports.getPackageInformation = function getPackageInformation({name, reference}
  */
 
 exports.resolveToUnqualified = function resolveToUnqualified(request, issuer, {considerBuiltins = true} = {}) {
+  // The 'pnpapi' request is reserved and will always return the path to the PnP file, from everywhere
+
+  if (request === `pnpapi`) {
+    return pnpFile;
+  }
+
   // Bailout if the request is a native module
 
   if (considerBuiltins && builtinModules.has(request)) {

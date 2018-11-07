@@ -1,9 +1,10 @@
+const {normalize} = require('path');
 const {fs: {writeFile, writeJson}} = require('pkg-tests-core');
 
 module.exports = makeTemporaryEnv => {
   describe(`Plug'n'Play API (v1)`, () => {
     test(
-      `it should expost VERSIONS`,
+      `it should expose VERSIONS`,
       makeTemporaryEnv({}, {plugNPlay: true}, async ({path, run, source}) => {
         await run(`install`);
 
@@ -12,7 +13,7 @@ module.exports = makeTemporaryEnv => {
     );
 
     test(
-      `it should expost resolveToUnqualified`,
+      `it should expose resolveToUnqualified`,
       makeTemporaryEnv({}, {plugNPlay: true}, async ({path, run, source}) => {
         await run(`install`);
 
@@ -21,7 +22,7 @@ module.exports = makeTemporaryEnv => {
     );
 
     test(
-      `it should expost resolveToUnqualified`,
+      `it should expose resolveToUnqualified`,
       makeTemporaryEnv({}, {plugNPlay: true}, async ({path, run, source}) => {
         await run(`install`);
 
@@ -30,7 +31,7 @@ module.exports = makeTemporaryEnv => {
     );
 
     test(
-      `it should expost resolveToUnqualified`,
+      `it should expose resolveToUnqualified`,
       makeTemporaryEnv({}, {plugNPlay: true}, async ({path, run, source}) => {
         await run(`install`);
 
@@ -39,6 +40,17 @@ module.exports = makeTemporaryEnv => {
     );
 
     describe(`resolveRequest`, () => {
+      test(
+        `it should return the path to the PnP file for when 'pnpapi' is requested`,
+        makeTemporaryEnv({}, {plugNPlay: true}, async ({path, run, source}) => {
+          await run(`install`);
+
+          await expect(source(`require('pnpapi').resolveRequest('pnpapi', '${path}/')`)).resolves.toEqual(
+            normalize(`${path}/.pnp.js`),
+          );
+        }),
+      );
+
       test(
         `it should return null for builtins`,
         makeTemporaryEnv({}, {plugNPlay: true}, async ({path, run, source}) => {
