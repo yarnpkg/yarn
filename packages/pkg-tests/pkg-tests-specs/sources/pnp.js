@@ -312,7 +312,7 @@ module.exports = makeTemporaryEnv => {
       makeTemporaryEnv(
         {
           dependencies: {[`no-deps`]: `1.0.0`},
-          scripts: {myScript: `node -p 'require("no-deps/package.json").version'`},
+          scripts: {myScript: `node -p "require('no-deps/package.json').version"`},
         },
         {
           plugNPlay: true,
