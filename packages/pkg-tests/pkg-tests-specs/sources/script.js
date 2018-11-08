@@ -196,7 +196,11 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
       makeTemporaryEnv({dependencies: {[`no-deps-scripted`]: `1.0.0`}}, async ({path, run, source}) => {
         await run(`install`);
 
-        await expect(source(`require('no-deps-scripted/log.js')`)).resolves.toEqual(['preinstall', 'install', 'postinstall']);
+        await expect(source(`require('no-deps-scripted/log.js')`)).resolves.toEqual([
+          'preinstall',
+          'install',
+          'postinstall',
+        ]);
       }),
     );
   });
