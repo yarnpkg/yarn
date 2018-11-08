@@ -90,6 +90,12 @@ function blacklistCheck(locator) {
 
 $$SETUP_STATIC_TABLES();
 
+function getPackageLocation(packageDir) {
+  return path.isAbsolute(packageDir)
+    ? packageDir
+    : path.resolve(__dirname, packageDir);
+}
+
 /**
  * Returns the module that should be used to resolve require calls. It's usually the direct parent, except if we're
  * inside an eval expression.
