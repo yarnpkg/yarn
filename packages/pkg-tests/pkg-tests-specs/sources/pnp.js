@@ -578,7 +578,7 @@ module.exports = makeTemporaryEnv => {
       }),
     );
 
-    test.only(
+    test(
       `it should resolve the .js extension`,
       makeTemporaryEnv({}, {plugNPlay: true}, async ({path, run, source}) => {
         await run(`install`);
