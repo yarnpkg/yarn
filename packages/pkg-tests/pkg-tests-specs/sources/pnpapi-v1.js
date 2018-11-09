@@ -45,7 +45,7 @@ module.exports = makeTemporaryEnv => {
         makeTemporaryEnv({}, {plugNPlay: true}, async ({path, run, source}) => {
           await run(`install`);
 
-          await expect(source(`require('pnpapi').resolveRequest('pnpapi', '${path}/')`)).resolves.toEqual(
+          await expect(source(`require('pnpapi').resolveRequest('pnpapi', ${JSON.stringify(path + '/')})`)).resolves.toEqual(
             normalize(`${path}/.pnp.js`),
           );
         }),
