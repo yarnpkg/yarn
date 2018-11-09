@@ -39,7 +39,7 @@ function generateMaps(packageInformationStores: PackageInformationStores, blackl
     code += `  [${JSON.stringify(packageName)}, new Map([\n`;
     for (const [packageReference, {packageLocation, packageDependencies}] of packageInformationStore) {
       code += `    [${JSON.stringify(packageReference)}, {\n`;
-      code += `      packageLocation: getPackageLocation(${JSON.stringify(packageLocation)}),\n`;
+      code += `      packageLocation: path.resolve(__dirname, ${JSON.stringify(packageLocation)}),\n`;
       code += `      packageDependencies: new Map([\n`;
       for (const [dependencyName, dependencyReference] of packageDependencies.entries()) {
         code += `        [${JSON.stringify(dependencyName)}, ${JSON.stringify(dependencyReference)}],\n`;
