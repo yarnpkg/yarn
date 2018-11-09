@@ -36,11 +36,20 @@ async function makePortableProxyScriptUnix(
   const sourcePath = path.isAbsolute(source) ? source : `$(dirname "$0")/../${source}`;
 
   await fs.mkdirp(destination);
-  await fs.writeFile(
-    filePath,
-    `#!/bin/sh\n\n${environment}"${sourcePath}"${prependedArguments} "$@"${appendedArguments}\n`,
-  );
-  await fs.chmod(filePath, 0o755);
+
+  if (process.platform === 'win32') {
+    await fs.writeFile(
+      filePath + '.cmd',
+      `@${environment}"${sourcePath}" ${prependedArguments} ${appendedArguments} %*\r\n`,
+      'utf8',
+    );
+  } else {
+    await fs.writeFile(
+      filePath,
+      `#!/bin/sh\n\n${environment}"${sourcePath}"${prependedArguments} "$@"${appendedArguments}\n`,
+    );
+    await fs.chmod(filePath, 0o755);
+  }
 }
 
 export function makePortableProxyScript(
