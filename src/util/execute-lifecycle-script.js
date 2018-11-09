@@ -26,14 +26,6 @@ export const IGNORE_MANIFEST_KEYS: Set<string> = new Set(['readme', 'notice', 'l
 // See https://github.com/yarnpkg/yarn/issues/2286.
 const IGNORE_CONFIG_KEYS = ['lastUpdateCheck'];
 
-async function getPnpParameters(config: Config): Promise<Array<string>> {
-  if (await fs.exists(`${config.lockfileFolder}/${constants.PNP_FILENAME}`)) {
-    return ['-r', `${config.lockfileFolder}/${constants.PNP_FILENAME}`];
-  } else {
-    return [];
-  }
-}
-
 let wrappersFolder = null;
 
 export async function getWrappersFolder(config: Config): Promise<string> {
@@ -45,7 +37,6 @@ export async function getWrappersFolder(config: Config): Promise<string> {
 
   await makePortableProxyScript(process.execPath, wrappersFolder, {
     proxyBasename: 'node',
-    prependArguments: [...(await getPnpParameters(config))],
   });
 
   await makePortableProxyScript(process.execPath, wrappersFolder, {
@@ -212,8 +203,9 @@ export async function makeEnv(
     }
   }
 
-  if (await fs.exists(`${config.lockfileFolder}/${constants.PNP_FILENAME}`)) {
-    const pnpApi = dynamicRequire(`${config.lockfileFolder}/${constants.PNP_FILENAME}`);
+  const pnpFile = `${config.lockfileFolder}/${constants.PNP_FILENAME}`;
+  if (await fs.exists(pnpFile)) {
+    const pnpApi = dynamicRequire(pnpFile);
 
     const packageLocator = pnpApi.findPackageLocator(`${config.cwd}/`);
     const packageInformation = pnpApi.getPackageInformation(packageLocator);
@@ -227,6 +219,11 @@ export async function makeEnv(
 
       pathParts.unshift(`${dependencyInformation.packageLocation}/.bin`);
     }
+
+    // Note that NODE_OPTIONS doesn't support any style of quoting its arguments at the moment
+    // For this reason, it won't work if the user has a space inside its $PATH
+    env.NODE_OPTIONS = env.NODE_OPTIONS || '';
+    env.NODE_OPTIONS += ` --require ${pnpFile}`;
   }
 
   pathParts.unshift(await getWrappersFolder(config));

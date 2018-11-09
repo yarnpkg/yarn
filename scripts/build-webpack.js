@@ -121,7 +121,7 @@ const compilerLegacy = webpack({
     rules: [
       {
         test: /\.js$/,
-        exclude: /node_modules/,
+        exclude: /node_modules[\\\/](?!inquirer)/,
         use: [
           {
             loader:'babel-loader',
