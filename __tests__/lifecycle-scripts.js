@@ -95,6 +95,69 @@ test.concurrent(
   },
 );
 
+test.concurrent(
+  'should expose env variables (-c or --cli-config) to `npm_config_` for back compatibility with npm',
+  async () => {
+    const testCases = [
+      {
+        cmd: '--cli-config foo=foo -c bar-Bar_bAr0=0 --other-flag',
+        expect: [
+          // support -c and --cli-config
+          ['npm_config_foo', 'foo'],
+          ['npm_config_bar_Bar_bAr0', '0'],
+        ],
+        unexpect: ['npm_config___other_flag'],
+      },
+      {
+        cmd: 'install -c foo=foo --cli-config bar-Bar --other-flag -c no-baz -c --other-flag ',
+        expect: [
+          ['npm_config_foo', 'foo'],
+          ['npm_config_bar_Bar', 'true'],
+          // support no-* syntax
+          ['npm_config_baz', ''],
+        ],
+        unexpect: ['npm_config_no_baz', 'npm_config_no-baz', 'npm_config___other_flag'],
+      },
+      {
+        cmd: 'test --cli-config foo=foo=foo -c bar-Bar xx --other-flag -c no-baz ignoreValue',
+        expect: [
+          // handle multiple equal signs (=)
+          ['npm_config_foo', 'foo=foo'],
+          ['npm_config_bar_Bar', 'true'],
+          ['npm_config_baz', ''],
+        ],
+        unexpect: ['npm_config_no_baz', 'npm_config_no-baz'],
+      },
+      {
+        // ignore args after dashDash
+        cmd: 'run test -c foo=foo --cli-config bar-Bar -- -c no-baz --cli-config baz',
+        expect: [['npm_config_foo', 'foo'], ['npm_config_bar_Bar', 'true']],
+        unexpect: ['npm_config_baz'],
+      },
+    ];
+
+    await Promise.all(
+      testCases.map(testCase => {
+        const env = Object.assign({}, process.env);
+        testCase.expect.forEach(exp => {
+          delete env[exp[0]];
+        });
+        testCase.unexpect.forEach(unexp => {
+          delete env[unexp];
+        });
+        return execCommand(testCase.cmd, 'cli_config_env_vars', env).then(stdout => {
+          testCase.expect.forEach(exp => {
+            expect(stdout).toContain(exp[0] + ':' + exp[1]);
+          });
+          testCase.unexpect.forEach(unexp => {
+            expect(stdout).not.toContain(unexp + ':');
+          });
+        });
+      }),
+    );
+  },
+);
+
 test.concurrent('should not run pre/post hooks for .bin executables', async () => {
   const stdout = await execCommand('run lol', 'script_only_pre_post');
   expect(stdout).toContain('lol');

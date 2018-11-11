@@ -1,0 +1,10 @@
+{
+  "name": "cli_config_env_vars",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "preinstall" : "node log-config.js",
+    "test": "node log-config.js"
+  }
+}
