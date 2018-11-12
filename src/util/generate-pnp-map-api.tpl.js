@@ -237,9 +237,14 @@ function makeFakeModule(path) {
  * Normalize path to posix format.
  */
 
-// eslint-disable-next-line no-unused-vars
 function normalizePath(fsPath) {
-  return path.normalize(process.platform === 'win32' ? fsPath.replace(backwardSlashRegExp, '/') : fsPath);
+  fsPath = path.normalize(fsPath);
+
+  if (process.platform === 'win32') {
+    fsPath = fsPath.replace(backwardSlashRegExp, '/');
+  }
+
+  return fsPath;
 }
 
 /**
