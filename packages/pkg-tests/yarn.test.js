@@ -1,6 +1,6 @@
 /* @flow */
 
-const {delimiter, join} = require(`path`);
+const {delimiter} = require(`path`);
 
 const {
   tests: {generatePkgDriver, startPackageServer, getPackageRegistry},
@@ -65,11 +65,6 @@ const pkgDriver = generatePkgDriver({
     return res;
   },
 });
-
-if (process.platform === `win32`) {
-  // Windows takes much longer to run those tests, for some reason
-  jest.setTimeout(15000);
-}
 
 beforeEach(async () => {
   await startPackageServer();

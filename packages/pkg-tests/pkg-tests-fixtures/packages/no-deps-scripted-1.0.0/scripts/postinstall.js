@@ -1,5 +1,4 @@
-var fs = require('fs');
-fs.appendFileSync('log.js', 'module.exports.push("postinstall");', 'utf8');
+const fs = require(`fs`);
 
-var fs = require('fs');
-fs.appendFileSync('rnd.js', `module.exports = ${Math.floor(Math.random() * 512000)};`, 'utf8');
+fs.appendFileSync(`${__dirname}/log.js`, `module.exports.push('postinstall');`);
+fs.appendFileSync(`${__dirname}/rnd.js`, `module.exports = ${Math.floor(Math.random() * 512000)};`);

@@ -239,7 +239,7 @@ function makeFakeModule(path) {
 
 // eslint-disable-next-line no-unused-vars
 function normalizePath(fsPath) {
-  return process.platform === 'win32' ? fsPath.replace(backwardSlashRegExp, '/') : fsPath;
+  return path.normalize(process.platform === 'win32' ? fsPath.replace(backwardSlashRegExp, '/') : fsPath);
 }
 
 /**
@@ -330,7 +330,7 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer, {c
   // contain multiple levels of dependencies (ie. a yarn.lock inside a subfolder of a yarn.lock). This is
   // typically solved using workspaces, but not all of them have been converted already.
 
-  if (ignorePattern && ignorePattern.test(normalizePath(path.normalize(issuer)))) {
+  if (ignorePattern && ignorePattern.test(normalizePath(issuer))) {
     const result = callNativeResolution(request, issuer);
 
     if (result === false) {

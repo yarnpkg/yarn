@@ -41,7 +41,6 @@ async function makePortableProxyScriptUnix(
     await fs.writeFile(
       filePath + '.cmd',
       `@${environment}"${sourcePath}" ${prependedArguments} ${appendedArguments} %*\r\n`,
-      'utf8',
     );
   } else {
     await fs.writeFile(
