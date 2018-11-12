@@ -1,113 +1,42 @@
-# Node.js
-# Build a general Node.js project with npm.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
-
 jobs:
 
 - job: Windows
-
   pool: 'Hosted VS2017'
 
   strategy:
     matrix:
-#       node_8_x:
-#         node_version: 8.x
+      node_8_x:
+        node_version: 8.x
       node_10_x:
         node_version: 10.x
 
   steps:
-  - task: NodeTool@0
-    inputs:
-      versionSpec: $(node_version)
-    displayName: 'Install Node.js'
+  - template: scripts/azure-run-tests.yml
 
-  - bash: |
-      yarn
-      yarn run build
-      ls -lhR bin
-      ls -lhR lib
-    displayName: 'Install and build'
+- job: Linux
+  pool:
+    vmImage: 'Ubuntu 16.04'
 
-  - script: |
-      cd packages/pkg-tests
-      yarn
-    displayName: 'Install the acceptance tests'
+  strategy:
+    matrix:
+      node_8_x:
+        node_version: 8.x
+      node_10_x:
+        node_version: 10.x
 
-  - script: |
-      cd packages/pkg-tests
-      yarn jest yarn --detectOpenHandles --reporters=default --reporters=jest-junit
-    displayName: 'Run the acceptance tests'
+  steps:
+  - template: scripts/azure-run-tests.yml
 
-  - task: PublishTestResults@2
-    inputs:
-      testResultsFiles: '**/junit.xml'
-    displayName: 'Publishing the test results'
-    condition: always()
+- job: OSX
+  pool:
+    vmImage: 'macOS 10.13'
 
-# - job: Linux
-#
-#   pool:
-#     vmImage: 'Ubuntu 16.04'
-#
-#   strategy:
-#     matrix:
-#       node_8_x:
-#         node_version: 8.x
-#       node_10_x:
-#         node_version: 10.x
-#
-#   steps:
-#   - task: NodeTool@0
-#     inputs:
-#       versionSpec: $(node_version)
-#     displayName: 'Install Node.js'
-#
-#   - script: |
-#       yarn
-#       yarn build
-#     displayName: 'install and build'
-#
-#   - script: |
-#       cd packages/pkg-tests
-#       yarn
-#     displayName: 'install the acceptance tests'
-#
-#   - script: |
-#       cd packages/pkg-tests
-#       yarn jest yarn
-#     displayName: 'run the acceptance tests'
-#
-# - job: OSX
-#
-#   pool:
-#     vmImage: 'macOS 10.13'
-#
-#   strategy:
-#     matrix:
-#       node_8_x:
-#         node_version: 8.x
-#       node_10_x:
-#         node_version: 10.x
-#
-#   steps:
-#   - task: NodeTool@0
-#     inputs:
-#       versionSpec: $(node_version)
-#     displayName: 'Install Node.js'
-#
-#   - script: |
-#       yarn
-#       yarn build
-#     displayName: 'install and build'
-#
-#   - script: |
-#       cd packages/pkg-tests
-#       yarn
-#     displayName: 'install the acceptance tests'
-#
-#   - script: |
-#       cd packages/pkg-tests
-#       yarn jest yarn
-#     displayName: 'run the acceptance tests'
-#
+  strategy:
+    matrix:
+      node_8_x:
+        node_version: 8.x
+      node_10_x:
+        node_version: 10.x
+
+  steps:
+  - template: scripts/azure-run-tests.yml
