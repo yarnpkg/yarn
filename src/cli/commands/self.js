@@ -83,13 +83,11 @@ async function fetchReleases(
   return releases;
 }
 
-async function fetchBundle(config: Config, asset: ReleaseAsset): Promise<string> {
-  const data: Buffer = await config.requestManager.request({
-    url: asset.browser_download_url,
+function fetchBundle(config: Config, url: string): Promise<Buffer> {
+  return config.requestManager.request({
+    url,
     buffer: true,
   });
-
-  return data.toString();
 }
 
 export function hasWrapper(flags: Object, args: Array<string>): boolean {
@@ -98,26 +96,51 @@ export function hasWrapper(flags: Object, args: Array<string>): boolean {
 
 const {run, setFlags, examples} = buildSubCommands('self', {
   async set(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-    const releases = await fetchReleases(config);
+    let range = args[0] || 'latest';
+    let allowRc = flags.rc;
 
-    const release = releases.find(release => {
-      // $FlowFixMe
-      return semver.satisfies(release.version, args[0]);
-    });
-
-    if (!release) {
-      throw new Error(`Release not found: ${args[0]}`);
+    if (range === 'rc') {
+      range = 'latest';
+      allowRc = true;
     }
 
-    const asset = getBundleAsset(release);
-    invariant(asset, 'The bundle asset should exist');
+    if (range === 'latest') {
+      range = '*';
+    }
 
-    reporter.log(`Downloading ${chalk.green(asset.name)}...`);
+    let bundleUrl;
+    let bundleVersion;
 
-    const bundle = await fetchBundle(config, asset);
+    if (range === 'nightly' || range === 'nightlies') {
+      bundleUrl = 'https://nightly.yarnpkg.com/latest.js';
+      bundleVersion = 'nightly';
+    } else {
+      const releases = await fetchReleases(config, {
+        includePrereleases: allowRc,
+      });
+
+      const release = releases.find(release => {
+        // $FlowFixMe
+        return semver.satisfies(release.version, range);
+      });
+
+      if (!release) {
+        throw new Error(`Release not found: ${range}`);
+      }
+
+      const asset = getBundleAsset(release);
+      invariant(asset, 'The bundle asset should exist');
+
+      bundleUrl = asset.browser_download_url;
+      bundleVersion = release.version.version;
+    }
+
+    reporter.log(`Downloading ${chalk.green(bundleUrl)}...`);
+
+    const bundle = await fetchBundle(config, bundleUrl);
     const rc = getRcConfigForCwd(config.lockfileFolder, []);
 
-    const yarnPath = path.resolve(config.lockfileFolder, `.yarn/releases/${release.version.version}.js`);
+    const yarnPath = path.resolve(config.lockfileFolder, `.yarn/releases/yarn-${bundleVersion}.js`);
     reporter.log(`Saving it into ${chalk.magenta(yarnPath)}...`);
     await fs.mkdirp(path.dirname(yarnPath));
     await fs.writeFile(yarnPath, bundle);
