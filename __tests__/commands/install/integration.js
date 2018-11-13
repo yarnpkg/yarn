@@ -1123,3 +1123,19 @@ test('install will not warn for missing peerDep when both shallower and deeper',
     const warningMessage = messageParts.every(part => stdout.includes(part));
     expect(warningMessage).toBe(false);
   }));
+
+test('install will warn for missing peer dependencies', () =>
+  runInstall({}, 'missing-peer-dep', (config, reporter, install, getStdout) => {
+    const stdout = getStdout();
+    const messageParts = reporter.lang('unmetPeer', 'undefined').split('undefined');
+    const warningMessage = messageParts.every(part => stdout.includes(part));
+    expect(warningMessage).toBe(true);
+  }));
+
+test('install will not warn for missing optional peer dependencies', () =>
+  runInstall({}, 'missing-opt-peer-dep', (config, reporter, install, getStdout) => {
+    const stdout = getStdout();
+    const messageParts = reporter.lang('unmetPeer', 'undefined').split('undefined');
+    const warningMessage = messageParts.every(part => stdout.includes(part));
+    expect(warningMessage).toBe(false);
+  }));

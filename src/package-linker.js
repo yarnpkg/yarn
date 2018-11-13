@@ -617,7 +617,9 @@ export default class PackageLinker {
       };
 
       for (const peerDepName in peerDeps) {
-        const range = peerDeps[peerDepName];
+        const range = peerDeps[peerDepName].replace(/^optional:/, '');
+        const isOptional = peerDeps[peerDepName].startsWith('optional:');
+
         const peerPkgs = this.resolver.getAllInfoForPackageName(peerDepName);
 
         let peerError = 'unmetPeer';
@@ -649,7 +651,7 @@ export default class PackageLinker {
               resolvedPeerPkg.level,
             ),
           );
-        } else {
+        } else if (!isOptional) {
           this.reporter.warn(
             this.reporter.lang(
               peerError,
