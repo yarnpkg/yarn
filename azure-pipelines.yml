@@ -12,6 +12,8 @@ jobs:
 
   steps:
   - template: scripts/azure-run-tests.yml
+    parameters:
+        name: Windows
 
 - job: Linux
   pool:
@@ -26,6 +28,8 @@ jobs:
 
   steps:
   - template: scripts/azure-run-tests.yml
+    parameters:
+        name: Linux
 
 - job: OSX
   pool:
@@ -40,3 +44,5 @@ jobs:
 
   steps:
   - template: scripts/azure-run-tests.yml
+    parameters:
+        name: OSX
