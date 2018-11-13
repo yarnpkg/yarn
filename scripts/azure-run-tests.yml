@@ -25,5 +25,6 @@ steps:
 - task: PublishTestResults@2
   inputs:
     testResultsFiles: '**/junit.xml'
+    testRunTitle: $(vmImage) Node $(node_version)
   displayName: 'Publishing the test results'
   condition: always()
