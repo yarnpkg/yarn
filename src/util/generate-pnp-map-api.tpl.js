@@ -176,8 +176,11 @@ function applyNodeExtensionResolution(unqualifiedPath, {extensions}) {
       // If the "main" field changed the path, we start again from this new location
 
       if (nextUnqualifiedPath && nextUnqualifiedPath !== unqualifiedPath) {
-        unqualifiedPath = nextUnqualifiedPath;
-        continue;
+        const resolution = applyNodeExtensionResolution(nextUnqualifiedPath, {extensions});
+
+        if (resolution !== null) {
+          return resolution;
+        }
       }
     }
 
