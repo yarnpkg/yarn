@@ -592,6 +592,26 @@ module.exports = makeTemporaryEnv => {
     );
 
     test(
+      `it should ignore the "main" entry if it doesn't resolve`,
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`invalid-main`]: `1.0.0`,
+          },
+        },
+        {plugNPlay: true},
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await expect(source(`require("invalid-main")`)).resolves.toMatchObject({
+            name: `invalid-main`,
+            version: `1.0.0`,
+          });
+        },
+      ),
+    );
+
+    test(
       `it should use the regular Node resolution when requiring files outside of the pnp install tree`,
       makeTemporaryEnv({}, {plugNPlay: true}, async ({path, run, source}) => {
         await run(`install`);
