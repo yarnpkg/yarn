@@ -1,6 +1,3 @@
-parameters:
-  name: ''
-
 steps:
 
 - task: NodeTool@0
@@ -28,6 +25,6 @@ steps:
 - task: PublishTestResults@2
   inputs:
     testResultsFiles: '**/junit.xml'
-    testRunTitle: ${{ parameters.name }} Node $(node_version)
+    testRunTitle: $(os_name) Node $(node_version)
   displayName: 'Publishing the test results'
   condition: always()

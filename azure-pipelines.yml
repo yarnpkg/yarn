@@ -7,13 +7,13 @@ jobs:
     matrix:
       node_8_x:
         node_version: 8.x
+        os_name: Windows
       node_10_x:
         node_version: 10.x
+        os_name: Windows
 
   steps:
   - template: scripts/azure-run-tests.yml
-    parameters:
-        name: Windows
 
 - job: Linux
   pool:
@@ -23,13 +23,13 @@ jobs:
     matrix:
       node_8_x:
         node_version: 8.x
+        os_name: Linux
       node_10_x:
         node_version: 10.x
+        os_name: Linux
 
   steps:
   - template: scripts/azure-run-tests.yml
-    parameters:
-        name: Linux
 
 - job: OSX
   pool:
@@ -39,10 +39,10 @@ jobs:
     matrix:
       node_8_x:
         node_version: 8.x
+        os_name: OSX
       node_10_x:
         node_version: 10.x
+        os_name: OSX
 
   steps:
   - template: scripts/azure-run-tests.yml
-    parameters:
-        name: OSX
