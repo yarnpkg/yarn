@@ -11,6 +11,8 @@ const zlib = require('zlib');
 
 const miscUtils = require('./misc');
 
+const IS_WIN32 = process.platform === `win32`;
+
 exports.walk = function walk(
   source: string,
   {filter, relative = false}: {|filter?: Array<string>, relative?: boolean|} = {},
@@ -75,13 +77,13 @@ exports.packToStream = function packToStream(
   const packStream = tarFs.pack(source, {
     map: header => {
       if (true) {
-        header.name = path.resolve('/', header.name);
-        header.name = path.relative('/', header.name);
+        header.name = path.posix.resolve('/', header.name);
+        header.name = path.posix.relative('/', header.name);
       }
 
       if (virtualPath) {
-        header.name = path.resolve('/', virtualPath, header.name);
-        header.name = path.relative('/', header.name);
+        header.name = path.posix.resolve('/', virtualPath, header.name);
+        header.name = path.posix.relative('/', header.name);
       }
 
       return header;
@@ -186,6 +188,9 @@ exports.makeFakeBinary = async function(
   target: string,
   {output = `Fake binary`, exitCode = 1}: {|output: string, exitCode: number|} = {},
 ): Promise<void> {
-  await exports.writeFile(target, `#!/bin/sh\necho "${output}"\nexit ${exitCode}\n`);
-  await exports.chmod(target, 0o755);
+  const realTarget = IS_WIN32 ? `${target}.cmd` : target;
+  const header = IS_WIN32 ? `@echo off\n` : `#!/bin/sh\n`;
+
+  await exports.writeFile(realTarget, `${header}echo ${output}\nexit ${exitCode}\n`);
+  await exports.chmod(realTarget, 0o755);
 };
