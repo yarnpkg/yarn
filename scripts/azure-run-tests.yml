@@ -22,7 +22,7 @@ steps:
 
 - script: |
     cd packages/pkg-tests
-    yarn jest yarn --detectOpenHandles --reporters=default --reporters=jest-junit
+    yarn jest yarn --reporters=default --reporters=jest-junit
   displayName: 'Run the acceptance tests'
 
 - task: PublishTestResults@2
