@@ -330,4 +330,4 @@ export default (async function(
       }
     }
   }
-});
+}
