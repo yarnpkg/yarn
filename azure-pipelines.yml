@@ -3,6 +3,9 @@ jobs:
 - job: Windows
   pool: 'Hosted VS2017'
 
+  variables:
+    os_name: Windows
+
   strategy:
     matrix:
       node_8_x:
@@ -17,6 +20,9 @@ jobs:
   pool:
     vmImage: 'Ubuntu 16.04'
 
+  variables:
+    os_name: Linux
+
   strategy:
     matrix:
       node_8_x:
@@ -30,6 +36,9 @@ jobs:
 - job: OSX
   pool:
     vmImage: 'macOS 10.13'
+
+  variables:
+    os_name: OSX
 
   strategy:
     matrix:
