@@ -125,54 +125,52 @@ export default class InstallationIntegrityChecker {
    * Get the list of the directories that contain our modules (there might be multiple such folders b/c of workspaces).
    */
 
-  _getModulesFolders({workspaceLayout}: {workspaceLayout: ?WorkspaceLayout} = {}): Array<string> {
+  async _getModulesFolders({workspaceLayout}: {workspaceLayout: ?WorkspaceLayout} = {}): Promise<string[]> {
     const locations = [];
 
-    if (this.config.modulesFolder) {
-      locations.push(this.config.modulesFolder);
-    } else {
-      locations.push(path.join(this.config.lockfileFolder, constants.NODE_MODULES_FOLDER));
+    if (workspaceLayout) {
+      locations.push(
+        ...Object.keys(workspaceLayout.workspaces)
+          .map(key => workspaceLayout.workspaces[key])
+          .filter(Boolean)
+          .map(({loc}) => path.join(loc, constants.NODE_MODULES_FOLDER)),
+      );
     }
 
-    if (workspaceLayout) {
-      for (const workspaceName of Object.keys(workspaceLayout.workspaces)) {
-        const loc = workspaceLayout.workspaces[workspaceName].loc;
+    const rootModulesFolder =
+      this.config.modulesFolder || path.join(this.config.lockfileFolder, constants.NODE_MODULES_FOLDER);
 
-        if (loc) {
-          locations.push(path.join(loc, constants.NODE_MODULES_FOLDER));
-        }
+    if (!locations.includes(rootModulesFolder)) {
+      locations.push(rootModulesFolder);
+    }
+
+    const folders = await Promise.all(locations.map(async loc => (await fs.exists(loc)) && loc));
+
+    return folders.filter(Boolean);
+  }
+
+  async _walkModulesFolder(modulesRoot: string, modulesFolder: string, files: string[]): Promise<void> {
+    for (const file of await fs.readdir(modulesFolder)) {
+      const entry = path.join(modulesFolder, file);
+      const stat = await fs.lstat(entry);
+
+      if (stat.isDirectory()) {
+        await this._walkModulesFolder(modulesRoot, entry, files);
+      } else {
+        files.push(path.relative(modulesRoot, entry));
       }
     }
-
-    return locations.sort(sortAlpha);
   }
 
   /**
    * Get a list of the files that are located inside our module folders.
    */
-  async _getIntegrityListing({workspaceLayout}: {workspaceLayout: ?WorkspaceLayout} = {}): Promise<Array<string>> {
+  async _getIntegrityListing(moduleFolders: string[]): Promise<string[]> {
+    const modulesRoot = this._getModulesRootFolder();
     const files = [];
 
-    const recurse = async dir => {
-      for (const file of await fs.readdir(dir)) {
-        const entry = path.join(dir, file);
-        const stat = await fs.lstat(entry);
-
-        if (stat.isDirectory()) {
-          await recurse(entry);
-        } else {
-          files.push(entry);
-        }
-      }
-    };
-
-    for (const modulesFolder of this._getModulesFolders({workspaceLayout})) {
-      if (await fs.exists(modulesFolder)) {
-        await recurse(modulesFolder);
-      }
-    }
-
-    return files;
+    await Promise.all(moduleFolders.map(modulesFolder => this._walkModulesFolder(modulesRoot, modulesFolder, files)));
+    return files.sort(sortAlpha);
   }
 
   /**
@@ -262,18 +260,14 @@ export default class InstallationIntegrityChecker {
       result.lockfileEntries[key] = lockfile[key].resolved || '';
     }
 
-    for (const modulesFolder of this._getModulesFolders({workspaceLayout})) {
-      if (await fs.exists(modulesFolder)) {
-        result.modulesFolders.push(path.relative(this.config.lockfileFolder, modulesFolder));
-      }
-    }
+    const modulesFolders = await this._getModulesFolders({workspaceLayout});
+
+    result.modulesFolders = modulesFolders
+      .map(modulesFolder => path.relative(this.config.lockfileFolder, modulesFolder))
+      .sort(sortAlpha);
 
     if (flags.checkFiles) {
-      const modulesRoot = this._getModulesRootFolder();
-
-      result.files = (await this._getIntegrityListing({workspaceLayout}))
-        .map(entry => path.relative(modulesRoot, entry))
-        .sort(sortAlpha);
+      result.files = await this._getIntegrityListing(modulesFolders);
     }
 
     return result;
