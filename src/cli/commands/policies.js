@@ -94,10 +94,12 @@ export function hasWrapper(flags: Object, args: Array<string>): boolean {
   return false;
 }
 
-const {run, setFlags, examples} = buildSubCommands('self', {
-  async set(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+const {run, setFlags, examples} = buildSubCommands('policies', {
+  async setVersion(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
     let range = args[0] || 'latest';
     let allowRc = flags.rc;
+
+    reporter.log(`Resolving ${chalk.yellow(range)} to a url...`);
 
     if (range === 'rc') {
       range = 'latest';

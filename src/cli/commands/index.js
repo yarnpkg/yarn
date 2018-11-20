@@ -32,10 +32,10 @@ import * as node from './node.js';
 import * as outdated from './outdated.js';
 import * as owner from './owner.js';
 import * as pack from './pack.js';
+import * as policies from './policies.js';
 import * as publish from './publish.js';
 import * as remove from './remove.js';
 import * as run from './run.js';
-import * as self from './self.js';
 import * as tag from './tag.js';
 import * as team from './team.js';
 import * as unplug from './unplug.js';
@@ -79,11 +79,11 @@ const commands = {
   outdated,
   owner,
   pack,
+  policies,
   prune: buildUseless("The prune command isn't necessary. `yarn install` will prune extraneous packages."),
   publish,
   remove,
   run,
-  self,
   tag,
   team,
   unplug,
