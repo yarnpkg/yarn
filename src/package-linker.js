@@ -624,7 +624,7 @@ export default class PackageLinker {
         const range = peerDeps[peerDepName];
         const meta = peerDepsMeta && peerDepsMeta[peerDepName];
 
-        const isOptional = meta && meta.optional ? true : false;
+        const isOptional = !!(meta && meta.optional);
 
         const peerPkgs = this.resolver.getAllInfoForPackageName(peerDepName);
 

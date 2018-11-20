@@ -13,8 +13,7 @@ export type CLIFunction = (config: Config, reporter: Reporter, flags: Object, ar
 type _CLIFunctionReturn = boolean;
 export type CLIFunctionReturn = ?_CLIFunctionReturn | Promise<?_CLIFunctionReturn>;
 
-export type DependencyMeta = {
-};
+export type DependencyMeta = {};
 
 export type DependenciesMeta = {
   [name: string]: DependencyMeta,
