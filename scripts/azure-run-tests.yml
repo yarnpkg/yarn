@@ -1,0 +1,30 @@
+steps:
+
+- task: NodeTool@0
+  inputs:
+    versionSpec: $(node_version)
+  displayName: 'Install Node.js'
+
+- bash: |
+    yarn
+    yarn run build
+    ls -lhR bin
+    ls -lhR lib
+  displayName: 'Install and build'
+
+- script: |
+    cd packages/pkg-tests
+    yarn
+  displayName: 'Install the acceptance tests'
+
+- script: |
+    cd packages/pkg-tests
+    yarn jest yarn --reporters=default --reporters=jest-junit
+  displayName: 'Run the acceptance tests'
+
+- task: PublishTestResults@2
+  inputs:
+    testResultsFiles: '**/junit.xml'
+    testRunTitle: $(os_name) Node $(node_version)
+  displayName: 'Publishing the test results'
+  condition: always()

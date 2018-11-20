@@ -66,6 +66,10 @@ const pkgDriver = generatePkgDriver({
   },
 });
 
+if (process.platform === `win32`) {
+  jest.setTimeout(10000);
+}
+
 beforeEach(async () => {
   await startPackageServer();
   await getPackageRegistry();

@@ -34,7 +34,7 @@ const isDirRegExp = /\/$/;
 const isStrictRegExp = /^\.{0,2}\//;
 
 // Splits a require request into its components, or return null if the request is a file path
-const pathRegExp = /^(?!\.{0,2}(?:\/|$))((?:@[^\/]+\/)?[^\/]+)\/?(.*|)$/;
+const pathRegExp = /^(?![a-zA-Z]:[\\\/]|\\\\|\.{0,2}(?:\/|$))((?:@[^\/]+\/)?[^\/]+)\/?(.*|)$/;
 
 // Keep a reference around ("module" is a common name in this context, so better rename it to something more significant)
 const pnpModule = module;
@@ -176,8 +176,11 @@ function applyNodeExtensionResolution(unqualifiedPath, {extensions}) {
       // If the "main" field changed the path, we start again from this new location
 
       if (nextUnqualifiedPath && nextUnqualifiedPath !== unqualifiedPath) {
-        unqualifiedPath = nextUnqualifiedPath;
-        continue;
+        const resolution = applyNodeExtensionResolution(nextUnqualifiedPath, {extensions});
+
+        if (resolution !== null) {
+          return resolution;
+        }
       }
     }
 
@@ -237,9 +240,14 @@ function makeFakeModule(path) {
  * Normalize path to posix format.
  */
 
-// eslint-disable-next-line no-unused-vars
 function normalizePath(fsPath) {
-  return process.platform === 'win32' ? fsPath.replace(backwardSlashRegExp, '/') : fsPath;
+  fsPath = path.normalize(fsPath);
+
+  if (process.platform === 'win32') {
+    fsPath = fsPath.replace(backwardSlashRegExp, '/');
+  }
+
+  return fsPath;
 }
 
 /**
@@ -330,7 +338,7 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer, {c
   // contain multiple levels of dependencies (ie. a yarn.lock inside a subfolder of a yarn.lock). This is
   // typically solved using workspaces, but not all of them have been converted already.
 
-  if (ignorePattern && ignorePattern.test(issuer)) {
+  if (ignorePattern && ignorePattern.test(normalizePath(issuer))) {
     const result = callNativeResolution(request, issuer);
 
     if (result === false) {

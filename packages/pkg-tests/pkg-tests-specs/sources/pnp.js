@@ -5,7 +5,7 @@ const {satisfies} = require('semver');
 
 const {
   fs: {createTemporaryFolder, readFile, readJson, writeFile, writeJson},
-  tests: {getPackageDirectoryPath},
+  tests: {getPackageDirectoryPath, testIf},
 } = require('pkg-tests-core');
 
 module.exports = makeTemporaryEnv => {
@@ -312,7 +312,7 @@ module.exports = makeTemporaryEnv => {
       makeTemporaryEnv(
         {
           dependencies: {[`no-deps`]: `1.0.0`},
-          scripts: {myScript: `node -p 'require("no-deps/package.json").version'`},
+          scripts: {myScript: `node -p "require('no-deps/package.json').version"`},
         },
         {
           plugNPlay: true,
@@ -574,7 +574,7 @@ module.exports = makeTemporaryEnv => {
 
         await writeFile(`${tmp}/folder/index.js`, `module.exports = 42;`);
 
-        await expect(source(`require("${tmp}/folder")`)).resolves.toEqual(42);
+        await expect(source(`require(${JSON.stringify(tmp)} + "/folder")`)).resolves.toEqual(42);
       }),
     );
 
@@ -587,8 +587,28 @@ module.exports = makeTemporaryEnv => {
 
         await writeFile(`${tmp}/file.js`, `module.exports = 42;`);
 
-        await expect(source(`require("${tmp}/file")`)).resolves.toEqual(42);
+        await expect(source(`require(${JSON.stringify(tmp)} + "/file")`)).resolves.toEqual(42);
       }),
+    );
+
+    test(
+      `it should ignore the "main" entry if it doesn't resolve`,
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`invalid-main`]: `1.0.0`,
+          },
+        },
+        {plugNPlay: true},
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await expect(source(`require("invalid-main")`)).resolves.toMatchObject({
+            name: `invalid-main`,
+            version: `1.0.0`,
+          });
+        },
+      ),
     );
 
     test(
@@ -601,7 +621,7 @@ module.exports = makeTemporaryEnv => {
         await writeFile(`${tmp}/node_modules/dep/index.js`, `module.exports = 42;`);
         await writeFile(`${tmp}/index.js`, `require('dep')`);
 
-        await source(`require("${tmp}/index.js")`);
+        await source(`require(${JSON.stringify(tmp)} + "/index.js")`);
       }),
     );
 
@@ -724,7 +744,8 @@ module.exports = makeTemporaryEnv => {
       ),
     );
 
-    test(
+    testIf(
+      () => process.platform !== 'win32',
       `it should generate a file that can be used as an executable to resolve a request (valid request)`,
       makeTemporaryEnv(
         {
@@ -753,7 +774,8 @@ module.exports = makeTemporaryEnv => {
       ),
     );
 
-    test(
+    testIf(
+      () => process.platform !== `win32`,
       `it should generate a file that can be used as an executable to resolve a request (builtin request)`,
       makeTemporaryEnv(
         {
@@ -777,7 +799,8 @@ module.exports = makeTemporaryEnv => {
       ),
     );
 
-    test(
+    testIf(
+      () => process.platform !== `win32`,
       `it should generate a file that can be used as an executable to resolve a request (invalid request)`,
       makeTemporaryEnv(
         {
