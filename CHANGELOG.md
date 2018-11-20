@@ -4,6 +4,14 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Implements a new `package.json` field: `peerDependenciesMeta`
+
+  [#6671](https://github.com/yarnpkg/yarn/pull/6671) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Adds an `optional` settings to `peerDependenciesMeta` to silence missing peer dependency warnings
+
+  [#6671](https://github.com/yarnpkg/yarn/pull/6671) - [**Maël Nison**](https://twitter.com/arcanis)
+
 - Fixes a resolution issue when a package had an invalid `main` entry
 
   [#6682](https://github.com/yarnpkg/yarn/pull/6682) - [**Maël Nison**](https://twitter.com/arcanis)
