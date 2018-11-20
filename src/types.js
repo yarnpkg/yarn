@@ -24,7 +24,7 @@ export type PeerDependencyMeta = {
 };
 
 export type PeerDependenciesMeta = {
-  [name: string]: DependencyMeta,
+  [name: string]: PeerDependencyMeta,
 };
 
 // dependency request pattern data structure that's used to request dependencies from a
