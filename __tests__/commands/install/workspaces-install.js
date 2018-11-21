@@ -213,14 +213,25 @@ test.concurrent('install should work correctly for workspaces that have similar 
 test.concurrent('check command should work', (): Promise<void> => {
   return runInstall({checkFiles: true}, 'workspaces-install-basic', async (config, reporter): Promise<void> => {
     // check command + integrity check
-    let thrown = false;
+    let err;
     try {
       await check(config, reporter, {integrity: true, checkFiles: true}, []);
       await check(config, reporter, {}, []);
     } catch (e) {
-      thrown = true;
+      err = e;
     }
-    expect(thrown).toBe(false);
+    expect(err).toBe(undefined);
+  });
+});
+
+test.concurrent('workspaces install should yield unique modulesFolders & files', (): Promise<void> => {
+  return runInstall({checkFiles: true}, 'workspaces-install-basic', async (config, reporter): Promise<void> => {
+    const {modulesFolders, files} = JSON.parse(
+      await fs.readFile(path.join(config.cwd, 'node_modules', '.yarn-integrity')),
+    );
+
+    expect(modulesFolders).toEqual([...new Set(modulesFolders)]);
+    expect(files).toEqual([...new Set(files)]);
   });
 });
 
@@ -253,6 +264,25 @@ describe('install should ignore deep node_modules in workspaces', () => {
         expect(await fs.exists(path.join(config.cwd, 'node_modules', 'b'))).toBe(true);
       },
     );
+  });
+  test('with nohoist', (): Promise<void> => {
+    return runInstall(
+      {workspacesNohoistEnabled: true},
+      'workspaces-install-already-exists-deep',
+      async (config): Promise<void> => {
+        expect(await fs.exists(path.join(config.cwd, 'node_modules', 'a'))).toBe(true);
+        expect(await fs.exists(path.join(config.cwd, 'node_modules', 'b'))).toBe(true);
+      },
+    );
+  });
+});
+
+describe('install should yield unique modulesFolders & files in .yarn-integrity', () => {
+  test('without nohoist', (): Promise<void> => {
+    return runInstall({checkfiles: false}, 'workspaces-install-already-exists-deep', async (config): Promise<void> => {
+      expect(await fs.exists(path.join(config.cwd, 'node_modules', 'a'))).toBe(true);
+      expect(await fs.exists(path.join(config.cwd, 'node_modules', 'b'))).toBe(true);
+    });
   });
   test('with nohoist', (): Promise<void> => {
     return runInstall(
