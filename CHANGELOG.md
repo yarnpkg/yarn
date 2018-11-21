@@ -11,9 +11,9 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 - Fixes a resolution issue when a package had an invalid `main` entry
 
   [#6682](https://github.com/yarnpkg/yarn/pull/6682) - [**Maël Nison**](https://twitter.com/arcanis)
-  
-- Fixes corruption of `PATH` when executing lifecycle scripts on Winows in 'pnp' mode
-  
+
+- Decreases the size of the generated `$PATH` environment variable for a better Windows support
+
   [#6683](https://github.com/yarnpkg/yarn/issues/6683) - [**Rowan Lonsdale**](https://github.com/hWorblehat)
 
 ## 1.12.3
