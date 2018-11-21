@@ -217,7 +217,10 @@ export async function makeEnv(
         continue;
       }
 
-      pathParts.unshift(`${dependencyInformation.packageLocation}/.bin`);
+      const binFolder = `${dependencyInformation.packageLocation}/.bin`;
+      if (await fs.exists(binFolder)) {
+        pathParts.unshift(binFolder);
+      }
     }
 
     // Note that NODE_OPTIONS doesn't support any style of quoting its arguments at the moment
