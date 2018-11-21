@@ -26,31 +26,39 @@ export async function run(config: Config, reporter: Reporter, commander: Object,
   const nodeVersion = process.versions.node.split('-')[0];
   const osPlatform = os.platform();
   const osRelease = os.release();
+
   if (semver.gt(latestVersion, YARN_VERSION)) {
     reporter.warn(reporter.lang('supportYarnOutdated', latestVersion, YARN_VERSION));
   }
-  const showPackageAndLockfile: boolean = await reporter.questionAffirm(
-    'Do you want to add your package.json / yarn.lock to the report?',
-  );
+
   let output = '';
+
   reporter.log(reporter.lang('supportInfoHeader', latestVersion, YARN_VERSION));
+
   const versionDetails = reporter.lang(
     'supportInfo',
     reporter.rawText(YARN_VERSION),
     reporter.rawText(nodeVersion),
     reporter.rawText(osName(osPlatform, osRelease)),
   );
+
   output += versionDetails + '\n';
   reporter.log(versionDetails);
-  if (showPackageAndLockfile) {
-    const pkg = await fs.readFile(path.join(config.cwd, 'package.json'));
-    reporter.log(reporter.lang('supportInfoPackageJson', reporter.rawText(pkg)));
-    output += reporter.lang('supportInfoPackageJson', reporter.rawText('```\n' + pkg + '\n```\n'));
 
-    const yarnLock = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
-    reporter.log(reporter.lang('supportInfoYarnLock', reporter.rawText(yarnLock)));
-    output += reporter.lang('supportInfoYarnLock', reporter.rawText('```\n' + yarnLock + '\n```\n'));
+  const pkgJsonPath = `${config.lockfileFolder}/package.json`;
+  if (await fs.exists(pkgJsonPath)) {
+    const pkgJson = await fs.readFile(pkgJsonPath);
+    output += '\n<details><summary><b>package.json</b></summary>\n\n```json\n' + pkgJson + '\n```\n\n</details>\n';
   }
+
+  const yarnLockPath = `${config.lockfileFolder}/yarn.lock`;
+  if (await fs.exists(yarnLockPath)) {
+    const yarnLock = await fs.readFile(yarnLockPath);
+    output += '\n<details><summary><b>yarn.lock</b></summary>\n\n```\n' + yarnLock + '\n```\n\n</details>\n';
+  }
+
   clipboardy.writeSync(output);
+
+  reporter.log('');
   reporter.log(reporter.lang('supportInfoCopied'));
 }
