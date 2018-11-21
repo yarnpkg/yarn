@@ -203,11 +203,21 @@ export async function makeEnv(
     }
   }
 
-  const pnpFile = `${config.lockfileFolder}/${constants.PNP_FILENAME}`;
-  if (await fs.exists(pnpFile)) {
+  let pnpFile;
+
+  if (process.versions.pnp) {
+    pnpFile = dynamicRequire.resolve('pnpapi');
+  } else {
+    const candidate = `${config.lockfileFolder}/${constants.PNP_FILENAME}`;
+    if (await fs.exists(candidate)) {
+      pnpFile = candidate;
+    }
+  }
+
+  if (pnpFile) {
     const pnpApi = dynamicRequire(pnpFile);
 
-    const packageLocator = pnpApi.findPackageLocator(`${config.cwd}/`);
+    const packageLocator = pnpApi.findPackageLocator(`${cwd}/`);
     const packageInformation = pnpApi.getPackageInformation(packageLocator);
 
     for (const [name, reference] of packageInformation.packageDependencies.entries()) {
@@ -217,7 +227,10 @@ export async function makeEnv(
         continue;
       }
 
-      pathParts.unshift(`${dependencyInformation.packageLocation}/.bin`);
+      const binFolder = `${dependencyInformation.packageLocation}/.bin`;
+      if (await fs.exists(binFolder)) {
+        pathParts.unshift(binFolder);
+      }
     }
 
     // Note that NODE_OPTIONS doesn't support any style of quoting its arguments at the moment
