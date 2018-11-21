@@ -30,7 +30,7 @@ export async function run(config: Config, reporter: Reporter, commander: Object,
     reporter.warn(reporter.lang('supportYarnOutdated', latestVersion, YARN_VERSION));
   }
   const showPackageAndLockfile: boolean = await reporter.questionAffirm(
-    'Do you want to add your package.json / yarn.lock to the report? [n/Y]',
+    'Do you want to add your package.json / yarn.lock to the report?',
   );
   let output = '';
   reporter.log(reporter.lang('supportInfoHeader', latestVersion, YARN_VERSION));

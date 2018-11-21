@@ -274,10 +274,10 @@ export default class BaseReporter {
     }
 
     while (condition) {
-      let answer = await this.question(question);
+      let answer = await this.question(`${question} [n/Y]`);
       answer = answer.toLowerCase();
 
-      if (answer === 'y' || answer === 'yes') {
+      if (answer === 'y' || answer === 'yes' || answer === '') {
         return true;
       }
       if (answer === 'n' || answer === 'no') {
