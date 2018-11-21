@@ -203,5 +203,17 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
         ]);
       }),
     );
+
+    test(
+      `it should allow dependencies with install scripts to run the binaries exposed by their own dependencies`,
+      makeTemporaryEnv(
+        {
+          dependencies: {[`one-dep-scripted`]: `1.0.0`},
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+        },
+      ),
+    );
   });
 };
