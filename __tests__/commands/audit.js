@@ -214,6 +214,20 @@ test('audit groups only devDependencies omits dependencies from requires', () =>
   });
 });
 
+test('calls reporter auditAdvisory when using --level high flag', () => {
+  return runAudit([], {level: 'high'}, 'single-vulnerable-dep-installed', (config, reporter) => {
+    const apiResponse = getAuditResponse(config);
+    expect(reporter.auditAdvisory).toBeCalledWith(apiResponse.actions[0].resolves[0], apiResponse.advisories['118']);
+  });
+});
+
+test(`doesn't call reporter auditAdvisory when using --level critical flag`, () => {
+  return runAudit([], {level: 'critical'}, 'single-vulnerable-dep-installed', (config, reporter) => {
+    getAuditResponse(config);
+    expect(reporter.auditAdvisory).not.toHaveBeenCalled();
+  });
+});
+
 test('calls reporter auditAdvisory with correct data', () => {
   return runAudit([], {}, 'single-vulnerable-dep-installed', (config, reporter) => {
     const apiResponse = getAuditResponse(config);
