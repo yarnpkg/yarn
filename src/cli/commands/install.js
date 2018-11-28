@@ -579,7 +579,7 @@ export class Install {
       });
     }
 
-    const audit = new Audit(this.config, this.reporter);
+    const audit = new Audit(this.config, this.reporter, {groups: constants.OWNED_DEPENDENCY_TYPES});
     let auditFoundProblems = false;
 
     steps.push((curr: number, total: number) =>

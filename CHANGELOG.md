@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Implements `yarn audit --groups group_name [group_name ...]`.
+
+  [#6724](https://github.com/yarnpkg/yarn/pull/6724) - [**Tom Milligan**](https://github.com/tommilligan)
+
 - Implements `yarn policies set-version [range]`. Check [the documentation]() for usage & tips.
 
   [#6673](https://github.com/yarnpkg/yarn/pull/6673) - [**Maël Nison**](https://twitter.com/arcanis)

@@ -10,10 +10,14 @@ import {promisify} from '../../util/promise.js';
 import {buildTree as hoistedTreeBuilder} from '../../hoisted-tree-builder';
 import {Install} from './install.js';
 import Lockfile from '../../lockfile';
-import {YARN_REGISTRY} from '../../constants';
+import {OWNED_DEPENDENCY_TYPES, YARN_REGISTRY} from '../../constants';
 
 const zlib = require('zlib');
 const gzip = promisify(zlib.gzip);
+
+export type AuditOptions = {
+  groups: Array<string>,
+};
 
 export type AuditNode = {
   version: ?string,
@@ -115,6 +119,12 @@ export type AuditActionRecommendation = {
 export function setFlags(commander: Object) {
   commander.description('Checks for known security issues with the installed packages.');
   commander.option('--summary', 'Only print the summary.');
+  commander.option(
+    '--groups <group_name> [<group_name> ...]',
+    `Only audit dependencies from listed groups. Default: ${OWNED_DEPENDENCY_TYPES.join(', ')}`,
+    groups => groups.split(' '),
+    OWNED_DEPENDENCY_TYPES,
+  );
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
@@ -122,7 +132,7 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 }
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<number> {
-  const audit = new Audit(config, reporter);
+  const audit = new Audit(config, reporter, {groups: flags.groups || OWNED_DEPENDENCY_TYPES});
   const lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
   const install = new Install({}, config, reporter, lockfile);
   const {manifest, requests, patterns, workspaceLayout} = await install.fetchRequestFromCwd();
@@ -148,13 +158,15 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 }
 
 export default class Audit {
-  constructor(config: Config, reporter: Reporter) {
+  constructor(config: Config, reporter: Reporter, options: AuditOptions) {
     this.config = config;
     this.reporter = reporter;
+    this.options = options;
   }
 
   config: Config;
   reporter: Reporter;
+  options: AuditOptions;
   auditData: AuditReport;
 
   _mapHoistedNodes(auditNode: AuditNode, hoistedNodes: HoistedTrees) {
@@ -179,6 +191,9 @@ export default class Audit {
   }
 
   _mapHoistedTreesToAuditTree(manifest: Object, hoistedTrees: HoistedTrees): AuditTree {
+    const requiresGroups = this.options.groups.map(function(group: string): Object {
+      return manifest[group] || {};
+    });
     const auditTree: AuditTree = {
       name: manifest.name || undefined,
       version: manifest.version || undefined,
@@ -187,12 +202,7 @@ export default class Audit {
       metadata: {
         //TODO: What do we send here? npm sends npm version, node version, etc.
       },
-      requires: Object.assign(
-        {},
-        manifest.dependencies || {},
-        manifest.devDependencies || {},
-        manifest.optionalDependencies || {},
-      ),
+      requires: Object.assign({}, ...requiresGroups),
       integrity: undefined,
       dependencies: {},
     };

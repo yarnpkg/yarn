@@ -98,6 +98,104 @@ test.concurrent('sends correct dependency map to audit api for single dependency
   });
 });
 
+test('audit groups dependencies does not affect requires', () => {
+  const expectedApiPost = {
+    name: 'yarn-test',
+    install: [],
+    remove: [],
+    metadata: {},
+    requires: {
+      minimatch: '^3.0.0',
+    },
+    dependencies: {
+      minimatch: {
+        version: '3.0.0',
+        integrity: 'sha1-UjYVelHk8ATBd/s8Un/33Xjw74M=',
+        requires: {
+          'brace-expansion': '^1.0.0',
+        },
+        dependencies: {},
+      },
+      'brace-expansion': {
+        version: '1.1.11',
+        integrity: 'sha512-iCuPHDFgrHX7H2vEI/5xpz07zSHB00TpugqhmYtVmMO6518mCuRMoOYFldEBl0g187ufozdaHgWKcYFb61qGiA==',
+        requires: {
+          'balanced-match': '^1.0.0',
+          'concat-map': '0.0.1',
+        },
+        dependencies: {},
+      },
+      'balanced-match': {
+        version: '1.0.0',
+        integrity: 'sha1-ibTRmasr7kneFk6gK4nORi1xt2c=',
+        requires: {},
+        dependencies: {},
+      },
+      'concat-map': {
+        version: '0.0.1',
+        integrity: 'sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=',
+        requires: {},
+        dependencies: {},
+      },
+    },
+    version: '0.0.0',
+  };
+
+  return runAudit([], {groups: ['dependencies']}, 'single-vulnerable-dep-installed', async config => {
+    const calledWithPipe = config.requestManager.request.mock.calls[0][0].body;
+    const calledWith = JSON.parse(await gunzip(calledWithPipe));
+    expect(calledWith).toEqual(expectedApiPost);
+  });
+});
+
+test('audit groups only devDependencies omits dependencies from requires', () => {
+  const expectedApiPost = {
+    name: 'yarn-test',
+    install: [],
+    remove: [],
+    metadata: {},
+    requires: {},
+    dependencies: {
+      minimatch: {
+        version: '3.0.0',
+        integrity: 'sha1-UjYVelHk8ATBd/s8Un/33Xjw74M=',
+        requires: {
+          'brace-expansion': '^1.0.0',
+        },
+        dependencies: {},
+      },
+      'brace-expansion': {
+        version: '1.1.11',
+        integrity: 'sha512-iCuPHDFgrHX7H2vEI/5xpz07zSHB00TpugqhmYtVmMO6518mCuRMoOYFldEBl0g187ufozdaHgWKcYFb61qGiA==',
+        requires: {
+          'balanced-match': '^1.0.0',
+          'concat-map': '0.0.1',
+        },
+        dependencies: {},
+      },
+      'balanced-match': {
+        version: '1.0.0',
+        integrity: 'sha1-ibTRmasr7kneFk6gK4nORi1xt2c=',
+        requires: {},
+        dependencies: {},
+      },
+      'concat-map': {
+        version: '0.0.1',
+        integrity: 'sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=',
+        requires: {},
+        dependencies: {},
+      },
+    },
+    version: '0.0.0',
+  };
+
+  return runAudit([], {groups: ['devDependencies']}, 'single-vulnerable-dep-installed', async config => {
+    const calledWithPipe = config.requestManager.request.mock.calls[0][0].body;
+    const calledWith = JSON.parse(await gunzip(calledWithPipe));
+    expect(calledWith).toEqual(expectedApiPost);
+  });
+});
+
 test('calls reporter auditAdvisory with correct data', () => {
   return runAudit([], {}, 'single-vulnerable-dep-installed', (config, reporter) => {
     const apiResponse = getAuditResponse(config);
