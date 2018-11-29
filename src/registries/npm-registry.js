@@ -216,7 +216,7 @@ export default class NpmRegistry extends Registry {
     const escapedName = NpmRegistry.escapeName(name);
     const req = await this.request(escapedName, {unfiltered: true});
     if (!req) {
-      throw new Error('couldn\'t find ' + name);
+      throw new Error(`couldn't find ${name}`);
     }
 
     // By default use top level 'repository' and 'homepage' values
