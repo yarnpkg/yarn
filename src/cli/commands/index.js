@@ -36,6 +36,7 @@ import * as policies from './policies.js';
 import * as publish from './publish.js';
 import * as remove from './remove.js';
 import * as run from './run.js';
+import * as selfUpdate from './self-update.js';
 import * as tag from './tag.js';
 import * as team from './team.js';
 import * as unplug from './unplug.js';
@@ -84,6 +85,7 @@ const commands = {
   publish,
   remove,
   run,
+  selfUpdate,
   tag,
   team,
   unplug,
