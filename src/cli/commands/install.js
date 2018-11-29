@@ -87,7 +87,7 @@ type Flags = {
  * Try and detect the installation method for Yarn and provide a command to update it with.
  */
 
-function getUpdateCommand(installationMethod: InstallationMethod): ?string {
+export function getUpdateCommand(installationMethod: InstallationMethod): ?string {
   if (installationMethod === 'tar') {
     return `curl --compressed -o- -L ${constants.YARN_INSTALLER_SH} | bash`;
   }
