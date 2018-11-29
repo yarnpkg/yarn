@@ -32,6 +32,9 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#7210](https://github.com/yarnpkg/yarn/pull/7210) - [**Maël Nison**](https://twitter.com/arcanis)
 
+- Workspace patterns can end with a trailing slash
+  [#6738](https://github.com/yarnpkg/yarn/pull/6738) - [**David Vazquez**](https://github.com/davazp)
+
 ## 1.15.2
 
 The 1.15.1 doesn't exist due to a release hiccup.
