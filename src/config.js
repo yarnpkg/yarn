@@ -777,7 +777,8 @@ export default class Config {
       const ws = extractWorkspaces(manifest);
       if (ws && ws.packages) {
         const relativePath = path.relative(current, initial);
-        if (relativePath === '' || micromatch([relativePath], ws.packages).length > 0) {
+        const patterns = [relativePath, relativePath + path.sep];
+        if (relativePath === '' || micromatch(patterns, ws.packages).length > 0) {
           return current;
         } else {
           return null;

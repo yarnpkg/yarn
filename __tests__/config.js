@@ -1,5 +1,6 @@
 /* @flow */
 
+import path from 'path';
 import Config, {extractWorkspaces} from '../src/config.js';
 import {ConsoleReporter, BufferReporter} from '../src/reporters/index.js';
 import type {WorkspacesConfig, Manifest} from '../src/types.js';
@@ -203,6 +204,12 @@ describe('workspaces config', () => {
     expect(getNohoist(config.getWorkspaces(manifest, false))).toBeUndefined();
     expect(mockReporter.numberOfCalls()).toEqual(1);
     expect(mockReporter.findCalls('workspacesNohoistRequirePrivatePackages').length).toEqual(1);
+  });
+
+  test('can detect workspace patterns with a trailing backslash', async () => {
+    const cwd = path.resolve(__dirname, 'fixtures/workspace-with-backslash/bar/');
+    const config = await initConfig({cwd});
+    expect(config.workspaceRootFolder).toBe(path.resolve(__dirname, 'fixtures/workspace-with-backslash/'));
   });
 });
 
