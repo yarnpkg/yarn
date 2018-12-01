@@ -682,7 +682,7 @@ export class Install {
           curr,
           total,
           this.flags.force ? this.reporter.lang('rebuildingPackages') : this.reporter.lang('buildingFreshPackages'),
-          emoji.get('page_with_curl'),
+          emoji.get('hammer'),
         );
 
         if (this.flags.ignoreScripts) {
