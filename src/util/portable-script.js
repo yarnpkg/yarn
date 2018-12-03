@@ -45,7 +45,7 @@ async function makePortableProxyScriptUnix(
   } else {
     await fs.writeFile(
       filePath,
-      `#!/bin/sh\n\n${environment}"${sourcePath}"${prependedArguments} "$@"${appendedArguments}\n`,
+      `#!/bin/sh\n\n${environment}exec "${sourcePath}"${prependedArguments} "$@"${appendedArguments}\n`,
     );
     await fs.chmod(filePath, 0o755);
   }
