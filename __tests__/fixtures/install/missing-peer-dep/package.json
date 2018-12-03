@@ -1,0 +1,6 @@
+{
+  "name": "missing-peer-dep",
+  "dependencies": {
+    "foo": "file:./foo"
+  }
+}

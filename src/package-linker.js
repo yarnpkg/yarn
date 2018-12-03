@@ -595,11 +595,15 @@ export default class PackageLinker {
   resolvePeerModules() {
     for (const pkg of this.resolver.getManifests()) {
       const peerDeps = pkg.peerDependencies;
+      const peerDepsMeta = pkg.peerDependenciesMeta;
+
       if (!peerDeps) {
         continue;
       }
+
       const ref = pkg._reference;
       invariant(ref, 'Package reference is missing');
+
       // TODO: We are taking the "shortest" ref tree but there may be multiple ref trees with the same length
       const refTree = ref.requests.map(req => req.parentNames).sort((arr1, arr2) => arr1.length - arr2.length)[0];
 
@@ -618,6 +622,10 @@ export default class PackageLinker {
 
       for (const peerDepName in peerDeps) {
         const range = peerDeps[peerDepName];
+        const meta = peerDepsMeta && peerDepsMeta[peerDepName];
+
+        const isOptional = !!(meta && meta.optional);
+
         const peerPkgs = this.resolver.getAllInfoForPackageName(peerDepName);
 
         let peerError = 'unmetPeer';
@@ -649,7 +657,7 @@ export default class PackageLinker {
               resolvedPeerPkg.level,
             ),
           );
-        } else {
+        } else if (!isOptional) {
           this.reporter.warn(
             this.reporter.lang(
               peerError,
