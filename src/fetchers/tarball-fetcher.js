@@ -229,7 +229,7 @@ export default class TarballFetcher extends BaseFetcher {
     const registry = this.config.registries[this.registry];
 
     try {
-      const headers = this.requestHeaders(this.reference);
+      const headers = this.requestHeaders();
       return await registry.request(
         this.reference,
         {
@@ -276,10 +276,10 @@ export default class TarballFetcher extends BaseFetcher {
     }
   }
 
-  requestHeaders(requestUrl: string): {[string]: string} {
+  requestHeaders(): {[string]: string} {
     const registry = this.config.registries[this.registry];
     const config = registry.config;
-    const requestParts = urlParts(requestUrl);
+    const requestParts = urlParts(this.reference);
     return Object.keys(config).reduce((headers, option) => {
       const parts = option.split(':');
       if (parts.length === 3 && parts[1] === '_header') {
