@@ -14,6 +14,7 @@ const path = require('path');
 const yn = require('yn');
 
 export function setFlags(commander: Object) {
+  commander.description('Interactively creates or updates a package.json file.');
   commander.option('-y, --yes', 'use default options');
   commander.option('-p, --private', 'use default options and private true');
 }
@@ -21,6 +22,8 @@ export function setFlags(commander: Object) {
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
+
+export const shouldRunInCurrentCwd = true;
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const manifests = await config.getRootManifests();
@@ -94,7 +97,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     {
       key: 'private',
       question: 'private',
-      default: '',
+      default: config.getOption('init-private') || '',
       inputFormatter: yn,
     },
   ];
@@ -127,7 +130,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
 
     if (def) {
-      question += ` (${def.toString()})`;
+      question += ` (${String(def)})`;
     }
 
     let answer;

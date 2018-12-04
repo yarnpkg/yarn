@@ -2,24 +2,6 @@
 
 const _camelCase = require('camelcase');
 
-export function consumeStream(stream: Object): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const buffers = [];
-
-    stream.on(`data`, buffer => {
-      buffers.push(buffer);
-    });
-
-    stream.on(`end`, () => {
-      resolve(Buffer.concat(buffers));
-    });
-
-    stream.on(`error`, error => {
-      reject(error);
-    });
-  });
-}
-
 export function sortAlpha(a: string, b: string): number {
   // sort alphabetically in a deterministic way
   const shortLen = Math.min(a.length, b.length);
@@ -31,6 +13,12 @@ export function sortAlpha(a: string, b: string): number {
     }
   }
   return a.length - b.length;
+}
+
+export function sortOptionsByFlags(a: Object, b: Object): number {
+  const aOpt = a.flags.replace(/-/g, '');
+  const bOpt = b.flags.replace(/-/g, '');
+  return sortAlpha(aOpt, bOpt);
 }
 
 export function entries<T>(obj: ?{[key: string]: T}): Array<[string, T]> {

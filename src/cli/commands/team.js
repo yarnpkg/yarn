@@ -14,7 +14,7 @@ type TeamParts = {
 
 type DeprecationWarning = {
   deprecatedCommand: string,
-  currentComand: string,
+  currentCommand: string,
 };
 
 type CLIFunctionWithParts = (
@@ -49,7 +49,7 @@ function warnDeprecation(reporter: Reporter, deprecationWarning: DeprecationWarn
     reporter.lang(
       'deprecatedCommand',
       `${command} ${deprecationWarning.deprecatedCommand}`,
-      `${command} ${deprecationWarning.currentComand}`,
+      `${command} ${deprecationWarning.currentCommand}`,
     ),
   );
 }
@@ -164,7 +164,11 @@ async function list(parts: TeamParts, config: Config, reporter: Reporter): Promi
   return true;
 }
 
-export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
+export function setFlags(commander: Object) {
+  commander.description('Maintain team memberships');
+}
+
+export const {run, hasWrapper, examples} = buildSubCommands(
   'team',
   {
     create: wrapRequiredTeam(async function(
@@ -227,7 +231,7 @@ export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
       },
       {
         deprecatedCommand: 'rm',
-        currentComand: 'remove',
+        currentCommand: 'remove',
       },
     ),
 
@@ -248,7 +252,7 @@ export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
       false,
       {
         deprecatedCommand: 'ls',
-        currentComand: 'list',
+        currentCommand: 'list',
       },
     ),
 

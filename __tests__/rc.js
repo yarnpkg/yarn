@@ -10,6 +10,22 @@ test('resolve .yarnrc args and use --cwd if present', () => {
   expect(args.indexOf('--foo') !== -1).toBe(true);
 });
 
+test("don't resolve .yarnrc args from the default locations when using --no-default-rc", () => {
+  const args = getRcArgs('install', ['--cwd', path.join(fixturesLoc, 'empty'), '--no-default-rc']);
+  expect(args.indexOf('--foo') !== -1).toBe(false);
+});
+
+test('resolve .yarnrc args from the extraneous locations when using --use-yarnrc', () => {
+  const args = getRcArgs('install', [
+    '--cwd',
+    path.join(fixturesLoc, 'empty'),
+    '--no-default-rc',
+    '--use-yarnrc',
+    path.join(fixturesLoc, 'empty', '.yarnrc'),
+  ]);
+  expect(args.indexOf('--foo') !== -1).toBe(true);
+});
+
 test('resolve .yarnrc args and use process.cwd() if no --cwd present', () => {
   const cwd = process.cwd();
   process.chdir(path.join(fixturesLoc, 'empty'));

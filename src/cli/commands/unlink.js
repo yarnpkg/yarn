@@ -9,7 +9,9 @@ import {getBinFolder as getGlobalBinFolder} from './global';
 
 const path = require('path');
 
-export function setFlags(commander: Object) {}
+export function setFlags(commander: Object) {
+  commander.description('Unlink a previously created symlink for a package.');
+}
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
@@ -45,6 +47,9 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
           const binDestLoc = path.join(globalBinFolder, binName);
           if (await fs.exists(binDestLoc)) {
             await fs.unlink(binDestLoc);
+            if (process.platform === 'win32') {
+              await fs.unlink(binDestLoc + '.cmd');
+            }
           }
         }
       }

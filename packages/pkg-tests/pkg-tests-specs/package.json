@@ -1,0 +1,9 @@
+{
+    "name": "pkg-tests-specs",
+    "version": "1.0.0",
+    "main": "./sources/index.js",
+    "dependencies": {
+        "fs-extra": "^7.0.0",
+        "pkg-tests-core": "1.0.0"
+    }
+}

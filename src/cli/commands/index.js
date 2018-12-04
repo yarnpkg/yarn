@@ -27,6 +27,7 @@ import * as link from './link.js';
 import * as login from './login.js';
 import * as logout from './logout.js';
 import * as list from './list.js';
+import * as node from './node.js';
 import * as outdated from './outdated.js';
 import * as owner from './owner.js';
 import * as pack from './pack.js';
@@ -35,11 +36,13 @@ import * as remove from './remove.js';
 import * as run from './run.js';
 import * as tag from './tag.js';
 import * as team from './team.js';
+import * as unplug from './unplug.js';
 import * as unlink from './unlink.js';
 import * as upgrade from './upgrade.js';
 import * as version from './version.js';
 import * as versions from './versions.js';
 import * as why from './why.js';
+import * as workspaces from './workspaces.js';
 import * as workspace from './workspace.js';
 import * as upgradeInteractive from './upgrade-interactive.js';
 
@@ -69,6 +72,7 @@ const commands = {
   login,
   logout,
   list,
+  node,
   outdated,
   owner,
   pack,
@@ -78,11 +82,13 @@ const commands = {
   run,
   tag,
   team,
+  unplug,
   unlink,
   upgrade,
   version,
   versions,
   why,
+  workspaces,
   workspace,
   upgradeInteractive,
 };

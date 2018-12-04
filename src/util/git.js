@@ -1,21 +1,32 @@
 /* @flow */
 
+import invariant from 'invariant';
+import {StringDecoder} from 'string_decoder';
+import tarFs from 'tar-fs';
+import tarStream from 'tar-stream';
+import url from 'url';
+import {createWriteStream} from 'fs';
+
 import type Config from '../config.js';
 import type {Reporter} from '../reporters/index.js';
 import type {ResolvedSha, GitRefResolvingInterface, GitRefs} from './git/git-ref-resolver.js';
-import {MessageError, SecurityError, ProcessSpawnError} from '../errors.js';
+import {MessageError, ProcessSpawnError} from '../errors.js';
 import {spawn as spawnGit} from './git/git-spawn.js';
 import {resolveVersion, isCommitSha, parseRefs} from './git/git-ref-resolver.js';
 import * as crypto from './crypto.js';
 import * as fs from './fs.js';
 import map from './map.js';
+import {removePrefix} from './misc.js';
 
-const invariant = require('invariant');
-const StringDecoder = require('string_decoder').StringDecoder;
-const tarFs = require('tar-fs');
-const tarStream = require('tar-stream');
-const url = require('url');
-import {createWriteStream} from 'fs';
+const GIT_PROTOCOL_PREFIX = 'git+';
+const SSH_PROTOCOL = 'ssh:';
+const SCP_PATH_PREFIX = '/:';
+const FILE_PROTOCOL = 'file:';
+const GIT_VALID_REF_LINE_REGEXP = /^([a-fA-F0-9]+|ref)/;
+
+const validRef = line => {
+  return GIT_VALID_REF_LINE_REGEXP.exec(line);
+};
 
 type GitUrl = {
   protocol: string, // parsed from URL
@@ -32,6 +43,27 @@ const handleSpawnError = err => {
     throw err;
   }
 };
+
+const SHORTHAND_SERVICES: {[key: string]: url.parse} = map({
+  'github:': parsedUrl => ({
+    ...parsedUrl,
+    slashes: true,
+    auth: 'git',
+    protocol: SSH_PROTOCOL,
+    host: 'github.com',
+    hostname: 'github.com',
+    pathname: `/${parsedUrl.hostname}${parsedUrl.pathname}`,
+  }),
+  'bitbucket:': parsedUrl => ({
+    ...parsedUrl,
+    slashes: true,
+    auth: 'git',
+    protocol: SSH_PROTOCOL,
+    host: 'bitbucket.com',
+    hostname: 'bitbucket.com',
+    pathname: `/${parsedUrl.hostname}${parsedUrl.pathname}`,
+  }),
+});
 
 export default class Git implements GitRefResolvingInterface {
   constructor(config: Config, gitUrl: GitUrl, hash: string) {
@@ -59,28 +91,46 @@ export default class Git implements GitRefResolvingInterface {
    * git "URLs" also allow an alternative scp-like syntax, so they're not standard URLs.
    */
   static npmUrlToGitUrl(npmUrl: string): GitUrl {
-    // Expand shortened format first if needed
-    npmUrl = npmUrl.replace(/^github:/, 'git+ssh://git@github.com/');
+    npmUrl = removePrefix(npmUrl, GIT_PROTOCOL_PREFIX);
+
+    let parsed = url.parse(npmUrl);
+    const expander = parsed.protocol && SHORTHAND_SERVICES[parsed.protocol];
+
+    if (expander) {
+      parsed = expander(parsed);
+    }
 
     // Special case in npm, where ssh:// prefix is stripped to pass scp-like syntax
     // which in git works as remote path only if there are no slashes before ':'.
-    const match = npmUrl.match(/^git\+ssh:\/\/((?:[^@:\/]+@)?([^@:\/]+):([^/]*).*)/);
-    // Additionally, if the host part is digits-only, npm falls back to
-    // interpreting it as an SSH URL with a port number.
-    if (match && /[^0-9]/.test(match[3])) {
+    // See #3146.
+    if (
+      parsed.protocol === SSH_PROTOCOL &&
+      parsed.hostname &&
+      parsed.path &&
+      parsed.path.startsWith(SCP_PATH_PREFIX) &&
+      parsed.port === null
+    ) {
+      const auth = parsed.auth ? parsed.auth + '@' : '';
+      const pathname = parsed.path.slice(SCP_PATH_PREFIX.length);
       return {
-        hostname: match[2],
-        protocol: 'ssh:',
-        repository: match[1],
+        hostname: parsed.hostname,
+        protocol: parsed.protocol,
+        repository: `${auth}${parsed.hostname}:${pathname}`,
       };
     }
 
-    const repository = npmUrl.replace(/^git\+/, '');
-    const parsed = url.parse(repository);
+    // git local repos are specified as `git+file:` and a filesystem path, not a url.
+    let repository;
+    if (parsed.protocol === FILE_PROTOCOL) {
+      repository = parsed.path;
+    } else {
+      repository = url.format({...parsed, hash: ''});
+    }
+
     return {
       hostname: parsed.hostname || null,
-      protocol: parsed.protocol || 'file:',
-      repository,
+      protocol: parsed.protocol || FILE_PROTOCOL,
+      repository: repository || '',
     };
   }
 
@@ -113,8 +163,14 @@ export default class Git implements GitRefResolvingInterface {
    */
 
   static async repoExists(ref: GitUrl): Promise<boolean> {
+    const isLocal = ref.protocol === FILE_PROTOCOL;
+
     try {
-      await spawnGit(['ls-remote', '-t', ref.repository]);
+      if (isLocal) {
+        await spawnGit(['show-ref', '-t'], {cwd: ref.repository});
+      } else {
+        await spawnGit(['ls-remote', '-t', ref.repository]);
+      }
       return true;
     } catch (err) {
       handleSpawnError(err);
@@ -144,7 +200,8 @@ export default class Git implements GitRefResolvingInterface {
       if (await Git.repoExists(secureUrl)) {
         return secureUrl;
       } else {
-        throw new SecurityError(reporter.lang('refusingDownloadGitWithoutCommit', ref));
+        reporter.warn(reporter.lang('downloadGitWithoutCommit', ref.repository));
+        return ref;
       }
     }
 
@@ -153,19 +210,8 @@ export default class Git implements GitRefResolvingInterface {
       if (await Git.repoExists(secureRef)) {
         return secureRef;
       } else {
-        if (await Git.repoExists(ref)) {
-          return ref;
-        } else {
-          throw new SecurityError(reporter.lang('refusingDownloadHTTPWithoutCommit', ref));
-        }
-      }
-    }
-
-    if (ref.protocol === 'https:') {
-      if (await Git.repoExists(ref)) {
+        reporter.warn(reporter.lang('downloadHTTPWithoutCommit', ref.repository));
         return ref;
-      } else {
-        throw new SecurityError(reporter.lang('refusingDownloadHTTPSWithoutCommit', ref));
       }
     }
 
@@ -273,6 +319,7 @@ export default class Git implements GitRefResolvingInterface {
 
     return fs.lockQueue.push(gitUrl.repository, async () => {
       if (await fs.exists(cwd)) {
+        await spawnGit(['fetch', '--tags'], {cwd});
         await spawnGit(['pull'], {cwd});
       } else {
         await spawnGit(['clone', gitUrl.repository, cwd]);
@@ -364,7 +411,15 @@ export default class Git implements GitRefResolvingInterface {
   }
 
   async setRefRemote(): Promise<string> {
-    const stdout = await spawnGit(['ls-remote', '--tags', '--heads', this.gitUrl.repository]);
+    const isLocal = this.gitUrl.protocol === FILE_PROTOCOL;
+    let stdout;
+
+    if (isLocal) {
+      stdout = await spawnGit(['show-ref', '--tags', '--heads'], {cwd: this.gitUrl.repository});
+    } else {
+      stdout = await spawnGit(['ls-remote', '--tags', '--heads', this.gitUrl.repository]);
+    }
+
     const refs = parseRefs(stdout);
     return this.setRef(refs);
   }
@@ -379,17 +434,32 @@ export default class Git implements GitRefResolvingInterface {
    */
 
   async resolveDefaultBranch(): Promise<ResolvedSha> {
+    const isLocal = this.gitUrl.protocol === FILE_PROTOCOL;
+
     try {
-      const stdout = await spawnGit(['ls-remote', '--symref', this.gitUrl.repository, 'HEAD']);
-      const lines = stdout.split('\n');
-      const [, ref] = lines[0].split(/\s+/);
-      const [sha] = lines[1].split(/\s+/);
-      return {sha, ref};
+      let stdout;
+      if (isLocal) {
+        stdout = await spawnGit(['show-ref', 'HEAD'], {cwd: this.gitUrl.repository});
+        const refs = parseRefs(stdout);
+        const sha = refs.values().next().value;
+        if (sha) {
+          return {sha, ref: undefined};
+        } else {
+          throw new Error('Unable to find SHA for git HEAD');
+        }
+      } else {
+        stdout = await spawnGit(['ls-remote', '--symref', this.gitUrl.repository, 'HEAD']);
+        const lines = stdout.split('\n').filter(validRef);
+        const [, ref] = lines[0].split(/\s+/);
+        const [sha] = lines[1].split(/\s+/);
+        return {sha, ref};
+      }
     } catch (err) {
       handleSpawnError(err);
       // older versions of git don't support "--symref"
       const stdout = await spawnGit(['ls-remote', this.gitUrl.repository, 'HEAD']);
-      const [sha] = stdout.split(/\s+/);
+      const lines = stdout.split('\n').filter(validRef);
+      const [sha] = lines[0].split(/\s+/);
       return {sha, ref: undefined};
     }
   }
@@ -430,7 +500,7 @@ export default class Git implements GitRefResolvingInterface {
     });
     if (!resolvedResult) {
       throw new MessageError(
-        this.reporter.lang('couldntFindMatch', version, Object.keys(refs).join(','), this.gitUrl.repository),
+        this.reporter.lang('couldntFindMatch', version, Array.from(refs.keys()).join(','), this.gitUrl.repository),
       );
     }
 

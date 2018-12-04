@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "a": "file:./deps/a.git"
+  }
+}

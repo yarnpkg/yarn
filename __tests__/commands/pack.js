@@ -109,6 +109,19 @@ test.concurrent('pack should exclude mandatory files from ignored directories', 
   });
 });
 
+test.concurrent('pack should include files only ignored in other directories', (): Promise<void> => {
+  return runPack([], {}, 'include-files-ignored-in-other-directories', async (config): Promise<void> => {
+    const {cwd} = config;
+    const files = await getFilesFromArchive(
+      path.join(cwd, 'include-files-ignored-in-other-directories-v1.0.0.tgz'),
+      path.join(cwd, 'include-files-ignored-in-other-directories-v1.0.0'),
+    );
+    expect(files.indexOf('a.js')).toBeGreaterThanOrEqual(0);
+    expect(files.indexOf('index.js')).toBeGreaterThanOrEqual(0);
+    expect(files.indexOf('ignoring/file.js')).toEqual(-1);
+  });
+});
+
 test.concurrent('pack should exclude all other files if files array is not empty', (): Promise<void> => {
   return runPack([], {}, 'files-exclude', async (config): Promise<void> => {
     const {cwd} = config;
@@ -123,7 +136,7 @@ test.concurrent('pack should exclude all other files if files array is not empty
   });
 });
 
-test.concurrent('pack should exclude all dotflies if not in files and files not empty', (): Promise<void> => {
+test.concurrent('pack should exclude all dotfiles if not in files and files not empty', (): Promise<void> => {
   return runPack([], {}, 'files-exclude-dotfile', async (config): Promise<void> => {
     const {cwd} = config;
     const files = await getFilesFromArchive(
@@ -144,5 +157,37 @@ test.concurrent('pack should exclude all files in dot-directories if not in file
       path.join(cwd, 'files-exclude-dotdir-v1.0.0'),
     );
     expect(files.indexOf('a.js')).toEqual(-1);
+  });
+});
+
+test.concurrent('pack should include bundled dependencies', (): Promise<void> => {
+  return runPack([], {}, 'bundled-dependencies', async (config): Promise<void> => {
+    const {cwd} = config;
+    const files = await getFilesFromArchive(
+      path.join(cwd, 'bundled-dependencies-v1.0.0.tgz'),
+      path.join(cwd, 'bundled-dependencies-v1.0.0'),
+    );
+    const expected = [
+      'index.js',
+      'package.json',
+      'node_modules',
+      path.join('node_modules', 'a'),
+      path.join('node_modules', 'b'),
+      path.join('node_modules', 'a', 'package.json'),
+      path.join('node_modules', 'b', 'package.json'),
+    ];
+    expect(files.sort()).toEqual(expected.sort());
+  });
+});
+
+test.concurrent('pack should match dotfiles with globs', (): Promise<void> => {
+  return runPack([], {}, 'glob-dotfile', async (config): Promise<void> => {
+    const {cwd} = config;
+    const files = await getFilesFromArchive(
+      path.join(cwd, 'glob-dotfile-v1.0.0.tgz'),
+      path.join(cwd, 'glob-dotfile-v1.0.0'),
+    );
+    const expected = ['index.js', 'package.json', 'dir', path.join('dir', '.dotfile')];
+    expect(files.sort()).toEqual(expected.sort());
   });
 });

@@ -1,0 +1,53 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`returns noBinAvailable with no bins 1`] = `
+Array [
+  Object {
+    "data": "There are no binary scripts available.",
+    "error": true,
+    "type": "error",
+  },
+  Object {
+    "data": "Project commands",
+    "error": false,
+    "type": "info",
+  },
+  Object {
+    "data": Object {
+      "hints": Object {
+        "build": "echo 'building'",
+        "prestart": "echo 'prestart'",
+        "start": "node index.js",
+      },
+      "items": Array [
+        "build",
+        "prestart",
+        "start",
+      ],
+      "type": "possibleCommands",
+    },
+    "error": false,
+    "type": "list",
+  },
+  Object {
+    "data": "No command specified.",
+    "error": true,
+    "type": "error",
+  },
+]
+`;
+
+exports[`returns noScriptsAvailable with no scripts 1`] = `
+Array [
+  Object {
+    "data": "Commands available from binary scripts: cat-names",
+    "error": false,
+    "type": "info",
+  },
+  Object {
+    "data": "There are no scripts specified inside package.json.",
+    "error": true,
+    "type": "error",
+  },
+]
+`;

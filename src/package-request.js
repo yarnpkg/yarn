@@ -1,6 +1,7 @@
 /* @flow */
 
 import type {Dependency, DependencyRequestPattern, Manifest} from './types.js';
+import type {FetcherNames} from './fetchers/index.js';
 import type PackageResolver from './package-resolver.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
@@ -25,20 +26,25 @@ import {normalizePattern} from './util/normalize-pattern.js';
 
 type ResolverRegistryNames = $Keys<typeof registryResolvers>;
 
+const micromatch = require('micromatch');
+
 export default class PackageRequest {
   constructor(req: DependencyRequestPattern, resolver: PackageResolver) {
     this.parentRequest = req.parentRequest;
-    this.parentNames = [];
+    this.parentNames = req.parentNames || [];
     this.lockfile = resolver.lockfile;
     this.registry = req.registry;
     this.reporter = resolver.reporter;
     this.resolver = resolver;
     this.optional = req.optional;
+    this.hint = req.hint;
     this.pattern = req.pattern;
     this.config = resolver.config;
     this.foundInfo = null;
+  }
 
-    resolver.usedRegistries.add(req.registry);
+  init() {
+    this.resolver.usedRegistries.add(this.registry);
   }
 
   parentRequest: ?PackageRequest;
@@ -50,16 +56,18 @@ export default class PackageRequest {
   config: Config;
   registry: ResolverRegistryNames;
   optional: boolean;
+  hint: ?constants.RequestHint;
   foundInfo: ?Manifest;
 
-  getLocked(remoteType: string): ?Object {
+  getLocked(remoteType: FetcherNames): ?Manifest {
     // always prioritise root lockfile
     const shrunk = this.lockfile.getLocked(this.pattern);
 
     if (shrunk && shrunk.resolved) {
       const resolvedParts = versionUtil.explodeHashedUrl(shrunk.resolved);
-      // If it's a private git url set remote to 'git'.
-      const preferredRemoteType = resolvedParts.url.startsWith('git+ssh://') ? 'git' : remoteType;
+
+      // Detect Git protocols (git://HOST/PATH or git+PROTOCOL://HOST/PATH)
+      const preferredRemoteType = /^git(\+[a-z0-9]+)?:\/\//.test(resolvedParts.url) ? 'git' : remoteType;
 
       return {
         name: shrunk.name,
@@ -70,10 +78,13 @@ export default class PackageRequest {
           type: preferredRemoteType,
           reference: resolvedParts.url,
           hash: resolvedParts.hash,
+          integrity: shrunk.integrity,
           registry: shrunk.registry,
+          packageName: shrunk.name,
         },
-        optionalDependencies: shrunk.optionalDependencies,
-        dependencies: shrunk.dependencies,
+        optionalDependencies: shrunk.optionalDependencies || {},
+        dependencies: shrunk.dependencies || {},
+        prebuiltVariants: shrunk.prebuiltVariants || {},
       };
     } else {
       return null;
@@ -106,7 +117,18 @@ export default class PackageRequest {
 
     const Resolver = this.getRegistryResolver();
     const resolver = new Resolver(this, name, range);
-    return resolver.resolve();
+    try {
+      return await resolver.resolve();
+    } catch (err) {
+      // if it is not an error thrown by yarn and it has a parent request,
+      // thow a more readable error
+      if (!(err instanceof MessageError) && this.parentRequest && this.parentRequest.pattern) {
+        throw new MessageError(
+          this.reporter.lang('requiredPackageNotFoundRegistry', pattern, this.parentRequest.pattern, this.registry),
+        );
+      }
+      throw err;
+    }
   }
 
   /**
@@ -161,14 +183,26 @@ export default class PackageRequest {
    * the registry.
    */
 
-  findVersionInfo(): Promise<Manifest> {
+  async findVersionInfo(): Promise<Manifest> {
     const exoticResolver = getExoticResolver(this.pattern);
     if (exoticResolver) {
       return this.findExoticVersionInfo(exoticResolver, this.pattern);
     } else if (WorkspaceResolver.isWorkspace(this.pattern, this.resolver.workspaceLayout)) {
       invariant(this.resolver.workspaceLayout, 'expected workspaceLayout');
       const resolver = new WorkspaceResolver(this, this.pattern, this.resolver.workspaceLayout);
-      return resolver.resolve();
+      let manifest;
+      if (
+        this.config.focus &&
+        !this.pattern.includes(this.resolver.workspaceLayout.virtualManifestName) &&
+        !this.pattern.startsWith(this.config.focusedWorkspaceName + '@')
+      ) {
+        const localInfo = this.resolver.workspaceLayout.getManifestByPattern(this.pattern);
+        invariant(localInfo, 'expected local info for ' + this.pattern);
+        const localManifest = localInfo.manifest;
+        const requestPattern = localManifest.name + '@' + localManifest.version;
+        manifest = await this.findVersionOnRegistry(requestPattern);
+      }
+      return resolver.resolve(manifest);
     } else {
       return this.findVersionOnRegistry(this.pattern);
     }
@@ -193,6 +227,7 @@ export default class PackageRequest {
     invariant(ref, 'Resolved package info has no package reference');
     ref.addRequest(this);
     ref.addPattern(this.pattern, resolved);
+    ref.addOptional(this.optional);
   }
 
   /**
@@ -201,6 +236,10 @@ export default class PackageRequest {
   async find({fresh, frozen}: {fresh: boolean, frozen?: boolean}): Promise<void> {
     // find version info for this package pattern
     const info: Manifest = await this.findVersionInfo();
+
+    if (!semver.valid(info.version)) {
+      throw new MessageError(this.reporter.lang('invalidPackageVersion', info.name, info.version));
+    }
 
     info.fresh = fresh;
     cleanDependencies(info, false, this.reporter, () => {
@@ -265,6 +304,7 @@ export default class PackageRequest {
       deps.push(depPattern);
       promises.push(
         this.resolver.find({
+          hint: 'optional',
           pattern: depPattern,
           registry: remote.registry,
           optional: true,
@@ -280,6 +320,7 @@ export default class PackageRequest {
         deps.push(depPattern);
         promises.push(
           this.resolver.find({
+            hint: 'dev',
             pattern: depPattern,
             registry: remote.registry,
             optional: false,
@@ -338,6 +379,7 @@ export default class PackageRequest {
     config: Config,
     reporter: Reporter,
     filterByPatterns: ?Array<string>,
+    flags: ?Object,
   ): Promise<Array<Dependency>> {
     const {requests: reqPatterns, workspaceLayout} = await install.fetchRequestFromCwd();
 
@@ -348,13 +390,20 @@ export default class PackageRequest {
 
     // filter the list down to just the packages requested.
     // prevents us from having to query the metadata for all packages.
-    if (filterByPatterns && filterByPatterns.length) {
-      const filterByNames = filterByPatterns.map(pattern => normalizePattern(pattern).name);
-      depReqPatterns = depReqPatterns.filter(dep => filterByNames.indexOf(normalizePattern(dep.pattern).name) >= 0);
+    if ((filterByPatterns && filterByPatterns.length) || (flags && flags.pattern)) {
+      const filterByNames =
+        filterByPatterns && filterByPatterns.length
+          ? filterByPatterns.map(pattern => normalizePattern(pattern).name)
+          : [];
+      depReqPatterns = depReqPatterns.filter(
+        dep =>
+          filterByNames.indexOf(normalizePattern(dep.pattern).name) >= 0 ||
+          (flags && flags.pattern && micromatch.contains(normalizePattern(dep.pattern).name, flags.pattern)),
+      );
     }
 
     const deps = await Promise.all(
-      depReqPatterns.map(async ({pattern, hint}): Promise<Dependency> => {
+      depReqPatterns.map(async ({pattern, hint, workspaceName, workspaceLoc}): Promise<Dependency> => {
         const locked = lockfile.getLocked(pattern);
         if (!locked) {
           throw new MessageError(reporter.lang('lockfileOutdated'));
@@ -376,15 +425,25 @@ export default class PackageRequest {
           ({latest, wanted, url} = await registry.checkOutdated(config, name, normalized.range));
         }
 
-        return {name, current, wanted, latest, url, hint, range: normalized.range, upgradeTo: ''};
+        return {
+          name,
+          current,
+          wanted,
+          latest,
+          url,
+          hint,
+          range: normalized.range,
+          upgradeTo: '',
+          workspaceName: workspaceName || '',
+          workspaceLoc: workspaceLoc || '',
+        };
       }),
     );
 
     // Make sure to always output `exotic` versions to be compatible with npm
     const isDepOld = ({current, latest, wanted}) =>
-      latest === 'exotic' || (latest !== 'exotic' && (semver.lt(current, wanted) || semver.lt(current, latest)));
+      latest === 'exotic' || (semver.lt(current, wanted) || semver.lt(current, latest));
     const orderByName = (depA, depB) => depA.name.localeCompare(depB.name);
-
     return deps.filter(isDepOld).sort(orderByName);
   }
 }

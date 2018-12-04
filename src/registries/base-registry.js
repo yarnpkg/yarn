@@ -16,6 +16,8 @@ export type RegistryRequestOptions = {
   buffer?: boolean,
   headers?: Object,
   process?: Function,
+  registry?: string,
+  unfiltered?: boolean,
 };
 
 export type CheckOutdatedReturn = Promise<{
@@ -25,7 +27,14 @@ export type CheckOutdatedReturn = Promise<{
 }>;
 
 export default class BaseRegistry {
-  constructor(cwd: string, registries: ConfigRegistries, requestManager: RequestManager, reporter: Reporter) {
+  constructor(
+    cwd: string,
+    registries: ConfigRegistries,
+    requestManager: RequestManager,
+    reporter: Reporter,
+    enableDefaultRc: boolean,
+    extraneousRcFiles: Array<string>,
+  ) {
     this.reporter = reporter;
     this.requestManager = requestManager;
     this.registries = registries;
@@ -34,10 +43,16 @@ export default class BaseRegistry {
     this.token = '';
     this.loc = '';
     this.cwd = cwd;
+    this.enableDefaultRc = enableDefaultRc;
+    this.extraneousRcFiles = extraneousRcFiles;
   }
 
   // the filename to use for package metadata
   static filename: string;
+
+  //
+  enableDefaultRc: boolean;
+  extraneousRcFiles: Array<string>;
 
   //
   reporter: Reporter;
@@ -99,9 +114,17 @@ export default class BaseRegistry {
     });
   }
 
-  async init(): Promise<void> {
+  async init(overrides: Object = {}): Promise<void> {
     this.mergeEnv('yarn_');
     await this.loadConfig();
+
+    for (const override of Object.keys(overrides)) {
+      const val = overrides[override];
+
+      if (val !== undefined) {
+        this.config[override] = val;
+      }
+    }
     this.loc = path.join(this.cwd, this.folder);
   }
 

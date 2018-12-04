@@ -33,6 +33,16 @@ test.concurrent('--verify-tree should report wrong version', async (): Promise<v
   expect(thrown).toEqual(true);
 });
 
+test.concurrent('--verify-tree should work from a workspace cwd', async (): Promise<void> => {
+  let thrown = false;
+  try {
+    await runCheck([], {verifyTree: true}, {source: 'verify-tree-workspace-cwd', cwd: '/packages/workspace-1'});
+  } catch (e) {
+    thrown = true;
+  }
+  expect(thrown).toEqual(false);
+});
+
 test.concurrent('--verify-tree should report missing dependency', async (): Promise<void> => {
   let thrown = false;
   try {
@@ -70,7 +80,7 @@ test.concurrent('--verify-tree should check skip deeper dev dependencies', async
 test.concurrent('--integrity should ignore comments and whitespaces in yarn.lock', async (): Promise<void> => {
   await runInstall({}, path.join('..', 'check', 'integrity-lock-check'), async (config, reporter): Promise<void> => {
     let lockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
-    lockfile += "\n# ADDING THIS COMMENTN WON'T AFFECT INTEGRITY CHECK \n";
+    lockfile += "\n# ADDING THIS COMMENT WON'T AFFECT INTEGRITY CHECK \n";
     await fs.writeFile(path.join(config.cwd, 'yarn.lock'), lockfile);
 
     let thrown = false;
@@ -279,6 +289,28 @@ test.concurrent('--integrity should fail if integrity file have different linked
   );
 });
 
+test.concurrent('--integrity should fail if integrity file has different systemParams', async (): Promise<void> => {
+  await runInstall(
+    {},
+    path.join('..', 'check', 'integrity-lock-check'),
+    async (config, reporter, install, getStdout): Promise<void> => {
+      const integrityFilePath = path.join(config.cwd, 'node_modules', '.yarn-integrity');
+      const integrityFile = JSON.parse(await fs.readFile(integrityFilePath));
+      integrityFile.systemParams = '[unexpected systemParams value]';
+      await fs.writeFile(integrityFilePath, JSON.stringify(integrityFile, null, 2));
+
+      let thrown = false;
+      try {
+        await checkCmd.run(config, reporter, {integrity: true}, []);
+      } catch (e) {
+        thrown = true;
+      }
+      expect(thrown).toEqual(true);
+      expect(getStdout()).toContain(reporter.lang('integritySystemParamsDontMatch'));
+    },
+  );
+});
+
 test.concurrent('--integrity should create the integrity file under the meta folder if enabled', async (): Promise<
   void,
 > => {
@@ -349,6 +381,66 @@ test.concurrent('should ignore bundled dependencies', async (): Promise<void> =>
       expect(getStdout().indexOf('warning')).toEqual(-1);
     },
   );
+});
+
+test.concurrent('should warn about mismatched dependencies if they match resolutions (simple)', async (): Promise<
+  void,
+> => {
+  let mismatchError = false;
+  let stdout = '';
+  try {
+    await runCheck([], {}, 'resolutions', (config, reporter, check, getStdout) => {
+      stdout = getStdout();
+    });
+  } catch (err) {
+    mismatchError = true;
+  }
+  expect(mismatchError).toEqual(false);
+  expect(
+    stdout.search(
+      `warning.*"repeat-string@1.4.0" is incompatible with requested version "pad-left#repeat-string@\\^1.5.4"`,
+    ),
+  ).toBeGreaterThan(-1);
+});
+
+test.concurrent('should warn about mismatched dependencies if they match resolutions (tree)', async (): Promise<
+  void,
+> => {
+  let mismatchError = false;
+  let stdout = '';
+  try {
+    await runCheck([], {}, 'resolutions-tree', (config, reporter, check, getStdout) => {
+      stdout = getStdout();
+    });
+  } catch (err) {
+    mismatchError = true;
+  }
+  expect(mismatchError).toEqual(false);
+  expect(
+    stdout.search(
+      `warning.*"repeat-string@1.4.0" is incompatible with requested version "pad-left#repeat-string@\\^1.5.4"`,
+    ),
+  ).toBeGreaterThan(-1);
+});
+
+test.concurrent('should warn about mismatched dependencies if they match resolutions (glob)', async (): Promise<
+  void,
+> => {
+  let mismatchError = false;
+  let stdout = '';
+  try {
+    await runCheck([], {}, 'resolutions-glob', (config, reporter, check, getStdout) => {
+      stdout = getStdout();
+    });
+  } catch (err) {
+    mismatchError = true;
+  }
+  expect(mismatchError).toEqual(false);
+  expect(
+    stdout.search(
+      `warning.*"repeat-string@1.4.0" is incompatible with requested version "pad-left#repeat-string@\\^1.5.4"`,
+    ),
+  ).toBeGreaterThan(-1);
 });
 
 test.concurrent('--integrity should throw an error if top level patterns do not match', async (): Promise<void> => {

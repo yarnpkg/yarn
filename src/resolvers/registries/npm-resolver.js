@@ -1,21 +1,23 @@
 /* @flow */
 
+import {getCachedPackagesDirs} from '../../cli/commands/cache.js';
 import type {Manifest} from '../../types.js';
 import type Config from '../../config.js';
 import type PackageRequest from '../../package-request.js';
 import {MessageError} from '../../errors.js';
 import RegistryResolver from './registry-resolver.js';
-import NpmRegistry, {SCOPE_SEPARATOR} from '../../registries/npm-registry.js';
+import NpmRegistry from '../../registries/npm-registry.js';
 import map from '../../util/map.js';
 import * as fs from '../../util/fs.js';
-import {YARN_REGISTRY} from '../../constants.js';
+import {YARN_REGISTRY, NPM_REGISTRY_RE} from '../../constants.js';
+import {getPlatformSpecificPackageFilename} from '../../util/package-name-utils.js';
 
 const inquirer = require('inquirer');
 const tty = require('tty');
-const invariant = require('invariant');
 const path = require('path');
+const semver = require('semver');
+const ssri = require('ssri');
 
-const NPM_REGISTRY = /http[s]:\/\/registry.npmjs.org/g;
 const NPM_REGISTRY_ID = 'npm';
 
 type RegistryResponse = {
@@ -33,12 +35,24 @@ export default class NpmResolver extends RegistryResolver {
     body: RegistryResponse,
     request: ?PackageRequest,
   ): Promise<Manifest> {
-    if (!body['dist-tags']) {
+    if (body.versions && Object.keys(body.versions).length === 0) {
+      throw new MessageError(config.reporter.lang('registryNoVersions', body.name));
+    }
+
+    if (!body['dist-tags'] || !body.versions) {
       throw new MessageError(config.reporter.lang('malformedRegistryResponse', body.name));
     }
 
     if (range in body['dist-tags']) {
       range = body['dist-tags'][range];
+    }
+
+    // If the latest tag in the registry satisfies the requested range, then use that.
+    // Otherwise we will fall back to semver maxSatisfying.
+    // This mimics logic in NPM. See issue #3560
+    const latestVersion = body['dist-tags'] ? body['dist-tags'].latest : undefined;
+    if (latestVersion && semver.satisfies(latestVersion, range)) {
+      return body.versions[latestVersion];
     }
 
     const satisfied = await config.resolveConstraints(Object.keys(body.versions), range);
@@ -58,7 +72,7 @@ export default class NpmResolver extends RegistryResolver {
           name: 'package',
           type: 'list',
           message: config.reporter.lang('chooseVersionFromList', body.name),
-          choices: Object.keys(body.versions).reverse(),
+          choices: (semver: Object).rsort(Object.keys(body.versions)),
           pageSize,
         },
       ]);
@@ -69,7 +83,7 @@ export default class NpmResolver extends RegistryResolver {
     throw new MessageError(config.reporter.lang('couldntFindVersionThatMatchesRange', body.name, range));
   }
 
-  async resolveRequest(): Promise<?Manifest> {
+  async resolveRequest(desiredVersion: ?string): Promise<?Manifest> {
     if (this.config.offline) {
       const res = await this.resolveRequestOffline();
       if (res != null) {
@@ -80,51 +94,24 @@ export default class NpmResolver extends RegistryResolver {
     const body = await this.config.registries.npm.request(NpmRegistry.escapeName(this.name));
 
     if (body) {
-      return NpmResolver.findVersionInRegistryResponse(this.config, this.range, body, this.request);
+      return NpmResolver.findVersionInRegistryResponse(this.config, desiredVersion || this.range, body, this.request);
     } else {
       return null;
     }
   }
 
   async resolveRequestOffline(): Promise<?Manifest> {
-    const escapedName = NpmRegistry.escapeName(this.name);
-    const scope = this.config.registries.npm.getScope(escapedName);
-
-    // find modules of this name
-    const prefix = scope ? escapedName.split(SCOPE_SEPARATOR)[1] : `${NPM_REGISTRY_ID}-${this.name}-`;
-
-    invariant(this.config.cacheFolder, 'expected packages root');
-    const cacheFolder = path.join(this.config.cacheFolder, scope ? `${NPM_REGISTRY_ID}-${scope}` : '');
-
-    const files = await this.config.getCache('cachedPackages', async (): Promise<Array<string>> => {
-      const files = await fs.readdir(cacheFolder);
-      const validFiles = [];
-
-      for (const name of files) {
-        // no hidden files
-        if (name[0] === '.') {
-          continue;
-        }
-
-        // ensure valid module cache
-        const dir = path.join(cacheFolder, name);
-        if (await this.config.isValidModuleDest(dir)) {
-          validFiles.push(name);
-        }
-      }
-
-      return validFiles;
+    const packageDirs = await this.config.getCache('cachedPackages', (): Promise<Array<string>> => {
+      return getCachedPackagesDirs(this.config, this.config.cacheFolder);
     });
 
     const versions = map();
 
-    for (const name of files) {
-      // check if folder starts with our prefix
-      if (name.indexOf(prefix) !== 0) {
+    for (const dir of packageDirs) {
+      // check if folder contains the registry prefix
+      if (dir.indexOf(`${NPM_REGISTRY_ID}-`) === -1) {
         continue;
       }
-
-      const dir = path.join(cacheFolder, name);
 
       // read manifest and validate correct name
       const pkg = await this.config.readManifest(dir, NPM_REGISTRY_ID);
@@ -157,7 +144,7 @@ export default class NpmResolver extends RegistryResolver {
 
   cleanRegistry(url: string): string {
     if (this.config.getOption('registry') === YARN_REGISTRY) {
-      return url.replace(NPM_REGISTRY, YARN_REGISTRY);
+      return url.replace(NPM_REGISTRY_RE, YARN_REGISTRY);
     } else {
       return url;
     }
@@ -167,15 +154,46 @@ export default class NpmResolver extends RegistryResolver {
     // lockfile
     const shrunk = this.request.getLocked('tarball');
     if (shrunk) {
+      if (this.config.packBuiltPackages && shrunk.prebuiltVariants && shrunk._remote) {
+        const prebuiltVariants = shrunk.prebuiltVariants;
+        const prebuiltName = getPlatformSpecificPackageFilename(shrunk);
+        const offlineMirrorPath = this.config.getOfflineMirrorPath();
+        if (prebuiltVariants[prebuiltName] && offlineMirrorPath) {
+          const filename = path.join(offlineMirrorPath, 'prebuilt', prebuiltName + '.tgz');
+          const {_remote} = shrunk;
+          if (_remote && (await fs.exists(filename))) {
+            _remote.reference = `file:${filename}`;
+            _remote.hash = prebuiltVariants[prebuiltName];
+            _remote.integrity = ssri.fromHex(_remote.hash, 'sha1').toString();
+          }
+        }
+      }
+    }
+    if (
+      shrunk &&
+      shrunk._remote &&
+      (shrunk._remote.integrity || this.config.offline || !this.config.autoAddIntegrity)
+    ) {
+      // if the integrity field does not exist, we're not network-restricted, and the
+      // migration hasn't been disabled, it needs to be created
       return shrunk;
     }
 
-    const info: ?Manifest = await this.resolveRequest();
+    const desiredVersion = shrunk && shrunk.version ? shrunk.version : null;
+    const info: ?Manifest = await this.resolveRequest(desiredVersion);
     if (info == null) {
       throw new MessageError(this.reporter.lang('packageNotFoundRegistry', this.name, NPM_REGISTRY_ID));
     }
 
     const {deprecated, dist} = info;
+    if (shrunk && shrunk._remote) {
+      shrunk._remote.integrity =
+        dist && dist.integrity
+          ? ssri.parse(dist.integrity)
+          : ssri.fromHex(dist && dist.shasum ? dist.shasum : '', 'sha1');
+      return shrunk;
+    }
+
     if (typeof deprecated === 'string') {
       let human = `${info.name}@${info.version}`;
       const parentNames = this.request.parentNames;
@@ -191,6 +209,7 @@ export default class NpmResolver extends RegistryResolver {
         type: 'tarball',
         reference: this.cleanRegistry(dist.tarball),
         hash: dist.shasum,
+        integrity: dist.integrity ? ssri.parse(dist.integrity) : ssri.fromHex(dist.shasum, 'sha1'),
         registry: NPM_REGISTRY_ID,
         packageName: info.name,
       };

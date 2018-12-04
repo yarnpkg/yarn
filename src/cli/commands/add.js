@@ -1,9 +1,10 @@
 /* @flow */
 
+import type {RegistryNames} from '../../registries/index.js';
 import type {Reporter} from '../../reporters/index.js';
 import type {InstallCwdRequest} from './install.js';
 import type {DependencyRequestPatterns, Manifest} from '../../types.js';
-import type Config from '../../config.js';
+import type Config, {RootManifests} from '../../config.js';
 import type {ListOptions} from './list.js';
 import Lockfile from '../../lockfile';
 import {normalizePattern} from '../../util/normalize-pattern.js';
@@ -19,9 +20,13 @@ import invariant from 'invariant';
 import path from 'path';
 import semver from 'semver';
 
+const SILENCE_DEPENDENCY_TYPE_WARNINGS = ['upgrade', 'upgrade-interactive'];
+
 export class Add extends Install {
   constructor(args: Array<string>, flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
-    super(flags, config, reporter, lockfile);
+    const workspaceRootIsCwd = config.cwd === config.lockfileFolder;
+    const _flags = flags ? {...flags, workspaceRootIsCwd} : {workspaceRootIsCwd};
+    super(_flags, config, reporter, lockfile);
     this.args = args;
     // only one flag is supported, so we can figure out which one was passed to `yarn add`
     this.flagToOrigin = [
@@ -32,16 +37,6 @@ export class Add extends Install {
     ]
       .filter(Boolean)
       .shift();
-
-    if (this.config.workspaceRootFolder && this.config.cwd === this.config.workspaceRootFolder) {
-      this.setIgnoreWorkspaces(true);
-      // flagsToOrgin defaults to being a hard `dependency` when no flags are passed (see above),
-      // so it incorrectly throws a warning when upgrading existing devDependencies in workspace root
-      // To allow for a successful upgrade, override flagsToOrigin when `existing` flag is passed by `upgrade` command
-      if (flags.existing) {
-        this.flagToOrigin = '';
-      }
-    }
   }
 
   args: Array<string>;
@@ -69,7 +64,9 @@ export class Add extends Install {
    * returns version for a pattern based on Manifest
    */
   getPatternVersion(pattern: string, pkg: Manifest): string {
-    const {exact, tilde} = this.flags;
+    const tilde = this.flags.tilde;
+    const configPrefix = String(this.config.getOption('save-prefix'));
+    const exact = this.flags.exact || Boolean(this.config.getOption('save-exact')) || configPrefix === '';
     const {hasVersion, range} = normalizePattern(pattern);
     let version;
 
@@ -79,18 +76,19 @@ export class Add extends Install {
     } else if (hasVersion && range && (semver.satisfies(pkg.version, range) || getExoticResolver(range))) {
       // if the user specified a range then use it verbatim
       version = range;
-    } else {
-      let prefix;
+    }
+
+    if (!version || semver.valid(version)) {
+      let prefix = configPrefix || '^';
+
       if (tilde) {
         prefix = '~';
-      } else if (exact) {
+      } else if (version || exact) {
         prefix = '';
-      } else {
-        prefix = String(this.config.getOption('save-prefix')) || '^';
       }
-
       version = `${prefix}${pkg.version}`;
     }
+
     return version;
   }
 
@@ -109,6 +107,49 @@ export class Add extends Install {
       this.resolver.replacePattern(pattern, newPattern);
     }
     return preparedPatterns;
+  }
+
+  preparePatternsForLinking(patterns: Array<string>, cwdManifest: Manifest, cwdIsRoot: boolean): Array<string> {
+    // remove the newly added patterns if cwd != root and update the in-memory package dependency instead
+    if (cwdIsRoot) {
+      return patterns;
+    }
+
+    let manifest;
+    const cwdPackage = `${cwdManifest.name}@${cwdManifest.version}`;
+    try {
+      manifest = this.resolver.getStrictResolvedPattern(cwdPackage);
+    } catch (e) {
+      this.reporter.warn(this.reporter.lang('unknownPackage', cwdPackage));
+      return patterns;
+    }
+
+    let newPatterns = patterns;
+    this._iterateAddedPackages((pattern, registry, dependencyType, pkgName, version) => {
+      // remove added package from patterns list
+      const filtered = newPatterns.filter(p => p !== pattern);
+      invariant(
+        newPatterns.length - filtered.length > 0,
+        `expect added pattern '${pattern}' in the list: ${patterns.toString()}`,
+      );
+      newPatterns = filtered;
+
+      // add new package into in-memory manifest so they can be linked properly
+      manifest[dependencyType] = manifest[dependencyType] || {};
+      if (manifest[dependencyType][pkgName] === version) {
+        // package already existed
+        return;
+      }
+
+      // update dependencies in the manifest
+      invariant(manifest._reference, 'manifest._reference should not be null');
+      const ref: Object = manifest._reference;
+
+      ref['dependencies'] = ref['dependencies'] || [];
+      ref['dependencies'].push(pattern);
+    });
+
+    return newPatterns;
   }
 
   async bailout(patterns: Array<string>, workspaceLayout: ?WorkspaceLayout): Promise<boolean> {
@@ -130,17 +171,40 @@ export class Add extends Install {
    */
 
   async init(): Promise<Array<string>> {
-    if (this.ignoreWorkspaces) {
-      if (this.flagToOrigin === 'dependencies') {
-        throw new MessageError(this.reporter.lang('workspacesPreferDevDependencies'));
-      }
+    const isWorkspaceRoot = this.config.workspaceRootFolder && this.config.cwd === this.config.workspaceRootFolder;
+
+    // running "yarn add something" in a workspace root is often a mistake
+    if (isWorkspaceRoot && !this.flags.ignoreWorkspaceRootCheck) {
+      throw new MessageError(this.reporter.lang('workspacesAddRootCheck'));
     }
 
     this.addedPatterns = [];
     const patterns = await Install.prototype.init.call(this);
     await this.maybeOutputSaveTree(patterns);
-    await this.savePackages();
     return patterns;
+  }
+
+  async applyChanges(manifests: RootManifests): Promise<boolean> {
+    await Install.prototype.applyChanges.call(this, manifests);
+
+    // fill rootPatternsToOrigin without `excludePatterns`
+    await Install.prototype.fetchRequestFromCwd.call(this);
+
+    this._iterateAddedPackages((pattern, registry, dependencyType, pkgName, version) => {
+      // add it to manifest
+      const {object} = manifests[registry];
+
+      object[dependencyType] = object[dependencyType] || {};
+      object[dependencyType][pkgName] = version;
+      if (
+        SILENCE_DEPENDENCY_TYPE_WARNINGS.indexOf(this.config.commandName) === -1 &&
+        dependencyType !== this.flagToOrigin
+      ) {
+        this.reporter.warn(this.reporter.lang('moduleAlreadyInManifest', pkgName, dependencyType, this.flagToOrigin));
+      }
+    });
+
+    return true;
   }
 
   /**
@@ -160,24 +224,45 @@ export class Add extends Install {
     const opts: ListOptions = {
       reqDepth: 0,
     };
-    const {trees, count} = await buildTree(this.resolver, this.linker, patterns, opts, true, true);
-    this.reporter.success(
-      count === 1 ? this.reporter.lang('savedNewDependency') : this.reporter.lang('savedNewDependencies', count),
-    );
-    this.reporter.tree('newDependencies', trees);
+
+    // restore the original patterns
+    const merged = [...patterns, ...this.addedPatterns];
+
+    const {trees, count} = await buildTree(this.resolver, this.linker, merged, opts, true, true);
+
+    if (count === 1) {
+      this.reporter.success(this.reporter.lang('savedNewDependency'));
+    } else {
+      this.reporter.success(this.reporter.lang('savedNewDependencies', count));
+    }
+
+    if (!count) {
+      return;
+    }
+
+    const resolverPatterns = new Set();
+    for (const pattern of patterns) {
+      const {version, name} = this.resolver.getResolvedPattern(pattern) || {};
+      resolverPatterns.add(`${name}@${version}`);
+    }
+    const directRequireDependencies = trees.filter(({name}) => resolverPatterns.has(name));
+
+    this.reporter.info(this.reporter.lang('directDependencies'));
+    this.reporter.tree('newDirectDependencies', directRequireDependencies);
+    this.reporter.info(this.reporter.lang('allDependencies'));
+    this.reporter.tree('newAllDependencies', trees);
   }
 
   /**
    * Save added packages to manifest if any of the --save flags were used.
    */
 
-  async savePackages(): Promise<void> {
-    // fill rootPatternsToOrigin without `excludePatterns`
-    await Install.prototype.fetchRequestFromCwd.call(this);
-    const patternOrigins = Object.keys(this.rootPatternsToOrigin);
+  async savePackages(): Promise<void> {}
 
-    // get all the different registry manifests in this folder
-    const manifests = await this.config.getRootManifests();
+  _iterateAddedPackages(
+    f: (pattern: string, registry: RegistryNames, dependencyType: string, pkgName: string, version: string) => void,
+  ) {
+    const patternOrigins = Object.keys(this.rootPatternsToOrigin);
 
     // add new patterns to their appropriate registry manifest
     for (const pattern of this.addedPatterns) {
@@ -197,14 +282,8 @@ export class Add extends Install {
       // depType is calculated when `yarn upgrade` command is used
       const target = depType || this.flagToOrigin;
 
-      // add it to manifest
-      const {object} = manifests[ref.registry];
-
-      object[target] = object[target] || {};
-      object[target][pkg.name] = version;
+      f(pattern, ref.registry, target, pkg.name, version);
     }
-
-    await this.config.saveRootManifests(manifests);
   }
 }
 
@@ -213,7 +292,9 @@ export function hasWrapper(commander: Object): boolean {
 }
 
 export function setFlags(commander: Object) {
+  commander.description('Installs a package and any packages that it depends on.');
   commander.usage('add [packages ...] [flags]');
+  commander.option('-W, --ignore-workspace-root-check', 'required to run yarn add inside a workspace root');
   commander.option('-D, --dev', 'save package to your `devDependencies`');
   commander.option('-P, --peer', 'save package to your `peerDependencies`');
   commander.option('-O, --optional', 'save package to your `optionalDependencies`');

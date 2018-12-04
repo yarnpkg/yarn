@@ -7,6 +7,7 @@ import {sortFilter, ignoreLinesToRegex} from '../../util/filter.js';
 import {CLEAN_FILENAME} from '../../constants.js';
 import * as fs from '../../util/fs.js';
 
+const invariant = require('invariant');
 const path = require('path');
 
 export const requireLockfile = true;
@@ -40,6 +41,11 @@ Gulpfile.js
 Gruntfile.js
 
 # configs
+appveyor.yml
+circle.yml
+codeship-services.yml
+codeship-steps.yml
+wercker.yml
 .tern-project
 .gitattributes
 .editorconfig
@@ -49,11 +55,9 @@ Gruntfile.js
 .flowconfig
 .documentup.json
 .yarn-metadata.json
-.*.yml
-*.yml
+.travis.yml
 
 # misc
-*.gz
 *.md
 `.trim();
 
@@ -64,7 +68,7 @@ export async function clean(
   removedFiles: number,
   removedSize: number,
 }> {
-  const loc = path.join(config.cwd, CLEAN_FILENAME);
+  const loc = path.join(config.lockfileFolder, CLEAN_FILENAME);
   const file = await fs.readFile(loc);
   const lines = file.split('\n');
   const filters = ignoreLinesToRegex(lines);
@@ -79,7 +83,22 @@ export async function clean(
   }
   for (const name of registryNames) {
     const registry = config.registries[name];
-    locs.add(path.join(config.cwd, registry.folder));
+    locs.add(path.join(config.lockfileFolder, registry.folder));
+  }
+
+  const workspaceRootFolder = config.workspaceRootFolder;
+  if (workspaceRootFolder) {
+    const manifest = await config.findManifest(workspaceRootFolder, false);
+    invariant(manifest && manifest.workspaces, 'We must find a manifest with a "workspaces" property');
+
+    const workspaces = await config.resolveWorkspaces(workspaceRootFolder, manifest);
+
+    for (const workspaceName of Object.keys(workspaces)) {
+      for (const name of registryNames) {
+        const registry = config.registries[name];
+        locs.add(path.join(workspaces[workspaceName].loc, registry.folder));
+      }
+    }
   }
 
   for (const folder of locs) {
@@ -149,6 +168,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 }
 
 export function setFlags(commander: Object) {
+  commander.description('Cleans and removes unnecessary files from package dependencies.');
   commander.usage('autoclean [flags]');
   commander.option('-I, --init', `Create "${CLEAN_FILENAME}" file with the default entries.`);
   commander.option('-F, --force', `Run autoclean using the existing "${CLEAN_FILENAME}" file.`);

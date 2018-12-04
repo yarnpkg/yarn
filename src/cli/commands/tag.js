@@ -31,10 +31,7 @@ export async function getName(args: Array<string>, config: Config): Promise<stri
 async function list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const name = await getName(args, config);
 
-  reporter.step(1, 3, reporter.lang('loggingIn'));
-  const revoke = await getToken(config, reporter, name);
-
-  reporter.step(2, 3, reporter.lang('gettingTags'));
+  reporter.step(1, 1, reporter.lang('gettingTags'));
   const tags = await config.registries.npm.request(`-/package/${name}/dist-tags`);
 
   if (tags) {
@@ -43,9 +40,6 @@ async function list(config: Config, reporter: Reporter, flags: Object, args: Arr
       reporter.info(`${name}: ${tags[name]}`);
     }
   }
-
-  reporter.step(3, 3, reporter.lang('revokingToken'));
-  await revoke();
 
   if (!tags) {
     throw new MessageError(reporter.lang('packageNotFoundRegistry', name, 'npm'));
@@ -84,7 +78,11 @@ async function remove(config: Config, reporter: Reporter, flags: Object, args: A
   }
 }
 
-export const {run, setFlags, hasWrapper, examples} = buildSubCommands(
+export function setFlags(commander: Object) {
+  commander.description('Add, remove, or list tags on a package.');
+}
+
+export const {run, hasWrapper, examples} = buildSubCommands(
   'tag',
   {
     async add(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<boolean> {

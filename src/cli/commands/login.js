@@ -36,8 +36,15 @@ async function getCredentials(
   return {username, email};
 }
 
-export async function getToken(config: Config, reporter: Reporter, name: string = ''): Promise<() => Promise<void>> {
-  const auth = config.registries.npm.getAuth(name);
+export async function getToken(
+  config: Config,
+  reporter: Reporter,
+  name: string = '',
+  flags: Object = {},
+  registry: string = '',
+): Promise<() => Promise<void>> {
+  const auth = registry ? config.registries.npm.getAuthByRegistry(registry) : config.registries.npm.getAuth(name);
+
   if (auth) {
     config.registries.npm.setToken(auth);
     return function revoke(): Promise<void> {
@@ -53,6 +60,11 @@ export async function getToken(config: Config, reporter: Reporter, name: string 
       reporter.info(reporter.lang('notRevokingEnvToken'));
       return Promise.resolve();
     };
+  }
+
+  // make sure we're not running in non-interactive mode before asking for login
+  if (flags.nonInteractive || config.nonInteractive) {
+    throw new MessageError(reporter.lang('nonInteractiveNoToken'));
   }
 
   //
@@ -110,7 +122,9 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 
-export function setFlags(commander: Object) {}
+export function setFlags(commander: Object) {
+  commander.description('Stores registry username and email.');
+}
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   await getCredentials(config, reporter);

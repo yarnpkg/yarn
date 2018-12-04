@@ -12,6 +12,7 @@ const path = require('path');
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'upgrade');
 const runUpgrade = buildRun.bind(null, ConsoleReporter, fixturesLoc, (args, flags, config, reporter): Promise<void> => {
+  config.commandName = 'upgrade';
   return upgrade(config, reporter, flags, args);
 });
 
@@ -20,7 +21,8 @@ const _expectDependency = async (depType, config, name, range, expectedVersion) 
   const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
   expect(pkg[depType][name]).toBeDefined();
   expect(pkg[depType][name]).toEqual(range);
-  expect(lockfile).toContainPackage(`${name}@${range}:`, expectedVersion);
+  const pattern = name.startsWith('@') ? `"${name}@${range}"` : `${name}@${range}`;
+  expect(lockfile).toContainPackage(`${pattern}:`, expectedVersion);
 };
 
 const expectInstalledDependency = async (config, name, range, expectedVersion) => {
@@ -29,6 +31,11 @@ const expectInstalledDependency = async (config, name, range, expectedVersion) =
 
 const expectInstalledDevDependency = async (config, name, range, expectedVersion) => {
   await _expectDependency('devDependencies', config, name, range, expectedVersion);
+};
+
+const expectInstalledTransitiveDependency = async (config, name, range, expectedVersion) => {
+  const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+  expect(lockfile).toContainPackage(`${name}@${range}:`, expectedVersion);
 };
 
 expect.extend({
@@ -68,6 +75,32 @@ test.concurrent('works with no arguments', (): Promise<void> => {
   });
 });
 
+test.concurrent('upgrades transitive deps when no arguments', (): Promise<void> => {
+  return runUpgrade([], {}, 'with-subdep', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'strip-ansi', '^2.0.1', '2.0.1');
+    await expectInstalledTransitiveDependency(config, 'ansi-regex', '^1.0.0', '1.1.1');
+    await expectInstalledDependency(config, 'array-union', '^1.0.1', '1.0.2');
+    await expectInstalledTransitiveDependency(config, 'array-uniq', '^1.0.1', '1.0.3');
+  });
+});
+
+test.concurrent('does not upgrade transitive deps that are also a direct dependency', (): Promise<void> => {
+  return runUpgrade(['strip-ansi'], {}, 'with-subdep-also-direct', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'strip-ansi', '^2.0.1', '2.0.1');
+    await expectInstalledTransitiveDependency(config, 'ansi-regex', '^1.0.0', '1.0.0');
+    await expectInstalledDependency(config, 'ansi-regex', '^1.0.0', '1.0.0');
+  });
+});
+
+test.concurrent('does not upgrade transitive deps when specific package upgraded', (): Promise<void> => {
+  return runUpgrade(['strip-ansi'], {}, 'with-subdep', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'strip-ansi', '^2.0.1', '2.0.1');
+    await expectInstalledTransitiveDependency(config, 'ansi-regex', '^1.0.0', '1.1.1');
+    await expectInstalledDependency(config, 'array-union', '^1.0.1', '1.0.1');
+    await expectInstalledTransitiveDependency(config, 'array-uniq', '^1.0.1', '1.0.1');
+  });
+});
+
 test.concurrent('works with single argument', (): Promise<void> => {
   return runUpgrade(['max-safe-integer'], {}, 'single-package', async (config): ?Promise<void> => {
     await expectInstalledDependency(config, 'left-pad', '^1.0.0', '1.0.0');
@@ -79,7 +112,7 @@ test.concurrent('works with multiple arguments', (): Promise<void> => {
   return runUpgrade(['left-pad', 'max-safe-integer'], {}, 'multiple-packages', async (config): ?Promise<void> => {
     await expectInstalledDependency(config, 'left-pad', '^1.0.0', '1.1.3');
     await expectInstalledDependency(config, 'max-safe-integer', '^1.0.0', '1.0.1');
-    await expectInstalledDependency(config, 'is-negative-zero', '^1.0.0', '1.0.0');
+    await expectInstalledDependency(config, 'array-union', '^1.0.1', '1.0.1');
   });
 });
 
@@ -91,10 +124,10 @@ test.concurrent('respects dependency type', (): Promise<void> => {
 });
 
 test.concurrent('respects --ignore-engines flag', (): Promise<void> => {
-  return runUpgrade(['hawk@0.10'], {ignoreEngines: true}, 'respects-ignore-engines-flag', async (config): ?Promise<
+  return runUpgrade(['hawk@4.1'], {ignoreEngines: true}, 'respects-ignore-engines-flag', async (config): ?Promise<
     void,
   > => {
-    await expectInstalledDependency(config, 'hawk', '0.10', '0.10.2');
+    await expectInstalledDependency(config, 'hawk', '4.1', '4.1.2');
   });
 });
 
@@ -109,6 +142,22 @@ test.concurrent('upgrades from fixed version to latest with workspaces', (): Pro
     void,
   > => {
     await expectInstalledDevDependency(config, 'max-safe-integer', '1.0.1', '1.0.1');
+  });
+});
+
+test.concurrent('works with just a pattern', (): Promise<void> => {
+  return runUpgrade([], {pattern: 'max'}, 'multiple-packages', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'left-pad', '^1.0.0', '1.0.0');
+    await expectInstalledDependency(config, 'max-safe-integer', '^1.0.0', '1.0.1');
+    await expectInstalledDependency(config, 'array-union', '^1.0.1', '1.0.1');
+  });
+});
+
+test.concurrent('works with arguments and a pattern', (): Promise<void> => {
+  return runUpgrade(['left-pad'], {pattern: 'max'}, 'multiple-packages', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'left-pad', '^1.0.0', '1.1.3');
+    await expectInstalledDependency(config, 'max-safe-integer', '^1.0.0', '1.0.1');
+    await expectInstalledDependency(config, 'array-union', '^1.0.1', '1.0.1');
   });
 });
 
@@ -229,11 +278,42 @@ test.concurrent('upgrades optional dependency packages not in registry', (): Pro
   });
 });
 
+test.concurrent('informs the type of dependency after upgrade', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter): Promise<void> => {
+      config.commandName = 'upgrade';
+      await upgrade(config, reporter, flags, args);
+
+      const output = reporter.getBuffer();
+      const infos = output.filter(({type}) => type === 'info');
+      const getTreeInfo = pkgName =>
+        output.filter(
+          ({type, data: {trees = []}}) => type === 'tree' && trees.some(({name}) => name.indexOf(pkgName) > -1),
+        );
+
+      expect(
+        infos.some(info => {
+          return info.data.toString().indexOf('Direct dependencies') > -1;
+        }),
+      ).toEqual(true);
+      expect(getTreeInfo('async')).toHaveLength(2);
+      expect(getTreeInfo('lodash')).toHaveLength(1);
+    },
+    ['async'],
+    {latest: true},
+    'direct-dependency',
+  );
+});
+
 test.concurrent('warns when peer dependency is not met after upgrade', (): Promise<void> => {
   return buildRun(
     reporters.BufferReporter,
     fixturesLoc,
     async (args, flags, config, reporter): Promise<void> => {
+      config.commandName = 'upgrade';
+
       await upgrade(config, reporter, flags, args);
 
       const output = reporter.getBuffer();
@@ -256,6 +336,8 @@ test.concurrent("doesn't warn when peer dependency is still met after upgrade", 
     reporters.BufferReporter,
     fixturesLoc,
     async (args, flags, config, reporter): Promise<void> => {
+      config.commandName = 'upgrade';
+
       await upgrade(config, reporter, flags, args);
 
       const output = reporter.getBuffer();
@@ -270,6 +352,31 @@ test.concurrent("doesn't warn when peer dependency is still met after upgrade", 
     ['themer'],
     {},
     'peer-dependency-no-warn',
+  );
+});
+
+// Regression test for #4840
+test.concurrent("doesn't warn when upgrading a devDependency", (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    fixturesLoc,
+    async (args, flags, config, reporter): Promise<void> => {
+      config.commandName = 'upgrade';
+
+      await upgrade(config, reporter, flags, args);
+
+      const output = reporter.getBuffer();
+      const warnings = output.filter(entry => entry.type === 'warning');
+
+      expect(
+        warnings.some(warning => {
+          return warning.data.toString().toLowerCase().indexOf('is already in') > -1;
+        }),
+      ).toEqual(false);
+    },
+    ['left-pad'],
+    {},
+    'dev-dependency-no-warn',
   );
 });
 
@@ -298,11 +405,21 @@ test.concurrent('respects --scope flag', (): Promise<void> => {
   });
 });
 
+test.concurrent('respects --scope flag with caret', (): Promise<void> => {
+  return runUpgrade([], {scope: '@angular'}, 'respects-scope-flag-with-caret', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, '@angular-mdl/core', '^4.0.0', '4.0.0');
+    await expectInstalledDependency(config, '@angular/core', '^2.4.9', '2.4.10');
+    await expectInstalledDependency(config, 'left-pad', '^1.0.0', '1.0.0');
+  });
+});
+
 test.concurrent('--latest works if there is an install script on a hoisted dependency', (): Promise<void> => {
   return buildRun(
     reporters.BufferReporter,
     fixturesLoc,
     async (args, flags, config, reporter): Promise<void> => {
+      config.commandName = 'upgrade';
+
       await upgrade(config, reporter, flags, args);
 
       const output = reporter.getBuffer();
@@ -314,4 +431,53 @@ test.concurrent('--latest works if there is an install script on a hoisted depen
     {latest: true},
     'latest-with-install-script',
   );
+});
+
+test.concurrent('upgrade to workspace root preserves child dependencies', (): Promise<void> => {
+  return runUpgrade(['max-safe-integer@1.0.1'], {latest: true}, 'workspaces', async (config): ?Promise<void> => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+
+    // child workspace deps
+    expect(lockfile.indexOf('left-pad@1.0.0:')).toBeGreaterThanOrEqual(0);
+    expect(lockfile.indexOf('right-pad@1.0.0:')).toBeGreaterThanOrEqual(0);
+    // root dep
+    expect(lockfile.indexOf('max-safe-integer@1.0.0:')).toBe(-1);
+    expect(lockfile.indexOf('max-safe-integer@1.0.1:')).toBeGreaterThanOrEqual(0);
+
+    const rootPkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    expect(rootPkg.devDependencies['max-safe-integer']).toEqual('1.0.1');
+
+    const childAPkg = await fs.readJson(path.join(config.cwd, 'child-a/package.json'));
+    const childBPkg = await fs.readJson(path.join(config.cwd, 'child-b/package.json'));
+    expect(childAPkg.dependencies['left-pad']).toEqual('1.0.0');
+    expect(childBPkg.dependencies['right-pad']).toEqual('1.0.0');
+  });
+});
+
+test.concurrent('upgrade to workspace child preserves root dependencies', (): Promise<void> => {
+  const fixture = {source: 'workspaces', cwd: 'child-a'};
+  return runUpgrade(['left-pad@1.1.0'], {latest: true}, fixture, async (config): ?Promise<void> => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.lockfileFolder, 'yarn.lock')));
+
+    // untouched deps
+    expect(lockfile.indexOf('right-pad@1.0.0:')).toBeGreaterThanOrEqual(0);
+    expect(lockfile.indexOf('max-safe-integer@1.0.0:')).toBeGreaterThanOrEqual(0);
+    // upgraded child workspace
+    expect(lockfile.indexOf('left-pad@1.0.0:')).toBe(-1);
+    expect(lockfile.indexOf('left-pad@1.1.0:')).toBeGreaterThanOrEqual(0);
+
+    const childAPkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    expect(childAPkg.dependencies['left-pad']).toEqual('1.1.0');
+
+    const rootPkg = await fs.readJson(path.join(config.lockfileFolder, 'package.json'));
+    const childBPkg = await fs.readJson(path.join(config.lockfileFolder, 'child-b/package.json'));
+    expect(rootPkg.devDependencies['max-safe-integer']).toEqual('1.0.0');
+    expect(childBPkg.dependencies['right-pad']).toEqual('1.0.0');
+  });
+});
+
+test.concurrent('latest flag does not downgrade from a beta', (): Promise<void> => {
+  return runUpgrade([], {latest: true}, 'using-beta', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'react-refetch', '^1.0.3-0', '1.0.3-0');
+  });
 });

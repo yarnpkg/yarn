@@ -6,6 +6,7 @@ import {MessageError} from './errors.js';
 import map from './util/map.js';
 import {entries} from './util/misc.js';
 import {version as yarnVersion} from './util/yarn-version.js';
+import {satisfiesWithPrereleases} from './util/semver.js';
 
 const invariant = require('invariant');
 const semver = require('semver');
@@ -67,6 +68,10 @@ export function testEngine(name: string, range: string, versions: Versions, loos
   }
 
   if (semver.satisfies(actual, range, looseSemver)) {
+    return true;
+  }
+
+  if (name === 'yarn' && satisfiesWithPrereleases(actual, range, looseSemver)) {
     return true;
   }
 
@@ -145,7 +150,7 @@ export function checkOne(info: Manifest, config: Config, ignoreEngines: boolean)
 
       if (VERSIONS[name]) {
         if (!testEngine(name, range, VERSIONS, config.looseSemver)) {
-          pushError(reporter.lang('incompatibleEngine', name, range));
+          pushError(reporter.lang('incompatibleEngine', name, range, VERSIONS[name]));
         }
       } else if (ignore.indexOf(name) < 0) {
         reporter.warn(`${human}: ${reporter.lang('invalidEngine', name)}`);

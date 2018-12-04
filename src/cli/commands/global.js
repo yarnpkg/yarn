@@ -40,7 +40,7 @@ class GlobalAdd extends Add {
 const path = require('path');
 
 export function hasWrapper(flags: Object, args: Array<string>): boolean {
-  return args[0] !== 'bin';
+  return args[0] !== 'bin' && args[0] !== 'dir';
 }
 
 async function updateCwd(config: Config): Promise<void> {
@@ -52,6 +52,8 @@ async function updateCwd(config: Config): Promise<void> {
     globalFolder: config.globalFolder,
     cacheFolder: config._cacheRootFolder,
     linkFolder: config.linkFolder,
+    enableDefaultRc: config.enableDefaultRc,
+    extraneousYarnrcFiles: config.extraneousYarnrcFiles,
   });
 }
 
@@ -159,11 +161,6 @@ async function initUpdateBins(config: Config, reporter: Reporter, flags: Object)
 
     // add new bins
     for (const src of afterBins) {
-      if (beforeBins.has(src)) {
-        // already inserted
-        continue;
-      }
-
       // insert new bin
       const dest = path.join(binFolder, path.basename(src));
       try {
@@ -199,8 +196,8 @@ async function list(config: Config, reporter: Reporter, flags: Object, args: Arr
 
   // install so we get hard file paths
   const lockfile = await Lockfile.fromDirectory(config.cwd);
-  const install = new Install({skipIntegrityCheck: true}, config, new NoopReporter(), lockfile);
-  const patterns = await install.init();
+  const install = new Install({}, config, new NoopReporter(), lockfile);
+  const patterns = await install.getFlattenedDeps();
 
   // dump global modules
   for (const pattern of patterns) {
@@ -228,7 +225,12 @@ const {run, setFlags: _setFlags} = buildSubCommands('global', {
   },
 
   async bin(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-    reporter.log(await getBinFolder(config, flags));
+    reporter.log(await getBinFolder(config, flags), {force: true});
+  },
+
+  dir(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+    reporter.log(config.globalFolder, {force: true});
+    return Promise.resolve();
   },
 
   async ls(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
@@ -281,5 +283,7 @@ export {run};
 
 export function setFlags(commander: Object) {
   _setFlags(commander);
+  commander.description('Installs packages globally on your operating system.');
   commander.option('--prefix <prefix>', 'bin prefix to use to install binaries');
+  commander.option('--latest', 'upgrade to the latest version of packages');
 }

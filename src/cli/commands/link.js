@@ -7,6 +7,7 @@ import * as fs from '../../util/fs.js';
 import {getBinFolder as getGlobalBinFolder} from './global';
 
 const invariant = require('invariant');
+const cmdShim = require('@zkochan/cmd-shim');
 const path = require('path');
 
 export async function getRegistryFolder(config: Config, name: string): Promise<string> {
@@ -26,7 +27,9 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 
-export function setFlags(commander: Object) {}
+export function setFlags(commander: Object) {
+  commander.description('Symlink a package folder during development.');
+}
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   if (args.length) {
@@ -71,7 +74,11 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
           if (await fs.exists(binDestLoc)) {
             reporter.warn(reporter.lang('binLinkCollision', binName));
           } else {
-            await fs.symlink(binSrcLoc, binDestLoc);
+            if (process.platform === 'win32') {
+              await cmdShim(binSrcLoc, binDestLoc);
+            } else {
+              await fs.symlink(binSrcLoc, binDestLoc);
+            }
           }
         }
       }

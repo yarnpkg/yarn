@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`yarnrc arguments: yarnrc-args 1`] = `
+"{\\"type\\":\\"info\\",\\"data\\":\\"No lockfile found.\\"}
+{\\"type\\":\\"step\\",\\"data\\":{\\"message\\":\\"Resolving packages\\",\\"current\\":1,\\"total\\":4}}
+{\\"type\\":\\"step\\",\\"data\\":{\\"message\\":\\"Fetching packages\\",\\"current\\":2,\\"total\\":4}}
+{\\"type\\":\\"step\\",\\"data\\":{\\"message\\":\\"Linking dependencies\\",\\"current\\":3,\\"total\\":4}}
+{\\"type\\":\\"step\\",\\"data\\":{\\"message\\":\\"Building fresh packages\\",\\"current\\":4,\\"total\\":4}}
+{\\"type\\":\\"success\\",\\"data\\":\\"Saved lockfile.\\"}
+{\\"type\\":\\"success\\",\\"data\\":\\"Saved 1 new dependency.\\"}
+{\\"type\\":\\"info\\",\\"data\\":\\"Direct dependencies\\"}
+{\\"type\\":\\"tree\\",\\"data\\":{\\"type\\":\\"newDirectDependencies\\",\\"trees\\":[{\\"name\\":\\"left-pad@1.1.3\\",\\"children\\":[],\\"hint\\":null,\\"color\\":null,\\"depth\\":0}]}}
+{\\"type\\":\\"info\\",\\"data\\":\\"All dependencies\\"}
+{\\"type\\":\\"tree\\",\\"data\\":{\\"type\\":\\"newAllDependencies\\",\\"trees\\":[{\\"name\\":\\"left-pad@1.1.3\\",\\"children\\":[],\\"hint\\":null,\\"color\\":null,\\"depth\\":0}]}}"
+`;

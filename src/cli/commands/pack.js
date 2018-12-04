@@ -11,6 +11,7 @@ const zlib = require('zlib');
 const path = require('path');
 const tar = require('tar-fs');
 const fs2 = require('fs');
+const depsFor = require('hash-for-dep/lib/deps-for');
 
 const FOLDERS_IGNORE = [
   // never allow version control folders
@@ -53,7 +54,7 @@ export async function packTarball(
   {mapHeader}: {mapHeader?: Object => Object} = {},
 ): Promise<stream$Duplex> {
   const pkg = await config.readRootManifest();
-  const {bundledDependencies, main, files: onlyFiles} = pkg;
+  const {bundleDependencies, main, files: onlyFiles} = pkg;
 
   // include required files
   let filters: Array<IgnoreFilter> = NEVER_IGNORE.slice();
@@ -65,17 +66,23 @@ export async function packTarball(
     filters = filters.concat(ignoreLinesToRegex(['!/' + main]));
   }
 
-  // include bundledDependencies
-  if (bundledDependencies) {
-    const folder = config.getFolder(pkg);
-    filters = ignoreLinesToRegex(bundledDependencies.map((name): string => `!${folder}/${name}`), '.');
+  // include bundleDependencies
+  let bundleDependenciesFiles = [];
+  if (bundleDependencies) {
+    for (const dependency of bundleDependencies) {
+      const dependencyList = depsFor(dependency, config.cwd);
+
+      for (const dep of dependencyList) {
+        const filesForBundledDep = await fs.walk(dep.baseDir, null, new Set(FOLDERS_IGNORE));
+        bundleDependenciesFiles = bundleDependenciesFiles.concat(filesForBundledDep);
+      }
+    }
   }
 
   // `files` field
   if (onlyFiles) {
     let lines = [
       '*', // ignore all files except those that are explicitly included with a negation filter
-      '.*', // files with "." as first character have to be excluded explicitly
     ];
     lines = lines.concat(
       onlyFiles.map((filename: string): string => `!${filename}`),
@@ -110,8 +117,15 @@ export async function packTarball(
   // apply filters
   sortFilter(files, filters, keepFiles, possibleKeepFiles, ignoredFiles);
 
-  const packer = tar.pack(config.cwd, {
-    ignore: name => {
+  // add the files for the bundled dependencies to the set of files to keep
+  for (const file of bundleDependenciesFiles) {
+    const realPath = await fs.realpath(config.cwd);
+    keepFiles.add(path.relative(realPath, file.absolute));
+  }
+
+  return packWithIgnoreAndHeaders(
+    config.cwd,
+    name => {
       const relative = path.relative(config.cwd, name);
       // Don't ignore directories, since we need to recurse inside them to check for unignored files.
       if (fs2.lstatSync(name).isDirectory()) {
@@ -121,6 +135,17 @@ export async function packTarball(
       // Otherwise, ignore a file if we're not supposed to keep it.
       return !keepFiles.has(relative);
     },
+    {mapHeader},
+  );
+}
+
+export function packWithIgnoreAndHeaders(
+  cwd: string,
+  ignoreFunction?: string => boolean,
+  {mapHeader}: {mapHeader?: Object => Object} = {},
+): Promise<stream$Duplex> {
+  return tar.pack(cwd, {
+    ignore: ignoreFunction,
     map: header => {
       const suffix = header.name === '.' ? '' : `/${header.name}`;
       header.name = `package${suffix}`;
@@ -129,11 +154,9 @@ export async function packTarball(
       return mapHeader ? mapHeader(header) : header;
     },
   });
-
-  return packer;
 }
 
-export async function pack(config: Config, dir: string): Promise<stream$Duplex> {
+export async function pack(config: Config): Promise<stream$Duplex> {
   const packer = await packTarball(config);
   const compressor = packer.pipe(new zlib.Gzip());
 
@@ -141,6 +164,7 @@ export async function pack(config: Config, dir: string): Promise<stream$Duplex> 
 }
 
 export function setFlags(commander: Object) {
+  commander.description('Creates a compressed gzip archive of package dependencies.');
   commander.option('-f, --filename <filename>', 'filename');
 }
 
@@ -148,7 +172,12 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 
-export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+export async function run(
+  config: Config,
+  reporter: Reporter,
+  flags: {filename?: string},
+  args?: Array<string>,
+): Promise<void> {
   const pkg = await config.readRootManifest();
   if (!pkg.name) {
     throw new MessageError(reporter.lang('noName'));
@@ -162,7 +191,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   await config.executeLifecycleScript('prepack');
 
-  const stream = await pack(config, config.cwd);
+  const stream = await pack(config);
 
   await new Promise((resolve, reject) => {
     stream.pipe(fs2.createWriteStream(filename));

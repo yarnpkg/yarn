@@ -6,6 +6,7 @@ import type PackageRequest from './package-request.js';
 import type {FetcherNames} from './fetchers/index.js';
 import type {Reporter} from './reporters/index.js';
 import type Config from './config.js';
+import type {RequestHint} from './constants';
 
 export type CLIFunction = (config: Config, reporter: Reporter, flags: Object, args: Array<string>) => CLIFunctionReturn;
 
@@ -18,9 +19,11 @@ export type DependencyRequestPattern = {
   pattern: string,
   registry: RegistryNames,
   optional: boolean,
-  hint?: ?string,
+  hint?: ?RequestHint,
   parentNames?: Array<string>,
   parentRequest?: ?PackageRequest,
+  workspaceName?: string,
+  workspaceLoc?: string,
 };
 export type DependencyRequestPatterns = Array<DependencyRequestPattern>;
 
@@ -38,12 +41,19 @@ export type PackageRemote = {
   reference: string,
   resolved?: ?string,
   hash: ?string,
+  integrity?: ?string,
   packageName?: string,
+  registryRemote?: ?PackageRemote,
 };
 
 // `dependencies` field in package info
 type Dependencies = {
   [key: string]: string,
+};
+
+export type WorkspacesConfig = {
+  packages?: Array<string>,
+  nohoist?: Array<string>,
 };
 
 // package.json
@@ -66,6 +76,7 @@ export type Manifest = {
   flat?: boolean,
   license?: string,
   licenseText?: string,
+  noticeText?: string,
 
   readme?: string,
   readmeFilename?: string,
@@ -87,6 +98,7 @@ export type Manifest = {
   _uid: string,
 
   _remote?: ?PackageRemote,
+  _resolved?: string,
 
   dist?: {
     tarball: string,
@@ -123,16 +135,22 @@ export type Manifest = {
   bundleDependencies?: Array<string>,
   bundledDependencies?: Array<string>,
 
+  installConfig?: {
+    pnp?: boolean,
+  },
+
   deprecated?: string,
   files?: Array<string>,
   main?: string,
 
-  workspaces?: Array<string>,
+  workspaces?: Array<string> | WorkspacesConfig,
 
   // This flag is true when we add a new package with `yarn add <mypackage>`.
   // We need to preserve the flag because we print a list of new packages in
   // the end of the add command
   fresh?: boolean,
+
+  prebuiltVariants?: {[filename: string]: string},
 };
 
 //
@@ -156,6 +174,8 @@ export type Dependency = {
   hint: ?string,
   range: string,
   upgradeTo: string,
+  workspaceName: string,
+  workspaceLoc: string,
 };
 
 export type WorkspacesManifestMap = {

@@ -1,7 +1,14 @@
 /* @flow */
 
+import fs from 'fs';
+import http from 'http';
+import url from 'url';
+import dnscache from 'dnscache';
+import invariant from 'invariant';
+import RequestCaptureHar from 'request-capture-har';
+
 import type {Reporter} from '../reporters/index.js';
-import {MessageError} from '../errors.js';
+import {MessageError, ResponseError} from '../errors.js';
 import BlockingQueue from './blocking-queue.js';
 import * as constants from '../constants.js';
 import * as network from './network.js';
@@ -9,11 +16,14 @@ import map from '../util/map.js';
 
 import typeof * as RequestModuleT from 'request';
 
-const RequestCaptureHar = require('request-capture-har');
-const invariant = require('invariant');
-const url = require('url');
-const fs = require('fs');
-
+// Initialize DNS cache so we don't look up the same
+// domains like registry.yarnpkg.com over and over again
+// for each request.
+dnscache({
+  enable: true,
+  ttl: 300,
+  cachesize: 10,
+});
 const successHosts = map();
 const controlOffline = network.isOffline();
 
@@ -54,9 +64,11 @@ type RequestParams<T> = {
   retryAttempts?: number,
   maxRetryAttempts?: number,
   followRedirect?: boolean,
+  rejectStatusCode?: number | Array<number>,
 };
 
 type RequestOptions = {
+  retryReason: ?string,
   params: RequestParams<Object>,
   resolve: (body: any) => void,
   reject: (err: any) => void,
@@ -69,9 +81,9 @@ export default class RequestManager {
     this._requestModule = null;
     this.offlineQueue = [];
     this.captureHar = false;
-    this.httpsProxy = null;
+    this.httpsProxy = '';
     this.ca = null;
-    this.httpProxy = null;
+    this.httpProxy = '';
     this.strictSSL = true;
     this.userAgent = '';
     this.reporter = reporter;
@@ -87,8 +99,8 @@ export default class RequestManager {
   userAgent: string;
   reporter: Reporter;
   running: number;
-  httpsProxy: ?string;
-  httpProxy: ?string;
+  httpsProxy: string | boolean;
+  httpProxy: string | boolean;
   strictSSL: boolean;
   ca: ?Array<string>;
   cert: ?string;
@@ -109,8 +121,8 @@ export default class RequestManager {
     userAgent?: string,
     offline?: boolean,
     captureHar?: boolean,
-    httpProxy?: string,
-    httpsProxy?: string,
+    httpProxy?: string | boolean,
+    httpsProxy?: string | boolean,
     strictSSL?: boolean,
     ca?: Array<string>,
     cafile?: string,
@@ -133,11 +145,15 @@ export default class RequestManager {
     }
 
     if (opts.httpProxy != null) {
-      this.httpProxy = opts.httpProxy;
+      this.httpProxy = opts.httpProxy || '';
     }
 
-    if (opts.httpsProxy != null) {
-      this.httpsProxy = opts.httpsProxy;
+    if (opts.httpsProxy === '') {
+      this.httpsProxy = opts.httpProxy || '';
+    } else if (opts.httpsProxy === false) {
+      this.httpsProxy = false;
+    } else {
+      this.httpsProxy = opts.httpsProxy || '';
     }
 
     if (opts.strictSSL !== null && typeof opts.strictSSL !== 'undefined') {
@@ -297,9 +313,23 @@ export default class RequestManager {
    * isn't already one.
    */
 
-  queueForOffline(opts: RequestOptions) {
+  queueForRetry(opts: RequestOptions) {
+    if (opts.retryReason) {
+      let containsReason = false;
+
+      for (const queuedOpts of this.offlineQueue) {
+        if (queuedOpts.retryReason === opts.retryReason) {
+          containsReason = true;
+          break;
+        }
+      }
+
+      if (!containsReason) {
+        this.reporter.info(opts.retryReason);
+      }
+    }
+
     if (!this.offlineQueue.length) {
-      this.reporter.warn(this.reporter.lang('offlineRetrying'));
       this.initOfflineRetry();
     }
 
@@ -343,6 +373,23 @@ export default class RequestManager {
       rejectNext(err);
     };
 
+    const queueForRetry = reason => {
+      const attempts = params.retryAttempts || 0;
+      if (attempts >= this.maxRetryAttempts - 1) {
+        return false;
+      }
+      if (opts.params.method && opts.params.method.toUpperCase() !== 'GET') {
+        return false;
+      }
+      params.retryAttempts = attempts + 1;
+      if (typeof params.cleanup === 'function') {
+        params.cleanup();
+      }
+      opts.retryReason = reason;
+      this.queueForRetry(opts);
+      return true;
+    };
+
     let calledOnError = false;
     const onError = err => {
       if (calledOnError) {
@@ -350,15 +397,10 @@ export default class RequestManager {
       }
       calledOnError = true;
 
-      const attempts = params.retryAttempts || 0;
-      if (attempts < this.maxRetryAttempts - 1 && this.isPossibleOfflineError(err)) {
-        params.retryAttempts = attempts + 1;
-        if (typeof params.cleanup === 'function') {
-          params.cleanup();
+      if (this.isPossibleOfflineError(err)) {
+        if (!queueForRetry(this.reporter.lang('offlineRetrying'))) {
+          reject(err);
         }
-        this.queueForOffline(opts);
-      } else {
-        reject(err);
       }
     };
 
@@ -375,18 +417,27 @@ export default class RequestManager {
 
         this.reporter.verbose(this.reporter.lang('verboseRequestFinish', params.url, res.statusCode));
 
+        if (res.statusCode === 408 || res.statusCode >= 500) {
+          const description = `${res.statusCode} ${http.STATUS_CODES[res.statusCode]}`;
+          if (!queueForRetry(this.reporter.lang('internalServerErrorRetrying', description))) {
+            throw new ResponseError(this.reporter.lang('requestFailed', description), res.statusCode);
+          } else {
+            return;
+          }
+        }
+
         if (body && typeof body.error === 'string') {
           reject(new Error(body.error));
           return;
         }
 
-        if (res.statusCode === 403) {
+        if ([400, 401, 404].concat(params.rejectStatusCode || []).indexOf(res.statusCode) !== -1) {
+          // So this is actually a rejection ... the hosted git resolver uses this to know whether http is supported
+          resolve(false);
+        } else if (res.statusCode >= 400) {
           const errMsg = (body && body.message) || reporter.lang('requestError', params.url, res.statusCode);
           reject(new Error(errMsg));
         } else {
-          if (res.statusCode === 400 || res.statusCode === 404 || res.statusCode === 401) {
-            body = false;
-          }
           resolve(body);
         }
       };
@@ -398,10 +449,17 @@ export default class RequestManager {
 
     let proxy = this.httpProxy;
     if (params.url.startsWith('https:')) {
-      proxy = this.httpsProxy || proxy;
+      proxy = this.httpsProxy;
     }
+
     if (proxy) {
-      params.proxy = proxy;
+      // if no proxy is set, do not pass a proxy down to request.
+      // the request library will internally check the HTTP_PROXY and HTTPS_PROXY env vars.
+      params.proxy = String(proxy);
+    } else if (proxy === false) {
+      // passing empty string prevents the underlying library from falling back to the env vars.
+      // an explicit false in the yarn config should override the env var. See #4546.
+      params.proxy = '';
     }
 
     if (this.ca != null) {

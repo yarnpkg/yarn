@@ -2,6 +2,7 @@
 
 import type {ReadStream} from 'fs';
 import type Reporter from '../reporters/base-reporter.js';
+import type {CopyFileAction} from './fs-normalized.js';
 
 import fs from 'fs';
 import globModule from 'glob';
@@ -12,6 +13,7 @@ import BlockingQueue from './blocking-queue.js';
 import * as promise from './promise.js';
 import {promisify} from './promise.js';
 import map from './map.js';
+import {copyFile, fileDatesEqual, unlink} from './fs-normalized.js';
 
 export const constants =
   typeof fs.constants !== 'undefined'
@@ -25,6 +27,7 @@ export const constants =
 export const lockQueue = new BlockingQueue('fs lock');
 
 export const readFileBuffer = promisify(fs.readFile);
+export const open: (path: string, flags: string, mode?: number) => Promise<Array<string>> = promisify(fs.open);
 export const writeFile: (path: string, data: string, options?: Object) => Promise<void> = promisify(fs.writeFile);
 export const readlink: (path: string, opts: void) => Promise<string> = promisify(fs.readlink);
 export const realpath: (path: string, opts: void) => Promise<string> = promisify(fs.realpath);
@@ -32,15 +35,18 @@ export const readdir: (path: string, opts: void) => Promise<Array<string>> = pro
 export const rename: (oldPath: string, newPath: string) => Promise<void> = promisify(fs.rename);
 export const access: (path: string, mode?: number) => Promise<void> = promisify(fs.access);
 export const stat: (path: string) => Promise<fs.Stats> = promisify(fs.stat);
-export const unlink: (path: string) => Promise<void> = promisify(require('rimraf'));
 export const mkdirp: (path: string) => Promise<void> = promisify(require('mkdirp'));
 export const exists: (path: string) => Promise<boolean> = promisify(fs.exists, true);
 export const lstat: (path: string) => Promise<fs.Stats> = promisify(fs.lstat);
 export const chmod: (path: string, mode: number | string) => Promise<void> = promisify(fs.chmod);
 export const link: (src: string, dst: string) => Promise<fs.Stats> = promisify(fs.link);
 export const glob: (path: string, options?: Object) => Promise<Array<string>> = promisify(globModule);
+export {unlink};
 
-const CONCURRENT_QUEUE_ITEMS = 4;
+// fs.copyFile uses the native file copying instructions on the system, performing much better
+// than any JS-based solution and consumes fewer resources. Repeated testing to fine tune the
+// concurrency level revealed 128 as the sweet spot on a quad-core, 16 CPU Intel system with SSD.
+const CONCURRENT_QUEUE_ITEMS = fs.copyFile ? 128 : 4;
 
 const fsSymlink: (target: string, path: string, type?: 'dir' | 'file' | 'junction') => Promise<void> = promisify(
   fs.symlink,
@@ -60,29 +66,22 @@ export type CopyQueueItem = {
 
 type CopyQueue = Array<CopyQueueItem>;
 
-type CopyFileAction = {
-  type: 'file',
-  src: string,
-  dest: string,
-  atime: number,
-  mtime: number,
-  mode: number,
-};
-
 type LinkFileAction = {
-  type: 'link',
   src: string,
   dest: string,
   removeDest: boolean,
 };
 
 type CopySymlinkAction = {
-  type: 'symlink',
   dest: string,
   linkname: string,
 };
 
-type CopyActions = Array<CopyFileAction | CopySymlinkAction | LinkFileAction>;
+type CopyActions = {
+  file: Array<CopyFileAction>,
+  symlink: Array<CopySymlinkAction>,
+  link: Array<LinkFileAction>,
+};
 
 type CopyOptions = {
   onProgress: (dest: string) => void,
@@ -100,36 +99,6 @@ type FailedFolderQuery = {
 type FolderQueryResult = {
   skipped: Array<FailedFolderQuery>,
   folder: ?string,
-};
-
-export const fileDatesEqual = (a: Date, b: Date) => {
-  const aTime = a.getTime();
-  const bTime = b.getTime();
-
-  if (process.platform !== 'win32') {
-    return aTime === bTime;
-  }
-
-  // See https://github.com/nodejs/node/pull/12607
-  // Submillisecond times from stat and utimes are truncated on Windows,
-  // causing a file with mtime 8.0079998 and 8.0081144 to become 8.007 and 8.008
-  // and making it impossible to update these files to their correct timestamps.
-  if (Math.abs(aTime - bTime) <= 1) {
-    return true;
-  }
-
-  const aTimeSec = Math.floor(aTime / 1000);
-  const bTimeSec = Math.floor(bTime / 1000);
-
-  // See https://github.com/nodejs/node/issues/2069
-  // Some versions of Node on windows zero the milliseconds when utime is used
-  // So if any of the time has a milliseconds part of zero we suspect that the
-  // bug is present and compare only seconds.
-  if (aTime - aTimeSec * 1000 === 0 || bTime - bTimeSec * 1000 === 0) {
-    return aTimeSec === bTimeSec;
-  }
-
-  return aTime === bTime;
 };
 
 async function buildActionsForCopy(
@@ -154,7 +123,11 @@ async function buildActionsForCopy(
   events.onStart(queue.length);
 
   // start building actions
-  const actions: CopyActions = [];
+  const actions: CopyActions = {
+    file: [],
+    symlink: [],
+    link: [],
+  };
 
   // custom concurrency logic as we're always executing stacks of CONCURRENT_QUEUE_ITEMS queue items
   // at a time due to the requirement to push items onto the queue
@@ -163,7 +136,7 @@ async function buildActionsForCopy(
     await Promise.all(items.map(build));
   }
 
-  // simulate the existence of some files to prevent considering them extraenous
+  // simulate the existence of some files to prevent considering them extraneous
   for (const file of artifactFiles) {
     if (possibleExtraneous.has(file)) {
       reporter.verbose(reporter.lang('verboseFilePhantomExtraneous', file));
@@ -180,7 +153,7 @@ async function buildActionsForCopy(
   return actions;
 
   //
-  async function build(data): Promise<void> {
+  async function build(data: CopyQueueItem): Promise<void> {
     const {src, dest, type} = data;
     const onFresh = data.onFresh || noop;
     const onDone = data.onDone || noop;
@@ -188,7 +161,7 @@ async function buildActionsForCopy(
     // TODO https://github.com/yarnpkg/yarn/issues/3751
     // related to bundled dependencies handling
     if (files.has(dest.toLowerCase())) {
-      reporter.warn(`The case-insensitive file ${dest} shouldn't be copied twice in one bulk copy`);
+      reporter.verbose(`The case-insensitive file ${dest} shouldn't be copied twice in one bulk copy`);
     } else {
       files.add(dest.toLowerCase());
     }
@@ -196,8 +169,7 @@ async function buildActionsForCopy(
     if (type === 'symlink') {
       await mkdirp(path.dirname(dest));
       onFresh();
-      actions.push({
-        type: 'symlink',
+      actions.symlink.push({
         dest,
         linkname: src,
       });
@@ -242,6 +214,13 @@ async function buildActionsForCopy(
           await access(dest, srcStat.mode);
         } catch (err) {}
       } */
+
+      if (bothFiles && artifactFiles.has(dest)) {
+        // this file gets changed during build, likely by a custom install script. Don't bother checking it.
+        onDone();
+        reporter.verbose(reporter.lang('verboseFileSkipArtifact', src));
+        return;
+      }
 
       if (bothFiles && srcStat.size === destStat.size && fileDatesEqual(srcStat.mtime, destStat.mtime)) {
         // we can safely assume this is the same file
@@ -288,10 +267,9 @@ async function buildActionsForCopy(
     if (srcStat.isSymbolicLink()) {
       onFresh();
       const linkname = await readlink(src);
-      actions.push({
+      actions.symlink.push({
         dest,
         linkname,
-        type: 'symlink',
       });
       onDone();
     } else if (srcStat.isDirectory()) {
@@ -326,8 +304,7 @@ async function buildActionsForCopy(
       }
     } else if (srcStat.isFile()) {
       onFresh();
-      actions.push({
-        type: 'file',
+      actions.file.push({
         src,
         dest,
         atime: srcStat.atime,
@@ -352,18 +329,20 @@ async function buildActionsForHardlink(
 
   // initialise events
   for (const item of queue) {
-    const onDone = item.onDone;
+    const onDone = item.onDone || noop;
     item.onDone = () => {
       events.onProgress(item.dest);
-      if (onDone) {
-        onDone();
-      }
+      onDone();
     };
   }
   events.onStart(queue.length);
 
   // start building actions
-  const actions: CopyActions = [];
+  const actions: CopyActions = {
+    file: [],
+    symlink: [],
+    link: [],
+  };
 
   // custom concurrency logic as we're always executing stacks of CONCURRENT_QUEUE_ITEMS queue items
   // at a time due to the requirement to push items onto the queue
@@ -372,7 +351,7 @@ async function buildActionsForHardlink(
     await Promise.all(items.map(build));
   }
 
-  // simulate the existence of some files to prevent considering them extraenous
+  // simulate the existence of some files to prevent considering them extraneous
   for (const file of artifactFiles) {
     if (possibleExtraneous.has(file)) {
       reporter.verbose(reporter.lang('verboseFilePhantomExtraneous', file));
@@ -389,7 +368,7 @@ async function buildActionsForHardlink(
   return actions;
 
   //
-  async function build(data): Promise<void> {
+  async function build(data: CopyQueueItem): Promise<void> {
     const {src, dest} = data;
     const onFresh = data.onFresh || noop;
     const onDone = data.onDone || noop;
@@ -434,6 +413,13 @@ async function buildActionsForHardlink(
         }
       }
 
+      if (bothFiles && artifactFiles.has(dest)) {
+        // this file gets changed during build, likely by a custom install script. Don't bother checking it.
+        onDone();
+        reporter.verbose(reporter.lang('verboseFileSkipArtifact', src));
+        return;
+      }
+
       // correct hardlink
       if (bothFiles && srcStat.ino !== null && srcStat.ino === destStat.ino) {
         onDone();
@@ -474,8 +460,7 @@ async function buildActionsForHardlink(
     if (srcStat.isSymbolicLink()) {
       onFresh();
       const linkname = await readlink(src);
-      actions.push({
-        type: 'symlink',
+      actions.symlink.push({
         dest,
         linkname,
       });
@@ -510,8 +495,7 @@ async function buildActionsForHardlink(
       }
     } else if (srcStat.isFile()) {
       onFresh();
-      actions.push({
-        type: 'link',
+      actions.link.push({
         src,
         dest,
         removeDest: destExists,
@@ -547,57 +531,31 @@ export async function copyBulk(
   };
 
   const actions: CopyActions = await buildActionsForCopy(queue, events, events.possibleExtraneous, reporter);
-  events.onStart(actions.length);
+  events.onStart(actions.file.length + actions.symlink.length + actions.link.length);
 
-  const fileActions: Array<CopyFileAction> = (actions.filter(action => action.type === 'file'): any);
+  const fileActions: Array<CopyFileAction> = actions.file;
 
-  const currentlyWriting: {[dest: string]: Promise<void>} = {};
+  const currentlyWriting: Map<string, Promise<void>> = new Map();
 
   await promise.queue(
     fileActions,
-    async (data): Promise<void> => {
-      let writePromise: Promise<void>;
-      while ((writePromise = currentlyWriting[data.dest])) {
+    async (data: CopyFileAction): Promise<void> => {
+      let writePromise;
+      while ((writePromise = currentlyWriting.get(data.dest))) {
         await writePromise;
       }
 
-      const cleanup = () => delete currentlyWriting[data.dest];
       reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));
-      return (currentlyWriting[data.dest] = readFileBuffer(data.src)
-        .then(async d => {
-          // we need to do this because of case-insensitive filesystems, which wouldn't properly
-          // change the file name in case of a file being renamed
-          await unlink(data.dest);
-
-          return writeFile(data.dest, d, {mode: data.mode});
-        })
-        .then(() => {
-          return new Promise((resolve, reject) => {
-            fs.utimes(data.dest, data.atime, data.mtime, err => {
-              if (err) {
-                reject(err);
-              } else {
-                resolve();
-              }
-            });
-          });
-        })
-        .then(
-          () => {
-            events.onProgress(data.dest);
-            cleanup();
-          },
-          err => {
-            cleanup();
-            throw err;
-          },
-        ));
+      const copier = copyFile(data, () => currentlyWriting.delete(data.dest));
+      currentlyWriting.set(data.dest, copier);
+      events.onProgress(data.dest);
+      return copier;
     },
     CONCURRENT_QUEUE_ITEMS,
   );
 
   // we need to copy symlinks last as they could reference files we were copying
-  const symlinkActions: Array<CopySymlinkAction> = (actions.filter(action => action.type === 'symlink'): any);
+  const symlinkActions: Array<CopySymlinkAction> = actions.symlink;
   await promise.queue(symlinkActions, (data): Promise<void> => {
     const linkname = path.resolve(path.dirname(data.dest), data.linkname);
     reporter.verbose(reporter.lang('verboseFileSymlink', data.dest, linkname));
@@ -624,9 +582,9 @@ export async function hardlinkBulk(
   };
 
   const actions: CopyActions = await buildActionsForHardlink(queue, events, events.possibleExtraneous, reporter);
-  events.onStart(actions.length);
+  events.onStart(actions.file.length + actions.symlink.length + actions.link.length);
 
-  const fileActions: Array<LinkFileAction> = (actions.filter(action => action.type === 'link'): any);
+  const fileActions: Array<LinkFileAction> = actions.link;
 
   await promise.queue(
     fileActions,
@@ -641,7 +599,7 @@ export async function hardlinkBulk(
   );
 
   // we need to copy symlinks last as they could reference files we were copying
-  const symlinkActions: Array<CopySymlinkAction> = (actions.filter(action => action.type === 'symlink'): any);
+  const symlinkActions: Array<CopySymlinkAction> = actions.symlink;
   await promise.queue(symlinkActions, (data): Promise<void> => {
     const linkname = path.resolve(path.dirname(data.dest), data.linkname);
     reporter.verbose(reporter.lang('verboseFileSymlink', data.dest, linkname));
@@ -717,46 +675,36 @@ export async function find(filename: string, dir: string): Promise<string | fals
 }
 
 export async function symlink(src: string, dest: string): Promise<void> {
+  if (process.platform !== 'win32') {
+    // use relative paths otherwise which will be retained if the directory is moved
+    src = path.relative(path.dirname(dest), src);
+    // When path.relative returns an empty string for the current directory, we should instead use
+    // '.', which is a valid fs.symlink target.
+    src = src || '.';
+  }
+
   try {
     const stats = await lstat(dest);
-
-    if (stats.isSymbolicLink() && (await exists(dest))) {
-      const resolved = await realpath(dest);
+    if (stats.isSymbolicLink()) {
+      const resolved = dest;
       if (resolved === src) {
         return;
       }
     }
-
-    await unlink(dest);
   } catch (err) {
     if (err.code !== 'ENOENT') {
       throw err;
     }
   }
 
-  try {
-    if (process.platform === 'win32') {
-      // use directory junctions if possible on win32, this requires absolute paths
-      await fsSymlink(src, dest, 'junction');
-    } else {
-      // use relative paths otherwise which will be retained if the directory is moved
-      let relative;
-      if (await exists(src)) {
-        relative = path.relative(fs.realpathSync(path.dirname(dest)), fs.realpathSync(src));
-      } else {
-        relative = path.relative(path.dirname(dest), src);
-      }
-      // When path.relative returns an empty string for the current directory, we should instead use
-      // '.', which is a valid fs.symlink target.
-      await fsSymlink(relative || '.', dest);
-    }
-  } catch (err) {
-    if (err.code === 'EEXIST') {
-      // race condition
-      await symlink(src, dest);
-    } else {
-      throw err;
-    }
+  // We use rimraf for unlink which never throws an ENOENT on missing target
+  await unlink(dest);
+
+  if (process.platform === 'win32') {
+    // use directory junctions if possible on win32, this requires absolute paths
+    await fsSymlink(src, dest, 'junction');
+  } else {
+    await fsSymlink(src, dest);
   }
 }
 
@@ -810,8 +758,8 @@ export function normalizeOS(body: string): string {
   return body.replace(/\r\n/g, '\n');
 }
 
-const cr = new Buffer('\r', 'utf8')[0];
-const lf = new Buffer('\n', 'utf8')[0];
+const cr = '\r'.charCodeAt(0);
+const lf = '\n'.charCodeAt(0);
 
 async function getEolFromFile(path: string): Promise<string | void> {
   if (!await exists(path)) {
@@ -836,7 +784,7 @@ export async function writeFilePreservingEol(path: string, data: string): Promis
   if (eol !== '\n') {
     data = data.replace(/\n/g, eol);
   }
-  await promisify(fs.writeFile)(path, data);
+  await writeFile(path, data);
 }
 
 export async function hardlinksWork(dir: string): Promise<boolean> {
@@ -863,32 +811,16 @@ export async function makeTempDir(prefix?: string): Promise<string> {
   return dir;
 }
 
-export async function readFirstAvailableStream(
-  paths: Iterable<?string>,
-): Promise<{stream: ?ReadStream, triedPaths: Array<string>}> {
-  let stream: ?ReadStream;
-  const triedPaths = [];
-  for (const tarballPath of paths) {
-    if (tarballPath) {
-      try {
-        // We need the weird `await new Promise()` construct for `createReadStream` because
-        // it always returns a ReadStream object but immediately triggers an `error` event
-        // on it if it fails to open the file, instead of throwing an exception. If this event
-        // is not handled, it crashes node. A saner way to handle this with multiple tries is
-        // the following construct.
-        stream = await new Promise((resolve, reject) => {
-          const maybeStream = fs.createReadStream(tarballPath);
-          maybeStream.on('error', reject).on('readable', resolve.bind(this, maybeStream));
-        });
-        break;
-      } catch (err) {
-        // Try the next one
-        triedPaths.push(tarballPath);
-      }
+export async function readFirstAvailableStream(paths: Iterable<string>): Promise<?ReadStream> {
+  for (const path of paths) {
+    try {
+      const fd = await open(path, 'r');
+      return fs.createReadStream(path, {fd});
+    } catch (err) {
+      // Try the next one
     }
   }
-
-  return {stream, triedPaths};
+  return null;
 }
 
 export async function getFirstSuitableFolder(

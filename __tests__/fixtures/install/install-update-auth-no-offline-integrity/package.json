@@ -1,0 +1,9 @@
+{
+  "name": "install-update-auth-no-offline-integrity",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "abab": "^2.0.0"
+  }
+}

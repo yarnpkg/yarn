@@ -1,0 +1,8 @@
+{
+  "name": "monorepo",
+  "private": true,
+  "workspaces": {
+    "packages": ["packages/*"],
+    "nohoist": ["**/example-yarn-workspace-2"]
+  }
+}

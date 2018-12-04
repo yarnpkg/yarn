@@ -12,8 +12,32 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'init');
 
-test.concurrent('init --yes should create package.json with defaults', (): Promise<void> => {
+test.concurrent('init should create package.json on current cwd', (): Promise<void> => {
+  let initialParentManifest;
+
   return buildRun(
+    ConsoleReporter,
+    fixturesLoc,
+    (args, flags, config, reporter, lockfile): Promise<void> => {
+      return runInit(config, reporter, flags, args);
+    },
+    [],
+    {yes: true},
+    {source: 'init-nested', cwd: 'inner-folder'},
+    async (config): Promise<void> => {
+      const {cwd} = config;
+
+      expect(await fs.exists(path.join(cwd, 'package.json'))).toEqual(true);
+      expect(await fs.readFile(path.join(cwd, '..', 'package.json'))).toEqual(initialParentManifest);
+    },
+    async (cwd): Promise<void> => {
+      initialParentManifest = await fs.readFile(path.join(cwd, '..', 'package.json'));
+    },
+  );
+});
+
+test('init --yes should create package.json with defaults', (): Promise<void> =>
+  buildRun(
     ConsoleReporter,
     fixturesLoc,
     (args, flags, config, reporter, lockfile): Promise<void> => {
@@ -33,11 +57,10 @@ test.concurrent('init --yes should create package.json with defaults', (): Promi
       expect(manifest.private).toEqual(undefined);
       expect({...manifest, name: 'init-yes'}).toMatchSnapshot('init-yes');
     },
-  );
-});
+  ));
 
-test.concurrent('init --yes --private should create package.json with defaults and private true', (): Promise<void> => {
-  return buildRun(
+test('init --yes --private should create package.json with defaults and private true', (): Promise<void> =>
+  buildRun(
     ConsoleReporter,
     fixturesLoc,
     (args, flags, config, reporter, lockfile): Promise<void> => {
@@ -57,10 +80,31 @@ test.concurrent('init --yes --private should create package.json with defaults a
       expect(manifest.private).toEqual(true);
       expect({...manifest, name: 'init-yes-private'}).toMatchSnapshot('init-yes-private');
     },
-  );
-});
+  ));
 
-test.concurrent('init using Github shorthand should resolve to full repository URL', (): Promise<void> => {
+test('init should use init-* configs when defined', (): Promise<void> =>
+  buildRun(
+    ConsoleReporter,
+    fixturesLoc,
+    (args, flags, config, reporter, lockfile): Promise<void> => {
+      return runInit(config, reporter, flags, args);
+    },
+    [],
+    {yes: true},
+    'init-config',
+    async (config): Promise<void> => {
+      const {cwd} = config;
+      const manifestFile = await fs.readFile(path.join(cwd, 'package.json'));
+      const manifest = JSON.parse(manifestFile);
+
+      // Name is derived from directory name which is dynamic so check
+      // that separately and then remove from snapshot
+      expect(manifest.name).toEqual(path.basename(cwd));
+      expect({...manifest, name: 'init-config'}).toMatchSnapshot('init-config');
+    },
+  ));
+
+test('init using Github shorthand should resolve to full repository URL', (): Promise<void> => {
   const questionMap = Object.freeze({
     name: 'hi-github',
     version: '',
@@ -101,7 +145,7 @@ test.concurrent('init using Github shorthand should resolve to full repository U
   );
 });
 
-test.concurrent('init and give private empty', (): Promise<void> => {
+test('init and give private empty', (): Promise<void> => {
   const questionMap = Object.freeze({
     name: 'private-empty',
     version: '',

@@ -1,5 +1,17 @@
 /* @flow */
 
+import http from 'http';
+import net from 'net';
+import path from 'path';
+
+import commander from 'commander';
+import fs from 'fs';
+import invariant from 'invariant';
+import lockfile from 'proper-lockfile';
+import loudRejection from 'loud-rejection';
+import onDeath from 'death';
+import semver from 'semver';
+
 import {ConsoleReporter, JSONReporter} from '../reporters/index.js';
 import {registries, registryNames} from '../registries/index.js';
 import commands from './commands/index.js';
@@ -11,16 +23,7 @@ import {getRcConfigForCwd, getRcArgs} from '../rc.js';
 import {spawnp, forkp} from '../util/child.js';
 import {version} from '../util/yarn-version.js';
 import handleSignals from '../util/signal-handler.js';
-
-const commander = require('commander');
-const fs = require('fs');
-const invariant = require('invariant');
-const lockfile = require('proper-lockfile');
-const loudRejection = require('loud-rejection');
-const http = require('http');
-const net = require('net');
-const onDeath = require('death');
-const path = require('path');
+import {boolify, boolifyWithDefault} from '../util/conversion.js';
 
 function findProjectRoot(base: string): string {
   let prev = null;
@@ -38,7 +41,7 @@ function findProjectRoot(base: string): string {
   return base;
 }
 
-export function main({
+export async function main({
   startArgs,
   args,
   endArgs,
@@ -46,18 +49,32 @@ export function main({
   startArgs: Array<string>,
   args: Array<string>,
   endArgs: Array<string>,
-}) {
+}): Promise<void> {
+  const collect = (val, acc) => {
+    acc.push(val);
+    return acc;
+  };
+
   loudRejection();
   handleSignals();
 
   // set global options
   commander.version(version, '-v, --version');
   commander.usage('[command] [flags]');
+  commander.option('--no-default-rc', 'prevent Yarn from automatically detecting yarnrc and npmrc files');
+  commander.option(
+    '--use-yarnrc <path>',
+    'specifies a yarnrc file that Yarn should use (.yarnrc only, not .npmrc)',
+    collect,
+    [],
+  );
   commander.option('--verbose', 'output verbose messages on internal operations');
   commander.option('--offline', 'trigger an error if any required dependencies are not available in local cache');
   commander.option('--prefer-offline', 'use network only if dependencies are not available in local cache');
+  commander.option('--enable-pnp, --pnp', "enable the Plug'n'Play installation");
+  commander.option('--disable-pnp', "disable the Plug'n'Play installation");
   commander.option('--strict-semver');
-  commander.option('--json', '');
+  commander.option('--json', 'format Yarn log messages as lines of JSON (see jsonlines.org)');
   commander.option('--ignore-scripts', "don't run lifecycle scripts");
   commander.option('--har', 'save HAR output of network traffic');
   commander.option('--ignore-platform', 'ignore platform checks');
@@ -68,10 +85,11 @@ export function main({
   commander.option('--check-files', 'install will verify file tree of packages for consistency');
   commander.option('--no-bin-links', "don't generate bin links when setting up packages");
   commander.option('--flat', 'only allow one version of a package');
-  commander.option('--prod, --production [prod]', '');
+  commander.option('--prod, --production [prod]', '', boolify);
   commander.option('--no-lockfile', "don't read or generate a lockfile");
   commander.option('--pure-lockfile', "don't generate a lockfile");
   commander.option('--frozen-lockfile', "don't generate a lockfile and fail if an update is needed");
+  commander.option('--update-checksums', 'update package checksums from current repository');
   commander.option('--link-duplicates', 'create hardlinks to the repeated modules in node_modules');
   commander.option('--link-folder <path>', 'specify a custom folder to store global links');
   commander.option('--global-folder <path>', 'specify a custom folder to store global packages');
@@ -82,62 +100,113 @@ export function main({
   commander.option('--preferred-cache-folder <path>', 'specify a custom folder to store the yarn cache if possible');
   commander.option('--cache-folder <path>', 'specify a custom folder that must be used to store the yarn cache');
   commander.option('--mutex <type>[:specifier]', 'use a mutex to ensure only one yarn instance is executing');
-  commander.option('--emoji [bool]', 'enable emoji in output', process.platform === 'darwin');
+  commander.option(
+    '--emoji [bool]',
+    'enable emoji in output',
+    boolify,
+    process.platform === 'darwin' || process.env.TERM_PROGRAM === 'Hyper' || process.env.TERM_PROGRAM === 'HyperTerm',
+  );
   commander.option('-s, --silent', 'skip Yarn console logs, other types of logs (script output) will be printed');
   commander.option('--cwd <cwd>', 'working directory to use', process.cwd());
   commander.option('--proxy <host>', '');
   commander.option('--https-proxy <host>', '');
+  commander.option('--registry <url>', 'override configuration registry');
   commander.option('--no-progress', 'disable progress bar');
   commander.option('--network-concurrency <number>', 'maximum number of concurrent network requests', parseInt);
   commander.option('--network-timeout <milliseconds>', 'TCP timeout for network requests', parseInt);
   commander.option('--non-interactive', 'do not show interactive prompts');
-  commander.option('--scripts-prepend-node-path [bool]', 'prepend the node executable dir to the PATH in scripts');
-
-  // get command name
-  let commandName: string = args.shift() || 'install';
+  commander.option(
+    '--scripts-prepend-node-path [bool]',
+    'prepend the node executable dir to the PATH in scripts',
+    boolify,
+  );
+  commander.option('--no-node-version-check', 'do not warn when using a potentially unsupported Node version');
+  commander.option('--focus', 'Focus on a single workspace by installing remote copies of its sibling workspaces.');
 
   // if -v is the first command, then always exit after returning the version
-  if (commandName === '-v') {
+  if (args[0] === '-v') {
     console.log(version.trim());
     process.exitCode = 0;
     return;
   }
 
-  if (commandName === '--help' || commandName === '-h') {
-    commandName = 'help';
+  // get command name
+  const firstNonFlagIndex = args.findIndex((arg, idx, arr) => {
+    const isOption = arg.startsWith('-');
+    const prev = idx > 0 && arr[idx - 1];
+    const prevOption = prev && prev.startsWith('-') && commander.optionFor(prev);
+    const boundToPrevOption = prevOption && (prevOption.optional || prevOption.required);
+
+    return !isOption && !boundToPrevOption;
+  });
+  let preCommandArgs;
+  let commandName = '';
+  if (firstNonFlagIndex > -1) {
+    preCommandArgs = args.slice(0, firstNonFlagIndex);
+    commandName = args[firstNonFlagIndex];
+    args = args.slice(firstNonFlagIndex + 1);
+  } else {
+    preCommandArgs = args;
+    args = [];
   }
 
-  if (Object.prototype.hasOwnProperty.call(commands, commandName) && (args[0] === '--help' || args[0] === '-h')) {
-    args.unshift(commandName);
+  let isKnownCommand = Object.prototype.hasOwnProperty.call(commands, commandName);
+  const isHelp = arg => arg === '--help' || arg === '-h';
+  const helpInPre = preCommandArgs.findIndex(isHelp);
+  const helpInArgs = args.findIndex(isHelp);
+  const setHelpMode = () => {
+    if (isKnownCommand) {
+      args.unshift(commandName);
+    }
     commandName = 'help';
+    isKnownCommand = true;
+  };
+
+  if (helpInPre > -1) {
+    preCommandArgs.splice(helpInPre);
+    setHelpMode();
+  } else if (isKnownCommand && helpInArgs === 0) {
+    args.splice(helpInArgs);
+    setHelpMode();
   }
 
-  // if no args or command name looks like a flag then set default to `install`
-  if (commandName[0] === '-') {
-    args.unshift(commandName);
+  if (!commandName) {
     commandName = 'install';
+    isKnownCommand = true;
   }
 
-  let command;
-  if (Object.prototype.hasOwnProperty.call(commands, commandName)) {
-    command = commands[commandName];
-  }
-
-  // if command is not recognized, then set default to `run`
-  if (!command) {
+  if (!isKnownCommand) {
+    // if command is not recognized, then set default to `run`
     args.unshift(commandName);
-    command = commands.run;
+    commandName = 'run';
   }
+  const command = commands[commandName];
 
   let warnAboutRunDashDash = false;
-  // we are using "yarn <script> -abc" or "yarn run <script> -abc", we want -abc to be script options, not yarn options
-  if (command === commands.run) {
+  // we are using "yarn <script> -abc", "yarn run <script> -abc", or "yarn node -abc", we want -abc
+  // to be script options, not yarn options
+  const PROXY_COMMANDS = new Set([`run`, `create`, `node`]);
+  if (PROXY_COMMANDS.has(commandName)) {
     if (endArgs.length === 0) {
-      endArgs = ['--', ...args.splice(1)];
+      let preservedArgs = 0;
+      // the "run" and "create" command take one argument that we want to parse as usual (the
+      // script/package name), hence the splice(1)
+      if (command === commands.run || command === commands.create) {
+        preservedArgs += 1;
+      }
+      // If the --into option immediately follows the command (or the script name in the "run/create"
+      // case), we parse them as regular options so that we can cd into them
+      if (args[preservedArgs] === `--into`) {
+        preservedArgs += 2;
+      }
+      endArgs = ['--', ...args.splice(preservedArgs)];
     } else {
       warnAboutRunDashDash = true;
     }
   }
+
+  commander.originalArgs = args;
+  args = [...preCommandArgs, ...args];
 
   command.setFlags(commander);
   commander.parse([
@@ -161,7 +230,8 @@ export function main({
     emoji: process.stdout.isTTY && commander.emoji,
     verbose: commander.verbose,
     noProgress: !commander.progress,
-    isSilent: process.env.YARN_SILENT === '1' || commander.silent,
+    isSilent: boolifyWithDefault(process.env.YARN_SILENT, false) || commander.silent,
+    nonInteractive: commander.nonInteractive,
   });
 
   const exit = exitCode => {
@@ -172,10 +242,15 @@ export function main({
   reporter.initPeakMemoryCounter();
 
   const config = new Config(reporter);
-  const outputWrapper = !commander.json && command.hasWrapper(commander, commander.args);
+  const outputWrapperEnabled = boolifyWithDefault(process.env.YARN_WRAP_OUTPUT, true);
+  const shouldWrapOutput = outputWrapperEnabled && !commander.json && command.hasWrapper(commander, commander.args);
 
-  if (outputWrapper) {
+  if (shouldWrapOutput) {
     reporter.header(commandName, {name: 'yarn', version});
+  }
+
+  if (commander.nodeVersionCheck && !semver.satisfies(process.versions.node, constants.SUPPORTED_NODE_VERSIONS)) {
+    reporter.warn(reporter.lang('unsupportedNodeVersion', process.versions.node, constants.SUPPORTED_NODE_VERSIONS));
   }
 
   if (command.noArguments && commander.args.length) {
@@ -196,13 +271,6 @@ export function main({
   }
 
   //
-  if (command.requireLockfile && !fs.existsSync(path.join(config.cwd, constants.LOCKFILE_FILENAME))) {
-    reporter.error(reporter.lang('noRequiredLockfile'));
-    exit(1);
-    return;
-  }
-
-  //
   const run = (): Promise<void> => {
     invariant(command, 'missing command');
 
@@ -211,7 +279,7 @@ export function main({
     }
 
     return command.run(config, reporter, commander, commander.args).then(exitCode => {
-      if (outputWrapper) {
+      if (shouldWrapOutput) {
         reporter.footer(false);
       }
       return exitCode;
@@ -244,6 +312,7 @@ export function main({
     return new Promise((resolve, reject) => {
       const connectionOptions = {
         port: +mutexPort || constants.SINGLE_INSTANCE_PORT,
+        host: 'localhost',
       };
 
       function startServer() {
@@ -335,8 +404,14 @@ export function main({
           });
 
           response.on('end', () => {
-            const {cwd, pid} = JSON.parse(Buffer.concat(buffers).toString());
-            reporter.warn(reporter.lang('waitingNamedInstance', pid, cwd));
+            try {
+              const {cwd, pid} = JSON.parse(Buffer.concat(buffers).toString());
+              reporter.warn(reporter.lang('waitingNamedInstance', pid, cwd));
+            } catch (error) {
+              reporter.verbose(error);
+              reject(new Error(reporter.lang('mutexPortBusy', connectionOptions.port)));
+              return;
+            }
             waitForTheNetwork();
           });
 
@@ -378,6 +453,8 @@ export function main({
     log.push(`Node version: ${indent(process.versions.node)}`);
     log.push(`Platform: ${indent(process.platform + ' ' + process.arch)}`);
 
+    log.push(`Trace: ${indent(err.stack)}`);
+
     // add manifests
     for (const registryName of registryNames) {
       const possibleLoc = path.join(config.cwd, registries[registryName].filename);
@@ -386,11 +463,12 @@ export function main({
     }
 
     // lockfile
-    const lockLoc = path.join(config.cwd, constants.LOCKFILE_FILENAME);
+    const lockLoc = path.join(
+      config.lockfileFolder || config.cwd, // lockfileFolder might not be set at this point
+      constants.LOCKFILE_FILENAME,
+    );
     const lockfile = fs.existsSync(lockLoc) ? fs.readFileSync(lockLoc, 'utf8') : 'No lockfile';
     log.push(`Lockfile: ${indent(lockfile)}`);
-
-    log.push(`Trace: ${indent(err.stack)}`);
 
     const errorReportLoc = writeErrorReport(log);
 
@@ -416,12 +494,17 @@ export function main({
     return errorReportLoc;
   }
 
-  const cwd = findProjectRoot(commander.cwd);
+  const cwd = command.shouldRunInCurrentCwd ? commander.cwd : findProjectRoot(commander.cwd);
 
-  config
+  await config
     .init({
       cwd,
+      commandName,
 
+      enablePnp: commander.pnp,
+      disablePnp: commander.disablePnp,
+      enableDefaultRc: commander.defaultRc,
+      extraneousYarnrcFiles: commander.useYarnrc,
       binLinks: commander.binLinks,
       modulesFolder: commander.modulesFolder,
       linkFolder: commander.linkFolder,
@@ -438,14 +521,19 @@ export function main({
       production: commander.production,
       httpProxy: commander.proxy,
       httpsProxy: commander.httpsProxy,
+      registry: commander.registry,
       networkConcurrency: commander.networkConcurrency,
       networkTimeout: commander.networkTimeout,
       nonInteractive: commander.nonInteractive,
-      scriptsPrependNodePath: commander.scriptsPrependNodePath,
-
-      commandName: commandName === 'run' ? commander.args[0] : commandName,
+      updateChecksums: commander.updateChecksums,
+      focus: commander.focus,
     })
     .then(() => {
+      // lockfile check must happen after config.init sets lockfileFolder
+      if (command.requireLockfile && !fs.existsSync(path.join(config.lockfileFolder, constants.LOCKFILE_FILENAME))) {
+        throw new MessageError(reporter.lang('noRequiredLockfile'));
+      }
+
       // option "no-progress" stored in yarn config
       const noProgressConfig = config.registries.yarn.getOption('no-progress');
 
@@ -489,8 +577,8 @@ export function main({
         onUnexpectedError(err);
       }
 
-      if (commands[commandName]) {
-        reporter.info(commands[commandName].getDocsInfo);
+      if (command.getDocsInfo) {
+        reporter.info(command.getDocsInfo);
       }
 
       return exit(1);
@@ -498,22 +586,25 @@ export function main({
 }
 
 async function start(): Promise<void> {
-  const rc = getRcConfigForCwd(process.cwd());
+  const rc = getRcConfigForCwd(process.cwd(), process.argv.slice(2));
   const yarnPath = rc['yarn-path'];
 
-  if (yarnPath && process.env.YARN_IGNORE_PATH !== '1') {
+  if (yarnPath && !boolifyWithDefault(process.env.YARN_IGNORE_PATH, false)) {
     const argv = process.argv.slice(2);
     const opts = {stdio: 'inherit', env: Object.assign({}, process.env, {YARN_IGNORE_PATH: 1})};
+    let exitCode = 0;
 
     try {
-      await spawnp(yarnPath, argv, opts);
+      exitCode = await spawnp(yarnPath, argv, opts);
     } catch (firstError) {
       try {
-        await forkp(yarnPath, argv, opts);
+        exitCode = await forkp(yarnPath, argv, opts);
       } catch (error) {
         throw firstError;
       }
     }
+
+    process.exitCode = exitCode;
   } else {
     // ignore all arguments after a --
     const doubleDashIndex = process.argv.findIndex(element => element === '--');
@@ -521,7 +612,7 @@ async function start(): Promise<void> {
     const args = process.argv.slice(2, doubleDashIndex === -1 ? process.argv.length : doubleDashIndex);
     const endArgs = doubleDashIndex === -1 ? [] : process.argv.slice(doubleDashIndex);
 
-    main({startArgs, args, endArgs});
+    await main({startArgs, args, endArgs});
   }
 }
 
@@ -530,7 +621,10 @@ async function start(): Promise<void> {
 export const autoRun = module.children.length === 0;
 
 if (require.main === module) {
-  start();
+  start().catch(error => {
+    console.error(error.stack || error.message || error);
+    process.exitCode = 1;
+  });
 }
 
 export default start;

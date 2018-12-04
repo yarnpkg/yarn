@@ -11,30 +11,42 @@ import * as fs from '../../util/fs.js';
 import * as constants from '../../constants.js';
 
 const path = require('path');
+const emoji = require('node-emoji');
 
 export const requireLockfile = true;
 
-export function setFlags(commander: Object) {}
+export function setFlags(commander: Object) {
+  commander.description('Removes a package from your direct dependencies updating your package.json and yarn.lock.');
+  commander.usage('remove [packages ...] [flags]');
+  commander.option('-W, --ignore-workspace-root-check', 'required to run yarn remove inside a workspace root');
+}
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+  const isWorkspaceRoot = config.workspaceRootFolder && config.cwd === config.workspaceRootFolder;
+
   if (!args.length) {
     throw new MessageError(reporter.lang('tooFewArguments', 1));
+  }
+
+  // running "yarn remove something" in a workspace root is often a mistake
+  if (isWorkspaceRoot && !flags.ignoreWorkspaceRootCheck) {
+    throw new MessageError(reporter.lang('workspacesRemoveRootCheck'));
   }
 
   const totalSteps = args.length + 1;
   let step = 0;
 
   // load manifests
-  const lockfile = await Lockfile.fromDirectory(config.cwd);
+  const lockfile = await Lockfile.fromDirectory(config.lockfileFolder);
   const rootManifests = await config.getRootManifests();
   const manifests = [];
 
   for (const name of args) {
-    reporter.step(++step, totalSteps, `Removing module ${name}`);
+    reporter.step(++step, totalSteps, `Removing module ${name}`, emoji.get('wastebasket'));
 
     let found = false;
 
@@ -52,7 +64,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
       const possibleManifestLoc = path.join(config.cwd, registry.folder, name);
       if (await fs.exists(possibleManifestLoc)) {
-        manifests.push([possibleManifestLoc, await config.readManifest(possibleManifestLoc, registryName)]);
+        const manifest = await config.maybeReadManifest(possibleManifestLoc, registryName);
+        if (manifest) {
+          manifests.push([possibleManifestLoc, manifest]);
+        }
       }
     }
 
@@ -72,8 +87,9 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   }
 
   // reinstall so we can get the updated lockfile
-  reporter.step(++step, totalSteps, reporter.lang('uninstallRegenerate'));
-  const reinstall = new Install({force: true, ...flags}, config, new NoopReporter(), lockfile);
+  reporter.step(++step, totalSteps, reporter.lang('uninstallRegenerate'), emoji.get('page_with_curl'));
+  const installFlags = {force: true, workspaceRootIsCwd: true, ...flags};
+  const reinstall = new Install(installFlags, config, new NoopReporter(), lockfile);
   await reinstall.init();
 
   //

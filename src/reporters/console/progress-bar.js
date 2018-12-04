@@ -20,10 +20,10 @@ export default class ProgressBar {
   width: number;
   chars: [string, string];
   delay: number;
-  id: ?number;
+  id: ?TimeoutID;
   _callback: ?(progressBar: ProgressBar) => void;
 
-  static bars = [['█', '░']];
+  static bars = [['#', '-']];
 
   tick() {
     if (this.curr >= this.total) {
@@ -68,12 +68,12 @@ export default class ProgressBar {
 
     // calculate size of actual bar
     // $FlowFixMe: investigate process.stderr.columns flow error
-    const availableSpace = Math.max(0, this.stdout.columns - bar.length - 1);
+    const availableSpace = Math.max(0, this.stdout.columns - bar.length - 3);
     const width = Math.min(this.total, availableSpace);
     const completeLength = Math.round(width * ratio);
     const complete = this.chars[0].repeat(completeLength);
     const incomplete = this.chars[1].repeat(width - completeLength);
-    bar = `${complete}${incomplete}${bar}`;
+    bar = `[${complete}${incomplete}]${bar}`;
 
     toStartOfLine(this.stdout);
     this.stdout.write(bar);

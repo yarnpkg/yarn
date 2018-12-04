@@ -8,6 +8,7 @@ import * as fs from '../../src/util/fs.js';
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
 const net = require('net');
+const http = require('http');
 const https = require('https');
 const path = require('path');
 
@@ -155,21 +156,17 @@ test('RequestManager.execute timeout error with maxRetryAttempts=1', async () =>
 
 test('RequestManager.execute timeout error with default maxRetryAttempts', async () => {
   jest.useFakeTimers();
-
   const LIMIT = 5;
   let counter = 0;
-  const server = net.createServer(c => {
+  const server = http.createServer(req => {
     counter += 1;
-
     // Trigger our offline retry queue which has a fixed 3 sec delay
     if (counter < LIMIT) {
-      c.on('close', jest.runOnlyPendingTimers.bind(jest));
+      req.on('aborted', jest.runOnlyPendingTimers.bind(jest));
     }
-
-    // emulate TCP server that never closes the connection by not
+    // emulate HTTP server that never closes the connection by not
     // doing anything
   });
-
   try {
     server.listen(0);
     const config = await Config.create({networkTimeout: 50});
@@ -186,27 +183,67 @@ test('RequestManager.execute timeout error with default maxRetryAttempts', async
   }
 });
 
-test('RequestManager.execute Request 403 error', async () => {
-  const config = await Config.create({}, new Reporter());
-  jest.mock('request', factory => options => {
-    options.callback('', {statusCode: 403}, '');
-    return {
-      on: () => {},
-    };
+for (const statusCode of [403, 442]) {
+  test(`RequestManager.execute Request ${statusCode} error`, async () => {
+    // The await await is just to silence Flow - https://github.com/facebook/flow/issues/6064
+    const config = await await Config.create({}, new Reporter());
+    const mockStatusCode = statusCode;
+    jest.mock('request', factory => options => {
+      options.callback('', {statusCode: mockStatusCode}, '');
+      return {
+        on: () => {},
+      };
+    });
+    await config.requestManager.execute({
+      params: {
+        url: `https://localhost:port/?nocache`,
+        headers: {Connection: 'close'},
+      },
+      resolve: body => {},
+      reject: err => {
+        expect(err.message).toBe(
+          `https://localhost:port/?nocache: Request "https://localhost:port/?nocache" returned a 403`,
+        );
+      },
+    });
   });
-  await config.requestManager.execute({
-    params: {
-      url: `https://localhost:port/?nocache`,
-      headers: {Connection: 'close'},
-    },
-    resolve: body => {},
-    reject: err => {
-      expect(err.message).toBe(
-        'https://localhost:port/?nocache: Request "https://localhost:port/?nocache" returned a 403',
-      );
-    },
+}
+
+// Cloudflare will occasionally return an html response with a 500 status code on some calls
+for (const statusCode of [408, 500, 542]) {
+  test(`RequestManager.execute retries on ${statusCode} error`, async () => {
+    jest.resetModules();
+    // The await await is just to silence Flow - https://github.com/facebook/flow/issues/6064
+    const config = await await Config.create({}, new Reporter());
+    const mockStatusCode = statusCode;
+    jest.mock('request', factory => {
+      let retryCount = 2;
+      return options => {
+        if (retryCount-- > 0) {
+          options.callback(
+            '',
+            {statusCode: mockStatusCode},
+            `<!DOCTYPE html><title>Rendering error | registry.yarnpkg.com | Cloudflare</title>...`,
+          );
+        } else {
+          options.callback('', {statusCode: 200}, '');
+        }
+        return {
+          on: () => {},
+        };
+      };
+    });
+    await config.requestManager.execute({
+      params: {
+        url: `https://localhost:port/?nocache`,
+        headers: {Connection: 'close'},
+      },
+      resolve: body => {
+        expect(body).not.toEqual(false);
+      },
+    });
   });
-});
+}
 
 test('RequestManager.request with offlineNoRequests', async () => {
   const config = await Config.create({offline: true}, new Reporter());

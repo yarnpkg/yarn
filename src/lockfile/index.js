@@ -12,6 +12,7 @@ import * as fs from '../util/fs.js';
 
 const invariant = require('invariant');
 const path = require('path');
+const ssri = require('ssri');
 
 export {default as parse} from './parse';
 export {default as stringify} from './stringify';
@@ -20,21 +21,42 @@ type Dependencies = {
   [key: string]: string,
 };
 
+type IntegrityAlgorithm = string;
+type Hash = {|
+  source: string,
+  algorithm: IntegrityAlgorithm,
+  digest: string,
+  options: Object,
+|};
+type Integrity = {
+  toJSON(): string,
+  toString(): string,
+  concat(integrity: Integrity, opts: Object): Integrity,
+  hexDigest(): string,
+  match(integrity: Integrity, opts: Object): boolean,
+  pickAlgorithm(opts: Object): string,
+  isIntegrity: boolean,
+  [key: IntegrityAlgorithm]: [Hash],
+};
+
 export type LockManifest = {
   name: string,
   version: string,
   resolved: ?string,
+  integrity: ?string,
   registry: RegistryNames,
   uid: string,
   permissions: ?{[key: string]: boolean},
   optionalDependencies: ?Dependencies,
   dependencies: ?Dependencies,
+  prebuiltVariants: ?{[key: string]: string},
 };
 
 type MinimalLockManifest = {
   name: ?string,
   version: string,
   resolved: ?string,
+  integrity?: string,
   registry: ?RegistryNames,
   uid: ?string,
   permissions: ?{[key: string]: boolean},
@@ -58,9 +80,16 @@ function keyForRemote(remote: PackageRemote): ?string {
   return remote.resolved || (remote.reference && remote.hash ? `${remote.reference}#${remote.hash}` : null);
 }
 
+function serializeIntegrity(integrity: Integrity): string {
+  // We need this because `Integrity.toString()` does not use sorting to ensure a stable string output
+  // See https://git.io/vx2Hy
+  return integrity.toString().split(' ').sort().join(' ');
+}
+
 export function implodeEntry(pattern: string, obj: Object): MinimalLockManifest {
   const inferredName = getName(pattern);
-  return {
+  const integrity = obj.integrity ? serializeIntegrity(obj.integrity) : '';
+  const imploded: MinimalLockManifest = {
     name: inferredName === obj.name ? undefined : obj.name,
     version: obj.version,
     uid: obj.uid === obj.version ? undefined : obj.uid,
@@ -69,7 +98,12 @@ export function implodeEntry(pattern: string, obj: Object): MinimalLockManifest 
     dependencies: blankObjectUndefined(obj.dependencies),
     optionalDependencies: blankObjectUndefined(obj.optionalDependencies),
     permissions: blankObjectUndefined(obj.permissions),
+    prebuiltVariants: blankObjectUndefined(obj.prebuiltVariants),
   };
+  if (integrity) {
+    imploded.integrity = integrity;
+  }
+  return imploded;
 }
 
 export function explodeEntry(pattern: string, obj: Object): LockManifest {
@@ -79,6 +113,10 @@ export function explodeEntry(pattern: string, obj: Object): LockManifest {
   obj.permissions = obj.permissions || {};
   obj.registry = obj.registry || 'npm';
   obj.name = obj.name || getName(pattern);
+  const integrity = obj.integrity;
+  if (integrity && integrity.isIntegrity) {
+    obj.integrity = ssri.parse(integrity);
+  }
   return obj;
 }
 
@@ -99,6 +137,22 @@ export default class Lockfile {
   };
 
   parseResultType: ?ParseResultType;
+
+  // if true, we're parsing an old yarn file and need to update integrity fields
+  hasEntriesExistWithoutIntegrity(): boolean {
+    if (!this.cache) {
+      return false;
+    }
+
+    for (const key in this.cache) {
+      // $FlowFixMe - `this.cache` is clearly defined at this point
+      if (!/^.*@(file:|http)/.test(key) && this.cache[key] && !this.cache[key].integrity) {
+        return true;
+      }
+    }
+
+    return false;
+  }
 
   static async fromDirectory(dir: string, reporter?: Reporter): Promise<Lockfile> {
     // read the manifest in this directory
@@ -121,10 +175,8 @@ export default class Lockfile {
       }
 
       lockfile = parseResult.object;
-    } else {
-      if (reporter) {
-        reporter.info(reporter.lang('noLockfileFound'));
-      }
+    } else if (reporter) {
+      reporter.info(reporter.lang('noLockfileFound'));
     }
 
     return new Lockfile({cache: lockfile, source: rawLockfile, parseResultType: parseResult && parseResult.type});
@@ -184,18 +236,20 @@ export default class Lockfile {
         }
         continue;
       }
-
       const obj = implodeEntry(pattern, {
         name: pkg.name,
         version: pkg.version,
         uid: pkg._uid,
         resolved: remote.resolved,
+        integrity: remote.integrity,
         registry: remote.registry,
         dependencies: pkg.dependencies,
         peerDependencies: pkg.peerDependencies,
         optionalDependencies: pkg.optionalDependencies,
         permissions: ref.permissions,
+        prebuiltVariants: pkg.prebuiltVariants,
       });
+
       lockfile[pattern] = obj;
 
       if (remoteKey) {

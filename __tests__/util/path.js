@@ -12,56 +12,12 @@ jest.mock('path', () => {
   return path;
 });
 
-import {expandPath, resolveWithHome} from '../../src/util/path.js';
-
-describe('expandPath', () => {
-  const realPlatform = process.platform;
-
-  describe('!win32', () => {
-    beforeAll(() => {
-      process.platform = 'notWin32';
-    });
-
-    afterAll(() => {
-      process.platform = realPlatform;
-    });
-
-    test('Paths get expanded', () => {
-      expect(expandPath('~/bar/baz/q')).toEqual('/home/foo/bar/baz/q');
-      expect(expandPath('  ~/bar/baz')).toEqual('/home/foo/bar/baz');
-      expect(expandPath('./~/bar/baz')).toEqual('./~/bar/baz');
-      expect(expandPath('~/~/bar/baz')).toEqual('/home/foo/~/bar/baz');
-    });
-  });
-
-  describe('win32', () => {
-    beforeAll(() => {
-      process.platform = 'win32';
-    });
-
-    afterAll(() => {
-      process.platform = realPlatform;
-    });
-
-    test('Paths never get expanded', () => {
-      expect(expandPath('~/bar/baz/q')).toEqual('~/bar/baz/q');
-      expect(expandPath('  ~/bar/baz')).toEqual('  ~/bar/baz');
-      expect(expandPath('./~/bar/baz')).toEqual('./~/bar/baz');
-      expect(expandPath('~/~/bar/baz')).toEqual('~/~/bar/baz');
-    });
-  });
-});
+import {resolveWithHome} from '../../src/util/path.js';
 
 describe('resolveWithHome', () => {
-  const realPlatform = process.platform;
-
   describe('!win32', () => {
     beforeAll(() => {
-      process.platform = 'notWin32';
-    });
-
-    afterAll(() => {
-      process.platform = realPlatform;
+      Object.defineProperty(process, 'platform', {configurable: true, value: 'notWin32'});
     });
 
     test('Paths with home are resolved', () => {
@@ -71,11 +27,7 @@ describe('resolveWithHome', () => {
 
   describe('win32', () => {
     beforeAll(() => {
-      process.platform = 'win32';
-    });
-
-    afterAll(() => {
-      process.platform = realPlatform;
+      Object.defineProperty(process, 'platform', {configurable: true, value: 'win32'});
     });
 
     test('Paths with home are resolved', () => {

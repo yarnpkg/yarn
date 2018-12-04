@@ -1,0 +1,9 @@
+{
+  "name": "a",
+  "version": "1.0.0",
+  "license": "MIT",
+  "dependencies": {
+    "b": "file:./b",
+    "caniuse-lite": "^1.0.0"
+  }
+}

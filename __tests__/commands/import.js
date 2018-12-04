@@ -6,11 +6,13 @@ import * as importCmd from '../../src/cli/commands/import.js';
 import Lockfile from '../../src/lockfile';
 import * as fs from '../../src/util/fs.js';
 import {run as buildRun} from './_helpers.js';
+import semver from 'semver';
 
 const YARN_VERSION_REGEX = /yarn v\S+/;
 const YARN_VERSION = require('../../package.json').version;
 const NODE_VERSION_REGEX = /node \S+/;
 const NODE_VERSION = process.version;
+const nodeVersion = process.versions.node.split('-')[0];
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
 
@@ -31,9 +33,17 @@ const reporterType = (reporter, type) => reporter.getBuffer().filter(d => d.type
 
 const reporterErrors = reporter => reporter.getBuffer().filter(d => d.error);
 
-const checkReporter = reporter => {
+const checkReporter = (reporter, importFrom) => {
   expect(reporterErrors(reporter)).toEqual([]);
-  expect(reporterType(reporter, 'info')).toEqual([]);
+  if (importFrom === 'package-lock.json') {
+    expect(reporterType(reporter, 'info')).toEqual([
+      {data: reporter.lang('importPackageLock'), error: false, type: 'info'},
+    ]);
+  } else {
+    expect(reporterType(reporter, 'info')).toEqual([
+      {data: reporter.lang('importNodeModules'), error: false, type: 'info'},
+    ]);
+  }
 };
 
 const checkLockfile = async (config, reporter) => {
@@ -53,33 +63,43 @@ const checkLockfileWithVersions = async (config, reporter) => {
   expect(lockfile.source).toEqual(imported);
 };
 
-const checkReporterAndLockfile = async (config, reporter) => {
-  checkReporter(reporter);
+const checkReporterAndLockfile = ({importFrom}) => async (config, reporter) => {
+  checkReporter(reporter, importFrom);
   await checkLockfile(config, reporter);
-  checkReporter(reporter);
+  checkReporter(reporter, importFrom);
 };
 
 test.concurrent('import shallow deps', () => {
-  return runImport([], {}, 'shallow', checkReporterAndLockfile);
+  const importFrom = 'node_modules';
+  return runImport([], {}, 'shallow', checkReporterAndLockfile({importFrom}));
 });
 
 test.concurrent('import deep deps', () => {
-  return runImport([], {}, 'deep', checkReporterAndLockfile);
+  const importFrom = 'node_modules';
+  return runImport([], {}, 'deep', checkReporterAndLockfile({importFrom}));
 });
 
 test.concurrent('import shallow dev deps', () => {
-  return runImport([], {}, 'shallow-dev', checkReporterAndLockfile);
+  const importFrom = 'node_modules';
+  return runImport([], {}, 'shallow-dev', checkReporterAndLockfile({importFrom}));
 });
 
 test.concurrent('import github deps', () => {
-  return runImport([], {}, 'github', checkReporterAndLockfile);
+  const importFrom = 'node_modules';
+  return runImport([], {}, 'github', checkReporterAndLockfile({importFrom}));
 });
 
 test.concurrent('import file deps', () => {
-  return runImport([], {}, 'file', checkReporterAndLockfile);
+  const importFrom = 'node_modules';
+  return runImport([], {}, 'file', checkReporterAndLockfile({importFrom}));
 });
 
-test.concurrent('throw on missing dev deps deps', async () => {
+test.concurrent('import overlapping semver ranges successfully', () => {
+  const importFrom = 'node_modules';
+  return runImport([], {}, 'overlapping', checkReporterAndLockfile({importFrom}));
+});
+
+test.concurrent('throw on missing dev deps', async () => {
   let thrown = false;
   try {
     await runImport([], {}, 'missing-dev');
@@ -115,7 +135,7 @@ test.concurrent('import missing opt deps', () => {
   });
 });
 
-test.concurrent('throw on locked deps', async () => {
+test.concurrent('throw when yarn.lock exists', async () => {
   let thrown = false;
   try {
     await runImport([], {}, 'locked');
@@ -124,3 +144,78 @@ test.concurrent('throw on locked deps', async () => {
   }
   expect(thrown).toBeTruthy();
 });
+
+if (semver.satisfies(nodeVersion, '>=5.0.0')) {
+  test.concurrent('import shallow deps from package-lock.json', () => {
+    const importFrom = 'package-lock.json';
+    return runImport([], {}, 'shallow-package-lock', checkReporterAndLockfile({importFrom}));
+  });
+
+  test.concurrent('import deep deps from package-lock.json', () => {
+    const importFrom = 'package-lock.json';
+    return runImport([], {}, 'deep-package-lock', checkReporterAndLockfile({importFrom}));
+  });
+
+  test.concurrent('import shallow dev deps from package-lock.json', () => {
+    const importFrom = 'package-lock.json';
+    return runImport([], {}, 'shallow-dev-package-lock', checkReporterAndLockfile({importFrom}));
+  });
+
+  test.concurrent('import github deps from package-lock.json', () => {
+    const importFrom = 'package-lock.json';
+    return runImport([], {}, 'github-package-lock', checkReporterAndLockfile({importFrom}));
+  });
+
+  test.concurrent('import file deps from package-lock.json', () => {
+    const importFrom = 'package-lock.json';
+    return runImport([], {}, 'file-package-lock', checkReporterAndLockfile({importFrom}));
+  });
+
+  test.concurrent('import overlapping semver ranges from package-lock.json successfully', () => {
+    const importFrom = 'package-lock.json';
+    return runImport([], {}, 'overlapping-package-lock', checkReporterAndLockfile({importFrom}));
+  });
+
+  test.concurrent('throw on corrupted package-lock.json', async () => {
+    let thrown = false;
+    try {
+      await runImport([], {}, 'corrupted-package-lock');
+    } catch (err) {
+      thrown = true;
+    }
+    expect(thrown).toBeTruthy();
+  });
+
+  test.concurrent(
+    'throw on corrupted package-lock.json - missing dependencies (package-lock.json inconsistent)',
+    async () => {
+      let thrown = false;
+      try {
+        await runImport([], {}, 'corrupted-package-lock-missing-deps');
+      } catch (err) {
+        thrown = true;
+      }
+      expect(thrown).toBeTruthy();
+    },
+  );
+
+  test.concurrent('import uncorrupted (consistent) package-lock.json with missing dependencies', () => {
+    return runImport([], {}, 'package-lock-missing-deps', async (config, reporter) => {
+      const errors = reporterErrors(reporter);
+      await checkLockfile(config, reporter);
+      expect(errors).toEqual([
+        {
+          type: 'warning',
+          data: 'Import of "os-homedir@^1.0.0" for "package-lock-missing-deps > user-home" failed, resolving normally.',
+          error: true,
+        },
+      ]);
+    });
+  });
+
+  test.concurrent('including Yarn and Node version in yarn.lock from package-lock.json', () => {
+    return runImport([], {production: true}, 'versions-yarn-lock-package-lock', async (config, reporter) => {
+      await checkLockfileWithVersions(config, reporter);
+    });
+  });
+}

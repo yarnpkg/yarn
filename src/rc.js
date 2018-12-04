@@ -1,33 +1,63 @@
 /* @flow */
 
+import {readFileSync} from 'fs';
 import {dirname, resolve} from 'path';
+
+import commander from 'commander';
+
 import {parse} from './lockfile';
 import * as rcUtil from './util/rc.js';
 
 // Keys that will get resolved relative to the path of the rc file they belong to
-const PATH_KEYS = ['yarn-path', 'cache-folder', 'global-folder', 'modules-folder', 'cwd'];
+const PATH_KEYS = new Set([
+  'yarn-path',
+  'cache-folder',
+  'global-folder',
+  'modules-folder',
+  'cwd',
+  'offline-cache-folder',
+]);
 
 // given a cwd, load all .yarnrc files relative to it
-export function getRcConfigForCwd(cwd: string): {[key: string]: string} {
-  return rcUtil.findRc('yarn', cwd, (fileText, filePath) => {
-    const {object: values} = parse(fileText, 'yarnrc');
+export function getRcConfigForCwd(cwd: string, args: Array<string>): {[key: string]: string} {
+  const config = {};
 
-    // some keys reference directories so keep their relativity
-    for (const key in values) {
-      for (const pathKey of PATH_KEYS) {
-        if (key.replace(/^(--)?([^.]+\.)*/, '') === pathKey) {
-          values[key] = resolve(dirname(filePath), values[key]);
-        }
-      }
+  if (args.indexOf('--no-default-rc') === -1) {
+    Object.assign(
+      config,
+      rcUtil.findRc('yarn', cwd, (fileText, filePath) => {
+        return loadRcFile(fileText, filePath);
+      }),
+    );
+  }
+
+  for (let index = args.indexOf('--use-yarnrc'); index !== -1; index = args.indexOf('--use-yarnrc', index + 1)) {
+    const value = args[index + 1];
+
+    if (value && value.charAt(0) !== '-') {
+      Object.assign(config, loadRcFile(readFileSync(value).toString(), value));
     }
+  }
 
-    return values;
-  });
+  return config;
+}
+
+function loadRcFile(fileText: string, filePath: string): {[key: string]: string} {
+  const {object: values} = parse(fileText, 'yarnrc');
+
+  // some keys reference directories so keep their relativity
+  for (const key in values) {
+    if (PATH_KEYS.has(key.replace(/^(--)?([^.]+\.)*/, ''))) {
+      values[key] = resolve(dirname(filePath), values[key]);
+    }
+  }
+
+  return values;
 }
 
 // get the built of arguments of a .yarnrc chain of the passed cwd
-function buildRcArgs(cwd: string): Map<string, Array<string>> {
-  const config = getRcConfigForCwd(cwd);
+function buildRcArgs(cwd: string, args: Array<string>): Map<string, Array<string>> {
+  const config = getRcConfigForCwd(cwd, args);
 
   const argsForCommands: Map<string, Array<string>> = new Map();
 
@@ -48,12 +78,14 @@ function buildRcArgs(cwd: string): Map<string, Array<string>> {
     argsForCommands.set(commandName, args);
 
     // turn config value into appropriate cli flag
-    if (typeof value === 'string') {
+    const option = commander.optionFor(`--${arg}`);
+
+    // If commander doesn't recognize the option or it takes a value after it
+    if (!option || option.optional || option.required) {
       args.push(`--${arg}`, value);
     } else if (value === true) {
+      // we can't force remove an arg from cli
       args.push(`--${arg}`);
-    } else if (value === false) {
-      args.push(`--no-${arg}`);
     }
   }
 
@@ -79,10 +111,10 @@ export function getRcArgs(commandName: string, args: Array<string>, previousCwds
   const origCwd = extractCwdArg(args) || process.cwd();
 
   // get a map of command names and their arguments
-  const argMap = buildRcArgs(origCwd);
+  const argMap = buildRcArgs(origCwd, args);
 
   // concat wildcard arguments and arguments meant for this specific command
-  const newArgs = [].concat(argMap.get('*') || [], argMap.get(commandName) || []);
+  const newArgs = [...(argMap.get('*') || []), ...(argMap.get(commandName) || [])];
 
   // check if the .yarnrc args specified a cwd
   const newCwd = extractCwdArg(newArgs);

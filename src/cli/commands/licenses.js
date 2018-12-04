@@ -49,50 +49,79 @@ async function getManifests(config: Config, flags: Object): Promise<Array<Manife
 
 async function list(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const manifests: Array<Manifest> = await getManifests(config, flags);
+  const manifestsByLicense = new Map();
+
+  for (const {name, version, license, repository, homepage, author} of manifests) {
+    const licenseKey = license || 'UNKNOWN';
+    const url = repository ? repository.url : homepage;
+    const vendorUrl = homepage || (author && author.url);
+    const vendorName = author && author.name;
+
+    if (!manifestsByLicense.has(licenseKey)) {
+      manifestsByLicense.set(licenseKey, new Map());
+    }
+
+    const byLicense = manifestsByLicense.get(licenseKey);
+    invariant(byLicense, 'expected value');
+    byLicense.set(`${name}@${version}`, {
+      name,
+      version,
+      url,
+      vendorUrl,
+      vendorName,
+    });
+  }
 
   if (flags.json) {
     const body = [];
 
-    for (const {name, version, license, repository, homepage, author} of manifests) {
-      const url = repository ? repository.url : homepage;
-      const vendorUrl = homepage || (author && author.url);
-      const vendorName = author && author.name;
-      body.push([
-        name,
-        version,
-        license || 'Unknown',
-        url || 'Unknown',
-        vendorUrl || 'Unknown',
-        vendorName || 'Unknown',
-      ]);
-    }
+    manifestsByLicense.forEach((license, licenseKey) => {
+      license.forEach(({name, version, url, vendorUrl, vendorName}) => {
+        body.push([name, version, licenseKey, url || 'Unknown', vendorUrl || 'Unknown', vendorName || 'Unknown']);
+      });
+    });
 
     reporter.table(['Name', 'Version', 'License', 'URL', 'VendorUrl', 'VendorName'], body);
   } else {
     const trees = [];
 
-    for (const {name, version, license, repository, homepage} of manifests) {
-      const children = [];
-      children.push({
-        name: `${reporter.format.bold('License:')} ${license || reporter.format.red('UNKNOWN')}`,
-      });
+    manifestsByLicense.forEach((license, licenseKey) => {
+      const licenseTree = [];
 
-      const url = repository ? repository.url : homepage;
-      if (url) {
-        children.push({name: `${reporter.format.bold('URL:')} ${url}`});
-      }
+      license.forEach(({name, version, url, vendorUrl, vendorName}) => {
+        const children = [];
+
+        if (url) {
+          children.push({name: `${reporter.format.bold('URL:')} ${url}`});
+        }
+
+        if (vendorUrl) {
+          children.push({name: `${reporter.format.bold('VendorUrl:')} ${vendorUrl}`});
+        }
+
+        if (vendorName) {
+          children.push({name: `${reporter.format.bold('VendorName:')} ${vendorName}`});
+        }
+
+        licenseTree.push({
+          name: `${name}@${version}`,
+          children,
+        });
+      });
 
       trees.push({
-        name: `${name}@${version}`,
-        children,
+        name: licenseKey,
+        children: licenseTree,
       });
-    }
+    });
 
-    reporter.tree('licenses', trees);
+    reporter.tree('licenses', trees, {force: true});
   }
 }
-
-export const {run, setFlags, examples} = buildSubCommands('licenses', {
+export function setFlags(commander: Object) {
+  commander.description('Lists licenses for installed packages.');
+}
+export const {run, examples} = buildSubCommands('licenses', {
   async ls(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
     reporter.warn(`\`yarn licenses ls\` is deprecated. Please use \`yarn licenses list\`.`);
     await list(config, reporter, flags, args);
@@ -119,16 +148,23 @@ export const {run, setFlags, examples} = buildSubCommands('licenses', {
     // the same license text are grouped together.
     const manifestsByLicense: Map<string, Map<string, Manifest>> = new Map();
     for (const manifest of manifests) {
-      const {licenseText} = manifest;
+      const {licenseText, noticeText} = manifest;
+      let licenseKey;
       if (!licenseText) {
         continue;
       }
 
-      if (!manifestsByLicense.has(licenseText)) {
-        manifestsByLicense.set(licenseText, new Map());
+      if (!noticeText) {
+        licenseKey = licenseText;
+      } else {
+        licenseKey = `${licenseText}\n\nNOTICE\n\n${noticeText}`;
       }
 
-      const byLicense = manifestsByLicense.get(licenseText);
+      if (!manifestsByLicense.has(licenseKey)) {
+        manifestsByLicense.set(licenseKey, new Map());
+      }
+
+      const byLicense = manifestsByLicense.get(licenseKey);
       invariant(byLicense, 'expected value');
       byLicense.set(manifest.name, manifest);
     }
@@ -139,7 +175,7 @@ export const {run, setFlags, examples} = buildSubCommands('licenses', {
     );
     console.log();
 
-    for (const [licenseText, manifests] of manifestsByLicense) {
+    for (const [licenseKey, manifests] of manifestsByLicense) {
       console.log('-----');
       console.log();
 
@@ -162,8 +198,8 @@ export const {run, setFlags, examples} = buildSubCommands('licenses', {
       console.log(heading.join(' '));
       console.log();
 
-      if (licenseText) {
-        console.log(licenseText.trim());
+      if (licenseKey) {
+        console.log(licenseKey.trim());
       } else {
         // what do we do here? base it on `license`?
       }

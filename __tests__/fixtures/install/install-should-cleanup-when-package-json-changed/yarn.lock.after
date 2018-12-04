@@ -1,8 +1,10 @@
 dep-a@^1.2.0:
   version "1.2.0"
   resolved dep-a-1.2.0.tgz#1e0d57d4c2055944ab042b617a064dc2ce1308fb
+  integrity sha1-Hg1X1MIFWUSrBCthegZNws4TCPs=
   dependencies:
     dep-b "^1.2.0"
 dep-b@^1.2.0:
   version "1.2.0"
   resolved dep-b-1.2.0.tgz#d82ed4984566c1aea13d3d369b231bf52b672de3
+  integrity sha1-2C7UmEVmwa6hPT02myMb9StnLeM=

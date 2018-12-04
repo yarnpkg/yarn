@@ -1,26 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`init-github 1`] = `
+exports[`init --yes --private should create package.json with defaults and private true: init-yes-private 1`] = `
 Object {
   "license": "MIT",
   "main": "index.js",
-  "name": "hi-github",
-  "private": false,
-  "repository": "https://github.com/user/repo",
+  "name": "init-yes-private",
+  "private": true,
   "version": "1.0.0",
 }
 `;
 
-exports[`init-private-empty 1`] = `
-Object {
-  "license": "MIT",
-  "main": "index.js",
-  "name": "private-empty",
-  "version": "1.0.0",
-}
-`;
-
-exports[`init-yes 1`] = `
+exports[`init --yes should create package.json with defaults: init-yes 1`] = `
 Object {
   "license": "MIT",
   "main": "index.js",
@@ -29,12 +19,33 @@ Object {
 }
 `;
 
-exports[`init-yes-private 1`] = `
+exports[`init and give private empty: init-private-empty 1`] = `
 Object {
   "license": "MIT",
   "main": "index.js",
-  "name": "init-yes-private",
+  "name": "private-empty",
+  "version": "1.0.0",
+}
+`;
+
+exports[`init should use init-* configs when defined: init-config 1`] = `
+Object {
+  "author": "Kittens McKitty <yarn@yarnpkg.com> (https://yarnpkg.com)",
+  "license": "BSD",
+  "main": "index.js",
+  "name": "init-config",
   "private": true,
+  "version": "0.0.0-alpha",
+}
+`;
+
+exports[`init using Github shorthand should resolve to full repository URL: init-github 1`] = `
+Object {
+  "license": "MIT",
+  "main": "index.js",
+  "name": "hi-github",
+  "private": false,
+  "repository": "https://github.com/user/repo",
   "version": "1.0.0",
 }
 `;

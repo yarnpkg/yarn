@@ -22,6 +22,7 @@ import inquirer from 'inquirer';
 const {inspect} = require('util');
 const readline = require('readline');
 const chalk = require('chalk');
+const stripAnsi = require('strip-ansi');
 const read = require('read');
 const tty = require('tty');
 
@@ -29,8 +30,8 @@ type Row = Array<string>;
 type InquirerResponses<K, T> = {[key: K]: Array<T>};
 
 // fixes bold on windows
-if (process.platform === 'win32' && process.env.TERM && !/^xterm/i.test(process.env.TERM)) {
-  chalk.styles.bold.close += '\u001b[m';
+if (process.platform === 'win32' && !(process.env.TERM && /^xterm/i.test(process.env.TERM))) {
+  chalk.bold._styles[0].close += '\u001b[m';
 }
 
 export default class ConsoleReporter extends BaseReporter {
@@ -40,6 +41,7 @@ export default class ConsoleReporter extends BaseReporter {
     this._lastCategorySize = 0;
     this._spinners = new Set();
     this.format = (chalk: any);
+    this.format.stripColor = stripAnsi;
     this.isSilent = !!opts.isSilent;
   }
 
@@ -120,13 +122,13 @@ export default class ConsoleReporter extends BaseReporter {
     if (typeof value !== 'number' && typeof value !== 'string') {
       value = inspect(value, {
         breakLength: 0,
-        colors: true,
+        colors: this.isTTY,
         depth: null,
         maxArrayLength: null,
       });
     }
 
-    this.log('' + value);
+    this.log(String(value), {force: true});
   }
 
   list(key: string, items: Array<string>, hints?: Object) {
@@ -134,7 +136,7 @@ export default class ConsoleReporter extends BaseReporter {
 
     if (hints) {
       for (const item of items) {
-        this._log(`${' '.repeat(gutterWidth)}- ${item}`);
+        this._log(`${' '.repeat(gutterWidth)}- ${this.format.bold(item)}`);
         this._log(`  ${' '.repeat(gutterWidth)} ${hints[item]}`);
       }
     } else {
@@ -227,8 +229,12 @@ export default class ConsoleReporter extends BaseReporter {
     });
   }
   // handles basic tree output to console
-  tree(key: string, trees: Trees) {
+  tree(key: string, trees: Trees, {force = false}: {force?: boolean} = {}) {
+    this.stopProgress();
     //
+    if (this.isSilent && !force) {
+      return;
+    }
     const output = ({name, children, hint, color}, titlePrefix, childrenPrefix) => {
       const formatter = this.format;
       const out = getFormattedOutput({
@@ -409,7 +415,7 @@ export default class ConsoleReporter extends BaseReporter {
       };
     }
 
-    // Clear any potentiall old progress bars
+    // Clear any potentially old progress bars
     this.stopProgress();
 
     const bar = (this._progressBar = new Progress(count, this.stderr, (progress: Progress) => {
@@ -453,24 +459,9 @@ export default class ConsoleReporter extends BaseReporter {
       output: this.stdout,
     });
 
-    let rejectRef = () => {};
-    const killListener = () => {
-      rejectRef();
-    };
-
-    const handleKillFromInquirer = new Promise((resolve, reject) => {
-      rejectRef = reject;
-    });
-
-    rl.addListener('SIGINT', killListener);
-
     const {name = 'prompt', type = 'input', validate} = options;
-    const answers: InquirerResponses<string, T> = await Promise.race([
-      prompt([{name, type, message, choices, pageSize, validate}]),
-      handleKillFromInquirer,
-    ]);
+    const answers: InquirerResponses<string, T> = await prompt([{name, type, message, choices, pageSize, validate}]);
 
-    rl.removeListener('SIGINT', killListener);
     rl.close();
 
     return answers[name];

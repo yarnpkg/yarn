@@ -1,0 +1,302 @@
+version: 2
+
+docker_defaults: &docker_defaults
+  docker:
+    - image: yarnpkg/dev:latest
+  working_directory: ~/project/yarn
+
+macos_defaults: &macos_defaults
+  macos:
+    xcode: "9.0"
+  working_directory: ~/project/yarn
+
+attach_workspace: &attach_workspace
+  attach_workspace:
+      at: ~/project
+
+install_steps: &install_steps
+  steps:
+    - checkout
+    - *attach_workspace
+    - restore_cache:
+        name: Restore node_modules cache
+        keys:
+        # WARNING: add `{{ arch }}` into the keys below and separate the installation steps
+        #          for Linux and macOS if you ever need platform-specific dependencies
+        #          (anything using node-gyp etc.)
+          - v2-node-{{ .Branch }}-{{ checksum "yarn.lock" }}
+          - v2-node-{{ .Branch }}-
+          - v2-node-
+    - run:
+        name: Install Dependencies
+        command: yarn install --frozen-lockfile
+    - save_cache:
+        name: Save node_modules cache
+        key: v2-node-{{ .Branch }}-{{ checksum "yarn.lock" }}
+        paths:
+          - node_modules/
+    - persist_to_workspace:
+        root: ~/project
+        paths:
+          - yarn
+
+test_build: &test_build
+  run:
+    name: Build Yarn for testing
+    command: |
+      if [ "$CIRCLE_BRANCH" == 'master' ]; then
+        ./scripts/set-dev-version.js
+      fi;
+      yarn build
+
+test_e2e_steps: &test_e2e_steps
+  steps:
+    - checkout
+    - run:
+        command: cd end_to_end_tests/data && ./run-ubuntu.sh
+
+
+test_run: &test_run
+  run:
+    name: Tests
+    command: |
+      # Limit maxWorkers to 3 to avoid OOM on CircleCI
+      yarn test-only --maxWorkers 3
+
+test_steps: &test_steps
+  steps:
+    - *attach_workspace
+    - *test_build
+    - *test_run
+
+pkg_tests_install: &pkg_tests_install
+  run:
+    name: Install the dependencies for the pkg-tests testsuite
+    command: |
+        ./bin/yarn --cwd packages/pkg-tests
+
+pkg_tests_run: &pkg_tests_run
+  run:
+    name: Tests (pkg-tests testsuite)
+    command: |
+        ./bin/yarn --cwd packages/pkg-tests jest yarn.test.js
+
+pkg_tests: &pkg_tests
+  steps:
+    - *attach_workspace
+    - *test_build
+    - *pkg_tests_install
+    - *pkg_tests_run
+
+default_filters: &default_filters
+  tags:
+    only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
+
+jobs:
+  install:
+    <<: *docker_defaults
+    <<: *install_steps
+  lint:
+    <<: *docker_defaults
+    steps:
+      - *attach_workspace
+      - run:
+          name: Lint
+          command: yarn lint
+  build:
+    <<: *docker_defaults
+    steps:
+      - *attach_workspace
+      - run:
+          name: Build distribution
+          command: |
+            if [ "$CIRCLE_BRANCH" == 'master' ]; then
+              ./scripts/set-dev-version.js
+            fi;
+            yarn build-dist
+            ./scripts/build-deb.sh
+      - store_artifacts:
+          path: artifacts/
+          destination: yarnpkg
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - yarn
+  test-pkg-tests-linux-node10:
+    <<: *docker_defaults
+    docker:
+      - image: node:10
+    <<: *pkg_tests
+  test-pkg-tests-linux-node8:
+    <<: *docker_defaults
+    <<: *pkg_tests
+  test-linux-node10:
+    <<: *docker_defaults
+    <<: *test_steps
+  test-linux-node8:
+    <<: *docker_defaults
+    docker:
+      - image: node:8
+    <<: *test_steps
+  test-linux-node6:
+    <<: *docker_defaults
+    docker:
+      - image: node:6
+    <<: *test_steps
+  test-linux-node4:
+    <<: *docker_defaults
+    docker:
+      - image: node:4
+    <<: *test_steps
+  test-macos-node10:
+    <<: *macos_defaults
+    steps:
+      - run:
+          name: Install Node 10
+          command: |
+            brew uninstall --ignore-dependencies node
+            brew update
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install node@10
+      - *attach_workspace
+      - *test_build
+      - *test_run
+  test-macos-node8:
+    <<: *macos_defaults
+    steps:
+      - run:
+          name: Install Node 8
+          command: |
+            brew uninstall --ignore-dependencies node
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install node@8
+      - *attach_workspace
+      - *test_build
+      - *test_run
+  test-macos-node6:
+    <<: *macos_defaults
+    steps:
+      - run:
+          name: Install Node 6
+          command: |
+            brew uninstall --ignore-dependencies node
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install node@6
+            brew link --force node@6
+      - *attach_workspace
+      - *test_build
+      - *test_run
+  test-e2e-ubuntu1604:
+    <<: *docker_defaults
+    docker:
+      - image: ubuntu:16.04
+    <<: *test_e2e_steps
+  test-e2e-ubuntu1404:
+    <<: *docker_defaults
+    docker:
+      - image: ubuntu:14.04
+    <<: *test_e2e_steps
+
+  test-e2e-ubuntu1204:
+    <<: *docker_defaults
+    docker:
+      - image: ubuntu:12.04
+    <<: *test_e2e_steps
+
+  publish:
+    <<: *docker_defaults
+    steps:
+      - *attach_workspace
+      - run:
+          name: Publish
+          command: |
+            # Only NPM is handled here - All other release files are handled in a webhook.
+            if [ "${CIRCLE_PROJECT_USERNAME}" == "yarnpkg" ]; then
+              echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+              ./scripts/update-npm.sh
+            fi
+
+notify:
+  webhooks:
+    # Handles uploading stable/RC releases to GitHub
+    - url: https://nightly.yarnpkg.com/release_circleci
+    # Handles archiving all builds onto the nightly build site
+    - url: https://nightly.yarnpkg.com/archive_circleci
+
+workflows:
+  version: 2
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - test-e2e-ubuntu1604
+      - test-e2e-ubuntu1404
+      - test-e2e-ubuntu1204
+
+  install-test-build-and-publish:
+    jobs:
+      - install:
+          filters: *default_filters
+      - lint:
+          filters: *default_filters
+          requires:
+            - install
+      - test-pkg-tests-linux-node10:
+          filters: *default_filters
+          requires:
+            - install
+      - test-pkg-tests-linux-node8:
+          filters: *default_filters
+          requires:
+            - install
+      - test-linux-node10:
+          filters: *default_filters
+          requires:
+            - install
+      - test-linux-node8:
+          filters: *default_filters
+          requires:
+            - install
+      - test-linux-node6:
+          filters: *default_filters
+          requires:
+            - install
+      - test-linux-node4:
+          filters: *default_filters
+          requires:
+            - install
+      - test-macos-node10:
+          filters: *default_filters
+          requires:
+            - install
+      - test-macos-node8:
+          filters: *default_filters
+          requires:
+            - install
+      - test-macos-node6:
+          filters: *default_filters
+          requires:
+            - install
+      - build:
+          filters: *default_filters
+          requires:
+            - install
+      - publish:
+          filters:
+            <<: *default_filters
+            branches:
+              ignore: /.*/
+          requires:
+            - test-pkg-tests-linux-node10
+            - test-pkg-tests-linux-node8
+            - test-linux-node10
+            - test-linux-node8
+            - test-linux-node6
+            - test-linux-node4
+            - test-macos-node10
+            - test-macos-node8
+            - test-macos-node6
+            - lint
+            - build
