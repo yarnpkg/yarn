@@ -93,8 +93,8 @@ export default class TarballFetcher extends BaseFetcher {
                 'fetchBadHashWithPath',
                 this.packageName,
                 this.remote.reference,
-                expectHash,
                 actualHash,
+                expectHash,
               ),
             ),
           );

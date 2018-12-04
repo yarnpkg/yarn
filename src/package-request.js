@@ -193,6 +193,7 @@ export default class PackageRequest {
     invariant(ref, 'Resolved package info has no package reference');
     ref.addRequest(this);
     ref.addPattern(this.pattern, resolved);
+    ref.addOptional(this.optional);
   }
 
   /**

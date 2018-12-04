@@ -64,6 +64,9 @@ test.concurrent('install optional subdependencies by default', async () => {
 test.concurrent('installing with --ignore-optional should not install optional subdependencies', async () => {
   await runInstall({ignoreOptional: true}, 'install-optional-dependencies', async (config): Promise<void> => {
     expect(await fs.exists(`${config.cwd}/node_modules/dep-b`)).toEqual(false);
+    expect(await fs.exists(`${config.cwd}/node_modules/dep-c`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/dep-d`)).toEqual(true);
+    expect(await fs.exists(`${config.cwd}/node_modules/dep-e`)).toEqual(true);
   });
 });
 
@@ -617,6 +620,12 @@ test.concurrent('install should run install scripts in the order of dependencies
 test.concurrent('install with comments in manifest', (): Promise<void> => {
   return runInstall({lockfile: false}, 'install-with-comments', async config => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'foo', 'index.js'))).toEqual('foobar;\n');
+  });
+});
+
+test.concurrent('install with null versions in manifest', (): Promise<void> => {
+  return runInstall({}, 'install-with-null-version', async config => {
+    expect(await fs.exists(path.join(config.cwd, 'node_modules', 'left-pad'))).toEqual(true);
   });
 });
 

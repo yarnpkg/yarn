@@ -29,9 +29,11 @@ async function execCommand(
     await fs.copy(srcDir, workingDir, new NoopReporter());
   }
 
+  const cacheDir = path.join(workingDir, '.yarn-cache');
+
   return new Promise((resolve, reject) => {
     exec(
-      `node "${yarnBin}" ${cmd} ${args.join(' ')}`,
+      `node "${yarnBin}" --cache-folder="${cacheDir}" ${cmd} ${args.join(' ')}`,
       {
         cwd: workingDir,
         env: {
@@ -254,12 +256,10 @@ test.concurrent('should run help of run command if --help is before script', asy
   );
 });
 
-if (process.platform !== 'win32') {
-  test.concurrent('should run help of custom-script if --help is after script', async () => {
-    const stdout = await execCommand('run', ['custom-script', '--help'], 'run-custom-script-with-arguments');
-    expect(stdout[stdout.length - 2]).toEqual('A message from custom script with args --help');
-  });
-}
+test.concurrent('should run help of custom-script if --help is after script', async () => {
+  const stdout = await execCommand('run', ['--silent', 'custom-script', '--help'], 'run-custom-script-with-arguments');
+  expect(JSON.parse(stdout.join('\n'))).toContain('--help');
+});
 
 test.concurrent('should run bin command', async () => {
   const stdout = await execCommand('bin', [], '', true);

@@ -7,9 +7,9 @@ function getUid(): ?number {
   return null;
 }
 
-export default isRootUser(getUid()) && isNotFakeRoot();
+export default isRootUser(getUid()) && !isFakeRoot();
 
-export function isNotFakeRoot(): boolean {
+export function isFakeRoot(): boolean {
   return Boolean(process.env.FAKEROOTKEY);
 }
 
