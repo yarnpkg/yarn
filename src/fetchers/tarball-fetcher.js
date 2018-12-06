@@ -277,7 +277,7 @@ export default class TarballFetcher extends BaseFetcher {
   }
 
   requestHeaders(): {[string]: string} {
-    const registry = this.config.registries[this.registry];
+    const registry = this.config.registries.yarn;
     const config = registry.config;
     const requestParts = urlParts(this.reference);
     return Object.keys(config).reduce((headers, option) => {
