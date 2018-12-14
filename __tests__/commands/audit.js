@@ -2,8 +2,11 @@
 
 import {NoopReporter} from '../../src/reporters/index.js';
 import {run as buildRun} from './_helpers.js';
+import * as auditModule from '../../src/cli/commands/audit.js';
 import {run as audit} from '../../src/cli/commands/audit.js';
 import {promisify} from '../../src/util/promise.js';
+import * as lockfileModule from '../../src/lockfile/index.js';
+import * as installModule from '../../src/cli/commands/install.js';
 
 const path = require('path');
 const zlib = require('zlib');
@@ -160,6 +163,47 @@ test('calls reporter auditSummary with correct data for private package', () => 
   return runAudit([], {}, 'single-vulnerable-dep-installed', (config, reporter) => {
     const apiResponse = getAuditResponse(config);
     expect(reporter.auditSummary).toBeCalledWith(apiResponse.metadata);
+  });
+});
+
+describe('returns semantic exit codes', () => {
+  beforeAll(() => {
+    // mock unrelated stuff
+    jest.spyOn(lockfileModule.default, 'fromDirectory').mockImplementation(jest.fn());
+    jest.spyOn(installModule, 'Install').mockImplementation(() => {
+      return {
+        fetchRequestFromCwd: jest.fn(() => {
+          return {};
+        }),
+        resolver: {
+          init: jest.fn(),
+        },
+        linker: {
+          init: jest.fn(),
+        },
+      };
+    });
+  });
+
+  const exitCodeTestCases = [
+    [0, {}, 'zero when no vulnerabilities'],
+    [1, {info: 77}, '1 for info'],
+    [2, {low: 77}, '2 for low'],
+    [4, {moderate: 77}, '4 for moderate'],
+    [8, {high: 77}, '8 for high'],
+    [16, {critical: 77}, '16 for critical'],
+    [17, {info: 55, critical: 77}, 'different categories sum up'],
+  ];
+  exitCodeTestCases.forEach(([expectedExitCode, foundVulnerabilities, description]) => {
+    test(description, async () => {
+      jest.spyOn(auditModule.default.prototype, 'performAudit').mockImplementation(() => {
+        return foundVulnerabilities;
+      });
+      const configMock: any = {};
+      const reporterMock: any = {};
+      const exitCode = await audit(configMock, reporterMock, {}, []);
+      expect(exitCode).toEqual(expectedExitCode);
+    });
   });
 });
 
