@@ -28,6 +28,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#6712](https://github.com/yarnpkg/yarn/pull/6712) - [**Maël Nison**](https://twitter.com/arcanis)
 
+- Adds transparent support for the [`resolve`](https://github.com/browserify/resolve) package when using Plug'n'Play
+
+  [#6816](https://github.com/yarnpkg/yarn/pull/6816) - [**Maël Nison**](https://twitter.com/arcanis)
+
 - Properly reports the error codes when the npm registry throws 500's
 
   [#6817](https://github.com/yarnpkg/yarn/pull/6817) - [**Maël Nison**](https://twitter.com/arcanis)
