@@ -498,7 +498,8 @@ export default class RequestManager {
       req.on('data', queue.stillActive.bind(queue));
     }
 
-    if (params.process) {
+    const process = params.process;
+    if (process) {
       req.on('response', res => {
         if (res.statusCode >= 200 && res.statusCode < 300) {
           return;
@@ -509,7 +510,7 @@ export default class RequestManager {
 
         req.abort();
       });
-      params.process(req, resolve, reject);
+      process(req, resolve, reject);
     }
   }
 
