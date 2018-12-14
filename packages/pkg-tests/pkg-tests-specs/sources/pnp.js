@@ -1432,5 +1432,28 @@ module.exports = makeTemporaryEnv => {
         });
       }),
     );
+
+    test(
+      `it should transparently support the "resolve" package`,
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`resolve`]: `https://github.com/browserify/resolve.git`,
+          },
+          resolutions: {
+            [`path-parse`]: `https://registry.yarnpkg.com/path-parse/-/path-parse-1.0.6.tgz`,
+          },
+        },
+        {plugNPlay: true},
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await expect(source(`require('resolve').sync('resolve')`)).resolves.toEqual(
+            await source(`require.resolve('resolve')`),
+          );
+        },
+      ),
+      15000,
+    );
   });
 };
