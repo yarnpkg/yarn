@@ -499,6 +499,16 @@ export default class RequestManager {
     }
 
     if (params.process) {
+      req.on('response', res => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          return;
+        }
+
+        const description = `${res.statusCode} ${http.STATUS_CODES[res.statusCode]}`;
+        reject(new ResponseError(this.reporter.lang('requestFailed', description), res.statusCode));
+
+        req.abort();
+      });
       params.process(req, resolve, reject);
     }
   }
