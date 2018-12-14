@@ -698,7 +698,11 @@ export default class PackageLinker {
     }
 
     // If the package has a postinstall script, we also unplug it (otherwise they would run into the cache)
-    if (pkg.scripts && (pkg.scripts.preinstall || pkg.scripts.install || pkg.scripts.postinstall)) {
+    if (
+      !this.config.ignoreScripts &&
+      pkg.scripts &&
+      (pkg.scripts.preinstall || pkg.scripts.install || pkg.scripts.postinstall)
+    ) {
       return true;
     }
 
