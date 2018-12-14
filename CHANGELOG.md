@@ -28,6 +28,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#6712](https://github.com/yarnpkg/yarn/pull/6712) - [**Maël Nison**](https://twitter.com/arcanis)
 
+- Stops automatically unplugging packages with postinstall script when running under `--ignore-scripts`
+
+  [#6820](https://github.com/yarnpkg/yarn/pull/6820) - [**Maël Nison**](https://twitter.com/arcanis)
+
 ## 1.12.3
 
 **Important:** This release contains a cache bump. It will cause the very first install following the upgrade to take slightly more time, especially if you don't use the [Offline Mirror](https://yarnpkg.com/blog/2016/11/24/offline-mirror/) feature. After that everything will be back to normal.
