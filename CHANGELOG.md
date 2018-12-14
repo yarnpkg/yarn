@@ -32,6 +32,14 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#6820](https://github.com/yarnpkg/yarn/pull/6820) - [**Maël Nison**](https://twitter.com/arcanis)
 
+- Adds transparent support for the [`resolve`](https://github.com/browserify/resolve) package when using Plug'n'Play
+
+  [#6816](https://github.com/yarnpkg/yarn/pull/6816) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Properly reports the error codes when the npm registry throws 500's
+
+  [#6817](https://github.com/yarnpkg/yarn/pull/6817) - [**Maël Nison**](https://twitter.com/arcanis)
+
 ## 1.12.3
 
 **Important:** This release contains a cache bump. It will cause the very first install following the upgrade to take slightly more time, especially if you don't use the [Offline Mirror](https://yarnpkg.com/blog/2016/11/24/offline-mirror/) feature. After that everything will be back to normal.

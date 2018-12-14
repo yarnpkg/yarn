@@ -20,7 +20,7 @@ const topLevelLocator = {name: null, reference: null};
 const blacklistedLocator = {name: NaN, reference: NaN};
 
 // Used for compatibility purposes - cf setupCompatibilityLayer
-const patchedModules = new Map();
+const patchedModules = [];
 const fallbackLocators = [topLevelLocator];
 
 // Matches backslashes of Windows paths
@@ -648,8 +648,10 @@ exports.setup = function setup() {
 
     // Some modules might have to be patched for compatibility purposes
 
-    if (patchedModules.has(request)) {
-      module.exports = patchedModules.get(request)(module.exports);
+    for (const [filter, patchFn] of patchedModules) {
+      if (filter.test(request)) {
+        module.exports = patchFn(exports.findPackageLocator(parent.filename), module.exports);
+      }
     }
 
     return module.exports;
@@ -733,17 +735,6 @@ exports.setup = function setup() {
 };
 
 exports.setupCompatibilityLayer = () => {
-  // see https://github.com/browserify/resolve/blob/master/lib/caller.js
-  const getCaller = () => {
-    const origPrepareStackTrace = Error.prepareStackTrace;
-
-    Error.prepareStackTrace = (_, stack) => stack;
-    const stack = new Error().stack;
-    Error.prepareStackTrace = origPrepareStackTrace;
-
-    return stack[2].getFileName();
-  };
-
   // ESLint currently doesn't have any portable way for shared configs to specify their own
   // plugins that should be used (https://github.com/eslint/eslint/issues/10125). This will
   // likely get fixed at some point, but it'll take time and in the meantime we'll just add
@@ -758,84 +749,48 @@ exports.setupCompatibilityLayer = () => {
     }
   }
 
-  // We need to shim the "resolve" module, because Liftoff uses it in order to find the location
-  // of the module in the dependency tree. And Liftoff is used to power Gulp, which doesn't work
-  // at all unless modulePath is set, which we cannot configure from any other way than through
-  // the Liftoff pipeline (the key isn't whitelisted for env or cli options).
+  // Modern versions of `resolve` support a specific entry point that custom resolvers can use
+  // to inject a specific resolution logic without having to patch the whole package.
+  //
+  // Cf: https://github.com/browserify/resolve/pull/174
 
-  patchedModules.set('resolve', realResolve => {
-    const mustBeShimmed = caller => {
-      const callerLocator = exports.findPackageLocator(caller);
-
-      return callerLocator && callerLocator.name === 'liftoff';
-    };
-
-    const attachCallerToOptions = (caller, options) => {
-      if (!options.basedir) {
-        options.basedir = path.dirname(caller);
+  patchedModules.push([
+    /^\.\/normalize-options\.js$/,
+    (issuer, normalizeOptions) => {
+      if (!issuer || issuer.name !== 'resolve') {
+        return normalizeOptions;
       }
-    };
 
-    const resolveSyncShim = (request, {basedir}) => {
-      return exports.resolveRequest(request, basedir, {
-        considerBuiltins: false,
-      });
-    };
+      return (request, opts) => {
+        opts = opts || {};
 
-    const resolveShim = (request, options, callback) => {
-      setImmediate(() => {
-        let error;
-        let result;
-
-        try {
-          result = resolveSyncShim(request, options);
-        } catch (thrown) {
-          error = thrown;
+        if (opts.forceNodeResolution) {
+          return opts;
         }
 
-        callback(error, result);
-      });
-    };
+        opts.preserveSymlinks = true;
+        opts.paths = function(request, basedir, getNodeModulesDir, opts) {
+          // Extract the name of the package being requested (1=full name, 2=scope name, 3=local name)
+          const parts = request.match(/^((?:(@[^\/]+)\/)?([^\/]+))/);
 
-    return Object.assign(
-      (request, options, callback) => {
-        if (typeof options === 'function') {
-          callback = options;
-          options = {};
-        } else if (!options) {
-          options = {};
-        }
+          // This is guaranteed to return the path to the "package.json" file from the given package
+          const manifestPath = exports.resolveToUnqualified(`${parts[1]}/package.json`, basedir);
 
-        const caller = getCaller();
-        attachCallerToOptions(caller, options);
+          // The first dirname strips the package.json, the second strips the local named folder
+          let nodeModules = path.dirname(path.dirname(manifestPath));
 
-        if (mustBeShimmed(caller)) {
-          return resolveShim(request, options, callback);
-        } else {
-          return realResolve.sync(request, options, callback);
-        }
-      },
-      {
-        sync: (request, options) => {
-          if (!options) {
-            options = {};
+          // Strips the scope named folder if needed
+          if (parts[2]) {
+            nodeModules = path.dirname(nodeModules);
           }
 
-          const caller = getCaller();
-          attachCallerToOptions(caller, options);
+          return [nodeModules];
+        };
 
-          if (mustBeShimmed(caller)) {
-            return resolveSyncShim(request, options);
-          } else {
-            return realResolve.sync(request, options);
-          }
-        },
-        isCore: request => {
-          return realResolve.isCore(request);
-        },
-      },
-    );
-  });
+        return opts;
+      };
+    },
+  ]);
 };
 
 if (module.parent && module.parent.id === 'internal/preload') {
