@@ -77,8 +77,26 @@ export async function runScript(config: Config, reporter: Reporter, flags: Objec
   try {
     const [_, ...rest] = flags.originalArgs || [];
 
+    // first arg not prefixed by `-` is the script that will be run
+    let scriptName = '';
+    for (const arg of rest) {
+      if (arg.startsWith('-')) {
+        continue;
+      }
+      scriptName = arg;
+      break;
+    }
+
     for (const workspaceName of Object.keys(workspaces)) {
-      const {loc} = workspaces[workspaceName];
+      const {loc, manifest} = workspaces[workspaceName];
+
+      if (!manifest.scripts) {
+        reporter.info(`${workspaceName}: no scripts defined.`);
+        continue;
+      } else if (!manifest.scripts[scriptName]) {
+        reporter.info(`${workspaceName}: ${scriptName} not defined.`);
+        continue;
+      }
 
       await child.spawn(NODE_BIN_PATH, [YARN_BIN_PATH, ...rest], {
         stdio: 'inherit',
