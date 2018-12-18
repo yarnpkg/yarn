@@ -90,15 +90,11 @@ export async function runScript(config: Config, reporter: Reporter, flags: Objec
     for (const workspaceName of Object.keys(workspaces)) {
       const {loc, manifest} = workspaces[workspaceName];
 
-      // Let the user know what workspace we're running in...
-      reporter.identifyWorkspace(workspaceName);
-
-      // ...and whether the script doesn't exist
       if (!manifest.scripts) {
-        reporter.warn(`No scripts defined.`);
+        reporter.info(`${workspaceName}: no scripts defined.`);
         continue;
       } else if (!manifest.scripts[scriptName]) {
-        reporter.warn(`${scriptName} not defined.`);
+        reporter.info(`${workspaceName}: ${scriptName} not defined.`);
         continue;
       }
 
