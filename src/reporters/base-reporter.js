@@ -228,6 +228,9 @@ export default class BaseReporter {
   // a table structure
   table(head: Array<string>, body: Array<Array<string>>) {}
 
+  // identify which workspace we're in
+  identifyWorkspace(msg: string) {}
+
   // security audit action to resolve advisories
   auditAction(recommendation: AuditActionRecommendation) {}
 

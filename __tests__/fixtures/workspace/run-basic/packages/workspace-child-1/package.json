@@ -4,6 +4,7 @@
   "scripts": {
     "prescript": "echo workspace-1 prescript",
     "script": "echo workspace-1 script",
-    "postscript": "echo workspace-1 postscript"
+    "postscript": "echo workspace-1 postscript",
+    "workspace-1-only-script": "echo workspace-1-only script"
   }
 }
