@@ -131,12 +131,19 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   });
 
   const vulnerabilities = await audit.performAudit(manifest, install.resolver, install.linker, patterns);
-  const totalVulnerabilities =
-    vulnerabilities.info +
-    vulnerabilities.low +
-    vulnerabilities.moderate +
-    vulnerabilities.high +
-    vulnerabilities.critical;
+
+  const EXIT_INFO = 1;
+  const EXIT_LOW = 2;
+  const EXIT_MODERATE = 4;
+  const EXIT_HIGH = 8;
+  const EXIT_CRITICAL = 16;
+
+  const exitCode =
+    (vulnerabilities.info ? EXIT_INFO : 0) +
+    (vulnerabilities.low ? EXIT_LOW : 0) +
+    (vulnerabilities.moderate ? EXIT_MODERATE : 0) +
+    (vulnerabilities.high ? EXIT_HIGH : 0) +
+    (vulnerabilities.critical ? EXIT_CRITICAL : 0);
 
   if (flags.summary) {
     audit.summary();
@@ -144,7 +151,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     audit.report();
   }
 
-  return totalVulnerabilities;
+  return exitCode;
 }
 
 export default class Audit {

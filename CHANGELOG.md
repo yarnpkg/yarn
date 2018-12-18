@@ -28,6 +28,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#6712](https://github.com/yarnpkg/yarn/pull/6712) - [**Maël Nison**](https://twitter.com/arcanis)
 
+- Fixes yarn audit exit code overflow
+
+  [#6748](https://github.com/yarnpkg/yarn/issues/6748) - [**Andrey Vetlugin**](https://github.com/antrew)
+
 - Stops automatically unplugging packages with postinstall script when running under `--ignore-scripts`
 
   [#6820](https://github.com/yarnpkg/yarn/pull/6820) - [**Maël Nison**](https://twitter.com/arcanis)
