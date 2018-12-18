@@ -4,6 +4,8 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+## 1.13.0
+
 - Implements a new `package.json` field: `peerDependenciesMeta`
 
   [#6671](https://github.com/yarnpkg/yarn/pull/6671) - [**Maël Nison**](https://twitter.com/arcanis)
