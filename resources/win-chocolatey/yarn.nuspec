@@ -23,12 +23,11 @@ control over whether lifecycle scripts are executed for packages and package
 hashes are stored in the lockfile to ensure you get the same package each time.
 
 **Performance:** We're always performing operations such as package resolving and
-fetching in parallel. This ensures little idle time and maximum resource
+fetching in parallel. This ensures little idle time and maximum resource utilization.
 			
 **Notes:** This package requires NodeJS. You can install via either the 
 [nodejs](https://chocolatey.org/packages/nodejs) or [nodejs-lts](https://chocolatey.org/packages/nodejs-lts) 
 package if you do not have it installed already.
-utilization.
 		</description>
 		<projectUrl>https://yarnpkg.com/</projectUrl>
 		<packageSourceUrl>https://github.com/yarnpkg/yarn/tree/master/resources/win-chocolatey</packageSourceUrl>
