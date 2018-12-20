@@ -1,7 +1,9 @@
 $ErrorActionPreference = 'Stop'; # stop on all errors
 
+$packageName = 'yarn'
+
 $packageArgs = @{
-  packageName = 'yarn'
+  packageName = $packageName
   softwareName = 'Yarn*'
   fileType = 'msi'
   silentArgs = "/qn /norestart"
