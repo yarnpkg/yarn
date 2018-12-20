@@ -50,7 +50,7 @@ Invoke-WebRequest -Uri $url -OutFile $installer_file
 $hash = (Get-FileHash -Path $installer_file -Algorithm SHA256).Hash
 
 # Replace placeholders in chocolateyInstall.ps1
-(Get-Content $PSScriptRoot\..\resources\win-chocolatey\tools\chocolateyinstall.ps1) `
+(Get-Content $PSScriptRoot\..\resources\win-chocolatey\tools\chocolateyinstall.ps1.in) `
   -replace '{VERSION}', $latest_version `
   -replace '{CHECKSUM}', $hash | 
   Set-Content $PSScriptRoot\..\resources\win-chocolatey\tools\chocolateyinstall.ps1
