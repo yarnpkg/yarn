@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Refactor/Remove `rootModuleFolders` variable which was not used anywhere.
+
+  [#6846](https://github.com/yarnpkg/yarn/pull/6846) - [**Jeff Valore**](https://twitter.com/codingwithspike)
+
 ## 1.13.0
 
 - Implements a new `package.json` field: `peerDependenciesMeta`
