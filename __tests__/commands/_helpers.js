@@ -96,6 +96,7 @@ export function makeConfigFromDirectory(cwd: string, reporter: Reporter, flags: 
       focus: !!flags.focus,
       enableDefaultRc: !flags.noDefaultRc,
       extraneousYarnrcFiles: flags.useYarnrc,
+      modulesFolder: flags.modulesFolder ? path.join(cwd, flags.modulesFolder) : undefined,
     },
     reporter,
   );

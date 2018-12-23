@@ -324,7 +324,7 @@ export default class Config {
     }
 
     if (this.modulesFolder) {
-      this.registryFolders.push(this.modulesFolder);
+      this.registryFolders = [this.modulesFolder];
     }
 
     this.networkConcurrency =
