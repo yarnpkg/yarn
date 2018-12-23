@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Fix `--modules-folder` handling in several places. `yarn check` now respects `--modules-folder`. `node_modules` no longer checked for extraneous files).
+
+  [#6850](https://github.com/yarnpkg/yarn/pull/6850) - [**Jeff Valore**](https://twitter.com/codingwithspike)
+
 ## 1.13.0
 
 - Implements a new `package.json` field: `peerDependenciesMeta`
