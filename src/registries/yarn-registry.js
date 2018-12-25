@@ -16,7 +16,7 @@ export const DEFAULTS = {
   'version-tag-prefix': 'v',
   'version-git-tag': true,
   'version-commit-hooks': true,
-  'version-git-sign': false,
+  'version-sign-git-tag': false,
   'version-git-message': 'v%s',
 
   'init-version': '1.0.0',
@@ -35,7 +35,7 @@ const RELATIVE_KEYS = ['yarn-offline-mirror', 'cache-folder', 'offline-cache-fol
 const FOLDER_KEY = ['yarn-offline-mirror', 'cache-folder', 'offline-cache-folder'];
 
 const npmMap = {
-  'version-git-sign': 'sign-git-tag',
+  'version-sign-git-tag': 'sign-git-tag',
   'version-tag-prefix': 'tag-version-prefix',
   'version-git-tag': 'git-tag-version',
   'version-commit-hooks': 'commit-hooks',
