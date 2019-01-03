@@ -144,6 +144,25 @@ test.concurrent('should run both prepublish and prepare when installing, but not
   expect(stdout).not.toMatch(/^running the prepublishOnly hook$/m);
 });
 
+test.concurrent(
+  'should run prepublish, prepare, preinstall, install & postinstall when installing workspaces',
+  async () => {
+    const stdout = await execCommand('install', 'workspaces-lifecycle-scripts');
+
+    expect(stdout).toMatch(/^running the main preinstall hook$/m);
+    expect(stdout).toMatch(/^running the main install hook$/m);
+    expect(stdout).toMatch(/^running the main postinstall hook$/m);
+    expect(stdout).toMatch(/^running the main prepublish hook$/m);
+    expect(stdout).toMatch(/^running the main prepare hook$/m);
+
+    expect(stdout).toMatch(/^running the workspace preinstall hook$/m);
+    expect(stdout).toMatch(/^running the workspace install hook$/m);
+    expect(stdout).toMatch(/^running the workspace postinstall hook$/m);
+    expect(stdout).toMatch(/^running the workspace prepublish hook$/m);
+    expect(stdout).toMatch(/^running the workspace prepare hook$/m);
+  },
+);
+
 test.concurrent('should run both prepack and postpack', async () => {
   const stdout = await execCommand('pack', 'lifecycle-scripts');
 

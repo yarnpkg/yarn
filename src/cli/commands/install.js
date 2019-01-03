@@ -1184,19 +1184,39 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   await install(config, reporter, flags, lockfile);
 }
 
+async function getWorkspaceLocations(config: Config): Promise<Array<string>> {
+  const {workspaceRootFolder} = config;
+  if (!workspaceRootFolder) {
+    return [];
+  }
+
+  const manifest = await config.findManifest(workspaceRootFolder, false);
+  invariant(manifest && manifest.workspaces, 'We must find a manifest with a "workspaces" property');
+  const workspaces = await config.resolveWorkspaces(workspaceRootFolder, manifest);
+  return Object.keys(workspaces).map(workspaceName => workspaces[workspaceName].loc);
+}
+
 export async function wrapLifecycle(config: Config, flags: Object, factory: () => Promise<void>): Promise<void> {
-  await config.executeLifecycleScript('preinstall');
+  const workspaceLocations = await getWorkspaceLocations(config);
+  async function executeLifecycleScript(script: string): Promise<void> {
+    for (const loc of workspaceLocations) {
+      await config.executeLifecycleScript(script, loc);
+    }
+    await config.executeLifecycleScript(script);
+  }
+
+  executeLifecycleScript('preinstall');
 
   await factory();
 
   // npm behaviour, seems kinda funky but yay compatibility
-  await config.executeLifecycleScript('install');
-  await config.executeLifecycleScript('postinstall');
+  await executeLifecycleScript('install');
+  await executeLifecycleScript('postinstall');
 
   if (!config.production) {
     if (!config.disablePrepublish) {
-      await config.executeLifecycleScript('prepublish');
+      await executeLifecycleScript('prepublish');
     }
-    await config.executeLifecycleScript('prepare');
+    await executeLifecycleScript('prepare');
   }
 }
