@@ -37,6 +37,20 @@
       "rules": {
         "no-console": "off"
       }
+    },
+    {
+      "files": [
+        "src/util/generate-pnp-map-api.tpl.js"
+      ],
+      "rules": {
+        "prettier/prettier": ["error", {
+          "singleQuote": true,
+          "trailingComma": "es5",
+          "bracketSpacing": false,
+          "printWidth": 120,
+          "parser": "flow"
+        }]
+      }
     }
   ]
 }
