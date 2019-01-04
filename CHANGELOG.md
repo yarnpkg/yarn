@@ -4,9 +4,13 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
-- Fix `--modules-folder` handling in several places. `yarn check` now respects `--modules-folder`. `node_modules` no longer checked for extraneous files).
+- Fix `--modules-folder` handling in several places (ex: `yarn check` now respects `--modules-folder`)
 
   [#6850](https://github.com/yarnpkg/yarn/pull/6850) - [**Jeff Valore**](https://twitter.com/codingwithspike)
+
+- Improves PnP compatibility with Node 6
+
+  [#6871](https://github.com/yarnpkg/yarn/pull/6871) - [**Robert Jackson**](https://github.com/rwjblue)
 
 ## 1.13.0
 
