@@ -959,6 +959,43 @@ describe('checkOutdated functional test', () => {
     });
   });
 
+  test('latest version with pre release versions', async () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
+
+    mockRequestManager.request = () => {
+      return {
+        'dist-tags': {
+          latest: '2.0.0',
+        },
+        versions: {
+          '2.0.0': {
+            version: '2.0.0',
+            repository: {
+              url: 'http://package.repo.com',
+            },
+          },
+          '2.1.0': {
+            version: '2.1.0',
+            repository: {
+              url: 'http://package.repo.com',
+            },
+          },
+        },
+      };
+    };
+    const flags = {includePre: true};
+
+    const result = await npmRegistry.checkOutdated(mockConfig, 'left-pad', '2.0.0', flags);
+
+    expect(result).toMatchObject({
+      latest: '2.1.0',
+      wanted: '2.1.0',
+      url: 'http://package.repo.com',
+    });
+  });
+
   test('package with an empty response', async () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();

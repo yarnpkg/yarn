@@ -20,6 +20,7 @@ import {getOneTimePassword} from '../cli/commands/login.js';
 import path from 'path';
 import url from 'url';
 import ini from 'ini';
+import semver from 'semver';
 
 const DEFAULT_REGISTRY = 'https://registry.npmjs.org/';
 const REGEX_REGISTRY_HTTP_PROTOCOL = /^https?:/i;
@@ -212,7 +213,7 @@ export default class NpmRegistry extends Registry {
     });
   }
 
-  async checkOutdated(config: Config, name: string, range: string): CheckOutdatedReturn {
+  async checkOutdated(config: Config, name: string, range: string, flags: ?Object): CheckOutdatedReturn {
     const escapedName = NpmRegistry.escapeName(name);
     const req = await this.request(escapedName, {unfiltered: true});
     if (!req) {
@@ -236,11 +237,19 @@ export default class NpmRegistry extends Registry {
       latest = wantedPkg.version;
     }
 
+    let wanted = wantedPkg.version;
+
+    if (flags && flags.includePre) {
+      const versions = Object.keys(req['versions']);
+      latest = semver.maxSatisfying(versions, '*', {includePrerelease: true});
+      wanted = latest;
+    }
+
     const url = homepage || (repository && repository.url) || '';
 
     return {
       latest,
-      wanted: wantedPkg.version,
+      wanted,
       url,
     };
   }
