@@ -383,7 +383,7 @@ export default class Config {
       this._cacheRootFolder = String(cacheRootFolder);
     }
 
-    const manifest = await this.maybeReadManifest(this.cwd);
+    const manifest = await this.maybeReadManifest(this.lockfileFolder);
 
     const plugnplayByEnv = this.getOption('plugnplay-override');
     if (plugnplayByEnv != null) {
