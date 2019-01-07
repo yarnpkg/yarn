@@ -20,6 +20,10 @@ export function setFlags(commander: Object) {
   commander.usage('upgrade-interactive [flags]');
   commander.option('-S, --scope <scope>', 'upgrade packages under the specified scope');
   commander.option('--latest', 'list the latest version of packages, ignoring version ranges in package.json');
+  commander.option(
+    '--include-pre',
+    'list the latest version of packages including pre release versions, ignoring version ranges in package.json',
+  );
   commander.option('-E, --exact', 'install exact version. Only used when --latest is specified.');
   commander.option(
     '-T, --tilde',

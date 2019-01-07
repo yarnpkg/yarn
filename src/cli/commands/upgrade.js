@@ -148,6 +148,10 @@ export function setFlags(commander: Object) {
   commander.usage('upgrade [flags]');
   commander.option('-S, --scope <scope>', 'upgrade packages under the specified scope');
   commander.option('-L, --latest', 'list the latest version of packages, ignoring version ranges in package.json');
+  commander.option(
+    '--include-pre',
+    'list the latest version of packages including pre release versions, ignoring version ranges in package.json',
+  );
   commander.option('-E, --exact', 'install exact version. Only used when --latest is specified.');
   commander.option('-P, --pattern [pattern]', 'upgrade packages that match pattern');
   commander.option(

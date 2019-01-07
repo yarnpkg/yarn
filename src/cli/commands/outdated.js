@@ -13,6 +13,10 @@ export const requireLockfile = true;
 export function setFlags(commander: Object) {
   commander.description('Checks for outdated package dependencies.');
   commander.usage('outdated [packages ...]');
+  commander.option(
+    '--include-pre',
+    'list the latest version of packages including pre release versions, ignoring version ranges in package.json',
+  );
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
