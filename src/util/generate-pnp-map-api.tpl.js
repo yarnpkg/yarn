@@ -773,6 +773,10 @@ exports.setupCompatibilityLayer = () => {
           // Extract the name of the package being requested (1=full name, 2=scope name, 3=local name)
           const parts = request.match(/^((?:(@[^\/]+)\/)?([^\/]+))/);
 
+          // make sure that basedir ends with a slash
+          if (basedir.charAt(basedir.length - 1) !== '/') {
+            basedir = path.join(basedir, '/');
+          }
           // This is guaranteed to return the path to the "package.json" file from the given package
           const manifestPath = exports.resolveToUnqualified(`${parts[1]}/package.json`, basedir);
 
