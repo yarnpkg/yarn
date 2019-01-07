@@ -422,7 +422,7 @@ export default class PackageRequest {
         } else {
           const registry = config.registries[locked.registry];
 
-          ({latest, wanted, url} = await registry.checkOutdated(config, name, normalized.range));
+          ({latest, wanted, url} = await registry.checkOutdated(config, name, normalized.range, flags));
         }
 
         return {
