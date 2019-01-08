@@ -25,6 +25,11 @@ declare module 'semver' {
     '<' |
     '<=';
 
+  declare type Options = {
+    loose?: boolean,
+    includePrerelease?: boolean,
+  }
+
   declare class SemVer {
     loose: ?boolean,
     raw: string,
@@ -35,33 +40,33 @@ declare module 'semver' {
     build: Array<string>,
     version: string,
 
-    constructor(range: string, loose?: boolean): SemVer | string
+    constructor(range: string, options?: Options): SemVer | string
   }
 
   // Functions
-  declare function clean(v: string, loose?: boolean): string | null;
-  declare function valid(v: string, loose?: boolean): string | null;
-  declare function inc(v: string, release: string, loose?: boolean): string | null;
-  declare function major(v: string, loose?: boolean): number;
-  declare function minor(v: string, loose?: boolean): number;
-  declare function patch(v: string, loose?: boolean): number;
+  declare function clean(v: string, options?: Options): string | null;
+  declare function valid(v: string, options?: Options): string | null;
+  declare function inc(v: string, release: string, options?: Options): string | null;
+  declare function major(v: string, options?: Options): number;
+  declare function minor(v: string, options?: Options): number;
+  declare function patch(v: string, options?: Options): number;
 
   // Comparison
-  declare function gt(v1: string, v2: string, loose?: boolean): boolean;
-  declare function gte(v1: string, v2: string, loose?: boolean): boolean;
-  declare function lt(v1: string, v2: string, loose?: boolean): boolean;
-  declare function lte(v1: string, v2: string, loose?: boolean): boolean;
-  declare function eq(v1: string, v2: string, loose?: boolean): boolean;
-  declare function neq(v1: string, v2: string, loose?: boolean): boolean;
+  declare function gt(v1: string, v2: string, options?: Options): boolean;
+  declare function gte(v1: string, v2: string, options?: Options): boolean;
+  declare function lt(v1: string, v2: string, options?: Options): boolean;
+  declare function lte(v1: string, v2: string, options?: Options): boolean;
+  declare function eq(v1: string, v2: string, options?: Options): boolean;
+  declare function neq(v1: string, v2: string, options?: Options): boolean;
   declare function cmp(v1: string, comparator: Comparator, v2: string): boolean;
   declare function compare(v1: string, v2: string): -1 | 0 | 1;
   declare function rcompare(v1: string, v2: string): -1 | 0 | 1;
   declare function diff(v1: string, v2: string): ?Release;
 
   // Ranges
-  declare function validRange(r: string, loose?: boolean): string | null;
-  declare function satisfies(version: string, range: string, loose?: boolean): boolean;
-  declare function maxSatisfying(versions: Array<string>, range: string, loose?: boolean): string | null;
+  declare function validRange(r: string, options?: Options): string | null;
+  declare function satisfies(version: string, range: string, options?: Options): boolean;
+  declare function maxSatisfying(versions: Array<string>, range: string, options?: Options): string | null;
   declare function gtr(version: string, range: string): boolean;
   declare function ltr(version: string, range: string): boolean;
   declare function outside(version: string, range: string, hilo: '>' | '<'): boolean;
