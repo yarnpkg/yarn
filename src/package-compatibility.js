@@ -2,6 +2,7 @@
 
 import type {Manifest} from './types.js';
 import type Config from './config.js';
+import type {Options} from 'semver';
 import {MessageError} from './errors.js';
 import map from './util/map.js';
 import {entries} from './util/misc.js';
@@ -57,33 +58,33 @@ type Versions = {
   [engineName: string]: ?string,
 };
 
-export function testEngine(name: string, range: string, versions: Versions, looseSemver: boolean): boolean {
+export function testEngine(name: string, range: string, versions: Versions, options: Options): boolean {
   const actual = versions[name];
   if (!actual) {
     return false;
   }
 
-  if (!semver.valid(actual, looseSemver)) {
+  if (!semver.valid(actual, options)) {
     return false;
   }
 
-  if (semver.satisfies(actual, range, looseSemver)) {
+  if (semver.satisfies(actual, range, options)) {
     return true;
   }
 
-  if (name === 'yarn' && satisfiesWithPrereleases(actual, range, looseSemver)) {
+  if (name === 'yarn' && satisfiesWithPrereleases(actual, range, options)) {
     return true;
   }
 
-  if (name === 'node' && semver.gt(actual, '1.0.0', looseSemver)) {
+  if (name === 'node' && semver.gt(actual, '1.0.0', options)) {
     // WARNING: this is a massive hack and is super gross but necessary for compatibility
     // some modules have the `engines.node` field set to a caret version below semver major v1
     // eg. ^0.12.0. this is problematic as we enforce engines checks and node is now on version >=1
     // to allow this pattern we transform the node version to fake ones in the minor range 10-13
-    const major = semver.major(actual, looseSemver);
+    const major = semver.major(actual, options);
     const fakes = [`0.10.${major}`, `0.11.${major}`, `0.12.${major}`, `0.13.${major}`];
     for (const actualFake of fakes) {
-      if (semver.satisfies(actualFake, range, looseSemver)) {
+      if (semver.satisfies(actualFake, range, options)) {
         return true;
       }
     }
@@ -149,7 +150,7 @@ export function checkOne(info: Manifest, config: Config, ignoreEngines: boolean)
       }
 
       if (VERSIONS[name]) {
-        if (!testEngine(name, range, VERSIONS, config.looseSemver)) {
+        if (!testEngine(name, range, VERSIONS, {loose: config.looseSemver})) {
           pushError(reporter.lang('incompatibleEngine', name, range, VERSIONS[name]));
         }
       } else if (ignore.indexOf(name) < 0) {

@@ -671,7 +671,7 @@ export default class PackageLinker {
   }
 
   _satisfiesPeerDependency(range: string, version: string): boolean {
-    return range === '*' || satisfiesWithPrereleases(version, range, this.config.looseSemver);
+    return range === '*' || satisfiesWithPrereleases(version, range, {loose: this.config.looseSemver});
   }
 
   async _warnForMissingBundledDependencies(pkg: Manifest): Promise<void> {

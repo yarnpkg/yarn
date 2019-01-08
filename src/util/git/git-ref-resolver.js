@@ -84,7 +84,7 @@ const computeSemverNames = ({config, refs}: ResolveVersionOptions): Names => {
       continue;
     }
     const [, type, name] = match;
-    if (semver.valid(name, config.looseSemver)) {
+    if (semver.valid(name, {loose: config.looseSemver})) {
       names[type].push(name);
     }
   }

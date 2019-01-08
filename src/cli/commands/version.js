@@ -2,6 +2,7 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
+import type {Options} from 'semver';
 import {registryNames} from '../../registries/index.js';
 import {execCommand} from '../../util/execute-lifecycle-script.js';
 import {MessageError} from '../../errors.js';
@@ -14,8 +15,8 @@ const semver = require('semver');
 const path = require('path');
 
 const NEW_VERSION_FLAG = '--new-version [version]';
-function isValidNewVersion(oldVersion: string, newVersion: string, looseSemver: boolean): boolean {
-  return !!(semver.valid(newVersion, looseSemver) || semver.inc(oldVersion, newVersion, looseSemver));
+function isValidNewVersion(oldVersion: string, newVersion: string, options: Options): boolean {
+  return !!(semver.valid(newVersion, options) || semver.inc(oldVersion, newVersion, options));
 }
 
 export function setFlags(commander: Object) {
@@ -76,7 +77,7 @@ export async function setVersion(
   }
 
   // get new version
-  if (newVersion && !isValidNewVersion(oldVersion, newVersion, config.looseSemver)) {
+  if (newVersion && !isValidNewVersion(oldVersion, newVersion, {loose: config.looseSemver})) {
     throw new MessageError(reporter.lang('invalidVersion'));
   }
 
@@ -109,7 +110,7 @@ export async function setVersion(
       };
     }
 
-    if (isValidNewVersion(oldVersion, newVersion, config.looseSemver)) {
+    if (isValidNewVersion(oldVersion, newVersion, {loose: config.looseSemver})) {
       break;
     } else {
       newVersion = null;
@@ -117,7 +118,7 @@ export async function setVersion(
     }
   }
   if (newVersion) {
-    newVersion = semver.inc(oldVersion, newVersion, config.looseSemver) || newVersion;
+    newVersion = semver.inc(oldVersion, newVersion, {loose: config.looseSemver}) || newVersion;
   }
   invariant(newVersion, 'expected new version');
 

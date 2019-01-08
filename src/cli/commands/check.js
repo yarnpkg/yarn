@@ -105,8 +105,8 @@ export async function verifyTreeCheck(
     }
     const pkg = await config.readManifest(manifestLoc, registryName);
     if (
-      semver.validRange(dep.version, config.looseSemver) &&
-      !semver.satisfies(pkg.version, dep.version, config.looseSemver)
+      semver.validRange(dep.version, {loose: config.looseSemver}) &&
+      !semver.satisfies(pkg.version, dep.version, {loose: config.looseSemver})
     ) {
       reportError('packageWrongVersion', dep.originalKey, dep.version, pkg.version);
       continue;
@@ -304,7 +304,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
       for (const name in deps) {
         const range = deps[name];
-        if (!semver.validRange(range, config.looseSemver)) {
+        if (!semver.validRange(range, {loose: config.looseSemver})) {
           continue; // exotic
         }
 
@@ -338,14 +338,14 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
         if (await fs.exists(depPkgLoc)) {
           const depPkg = await config.readJson(depPkgLoc);
           const foundHuman = `${humaniseLocation(path.dirname(depPkgLoc)).join('#')}@${depPkg.version}`;
-          if (!semver.satisfies(depPkg.version, range, config.looseSemver)) {
+          if (!semver.satisfies(depPkg.version, range, {loose: config.looseSemver})) {
             // module isn't correct semver
             const resPattern = install.resolutionMap.find(name, originalKey.split('#'));
             if (resPattern) {
               const resHuman = `${human}#${resPattern}`;
               const {range: resRange} = normalizePattern(resPattern);
 
-              if (semver.satisfies(depPkg.version, resRange, config.looseSemver)) {
+              if (semver.satisfies(depPkg.version, resRange, {loose: config.looseSemver})) {
                 reporter.warn(reporter.lang('incompatibleResolutionVersion', foundHuman, subHuman));
                 warningCount++;
               } else {
@@ -375,8 +375,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
             if (
               !bundledDep &&
               (packageJson.version === depPkg.version ||
-                (semver.satisfies(packageJson.version, range, config.looseSemver) &&
-                  semver.gt(packageJson.version, depPkg.version, config.looseSemver)))
+                (semver.satisfies(packageJson.version, range, {loose: config.looseSemver}) &&
+                  semver.gt(packageJson.version, depPkg.version, {loose: config.looseSemver})))
             ) {
               reporter.warn(
                 reporter.lang(

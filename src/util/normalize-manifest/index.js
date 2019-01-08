@@ -29,7 +29,7 @@ export default (async function(info: Object, moduleLoc: string, config: Config, 
     config.reporter.warn(msg);
   }
 
-  await fix(info, moduleLoc, config.reporter, warn, config.looseSemver);
+  await fix(info, moduleLoc, config.reporter, warn, {loose: config.looseSemver});
   resolveRelative(info, moduleLoc, config.lockfileFolder);
 
   if (config.cwd === config.globalFolder) {

@@ -1,17 +1,17 @@
 /* @flow */
 
-import semver, {type Release} from 'semver';
+import semver, {type Release, type Options} from 'semver';
 
 /**
  * Returns whether the given semver version satisfies the given range. Notably this supports
  * prerelease versions so that "2.0.0-rc.0" satisfies the range ">=1.0.0", for example.
  */
 
-export function satisfiesWithPrereleases(version: string, range: string, loose?: boolean = false): boolean {
+export function satisfiesWithPrereleases(version: string, range: string, options?: Options): boolean {
   let semverRange;
   try {
     // $FlowFixMe: Add a definition for the Range class
-    semverRange = new semver.Range(range, loose);
+    semverRange = new semver.Range(range, options);
   } catch (err) {
     return false;
   }
@@ -21,7 +21,7 @@ export function satisfiesWithPrereleases(version: string, range: string, loose?:
   }
   let semverVersion;
   try {
-    semverVersion = new semver.SemVer(version, semverRange.loose);
+    semverVersion = new semver.SemVer(version, {loose: semverRange.loose});
   } catch (err) {
     return false;
   }
@@ -44,7 +44,7 @@ export function satisfiesWithPrereleases(version: string, range: string, loose?:
 
       const comparatorString = comparator.operator + comparator.semver.version;
       // $FlowFixMe: Add a definition for the Comparator class
-      return new semver.Comparator(comparatorString, comparator.loose);
+      return new semver.Comparator(comparatorString, {loose: comparator.loose});
     });
 
     return !comparatorSet.some(comparator => !comparator.test(semverVersion));

@@ -2,6 +2,7 @@
 
 import {MANIFEST_FIELDS} from '../../constants';
 import type {Reporter} from '../../reporters/index.js';
+import type {Options} from 'semver';
 import {isValidLicense} from './util.js';
 import {normalizePerson, extractDescription} from './util.js';
 import {hostedGitFragmentToGitUrl} from '../../resolvers/index.js';
@@ -28,13 +29,13 @@ export default (async function(
   moduleLoc: string,
   reporter: Reporter,
   warn: WarnFunction,
-  looseSemver: boolean,
+  options: Options,
 ): Promise<void> {
   const files = await fs.readdir(moduleLoc);
 
   // clean info.version
   if (typeof info.version === 'string') {
-    info.version = semver.clean(info.version, looseSemver) || info.version;
+    info.version = semver.clean(info.version, options) || info.version;
   }
 
   // if name or version aren't set then set them to empty strings

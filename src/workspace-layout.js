@@ -23,7 +23,7 @@ export default class WorkspaceLayout {
   getManifestByPattern(pattern: string): ?{loc: string, manifest: Manifest} {
     const {name, range} = normalizePattern(pattern);
     const workspace = this.getWorkspaceManifest(name);
-    if (!workspace || !semver.satisfies(workspace.manifest.version, range, this.config.looseSemver)) {
+    if (!workspace || !semver.satisfies(workspace.manifest.version, range, {loose: this.config.looseSemver})) {
       return null;
     }
     return workspace;
