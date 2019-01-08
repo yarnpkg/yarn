@@ -241,7 +241,7 @@ export default class NpmRegistry extends Registry {
 
     if (flags && flags.includePre) {
       const versions = Object.keys(req['versions']);
-      latest = semver.maxSatisfying(versions, '*', {includePrerelease: true});
+      latest = semver.maxSatisfying(versions, '*', {includePrerelease: true}) || '';
       wanted = latest;
     }
 
