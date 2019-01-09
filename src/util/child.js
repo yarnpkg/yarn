@@ -58,6 +58,7 @@ type ProcessFn = (
   done: () => void,
 ) => void;
 
+/* [STEMN]: Trace for subprocesses ie. script files */
 export function spawn(
   program: string,
   args: Array<string>,
