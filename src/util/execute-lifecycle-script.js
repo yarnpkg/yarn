@@ -357,6 +357,11 @@ export async function execCommand({
 }): Promise<void> {
   const {reporter} = config;
   try {
+    /* [STEMN]: Trace execCommand start execution time */
+
+
+
+
     reporter.command(cmd);
     await executeLifecycleScript({stage, config, cwd, cmd, isInteractive, customShell});
     return Promise.resolve();
@@ -370,5 +375,6 @@ export async function execCommand({
     } else {
       throw err;
     }
+     /* [STEMN]: Trace execCommand finish exeuction  time */
   }
 }
