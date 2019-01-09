@@ -248,7 +248,7 @@ export async function main({
 
   const config = new Config(reporter);
   const outputWrapperEnabled = boolifyWithDefault(process.env.YARN_WRAP_OUTPUT, true);
-  const shouldWrapOutpu = outputWrapperEnabled && !commander.json && command.hasWrapper(commander, commander.args);
+  const shouldWrapOutput = outputWrapperEnabled && !commander.json && command.hasWrapper(commander, commander.args);
 
   
 
