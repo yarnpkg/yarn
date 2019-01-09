@@ -159,10 +159,12 @@ export default class ConsoleReporter extends BaseReporter {
     }
   }
 
+ /* [STEMN]: header reporter. Hook to clean logs */
   header(command: string, pkg: Package) {
     this.log(this.format.bold(`${pkg.name} ${command} v${pkg.version}`));
   }
 
+/* [STEMN]: footer reporter. Hook to do log post-processing */
   footer(showPeakMemory?: boolean) {
     this.stopProgress();
 
