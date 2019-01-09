@@ -11,6 +11,9 @@ import {registries} from '../resolvers/index.js';
 import {fixCmdWinSlashes} from './fix-cmd-win-slashes.js';
 import {getBinFolder as getGlobalBinFolder, run as globalRun} from '../cli/commands/global.js';
 
+// STEMN import
+import {benchmark, debug} from '../cli/logging.js';
+
 const path = require('path');
 
 export type LifecycleReturn = Promise<{

@@ -22,6 +22,9 @@ import {sortTrees, recurseTree, getFormattedOutput} from './helpers/tree-helper.
 import inquirer from 'inquirer';
 import Table from 'cli-table3';
 
+// STEMN import
+import {benchmark, debug} from '../../cli/logging.js';
+
 const {inspect} = require('util');
 const readline = require('readline');
 const chalk = require('chalk');

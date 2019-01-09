@@ -6,6 +6,9 @@ import BlockingQueue from './blocking-queue.js';
 import {ProcessSpawnError, ProcessTermError} from '../errors.js';
 import {promisify} from './promise.js';
 
+// STEMN import
+import {benchmark, debug} from '../cli/logging.js';
+
 const child = require('child_process');
 
 export const queue = new BlockingQueue('child', constants.CHILD_CONCURRENCY);

@@ -25,6 +25,9 @@ import {version} from '../util/yarn-version.js';
 import handleSignals from '../util/signal-handler.js';
 import {boolify, boolifyWithDefault} from '../util/conversion.js';
 
+// STEMN import
+import {benchmark, debugging} from './logging.js';
+
 function findProjectRoot(base: string): string {
   let prev = null;
   let dir = base;
@@ -487,6 +490,7 @@ export async function main({
     }
 
     /* [STEMN]: Warn in logs about unexpected error -> inconsistencies */
+    debug(">>>>>>>> WARNING: LOGS MAY BE INCONSISTENT DUE TO ERROR <<<<<<<<\n");
   }
 
   function writeErrorReport(log): ?string {
