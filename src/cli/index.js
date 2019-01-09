@@ -41,6 +41,7 @@ function findProjectRoot(base: string): string {
   return base;
 }
 
+/* [STEMN]: main function here (multiple threads executed) */
 export async function main({
   startArgs,
   args,
@@ -244,7 +245,9 @@ export async function main({
 
   const config = new Config(reporter);
   const outputWrapperEnabled = boolifyWithDefault(process.env.YARN_WRAP_OUTPUT, true);
-  const shouldWrapOutput = outputWrapperEnabled && !commander.json && command.hasWrapper(commander, commander.args);
+  const shouldWrapOutpu = outputWrapperEnabled && !commander.json && command.hasWrapper(commander, commander.args);
+
+  
 
   if (shouldWrapOutput) {
     reporter.header(commandName, {name: 'yarn', version});
@@ -283,6 +286,10 @@ export async function main({
       if (shouldWrapOutput) {
         reporter.footer(false);
       }
+
+      /* [STEMN]: Possible hook here for exitCode conditional code */
+
+
       return exitCode;
     });
   };
@@ -478,6 +485,8 @@ export async function main({
     if (errorReportLoc) {
       reporter.info(reporter.lang('bugReport', errorReportLoc));
     }
+
+    /* [STEMN]: Warn in logs about unexpected error -> inconsistencies */
   }
 
   function writeErrorReport(log): ?string {
