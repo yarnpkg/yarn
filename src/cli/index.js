@@ -26,7 +26,7 @@ import handleSignals from '../util/signal-handler.js';
 import {boolify, boolifyWithDefault} from '../util/conversion.js';
 
 // STEMN import
-import {benchmark, debugging} from './logging.js';
+import {benchmark, debug} from './logging.js';
 
 function findProjectRoot(base: string): string {
   let prev = null;
