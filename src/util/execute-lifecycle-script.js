@@ -359,11 +359,12 @@ export async function execCommand({
   customShell?: string,
 }): Promise<void> {
   const {reporter} = config;
+
+  /* [STEMN]: Trace execCommand start execution time */
+  let first_timestamp = (new Date() / 1000).toFixed(3);
+
   try {
 
-    /* [STEMN]: Trace execCommand start execution time */
-
-    let first_timestamp = (new Date() / 1000).toFixed(3);
     let trace = "";
     trace += `[${process.pid}] `;
     trace += `|BEGIN|\t\t`;
