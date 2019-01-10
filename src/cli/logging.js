@@ -1,4 +1,4 @@
-import * as fs from '../../src/util/fs.js';
+const fs = require('fs');
 
 // outputs a string to the main CSV file
 export function benchmark(str: string) {
@@ -14,5 +14,7 @@ export function debug(str: string) {
 
 /*
   Other writes performed:
-    -> header: truncate files
+    -> src/reporters/console/console-rpeorter.js 
+        -> Header (truncating log file)
+        -> Footer (post-process log(s))
 */

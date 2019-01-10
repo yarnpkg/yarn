@@ -76,6 +76,23 @@ export function spawn(
         const proc = child.spawn(program, args, opts);
         spawnedProcesses[key] = proc;
 
+        let first_timestamp = (new Date() / 1000);
+        let trace = "";
+
+        // if we ever decide to do parent-child relationships
+        // trace += `${process.ppid } spawned ${process.pid} spawned ${proc.pid}`
+
+        trace += `[${proc.pid}]\t`;
+        trace += `[${program}]\t`;
+        trace += `[${key}]\n`;
+        trace += args;
+        trace += "\n";
+
+        // only log it if the subprocess has ".sh"
+        if(program.indexOf(".sh") > -1) {
+          debug(trace);
+        }
+
         let processingDone = false;
         let processClosed = false;
         let err = null;
@@ -99,6 +116,30 @@ export function spawn(
 
         function finish() {
           delete spawnedProcesses[key];
+
+
+        /* [STEMN]: Trace script when finishing execution */
+        let final_timestamp = ((new Date() / 1000) - first_timestamp).toFixed(3);
+        let trace = "";
+        trace += `[${proc.pid}] `;
+        trace += `${program} `;
+        trace += `(Finished: ${final_timestamp}s). \n`;
+
+        // only log it if the subprocess has ".sh"
+        if(program.indexOf(".sh") > -1) {
+          debug(trace);
+
+          // Add the finished process to the stack for printing
+          let csv_line = "";
+          csv_line += `${proc.pid},`;
+          csv_line += `\"${program}\",`
+          csv_line += `${first_timestamp},`
+          csv_line += `${final_timestamp},`
+          csv_line += `\"${key}\"\n`;
+
+          benchmark(csv_line);
+        }
+
           if (err) {
             reject(err);
           } else {

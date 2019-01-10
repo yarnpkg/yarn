@@ -24,6 +24,7 @@ import Table from 'cli-table3';
 
 // STEMN import
 import {benchmark, debug} from '../../cli/logging.js';
+const fs = require('fs');
 
 const {inspect} = require('util');
 const readline = require('readline');
@@ -165,6 +166,21 @@ export default class ConsoleReporter extends BaseReporter {
  /* [STEMN]: header reporter. Hook to clean logs */
   header(command: string, pkg: Package) {
     this.log(this.format.bold(`${pkg.name} ${command} v${pkg.version}`));
+
+/*
+    require("fs").writeFile('', '', function(){})
+    require("fs").writeFile('/tmp/logfile', '', function(){})
+
+		// we perform our own reporting 
+    this._logCategory('STEMN', 'magenta', "Cleaning logs of previous run...");
+    this._logCategory('STEMN', 'magenta', "Truncating and preparing log file...");
+
+    var csv_header = "PID,Command,Timestamp,Duration,PWD\n";
+    require("fs").writeFileSync("/tmp/logfile", csv_header, function (err) {
+        if (err) throw err;
+    });
+*/
+
   }
 
 /* [STEMN]: footer reporter. Hook to do log post-processing */

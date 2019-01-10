@@ -360,10 +360,18 @@ export async function execCommand({
 }): Promise<void> {
   const {reporter} = config;
   try {
+
     /* [STEMN]: Trace execCommand start execution time */
 
+    let first_timestamp = (new Date() / 1000).toFixed(3);
+    let trace = "";
+    trace += `[${process.pid}] `;
+    trace += `|BEGIN|\t\t`;
+    trace += `${first_timestamp}\t`;
+    trace += `[${stage}]\t\t\t`;
+    trace += `[${cwd}]\n`;
 
-
+    debug(trace);
 
     reporter.command(cmd);
     await executeLifecycleScript({stage, config, cwd, cmd, isInteractive, customShell});
@@ -378,6 +386,32 @@ export async function execCommand({
     } else {
       throw err;
     }
-     /* [STEMN]: Trace execCommand finish exeuction  time */
   }
+} finally {
+
+  /* [STEMN]: Trace execCommand finish exeuction  time */
+
+  //var trace = `[${process.ppid}]->[${process.pid}][${process.uptime()}] >END<`
+
+  let final_timestamp = ((new Date() / 1000) - first_timestamp).toFixed(3);
+  let trace = "";
+  trace += `[${process.pid}]`;
+  trace += `[${process.uptime()}] `;
+  trace += `>END<\t\t`;
+  trace += `${final_timestamp}\t`;
+  trace += `[${stage}]`;
+  //trace += `\t\t\t[${cwd}]`;
+  trace += "\n";
+
+  debug(trace);
+
+  // PID, STAGE, TIMESTAMP, DURATION, CWD
+  let csv_line = "";
+  csv_line = `${process.pid},`;
+  csv_line += `\"${stage}\",`;
+  csv_line += `${first_timestamp},`;
+  csv_line += `${final_timestamp},`;
+  csv_line += `\"${cwd}\"\n`;
+  benchmark(csv_line);
+
 }
