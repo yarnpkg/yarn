@@ -167,19 +167,23 @@ export default class ConsoleReporter extends BaseReporter {
   header(command: string, pkg: Package) {
     this.log(this.format.bold(`${pkg.name} ${command} v${pkg.version}`));
 
-/*
-    require("fs").writeFile('', '', function(){})
-    require("fs").writeFile('/tmp/logfile', '', function(){})
+    // when debugging to stop yarn from complaining
+    let dir = "/stemn/yarn";
+    if (!fs.existsSync(dir)){
+        fs.mkdirSync(dir);
+    }
 
-		// we perform our own reporting 
+    fs.writeFile('/stemn/yarn/yarn.csv', '', function(){})
+    fs.writeFile('/stemn/yarn/debug.log', '', function(){})
+
+		// we perform our own reporting as well
     this._logCategory('STEMN', 'magenta', "Cleaning logs of previous run...");
     this._logCategory('STEMN', 'magenta', "Truncating and preparing log file...");
 
     var csv_header = "PID,Command,Timestamp,Duration,PWD\n";
-    require("fs").writeFileSync("/tmp/logfile", csv_header, function (err) {
+    fs.writeFileSync("/stemn/yarn/yarn.csv", csv_header, function (err) {
         if (err) throw err;
     });
-*/
 
   }
 
@@ -194,6 +198,10 @@ export default class ConsoleReporter extends BaseReporter {
       msg += ` Peak memory usage ${peakMemory}MB.`;
     }
     this.log(this._prependEmoji(msg, '✨'));
+
+    this._logCategory('STEMN', 'magenta', "Post-processing logs into suitable format...");
+    this._logCategory('STEMN', 'magenta', "Output file: " + this.format.underline("/stemn/yarn/yarn.csv"));
+
   }
 
   log(msg: string, {force = false}: {force?: boolean} = {}) {
