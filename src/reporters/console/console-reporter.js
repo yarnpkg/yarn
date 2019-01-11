@@ -167,21 +167,25 @@ export default class ConsoleReporter extends BaseReporter {
   header(command: string, pkg: Package) {
     this.log(this.format.bold(`${pkg.name} ${command} v${pkg.version}`));
 
-    // when debugging to stop yarn from complaining
-    let dir = "/stemn/yarn";
-    if (!fs.existsSync(dir)){
-        fs.mkdirSync(dir);
+    if(!process.env."YARN_LOG_PATH") {
+      this._logCategory('LOGGING', 'magenta', "YARN_LOG_PATH env var not found. Defaulting to \'/tmp/yarn.csv\'");
     }
 
-    fs.writeFile('/stemn/yarn/yarn.csv', '', function(){})
-    fs.writeFile('/stemn/yarn/debug.log', '', function(){})
+    if(!process.env.YARN_DEBUG_PATH) {
+      this._logCategory('LOGGING', 'magenta', "YARN_DEBUG_PATH env var not found. Defaulting to \'/tmp/debug.log\'");
+    }
 
 		// we perform our own reporting as well
-    this._logCategory('STEMN', 'magenta', "Cleaning logs of previous run...");
-    this._logCategory('STEMN', 'magenta', "Truncating and preparing log file...");
+    this._logCategory('LOGGING', 'magenta', "Cleaning logs of previous run...");
+    this._logCategory('LOGGING', 'magenta', "Truncating and preparing log file...");
+    let log_location = process.env["YARN_LOG_PATH"] || "/tmp/yarn.csv";
+    let debug_location = process.env["YARN_DEBUG_PATH"] || "/tmp/debug.log";
+
+    fs.writeFile(log_location, '', function(){})
+    fs.writeFile(debug_location, '', function(){})
 
     var csv_header = "PID,Command,Timestamp,Duration,PWD\n";
-    fs.writeFileSync("/stemn/yarn/yarn.csv", csv_header, function (err) {
+    fs.writeFileSync(log_location, csv_header, function (err) {
         if (err) throw err;
     });
 
@@ -191,6 +195,8 @@ export default class ConsoleReporter extends BaseReporter {
   footer(showPeakMemory?: boolean) {
     this.stopProgress();
 
+    let log_location = process.env["YARN_LOG_PATH"] || "/tmp/yarn.csv";
+
     const totalTime = (this.getTotalTime() / 1000).toFixed(2);
     let msg = `Done in ${totalTime}s.`;
     if (showPeakMemory) {
@@ -199,9 +205,8 @@ export default class ConsoleReporter extends BaseReporter {
     }
     this.log(this._prependEmoji(msg, '✨'));
 
-    this._logCategory('STEMN', 'magenta', "Post-processing logs into suitable format...");
-    this._logCategory('STEMN', 'magenta', "Output file: " + this.format.underline("/stemn/yarn/yarn.csv"));
-
+    this._logCategory('LOGGING', 'magenta', "Post-processing logs into suitable format...");
+    this._logCategory('LOGGING', 'magenta', "Output file: " + this.format.underline(log_location));
   }
 
   log(msg: string, {force = false}: {force?: boolean} = {}) {
