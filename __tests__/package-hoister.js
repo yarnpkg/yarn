@@ -334,6 +334,34 @@ test('will hoist packages under subdirectories when they cannot hoist to root', 
   expect(result).toContainPackage('d@1.0.0', atPath('a', 'node_modules', 'd'));
 });
 
+test('correctly labels dev-only hoisted packages with markDevOnlyEntries', () => {
+  const {packageHoister} = createTestFixture({
+    'foo@1.0.0': ['bar@1.0.0'],
+    'bar@1.0.0': ['baz@1.0.0'],
+    'bar@2.0.0': ['baz@2.0.0'],
+    'baz@1.0.0': [],
+    'baz@2.0.0': []
+  });
+
+  packageHoister.seed(['foo@1.0.0', 'bar@2.0.0']);
+  packageHoister.markDevOnlyEntries(['foo@1.0.0']);
+  const result = packageHoister.init();
+
+  const isDevOnly = {};
+
+  result.forEach(tuple => {
+    const manifest = tuple[1];
+    const pattern = manifest.pkg._reference.uid
+    isDevOnly[pattern] = manifest.isDevOnly;
+  });
+
+  expect(isDevOnly['foo@1.0.0']).toBe(false);
+  expect(isDevOnly['bar@1.0.0']).toBe(false);
+  expect(isDevOnly['baz@1.0.0']).toBe(false);
+  expect(isDevOnly['bar@2.0.0']).toBe(true);
+  expect(isDevOnly['baz@2.0.0']).toBe(true);
+});
+
 describe('nohoist', () => {
   test('nohoist can be turned off by disable workspaces (workspaces-experimental)', () => {
     const {atPath, packageHoister, packageResolver} = createTestFixture(
