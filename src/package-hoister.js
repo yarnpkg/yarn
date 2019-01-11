@@ -33,6 +33,7 @@ export class HoistManifest {
     this.isDirectRequire = isDirectRequire;
     this.isRequired = isRequired;
     this.isIncompatible = isIncompatible;
+    this.isDevOnly = null;
 
     this.loc = loc;
     this.pkg = pkg;
@@ -54,6 +55,7 @@ export class HoistManifest {
   isRequired: boolean;
   isIncompatible: boolean;
   isDirectRequire: boolean;
+  isDevOnly: ?boolean;
   pkg: Manifest;
   loc: string;
   parts: Parts;
@@ -724,6 +726,71 @@ export default class PackageHoister {
         }
       });
     });
+  }
+
+  /**
+   * Given the list of top-level production dependencies, earmark any hoisted packages that
+   * are transitive production dependencies by setting isDevOnly = false, and earmark any
+   * non-prod dependencies with isDevOnly = true
+   */
+
+  markDevOnlyEntries(prodDepPatterns: Array<string>) {
+    // a hoisted package is dev-only if it is not a transitive dependency of any top-level
+    // prod dependency; first, we mark all trees as dev-only, then we walk the trees starting
+    // from the top-level prod dependencies, marking any packages we encounter as non-dev-only
+
+    for (const [_, info] of this.tree.entries()) {
+      info.isDevOnly = true;
+    }
+
+    // queue of trees to visit
+    const toVisit: Array<HoistManifest> = [];
+
+    // dedupe
+    prodDepPatterns = this.resolver.dedupePatterns(prodDepPatterns).sort();
+
+    // enumerate top-level production dependencies
+    for (const pattern of prodDepPatterns) {
+      const pkg = this.resolver.getStrictResolvedPattern(pattern);
+      const info = this.tree.get(pkg.name);
+      invariant(info && this._isTopPackage(info), 'expected a top-level dependency');
+
+      // mark and enqueue
+      info.isDevOnly = false;
+      info.addHistory(`Mark as a top-level production dependency`);
+      toVisit.push(info);
+    }
+
+    while (toVisit.length > 0) {
+      const info = toVisit.shift();
+      invariant(!info.isDevOnly, 'expected a (transitive) production dependency');
+
+      const ref = info.pkg._reference;
+      invariant(ref, 'expected reference');
+
+      // info is a transitive production dependency, and hence any of its non-dev
+      // dependencies are themselves transitive production dependencies
+
+      for (const depPattern of ref.dependencies) {
+        const depinfo = this._lookupDependency(info, depPattern);
+
+        if (!depinfo) {
+          continue;
+        }
+
+        // skip depinfo if it has already been earmarked as a transitive production dependency
+        if (!depinfo.isDevOnly) {
+          continue;
+        }
+
+        // earmark depinfo as a transitive production dependency
+        depinfo.isDevOnly = false;
+        depinfo.addHistory(`Mark as a production dependency, because it is dependend on by ${info.key}`);
+
+        // enqueue depinfo so we can process its dependencies
+        toVisit.push(depinfo);
+      }
+    }
   }
 
   _getDependentWorkspaces(
