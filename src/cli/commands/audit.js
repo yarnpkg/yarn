@@ -20,6 +20,7 @@ export type AuditNode = {
   integrity: ?string,
   requires: Object,
   dependencies: {[string]: AuditNode},
+  dev: boolean,
 };
 
 export type AuditTree = AuditNode & {
@@ -121,6 +122,14 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 
+export function getDevDeps(manifest: Object): Array<string> {
+  if (manifest.devDependencies) {
+    return Object.keys(manifest.devDependencies).map(key => `${key}@${manifest.devDependencies[key]}`);
+  } else {
+    return [];
+  }
+}
+
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<number> {
   const audit = new Audit(config, reporter);
   const lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
@@ -178,6 +187,7 @@ export default class Audit {
         integrity: pkg._remote ? pkg._remote.integrity || '' : '',
         requires,
         dependencies: {},
+        dev: !!node.isDevOnly,
       };
       if (node.children) {
         this._mapHoistedNodes(auditNode.dependencies[node.name], node.children);
@@ -202,6 +212,7 @@ export default class Audit {
       ),
       integrity: undefined,
       dependencies: {},
+      dev: false,
     };
 
     this._mapHoistedNodes(auditTree, hoistedTrees);
@@ -257,7 +268,7 @@ export default class Audit {
     patterns: Array<string>,
   ): Promise<AuditVulnerabilityCounts> {
     this._insertWorkspacePackagesIntoManifest(manifest, resolver);
-    const hoistedTrees = await hoistedTreeBuilder(resolver, linker, patterns);
+    const hoistedTrees = await hoistedTreeBuilder(resolver, linker, patterns, getDevDeps(manifest));
     const auditTree = this._mapHoistedTreesToAuditTree(manifest, hoistedTrees);
     this.auditData = await this._fetchAudit(auditTree);
     return this.auditData.metadata.vulnerabilities;
