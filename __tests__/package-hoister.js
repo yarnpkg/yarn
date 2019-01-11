@@ -340,7 +340,7 @@ test('correctly labels dev-only hoisted packages with markDevOnlyEntries', () =>
     'bar@1.0.0': ['baz@1.0.0'],
     'bar@2.0.0': ['baz@2.0.0'],
     'baz@1.0.0': [],
-    'baz@2.0.0': []
+    'baz@2.0.0': [],
   });
 
   packageHoister.seed(['foo@1.0.0', 'bar@2.0.0']);
@@ -351,7 +351,7 @@ test('correctly labels dev-only hoisted packages with markDevOnlyEntries', () =>
 
   result.forEach(tuple => {
     const manifest = tuple[1];
-    const pattern = manifest.pkg._reference.uid
+    const pattern = manifest.pkg._reference.uid;
     isDevOnly[pattern] = manifest.isDevOnly;
   });
 

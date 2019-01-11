@@ -68,7 +68,7 @@ test.concurrent('sends correct dependency map to audit api for single dependency
           'brace-expansion': '^1.0.0',
         },
         dependencies: {},
-        dev: false, 
+        dev: false,
       },
       'brace-expansion': {
         version: '1.1.11',
@@ -175,32 +175,32 @@ test('calls reporter auditSummary with correct data for private package', () => 
 
 test.concurrent('distinguishes dev and prod transitive dependencies in audit request and result', () => {
   const expectedApiPost = {
-    "name": "foo",
-    "version": "1.0.0",
-    "install": [],
-    "remove": [],
-    "metadata": {},
-    "requires": {
-      "mime": "1.4.0",
-      "hoek": "4.2.0"
+    name: 'foo',
+    version: '1.0.0',
+    install: [],
+    remove: [],
+    metadata: {},
+    requires: {
+      mime: '1.4.0',
+      hoek: '4.2.0',
     },
-    "dependencies": {
-      "mime": {
-        "version": "1.4.0",
-        "integrity": "sha512-n9ChLv77+QQEapYz8lV+rIZAW3HhAPW2CXnzb1GN5uMkuczshwvkW7XPsbzU0ZQN3sP47Er2KVkp2p3KyqZKSQ==",
-        "requires": {},
-        "dependencies": {},
-        "dev": false
+    dependencies: {
+      mime: {
+        version: '1.4.0',
+        integrity: 'sha512-n9ChLv77+QQEapYz8lV+rIZAW3HhAPW2CXnzb1GN5uMkuczshwvkW7XPsbzU0ZQN3sP47Er2KVkp2p3KyqZKSQ==',
+        requires: {},
+        dependencies: {},
+        dev: false,
       },
-      "hoek": {
-        "version": "4.2.0",
-        "integrity": "sha512-v0XCLxICi9nPfYrS9RL8HbYnXi9obYAeLbSP00BmnZwCK9+Ih9WOjoZ8YoHCoav2csqn4FOz4Orldsy2dmDwmQ==",
-        "requires": {},
-        "dependencies": {},
-        "dev": true
-      }
+      hoek: {
+        version: '4.2.0',
+        integrity: 'sha512-v0XCLxICi9nPfYrS9RL8HbYnXi9obYAeLbSP00BmnZwCK9+Ih9WOjoZ8YoHCoav2csqn4FOz4Orldsy2dmDwmQ==',
+        requires: {},
+        dependencies: {},
+        dev: true,
+      },
     },
-    "dev": false
+    dev: false,
   };
 
   return runAudit([], {}, 'dev-and-prod-vulnerabilities', async (config, reporter) => {
