@@ -167,7 +167,7 @@ export default class ConsoleReporter extends BaseReporter {
   header(command: string, pkg: Package) {
     this.log(this.format.bold(`${pkg.name} ${command} v${pkg.version}`));
 
-    if(!process.env."YARN_LOG_PATH") {
+    if(!process.env.YARN_LOG_PATH) {
       this._logCategory('LOGGING', 'magenta', "YARN_LOG_PATH env var not found. Defaulting to \'/tmp/yarn.csv\'");
     }
 
