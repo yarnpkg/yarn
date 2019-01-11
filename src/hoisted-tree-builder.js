@@ -11,6 +11,7 @@ export type HoistedTree = {
   version: string,
   manifest: HoistManifest,
   children?: HoistedTrees,
+  isDevOnly: boolean,
 };
 export type HoistedTrees = Array<HoistedTree>;
 
@@ -23,11 +24,12 @@ export async function buildTree(
   resolver: PackageResolver,
   linker: PackageLinker,
   patterns: Array<string>,
+  devDepPatterns: Array<string>,
   ignoreHoisted?: boolean,
 ): Promise<HoistedTrees> {
   const treesByKey = {};
   const trees = [];
-  const flatTree = await linker.getFlatHoistedTree(patterns);
+  const flatTree = await linker.getFlatHoistedTree(patterns, null, devDepPatterns);
 
   // If using workspaces, filter out the virtual manifest
   const {workspaceLayout} = resolver;
@@ -61,6 +63,7 @@ export async function buildTree(
       version: info.pkg.version,
       children,
       manifest: info,
+      isDevOnly: info.isDevOnly,
     };
   }
 

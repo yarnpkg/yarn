@@ -753,11 +753,11 @@ export default class PackageHoister {
     for (const pattern of prodDepPatterns) {
       const pkg = this.resolver.getStrictResolvedPattern(pattern);
       const info = this.tree.get(pkg.name);
-      invariant(info && this._isTopPackage(info), 'expected a top-level dependency');
+      invariant(info, `expected ${pattern} to be present in the tree`);
 
       // mark and enqueue
       info.isDevOnly = false;
-      info.addHistory(`Mark as a top-level production dependency`);
+      info.addHistory('Mark as a top-level production dependency');
       toVisit.push(info);
     }
 

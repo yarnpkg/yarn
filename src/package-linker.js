@@ -204,14 +204,23 @@ export default class PackageLinker {
 
   getFlatHoistedTree(
     patterns: Array<string>,
-    workspaceLayout?: WorkspaceLayout,
+    workspaceLayout: ?WorkspaceLayout,
+    devDepPatterns: ?Array<string>,
     {ignoreOptional}: {ignoreOptional: ?boolean} = {},
   ): HoistManifestTuples {
     const hoister = new PackageHoister(this.config, this.resolver, {ignoreOptional, workspaceLayout});
+
     hoister.seed(patterns);
     if (this.config.focus) {
       hoister.markShallowWorkspaceEntries();
     }
+
+    if (devDepPatterns && devDepPatterns.length > 0) {
+      const devDepPatternSet = new Set(devDepPatterns);
+      const prodDepPatterns = patterns.filter(pattern => !devDepPatternSet.has(pattern));
+      hoister.markDevOnlyEntries(prodDepPatterns);
+    }
+
     return hoister.init();
   }
 
@@ -220,7 +229,7 @@ export default class PackageLinker {
     workspaceLayout?: WorkspaceLayout,
     {linkDuplicates, ignoreOptional}: {linkDuplicates: ?boolean, ignoreOptional: ?boolean} = {},
   ): Promise<void> {
-    let flatTree = this.getFlatHoistedTree(patterns, workspaceLayout, {ignoreOptional});
+    let flatTree = this.getFlatHoistedTree(patterns, workspaceLayout, null, {ignoreOptional});
     // sorted tree makes file creation and copying not to interfere with each other
     flatTree = flatTree.sort(function(dep1, dep2): number {
       return dep1[0].localeCompare(dep2[0]);
