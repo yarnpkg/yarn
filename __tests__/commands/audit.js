@@ -173,6 +173,46 @@ test('calls reporter auditSummary with correct data for private package', () => 
   });
 });
 
+test.concurrent('distinguishes dev and prod transitive dependencies in audit request and result', () => {
+  const expectedApiPost = {
+    "name": "foo",
+    "version": "1.0.0",
+    "install": [],
+    "remove": [],
+    "metadata": {},
+    "requires": {
+      "mime": "1.4.0",
+      "hoek": "4.2.0"
+    },
+    "dependencies": {
+      "mime": {
+        "version": "1.4.0",
+        "integrity": "sha512-n9ChLv77+QQEapYz8lV+rIZAW3HhAPW2CXnzb1GN5uMkuczshwvkW7XPsbzU0ZQN3sP47Er2KVkp2p3KyqZKSQ==",
+        "requires": {},
+        "dependencies": {},
+        "dev": false
+      },
+      "hoek": {
+        "version": "4.2.0",
+        "integrity": "sha512-v0XCLxICi9nPfYrS9RL8HbYnXi9obYAeLbSP00BmnZwCK9+Ih9WOjoZ8YoHCoav2csqn4FOz4Orldsy2dmDwmQ==",
+        "requires": {},
+        "dependencies": {},
+        "dev": true
+      }
+    },
+    "dev": false
+  };
+
+  return runAudit([], {}, 'dev-and-prod-vulnerabilities', async (config, reporter) => {
+    const calledWithPipe = config.requestManager.request.mock.calls[0][0].body;
+    const calledWith = JSON.parse(await gunzip(calledWithPipe));
+    expect(calledWith).toEqual(expectedApiPost);
+
+    const apiResponse = getAuditResponse(config);
+    expect(reporter.auditSummary).toBeCalledWith(apiResponse.metadata);
+  });
+});
+
 describe('returns semantic exit codes', () => {
   beforeAll(() => {
     // mock unrelated stuff
