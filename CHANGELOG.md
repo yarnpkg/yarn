@@ -16,6 +16,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#6908](https://github.com/yarnpkg/yarn/pull/6908) - [**Travis Hoover**](https://twitter.com/thoov)
 
+- Adds support for `GITHUB_TOKEN` in `yarn policies set-version`
+
+  [#6912](https://github.com/yarnpkg/yarn/pull/6912) - [**Billy Vong**](https://github.com/billyvg)
+
 ## 1.13.0
 
 - Implements a new `package.json` field: `peerDependenciesMeta`
