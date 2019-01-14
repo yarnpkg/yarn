@@ -12,6 +12,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#6878](https://github.com/yarnpkg/yarn/pull/6878) - [**Maël Nison**](https://twitter.com/arcanis)
 
+- Fixes an issue where `resolve` would forward an incomplete basedir to the PnP hook
+
+  [#6882](https://github.com/yarnpkg/yarn/pull/6882) - [**Zoran Regvart**](https://github.com/zregvart)
+
 ## 1.13.0
 
 - Implements a new `package.json` field: `peerDependenciesMeta`
