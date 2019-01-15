@@ -1,7 +1,0 @@
-{
-  "license": "MIT",
-  "scripts": {
-    "exitWithCode78": "node exitWithCode78.js"
-  }
-}
-
