@@ -366,6 +366,7 @@ export async function execCommand({
         err.EXIT_SIGNAL
           ? reporter.lang('commandFailedWithSignal', err.EXIT_SIGNAL)
           : reporter.lang('commandFailedWithCode', err.EXIT_CODE),
+        String(err.EXIT_CODE),
       );
     } else {
       throw err;
