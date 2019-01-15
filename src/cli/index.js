@@ -583,7 +583,7 @@ export async function main({
         reporter.info(command.getDocsInfo);
       }
 
-      return exit(1);
+      return exit(err['EXIT_CODE'] || 1);
     });
 }
 
