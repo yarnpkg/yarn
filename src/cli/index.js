@@ -588,7 +588,11 @@ export async function main({
         return exit(err.EXIT_CODE || 1);
       }
 
-      return exit((err.code && Number(err.code)) || 1);
+      if (err instanceof MessageError) {
+        return exit((err.code && Number(err.code)) || 1);
+      }
+
+      return exit(1);
     });
 }
 
