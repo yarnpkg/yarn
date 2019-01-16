@@ -81,8 +81,9 @@ export async function runScript(config: Config, reporter: Reporter, flags: Objec
       const {loc} = workspaces[workspaceName];
 
       await child.spawn(NODE_BIN_PATH, [YARN_BIN_PATH, ...rest], {
-        stdio: 'inherit',
+        stdio: 'pipe',
         cwd: loc,
+        workspaceName,
       });
     }
   } catch (err) {
