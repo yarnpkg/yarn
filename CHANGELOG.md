@@ -8,11 +8,11 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 - Improves PnP compatibility with Node 6
 
   [#6871](https://github.com/yarnpkg/yarn/pull/6871) - [**Robert Jackson**](https://github.com/rwjblue)
-  
+
 - Fixes PnP detection with workspaces (`installConfig` is now read at the top-level)
 
   [#6878](https://github.com/yarnpkg/yarn/pull/6878) - [**Maël Nison**](https://twitter.com/arcanis)
-  
+
 - Fixes an interaction between `yarn pack` and bundled dependencies
 
   [#6908](https://github.com/yarnpkg/yarn/pull/6908) - [**Travis Hoover**](https://twitter.com/thoov)

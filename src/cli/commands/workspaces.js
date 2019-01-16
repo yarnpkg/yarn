@@ -92,10 +92,10 @@ export async function runScript(config: Config, reporter: Reporter, flags: Objec
 
       // Let the user know if the script doesn't exist
       if (!manifest.scripts) {
-        reporter.warn(`No scripts defined in ${workspaceName}.`);
+        reporter.warn(`No scripts defined in workspace ${workspaceName}.`);
         continue;
       } else if (!manifest.scripts[scriptName]) {
-        reporter.warn(`${scriptName} not defined.`);
+        reporter.warn(`${scriptName} not defined in workspace ${workspaceName}.`);
         continue;
       }
 
