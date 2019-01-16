@@ -159,10 +159,6 @@ export default class ConsoleReporter extends BaseReporter {
     }
   }
 
-  identifyWorkspace(msg: string) {
-    this.log(this.format.bold(`\n${msg}`));
-  }
-
   header(command: string, pkg: Package) {
     this.log(this.format.bold(`${pkg.name} ${command} v${pkg.version}`));
   }
