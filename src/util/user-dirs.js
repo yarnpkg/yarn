@@ -50,5 +50,6 @@ export function getConfigDir(): string {
 }
 
 function getLocalAppDataDir(): ?string {
-  return process.env.LOCALAPPDATA ? path.join(process.env.LOCALAPPDATA, 'Yarn') : null;
+  // add YARN_DATA env,may better to have a user defined global data path for windows users?
+  return process.env.YARN_DATA?path.join(process.env.YARN_DATA, 'Yarn'):process.env.LOCALAPPDATA ? path.join(process.env.LOCALAPPDATA, 'Yarn') : null;
 }
