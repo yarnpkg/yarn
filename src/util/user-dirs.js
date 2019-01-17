@@ -54,5 +54,6 @@ function getLocalAppDataDir(): ?string {
   return process.env.YARN_DATA
     ? path.join(process.env.YARN_DATA, 'Yarn') 
     : process.env.LOCALAPPDATA 
-    ? path.join(process.env.LOCALAPPDATA, 'Yarn') : null;
+    ? path.join(process.env.LOCALAPPDATA, 'Yarn') 
+    : null;
 }
