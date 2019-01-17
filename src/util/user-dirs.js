@@ -9,7 +9,9 @@ const FALLBACK_CACHE_DIR = path.join(userHome, '.cache', 'yarn');
 export function getDataDir(): string {
   if (process.platform === 'win32') {
     const WIN32_APPDATA_DIR = getLocalAppDataDir();
-    return WIN32_APPDATA_DIR == null ? FALLBACK_CONFIG_DIR : path.join(WIN32_APPDATA_DIR, 'Data');
+    return WIN32_APPDATA_DIR == null
+      ? FALLBACK_CONFIG_DIR
+      : path.join(WIN32_APPDATA_DIR, 'Data');
   } else if (process.env.XDG_DATA_HOME) {
     return path.join(process.env.XDG_DATA_HOME, 'yarn');
   } else {
@@ -26,7 +28,10 @@ export function getDataDir(): string {
 export function getCacheDir(): string {
   if (process.platform === 'win32') {
     // process.env.TEMP also exists, but most apps put caches here
-    return path.join(getLocalAppDataDir() || path.join(userHome, 'AppData', 'Local', 'Yarn'), 'Cache');
+    return path.join(
+      getLocalAppDataDir() || path.join(userHome, 'AppData', 'Local', 'Yarn'),
+      'Cache'
+    );
   } else if (process.env.XDG_CACHE_HOME) {
     return path.join(process.env.XDG_CACHE_HOME, 'yarn');
   } else if (process.platform === 'darwin') {
@@ -41,7 +46,9 @@ export function getConfigDir(): string {
     // Use our prior fallback. Some day this could be
     // return path.join(WIN32_APPDATA_DIR, 'Config')
     const WIN32_APPDATA_DIR = getLocalAppDataDir();
-    return WIN32_APPDATA_DIR == null ? FALLBACK_CONFIG_DIR : path.join(WIN32_APPDATA_DIR, 'Config');
+    return WIN32_APPDATA_DIR == null
+      ? FALLBACK_CONFIG_DIR
+      : path.join(WIN32_APPDATA_DIR, 'Config');
   } else if (process.env.XDG_CONFIG_HOME) {
     return path.join(process.env.XDG_CONFIG_HOME, 'yarn');
   } else {
@@ -51,6 +58,9 @@ export function getConfigDir(): string {
 
 function getLocalAppDataDir(): ?string {
   // add YARN_DATA env,may better to have a user defined global data path for windows users?
-  return process.env.YARN_DATA ? path.join(process.env.YARN_DATA, 'Yarn') : process.env.LOCALAPPDATA ? 
-    path.join(process.env.LOCALAPPDATA, 'Yarn') : null;
+  return process.env.YARN_DATA
+    ? path.join(process.env.YARN_DATA, 'Yarn')
+    : process.env.LOCALAPPDATA
+    ? path.join(process.env.LOCALAPPDATA, 'Yarn')
+    : null;
 }
