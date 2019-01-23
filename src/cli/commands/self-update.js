@@ -12,7 +12,7 @@ export const noArguments = true;
 export const requireLockfile = false;
 
 export function setFlags(commander: Object) {
-  commander.description('Updates yarn according to the instalation method');
+  commander.description('Updates yarn according to the installation method');
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
