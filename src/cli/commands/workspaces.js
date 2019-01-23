@@ -90,13 +90,16 @@ export async function runScript(config: Config, reporter: Reporter, flags: Objec
     for (const workspaceName of Object.keys(workspaces)) {
       const {loc, manifest} = workspaces[workspaceName];
 
-      // Let the user know if the script doesn't exist
-      if (!manifest.scripts) {
-        reporter.warn(`No scripts defined in workspace ${workspaceName}.`);
-        continue;
-      } else if (!manifest.scripts[scriptName]) {
-        reporter.warn(`${scriptName} not defined in workspace ${workspaceName}.`);
-        continue;
+      // allow for `yarn workspaces run -s exec pwd`
+      if (scriptName !== "exec") {
+        // Let the user know if the script doesn't exist
+        if (!manifest.scripts) {
+          reporter.warn(`No scripts defined in workspace ${workspaceName}.`);
+          continue;
+        } else if (!manifest.scripts[scriptName]) {
+          reporter.warn(`${scriptName} not defined in workspace ${workspaceName}.`);
+          continue;
+        }
       }
 
       await child.spawn(NODE_BIN_PATH, [YARN_BIN_PATH, ...rest], {
