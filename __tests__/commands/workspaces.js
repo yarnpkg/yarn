@@ -54,12 +54,12 @@ test('workspaces run should spawn command for each workspace', (): Promise<void>
     expect(spawn).toHaveBeenCalledWith(NODE_BIN_PATH, [YARN_BIN_PATH, 'script', 'arg1', '--flag1'], {
       stdio: 'pipe',
       cwd: path.join(fixturesLoc, 'run-basic', 'packages', 'workspace-child-1'),
-      workspaceName: 'workspace-child-1',
+      workspaceName: 'workspace-1',
     });
     expect(spawn).toHaveBeenCalledWith(NODE_BIN_PATH, [YARN_BIN_PATH, 'script', 'arg1', '--flag1'], {
       stdio: 'pipe',
       cwd: path.join(fixturesLoc, 'run-basic', 'packages', 'workspace-child-2'),
-      workspaceName: 'workspace-child-2',
+      workspaceName: 'workspace-2',
     });
   });
 });
