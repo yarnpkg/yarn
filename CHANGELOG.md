@@ -28,6 +28,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#6931](https://github.com/yarnpkg/yarn/pull/6931) - [**Justin Sacbibit**](https://github.com/justinsacbibit)
 
+- Changes the location where the `--require ./.pnp.js` flag gets added into `NODE_OPTIONS`: now at the front
+
+  [#6942](https://github.com/yarnpkg/yarn/pull/6942) - [**John-David Dalton**](https://twitter.com/jdalton)
+
 ## 1.13.0
 
 - Implements a new `package.json` field: `peerDependenciesMeta`
@@ -69,7 +73,7 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 - Properly reports the error codes when the npm registry throws 500's
 
   [#6817](https://github.com/yarnpkg/yarn/pull/6817) - [**Maël Nison**](https://twitter.com/arcanis)
-
+  
 ## 1.12.3
 
 **Important:** This release contains a cache bump. It will cause the very first install following the upgrade to take slightly more time, especially if you don't use the [Offline Mirror](https://yarnpkg.com/blog/2016/11/24/offline-mirror/) feature. After that everything will be back to normal.
