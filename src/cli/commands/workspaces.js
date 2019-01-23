@@ -91,7 +91,7 @@ export async function runScript(config: Config, reporter: Reporter, flags: Objec
       const {loc, manifest} = workspaces[workspaceName];
 
       // allow for `yarn workspaces run -s exec pwd`
-      if (scriptName !== "exec") {
+      if (scriptName !== 'exec') {
         // Let the user know if the script doesn't exist
         if (!manifest.scripts) {
           reporter.warn(`No scripts defined in workspace ${workspaceName}.`);
