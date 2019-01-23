@@ -186,7 +186,7 @@ class Parser {
       if (version > LOCKFILE_VERSION) {
         throw new MessageError(
           `Can't install from a lockfile of version ${version} as you're on an old yarn version that only supports ` +
-            `versions up to ${LOCKFILE_VERSION}. Run \`$ yarn self-update\` to upgrade to the latest version.`,
+            `versions up to ${LOCKFILE_VERSION}. Run \`$ yarn self-upgrade\` to upgrade to the latest version.`,
         );
       }
     }

@@ -12,7 +12,7 @@ export const noArguments = true;
 export const requireLockfile = false;
 
 export function setFlags(commander: Object) {
-  commander.description('Updates yarn according to the installation method');
+  commander.description('Upgrades yarn according to the installation method');
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
@@ -50,8 +50,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     reporter.info('running');
 
     await execCommand({
-      // Could not figure out to which stage should this belong to.
-      stage: 'self-update',
+      stage: 'self-upgrade',
       config,
       cmd: command,
       cwd: config.cwd,

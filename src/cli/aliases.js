@@ -3,5 +3,5 @@
 export default ({
   'upgrade-interactive': 'upgradeInteractive',
   'generate-lock-entry': 'generateLockEntry',
-  'self-update': 'selfUpdate',
+  'self-upgrade': 'selfUpgrade',
 }: {[key: string]: string});
