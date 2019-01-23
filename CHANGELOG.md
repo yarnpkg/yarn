@@ -24,6 +24,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#6882](https://github.com/yarnpkg/yarn/pull/6882) - [**Zoran Regvart**](https://github.com/zregvart)
 
+- Fixes the command that `yarn unlink` recommend to run as a followup (now `yarn install --force`)
+
+  [#6931](https://github.com/yarnpkg/yarn/pull/6931) - [**Justin Sacbibit**](https://github.com/justinsacbibit)
+
 ## 1.13.0
 
 - Implements a new `package.json` field: `peerDependenciesMeta`
