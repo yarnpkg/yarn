@@ -24,6 +24,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#6882](https://github.com/yarnpkg/yarn/pull/6882) - [**Zoran Regvart**](https://github.com/zregvart)
 
+- Fixes the command that `yarn unlink` recommends to run as a followup (now `yarn install --force`)
+
+  [#6931](https://github.com/yarnpkg/yarn/pull/6931) - [**Justin Sacbibit**](https://github.com/justinsacbibit)
+
 - Changes the location where the `--require ./.pnp.js` flag gets added into `NODE_OPTIONS`: now at the front
 
   [#6942](https://github.com/yarnpkg/yarn/pull/6942) - [**John-David Dalton**](https://twitter.com/jdalton)
