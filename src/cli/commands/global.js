@@ -15,6 +15,7 @@ import {run as runUpgrade} from './upgrade.js';
 import {run as runUpgradeInteractive} from './upgrade-interactive.js';
 import {linkBin} from '../../package-linker.js';
 import {POSIX_GLOBAL_PREFIX, FALLBACK_GLOBAL_PREFIX} from '../../constants.js';
+import {entries} from '../../util/misc.js';
 import * as fs from '../../util/fs.js';
 
 class GlobalAdd extends Add {
@@ -159,18 +160,32 @@ async function initUpdateBins(config: Config, reporter: Reporter, flags: Object)
       }
     }
 
+    // Find all binaries so we can create global shims to them
+    await updateCwd(config);
+
+    // Install so we get hard file paths
+    const lockfile = await Lockfile.fromDirectory(config.cwd);
+    const install = new Install({}, config, new NoopReporter(), lockfile);
+    const patterns = await install.getFlattenedDeps();
+
     // add new bins
-    for (const src of afterBins) {
-      // insert new bin
-      const dest = path.join(binFolder, path.basename(src));
-      try {
-        await fs.unlink(dest);
-        await linkBin(src, dest);
-        if (process.platform === 'win32' && dest.indexOf('.cmd') !== -1) {
-          await fs.rename(dest + '.cmd', dest);
+    for (const pattern of patterns) {
+      const manifest = install.resolver.getStrictResolvedPattern(pattern);
+
+      if (manifest.bin) {
+        for (const [binName, binLoc] of entries(manifest.bin)) {
+          // insert new bin
+          const pkgLoc = path.join(config.cwd, config.getFolder(manifest), manifest.name);
+          const src = path.join(pkgLoc, binLoc);
+          const dest = path.join(binFolder, binName);
+
+          try {
+            await fs.unlink(dest);
+            await linkBin(src, dest);
+          } catch (err) {
+            throwPermError(err, dest);
+          }
         }
-      } catch (err) {
-        throwPermError(err, dest);
       }
     }
   };
