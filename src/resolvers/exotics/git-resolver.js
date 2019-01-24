@@ -52,7 +52,7 @@ export default class GitResolver extends ExoticResolver {
     // optimisations fail which the `forked` flag indicates so we don't get into an
     // infinite loop
     const parts = urlParse(url);
-    if (!forked && !parts.auth && parts.pathname) {
+    if (false && !forked && !parts.auth && parts.pathname) {
       // check if this git url uses any of the hostnames defined in our hosted git resolvers
       for (const name in hostedGitResolvers) {
         const Resolver = hostedGitResolvers[name];
