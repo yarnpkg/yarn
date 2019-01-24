@@ -94,7 +94,7 @@ test.concurrent("shouldn't create powershell shims", async (): Promise<void> => 
   const tmpGlobalFolder = await createTempGlobalFolder();
   const tmpPrefixFolder = await createTempPrefixFolder();
   const flags = {globalFolder: tmpGlobalFolder, prefix: tmpPrefixFolder};
-  const isWindows = process.platform === "win32";
+  const isWindows = process.platform === 'win32';
   return runGlobal(['add', 'react-native-cli'], flags, 'add-with-prefix-flag', async config => {
     expect(await fs.exists(path.join(tmpPrefixFolder, 'bin', 'react-native'))).toEqual(true);
     expect(await fs.exists(path.join(tmpPrefixFolder, 'bin', 'react-native.cmd'))).toEqual(isWindows);
