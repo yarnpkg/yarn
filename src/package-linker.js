@@ -34,7 +34,7 @@ export async function linkBin(src: string, dest: string): Promise<void> {
   if (process.platform === 'win32') {
     const unlockMutex = await lockMutex(src);
     try {
-      await cmdShim(src, dest);
+      await cmdShim(src, dest, {createPwshFile: false});
     } finally {
       unlockMutex();
     }
