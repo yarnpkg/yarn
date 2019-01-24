@@ -174,6 +174,11 @@ async function initUpdateBins(config: Config, reporter: Reporter, flags: Object)
 
       if (manifest.bin) {
         for (const [binName, binLoc] of entries(manifest.bin)) {
+          // if afterBins doesn't contain a bin with this bin name, don't add it
+          if (![...afterBins.keys()].some(key => key.endsWith(binName))) {
+            continue;
+          }
+
           // insert new bin
           const pkgLoc = path.join(config.cwd, config.getFolder(manifest), manifest.name);
           const src = path.join(pkgLoc, binLoc);
