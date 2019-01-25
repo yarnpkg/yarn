@@ -160,19 +160,20 @@ async function initUpdateBins(config: Config, reporter: Reporter, flags: Object)
       }
     }
 
-    // Find all binaries so we can create global shims to them
+    // We have to find all binaries so we can create proper global shims to them.
+    // "yarn global list" does exactly what we need, so we can simply borrow that
+    // logic here to determine the shims we need to create:
     await updateCwd(config);
-
-    // Install so we get hard file paths
     const lockfile = await Lockfile.fromDirectory(config.cwd);
     const install = new Install({}, config, new NoopReporter(), lockfile);
     const patterns = await install.getFlattenedDeps();
 
-    // add new bins
     for (const pattern of patterns) {
       const manifest = install.resolver.getStrictResolvedPattern(pattern);
 
       if (manifest.bin) {
+        // found a global package with binaries; iterate through and create shims
+
         for (const [binName, binLoc] of entries(manifest.bin)) {
           // if afterBins doesn't contain a bin with this bin name, don't add it
           if (![...afterBins.keys()].some(key => key.endsWith(binName))) {
