@@ -401,6 +401,8 @@ export default class RequestManager {
         if (!queueForRetry(this.reporter.lang('offlineRetrying'))) {
           reject(err);
         }
+      } else {
+        reject(err);
       }
     };
 
