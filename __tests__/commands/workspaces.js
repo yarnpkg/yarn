@@ -52,12 +52,14 @@ test('workspaces run should spawn command for each workspace', (): Promise<void>
   const originalArgs = ['run', 'script', 'arg1', '--flag1'];
   return runWorkspaces({originalArgs}, ['run', 'script', 'arg1', '--flag1'], 'run-basic', config => {
     expect(spawn).toHaveBeenCalledWith(NODE_BIN_PATH, [YARN_BIN_PATH, 'script', 'arg1', '--flag1'], {
-      stdio: 'inherit',
+      stdio: 'pipe',
       cwd: path.join(fixturesLoc, 'run-basic', 'packages', 'workspace-child-1'),
+      workspaceName: 'workspace-1',
     });
     expect(spawn).toHaveBeenCalledWith(NODE_BIN_PATH, [YARN_BIN_PATH, 'script', 'arg1', '--flag1'], {
-      stdio: 'inherit',
+      stdio: 'pipe',
       cwd: path.join(fixturesLoc, 'run-basic', 'packages', 'workspace-child-2'),
+      workspaceName: 'workspace-2',
     });
   });
 });

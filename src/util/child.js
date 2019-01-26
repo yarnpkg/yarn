@@ -8,6 +8,11 @@ import {promisify} from './promise.js';
 
 const child = require('child_process');
 
+const logTransformer = require('strong-log-transformer');
+const chalk = require('chalk');
+const colors = ['red', 'yellow', 'green', 'cyan', 'blue', 'magenta', 'white', 'gray'];
+const workspaceColors = {};
+
 export const queue = new BlockingQueue('child', constants.CHILD_CONCURRENCY);
 
 // TODO: this uid check is kinda whack
@@ -61,7 +66,7 @@ type ProcessFn = (
 export function spawn(
   program: string,
   args: Array<string>,
-  opts?: child_process$spawnOpts & {detached?: boolean, process?: ProcessFn} = {},
+  opts?: child_process$spawnOpts & {detached?: boolean, process?: ProcessFn, workspaceName?: string} = {},
   onData?: (chunk: Buffer | string) => void,
 ): Promise<string> {
   const key = opts.cwd || String(++uid);
@@ -116,7 +121,19 @@ export function spawn(
           }
 
           if (proc.stdout) {
-            proc.stdout.on('data', updateStdout);
+            // Prefix output with workspace name, if we have it
+            if (opts.workspaceName) {
+              // Stay consistent by using the key that is mapped to proc
+              if (!workspaceColors[key]) {
+                const randInt = Math.floor(Math.random() * colors.length);
+                workspaceColors[key] = colors[randInt];
+              }
+              const wsColor = chalk[workspaceColors[key]];
+              const tag = `${wsColor.bold(opts.workspaceName)}:`;
+              proc.stdout.pipe(logTransformer({tag})).pipe(process.stdout);
+            } else {
+              proc.stdout.on('data', updateStdout);
+            }
           }
 
           processingDone = true;
