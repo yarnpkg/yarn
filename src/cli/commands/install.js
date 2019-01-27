@@ -608,6 +608,7 @@ export class Install {
           const mergedManifest = Object.assign({}, ...Object.values(preparedManifests).map(m => m.object));
           const auditVulnerabilityCounts = await audit.performAudit(
             mergedManifest,
+            this.lockfile,
             this.resolver,
             this.linker,
             topLevelPatterns,
