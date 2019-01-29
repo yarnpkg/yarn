@@ -5,8 +5,6 @@ import type {
   ReporterSpinnerSet,
   ReporterSelectOption,
   Trees,
-  Stdout,
-  Stdin,
   Package,
   ReporterSpinner,
   QuestionOptions,
@@ -14,9 +12,6 @@ import type {
 } from './types.js';
 import type {LanguageKeys} from './lang/en.js';
 import type {Formatter} from './format.js';
-import {defaultFormatter} from './format.js';
-import * as languages from './lang/index.js';
-import isCI from 'is-ci';
 import BaseReporter from './base-reporter.js';
 
 export default class NoopReporter extends BaseReporter {
