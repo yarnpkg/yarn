@@ -572,7 +572,7 @@ export class Install {
       this.scripts.setArtifacts(artifacts);
     }
 
-    if (!this.flags.ignoreEngines && typeof manifest.engines === 'object') {
+    if (compatibility.shouldCheck(manifest, this.flags)) {
       steps.push(async (curr: number, total: number) => {
         this.reporter.step(curr, total, this.reporter.lang('checkingManifest'), emoji.get('mag'));
         await this.checkCompatibility();

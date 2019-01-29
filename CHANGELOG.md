@@ -34,6 +34,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#6942](https://github.com/yarnpkg/yarn/pull/6942) - [**John-David Dalton**](https://twitter.com/jdalton)
 
+- Check `os` and `platform` requirements from `package.json` even when the package does not specify any `engines` requirements
+
+  [#6976](https://github.com/yarnpkg/yarn/pull/6976) - [**Micha Reiser**](https://github.com/MichaReiser)  
+
 ## 1.13.0
 
 - Implements a new `package.json` field: `peerDependenciesMeta`
