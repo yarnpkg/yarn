@@ -303,7 +303,7 @@ export async function main({
           onDeath(() => {
             process.exitCode = 1;
           });
-          resolve(run().then(release));
+          resolve(run().then(() => release()));
         }
       });
     });
