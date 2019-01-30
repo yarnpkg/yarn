@@ -110,7 +110,7 @@ export default class PackageRequest {
       // local dependencies are not required in having a version number so they get
       // the current timestamp to require it
       if (!data.version) {
-        data.version = Date.now().toString() + '.0.0';
+        data.version = '0.0.0';
       }
 
       if (!data._uid) {
