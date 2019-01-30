@@ -8,6 +8,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#6951](https://github.com/yarnpkg/yarn/pull/6951) - [**John-David Dalton**](https://twitter.com/jdalton)
 
+- Packages won't be auto-unplugged anymore if `ignore-scripts` is set in the yarnrc file
+
+  [#6983](https://github.com/yarnpkg/yarn/pull/6983) - [**Micha Reiser**](https://github.com/MichaReiser)  
+
 ## 1.14.0
 
 - Improves PnP compatibility with Node 6

@@ -56,7 +56,6 @@ type Flags = {
   har: boolean,
   ignorePlatform: boolean,
   ignoreEngines: boolean,
-  ignoreScripts: boolean,
   ignoreOptional: boolean,
   linkDuplicates: boolean,
   force: boolean,
@@ -685,7 +684,7 @@ export class Install {
           emoji.get('hammer'),
         );
 
-        if (this.flags.ignoreScripts) {
+        if (this.config.ignoreScripts) {
           this.reporter.warn(this.reporter.lang('ignoredScripts'));
         } else {
           await this.scripts.init(flattenedTopLevelPatterns);
