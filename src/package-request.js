@@ -108,7 +108,7 @@ export default class PackageRequest {
       data = Object.assign({}, data);
 
       // local dependencies are not required in having a version number so they get
-      // the current timestamp to require it
+      // the version number 0.0.0 to require it
       if (!data.version) {
         data.version = '0.0.0';
       }

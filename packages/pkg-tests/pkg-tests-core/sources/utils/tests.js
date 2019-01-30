@@ -157,7 +157,7 @@ exports.getPackageHttpArchivePath = async function getPackageHttpArchivePath(
 
 exports.getPackageDirectoryPath = async function getPackageDirectoryPath(
   name: string,
-  version: string,
+  version?: string,
 ): Promise<string> {
   const packageEntry = await exports.getPackageEntry(name);
 
