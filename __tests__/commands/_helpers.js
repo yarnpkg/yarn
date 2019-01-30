@@ -85,6 +85,7 @@ export function makeConfigFromDirectory(cwd: string, reporter: Reporter, flags: 
     {
       binLinks: !!flags.binLinks,
       cwd,
+      ignoreScripts: flags.ignoreScripts,
       globalFolder: flags.globalFolder || path.join(cwd, '.yarn-global'),
       cacheFolder: flags.cacheFolder || path.join(cwd, '.yarn-cache'),
       linkFolder: flags.linkFolder || path.join(cwd, '.yarn-link'),

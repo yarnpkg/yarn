@@ -35,6 +35,7 @@ test.concurrent(
 
       // enable packing of built artifacts
       config.packBuiltPackages = true;
+      config.ignoreScripts = false;
 
       // after first run we observe both package and global side effects
       let reinstall = new Install({force: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
@@ -64,6 +65,7 @@ test.concurrent(
 
       // enable packing of built artifacts
       config.packBuiltPackages = true;
+      config.ignoreScripts = false;
 
       // after first run we observe package side effects
       let reinstall = new Install({force: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
@@ -89,6 +91,8 @@ test.concurrent('install without pack-built-packages should keep running install
     expect(await fs.exists(path.join(config.cwd, 'node_modules', 'dep-a', 'module-a-build.log'))).toEqual(false);
     expect(await fs.exists(path.join(config.cwd, 'module-a-build.log'))).toEqual(false);
 
+    config.ignoreScripts = false;
+
     // after first run we observe both package and global side effects
     let reinstall = new Install({force: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));
     await reinstall.init();
@@ -113,6 +117,7 @@ test.concurrent('removing prebuilt package .tgz file falls back to running scrip
 
     // enable packing of built artifacts
     config.packBuiltPackages = true;
+    config.ignoreScripts = false;
 
     // after first run we observe both package and global side effects
     let reinstall = new Install({force: true}, config, reporter, await Lockfile.fromDirectory(config.cwd));

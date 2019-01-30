@@ -237,7 +237,8 @@ export default class InstallationIntegrityChecker {
     if (flags.flat) {
       result.flags.push('flat');
     }
-    if (flags.ignoreScripts) {
+
+    if (this.config.ignoreScripts) {
       result.flags.push('ignoreScripts');
     }
     if (this.config.focus) {

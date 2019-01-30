@@ -416,6 +416,8 @@ export default class Config {
     this.plugnplayShebang = String(this.getOption('plugnplay-shebang') || '') || '/usr/bin/env node';
     this.plugnplayBlacklist = String(this.getOption('plugnplay-blacklist') || '') || null;
 
+    this.ignoreScripts = opts.ignoreScripts || Boolean(this.getOption('ignore-scripts', false));
+
     this.workspacesEnabled = this.getOption('workspaces-experimental') !== false;
     this.workspacesNohoistEnabled = this.getOption('workspaces-nohoist-experimental') !== false;
 
