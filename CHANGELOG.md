@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Fixes the error reporting for non-HTTP network errors (such as invalid certificates)
+
+  [#6968](https://github.com/yarnpkg/yarn/pull/6968) - [**Chih-Hsuan Yen**](https://github.com/yan12125)
+
 ## 1.14.0
 
 - Improves PnP compatibility with Node 6
