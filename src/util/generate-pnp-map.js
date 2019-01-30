@@ -232,6 +232,10 @@ async function getPackageInformationStores(
       const packageName = pkg.name;
       let packageReference = pkg.version;
 
+      if (!packageReference) {
+        packageReference = '0.0.0';
+      }
+
       // If we have peer dependencies, then we generate a new virtual reference based on the parent one
       // We cannot generate this reference based on what those peer references resolve to, because they might not have
       // been computed yet (for example, consider the case where A has a peer dependency on B, and B a peer dependency

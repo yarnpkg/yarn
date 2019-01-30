@@ -107,6 +107,16 @@ export default class PackageRequest {
       // times
       data = Object.assign({}, data);
 
+      // local dependencies are not required in having a version number so they get
+      // the version number 0.0.0 to require it
+      if (!data.version) {
+        data.version = '0.0.0';
+      }
+
+      if (!data._uid) {
+        data._uid = name + '@' + data.version;
+      }
+
       // this is so the returned package response uses the overridden name. ie. if the
       // package's actual name is `bar`, but it's been specified in the manifest like:
       //   "foo": "http://foo.com/bar.tar.gz"

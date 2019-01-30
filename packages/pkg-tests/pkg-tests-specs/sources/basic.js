@@ -380,5 +380,21 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
         },
       ),
     );
+
+    test(
+      `it should install a single dependency without version`,
+      makeTemporaryEnv(
+        {
+          dependencies: {[`no-version`]: getPackageDirectoryPath(`no-version`)},
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await expect(source(`require('no-version')`)).resolves.toMatchObject({
+            name: `no-version`
+          });
+        },
+      ),
+    );
   });
 };
