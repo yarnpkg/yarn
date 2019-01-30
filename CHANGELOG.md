@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Fixes the error reporting for non-HTTP network errors (such as invalid certificates)
+
+  [#6968](https://github.com/yarnpkg/yarn/pull/6968) - [**Chih-Hsuan Yen**](https://github.com/yan12125)
+
 - Changes the location where the `--require ./.pnp.js` flag gets added into `NODE_OPTIONS`: now at the front (bis)
 
   [#6951](https://github.com/yarnpkg/yarn/pull/6951) - [**John-David Dalton**](https://twitter.com/jdalton)
