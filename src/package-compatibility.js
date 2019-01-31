@@ -128,20 +128,17 @@ export function checkOne(info: Manifest, config: Config, ignoreEngines: boolean)
     }
   };
 
-  const invalidPlatform =
-    shouldCheckPlatform(info, config.ignorePlatform) && info.os != null && !isValidPlatform(info.os);
+  const {os, cpu, engines} = info;
 
-  if (invalidPlatform) {
+  if (shouldCheckPlatform(os, config.ignorePlatform) && !isValidPlatform(os)) {
     pushError(reporter.lang('incompatibleOS', process.platform));
   }
 
-  const invalidCpu = shouldCheckCpu(info, config.ignorePlatform) && info.cpu != null && !isValidArch(info.cpu);
-
-  if (invalidCpu) {
+  if (shouldCheckCpu(cpu, config.ignorePlatform) && !isValidArch(cpu)) {
     pushError(reporter.lang('incompatibleCPU', process.arch));
   }
 
-  if (shouldCheckEngines(info, ignoreEngines)) {
+  if (shouldCheckEngines(engines, ignoreEngines)) {
     for (const entry of entries(info.engines)) {
       let name = entry[0];
       const range = entry[1];
@@ -171,16 +168,16 @@ export function check(infos: Array<Manifest>, config: Config, ignoreEngines: boo
   }
 }
 
-function shouldCheckCpu(manifest: PartialManifest, ignorePlatform: boolean): boolean {
-  return !ignorePlatform && Array.isArray(manifest.cpu) && manifest.cpu.length > 0;
+function shouldCheckCpu(cpu: $PropertyType<Manifest, 'cpu'>, ignorePlatform: boolean): boolean %checks {
+  return !ignorePlatform && Array.isArray(cpu) && cpu.length > 0;
 }
 
-function shouldCheckPlatform(manifest: PartialManifest, ignorePlatform: boolean): boolean {
-  return !ignorePlatform && Array.isArray(manifest.os) && manifest.os.length > 0;
+function shouldCheckPlatform(os: $PropertyType<Manifest, 'os'>, ignorePlatform: boolean): boolean %checks {
+  return !ignorePlatform && Array.isArray(os) && os.length > 0;
 }
 
-function shouldCheckEngines(manifest: PartialManifest, ignoreEngines: boolean): boolean {
-  return !ignoreEngines && typeof manifest.engines === 'object';
+function shouldCheckEngines(engines: $PropertyType<Manifest, 'engines'>, ignoreEngines: boolean): boolean %checks {
+  return !ignoreEngines && typeof engines === 'object';
 }
 
 export function shouldCheck(
@@ -188,8 +185,8 @@ export function shouldCheck(
   options: {ignoreEngines: boolean, ignorePlatform: boolean},
 ): boolean {
   return (
-    shouldCheckCpu(manifest, options.ignorePlatform) ||
-    shouldCheckPlatform(manifest, options.ignorePlatform) ||
-    shouldCheckEngines(manifest, options.ignoreEngines)
+    shouldCheckCpu(manifest.cpu, options.ignorePlatform) ||
+    shouldCheckPlatform(manifest.os, options.ignorePlatform) ||
+    shouldCheckEngines(manifest.engines, options.ignoreEngines)
   );
 }
