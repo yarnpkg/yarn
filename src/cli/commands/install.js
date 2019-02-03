@@ -715,17 +715,12 @@ export class Install {
     }
 
     let currentStep = 0;
+    let wasBailedOut = false;
     for (const step of steps) {
       const stepResult = await step(++currentStep, steps.length);
       if (stepResult && stepResult.bailout) {
-        if (this.flags.audit) {
-          audit.summary();
-        }
-        if (auditFoundProblems) {
-          this.reporter.warn(this.reporter.lang('auditRunAuditForDetails'));
-        }
-        this.maybeOutputUpdate();
-        return flattenedTopLevelPatterns;
+        wasBailedOut = true;
+        break;
       }
     }
 
@@ -736,10 +731,18 @@ export class Install {
     if (auditFoundProblems) {
       this.reporter.warn(this.reporter.lang('auditRunAuditForDetails'));
     }
-    await this.saveLockfileAndIntegrity(topLevelPatterns, workspaceLayout);
-    await this.persistChanges();
+    if (!wasBailedOut) {
+      await this.saveLockfileAndIntegrity(topLevelPatterns, workspaceLayout);
+      await this.persistChanges();
+    }
+
     this.maybeOutputUpdate();
-    this.config.requestManager.clearCache();
+
+    if (!wasBailedOut) {
+      this.config.requestManager.clearCache();
+    }
+    await this.runWorkspacePrepareScripts(workspaceLayout);
+
     return flattenedTopLevelPatterns;
   }
 
@@ -789,6 +792,42 @@ export class Install {
 
   shouldClean(): Promise<boolean> {
     return fs.exists(path.join(this.config.lockfileFolder, constants.CLEAN_FILENAME));
+  }
+
+  /**
+   * Get workspace locations sorted in topological order (dependecies first).
+   */
+
+  async getOrderedWorkspaces(workspaceLayout: WorkspaceLayout): Promise<Array<{loc: string, manifest: Manifest}>> {
+    const workspaces = await getWorkspaces(this.config);
+    const workspaceManifestPatterns = workspaces.map(
+      workspace => `${workspace.manifest.name}@${workspace.manifest.version}`,
+    );
+    const orderedPackages: Array<Manifest> = Array.from(
+      this.resolver.getTopologicalManifests(workspaceManifestPatterns),
+    );
+    const orderedWorkspaces = orderedPackages
+      .map(manifest => workspaceLayout.getManifestByPattern(`${manifest.name}@${manifest.version}`))
+      .filter(Boolean);
+    return orderedWorkspaces;
+  }
+
+  /**
+   * Run `prepare` and `prepublish` scripts on workspace directories.
+   */
+
+  async runWorkspacePrepareScripts(workspaceLayout: WorkspaceLayout): Promise<void> {
+    if (!this.config.production) {
+      const orderedWorkspaces = await this.getOrderedWorkspaces(workspaceLayout);
+      const orderedWorkspaceLocations = orderedWorkspaces.map(workspace => workspace.loc);
+
+      for (const loc of orderedWorkspaceLocations) {
+        if (!this.config.disablePrepublish) {
+          await this.config.executeLifecycleScript('prepublish', loc);
+        }
+        await this.config.executeLifecycleScript('prepare', loc);
+      }
+    }
   }
 
   /**
@@ -1184,7 +1223,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   await install(config, reporter, flags, lockfile);
 }
 
-async function getWorkspaceLocations(config: Config): Promise<Array<string>> {
+async function getWorkspaces(config: Config): Promise<Array<{loc: string, manifest: Manifest}>> {
   const {workspaceRootFolder} = config;
   if (!workspaceRootFolder) {
     return [];
@@ -1193,30 +1232,27 @@ async function getWorkspaceLocations(config: Config): Promise<Array<string>> {
   const manifest = await config.findManifest(workspaceRootFolder, false);
   invariant(manifest && manifest.workspaces, 'We must find a manifest with a "workspaces" property');
   const workspaces = await config.resolveWorkspaces(workspaceRootFolder, manifest);
-  return Object.keys(workspaces).map(workspaceName => workspaces[workspaceName].loc);
+  return Object.keys(workspaces).map(workspaceName => workspaces[workspaceName]);
 }
 
 export async function wrapLifecycle(config: Config, flags: Object, factory: () => Promise<void>): Promise<void> {
-  const workspaceLocations = await getWorkspaceLocations(config);
-  async function executeLifecycleScript(script: string): Promise<void> {
-    for (const loc of workspaceLocations) {
-      await config.executeLifecycleScript(script, loc);
-    }
-    await config.executeLifecycleScript(script);
-  }
+  const workspaceLocations = (await getWorkspaces(config)).map(workspace => workspace.loc);
 
-  executeLifecycleScript('preinstall');
+  for (const loc of workspaceLocations) {
+    await config.executeLifecycleScript('preinstall', loc);
+  }
+  await config.executeLifecycleScript('preinstall');
 
   await factory();
 
   // npm behaviour, seems kinda funky but yay compatibility
-  await executeLifecycleScript('install');
-  await executeLifecycleScript('postinstall');
+  await config.executeLifecycleScript('install');
+  await config.executeLifecycleScript('postinstall');
 
   if (!config.production) {
     if (!config.disablePrepublish) {
-      await executeLifecycleScript('prepublish');
+      await config.executeLifecycleScript('prepublish');
     }
-    await executeLifecycleScript('prepare');
+    await config.executeLifecycleScript('prepare');
   }
 }
