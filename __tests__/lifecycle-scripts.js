@@ -144,24 +144,59 @@ test.concurrent('should run both prepublish and prepare when installing, but not
   expect(stdout).not.toMatch(/^running the prepublishOnly hook$/m);
 });
 
-test.concurrent(
-  'should run prepublish, prepare, preinstall, install & postinstall when installing workspaces',
-  async () => {
-    const stdout = await execCommand('install', 'workspaces-lifecycle-scripts');
+test.concurrent('should run preinstall, prepublish and prepare when installing workspaces', async () => {
+  const stdout = await execCommand('install', 'workspaces-lifecycle-scripts');
 
-    expect(stdout).toMatch(/^running the main preinstall hook$/m);
-    expect(stdout).toMatch(/^running the main install hook$/m);
-    expect(stdout).toMatch(/^running the main postinstall hook$/m);
-    expect(stdout).toMatch(/^running the main prepublish hook$/m);
-    expect(stdout).toMatch(/^running the main prepare hook$/m);
+  expect(stdout).toMatch(/^running the main preinstall hook$/m);
+  expect(stdout).toMatch(/^running the main install hook$/m);
+  expect(stdout).toMatch(/^running the main postinstall hook$/m);
+  expect(stdout).toMatch(/^running the main prepublish hook$/m);
+  expect(stdout).toMatch(/^running the main prepare hook$/m);
 
-    expect(stdout).toMatch(/^running the workspace preinstall hook$/m);
-    expect(stdout).toMatch(/^running the workspace install hook$/m);
-    expect(stdout).toMatch(/^running the workspace postinstall hook$/m);
-    expect(stdout).toMatch(/^running the workspace prepublish hook$/m);
-    expect(stdout).toMatch(/^running the workspace prepare hook$/m);
-  },
-);
+  expect(stdout).toMatch(/^running workspace a preinstall hook$/m);
+  expect(stdout).toMatch(/^running workspace a prepublish hook$/m);
+  expect(stdout).toMatch(/^running workspace a prepare hook$/m);
+
+  expect(stdout).toMatch(/^running workspace b preinstall hook$/m);
+  expect(stdout).toMatch(/^running workspace b prepublish hook$/m);
+  expect(stdout).toMatch(/^running workspace b prepare hook$/m);
+
+  expect(stdout).toMatch(/^running workspace c preinstall hook$/m);
+  expect(stdout).toMatch(/^running workspace c prepublish hook$/m);
+  expect(stdout).toMatch(/^running workspace c prepare hook$/m);
+});
+
+test.concurrent("should run workspaces' prepare scripts in topological order (dependencies first)", async () => {
+  const stdout = await execCommand('install', 'workspaces-lifecycle-scripts');
+
+  expect(stdout).toMatch(
+    new RegExp(
+      [
+        '^running workspace c prepublish hook$',
+        '[\\s\\S]*',
+        '^running workspace a prepublish hook$',
+        '[\\s\\S]*',
+        '^running workspace b prepublish hook$',
+      ].join(''),
+      'm',
+    ),
+  );
+});
+
+test.concurrent('should **not** run install and postinstall on workspaces', async () => {
+  // Running these scripts would lead to undefined behaviour with peerDependencies.
+  // See discussion in https://github.com/yarnpkg/yarn/pull/6869 for more details.
+  const stdout = await execCommand('install', 'workspaces-lifecycle-scripts');
+
+  expect(stdout).not.toMatch(/^running workspace a install hook$/m);
+  expect(stdout).not.toMatch(/^running workspace a postinstall hook$/m);
+
+  expect(stdout).not.toMatch(/^running workspace b install hook$/m);
+  expect(stdout).not.toMatch(/^running workspace b postinstall hook$/m);
+
+  expect(stdout).not.toMatch(/^running workspace c install hook$/m);
+  expect(stdout).not.toMatch(/^running workspace c postinstall hook$/m);
+});
 
 test.concurrent('should run both prepack and postpack', async () => {
   const stdout = await execCommand('pack', 'lifecycle-scripts');
