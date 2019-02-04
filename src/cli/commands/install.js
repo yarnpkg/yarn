@@ -816,7 +816,10 @@ export class Install {
    * Run `prepare` and `prepublish` scripts on workspace directories.
    */
 
-  async runWorkspacePrepareScripts(workspaceLayout: WorkspaceLayout): Promise<void> {
+  async runWorkspacePrepareScripts(workspaceLayout?: WorkspaceLayout): Promise<void> {
+    if (!workspaceLayout) {
+      return;
+    }
     if (!this.config.production) {
       const orderedWorkspaces = await this.getOrderedWorkspaces(workspaceLayout);
       const orderedWorkspaceLocations = orderedWorkspaces.map(workspace => workspace.loc);
