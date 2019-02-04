@@ -356,7 +356,7 @@ export default class RequestManager {
    */
 
   execute(opts: RequestOptions) {
-    const {params} = opts;
+    const {params} = {...opts};
     const {reporter} = this;
 
     const buildNext = fn => data => {

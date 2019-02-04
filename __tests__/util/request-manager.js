@@ -186,6 +186,7 @@ test('RequestManager.execute timeout error with default maxRetryAttempts', async
 
 for (const statusCode of [403, 442]) {
   test(`RequestManager.execute Request ${statusCode} error`, async () => {
+    jest.resetModules();
     // The await await is just to silence Flow - https://github.com/facebook/flow/issues/6064
     const config = await await Config.create({}, new Reporter());
     const mockStatusCode = statusCode;
@@ -203,12 +204,33 @@ for (const statusCode of [403, 442]) {
       resolve: body => {},
       reject: err => {
         expect(err.message).toBe(
-          `https://localhost:port/?nocache: Request "https://localhost:port/?nocache" returned a 403`,
+          `https://localhost:port/?nocache: Request "https://localhost:port/?nocache" returned a ${statusCode}`,
         );
       },
     });
   });
 }
+
+test('RequestManager.execute propagates non HTTP errors', async () => {
+  jest.resetModules();
+  jest.mock('request', factory => options => {
+    options.callback(new Error('bad stuff happened'), {}, '');
+    return {
+      on: () => {},
+    };
+  });
+  const config = await await Config.create({}, new Reporter());
+  await config.requestManager.execute({
+    params: {
+      url: `https://localhost:port/?nocache`,
+      headers: {Connection: 'close'},
+    },
+    resolve: body => {},
+    reject: err => {
+      expect(err.message).toBe('https://localhost:port/?nocache: bad stuff happened');
+    },
+  });
+});
 
 test('RequestManager.execute one time password error on npm request', async () => {
   jest.resetModules();
