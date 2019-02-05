@@ -23,7 +23,7 @@ export function run(config: Config, reporter: Reporter, commander: Object, args:
       const command = commands[commandName];
       if (command) {
         command.setFlags(commander);
-        const examples: Array<string> = ((command && command.examples) || []).map(example => `    $ yarn ${example}`);
+        const examples: Array<string> = (command.examples || []).map(example => `    $ yarn ${example}`);
         if (examples.length) {
           commander.on('--help', () => {
             reporter.log(reporter.lang('helpExamples', reporter.rawText(examples.join('\n'))));
