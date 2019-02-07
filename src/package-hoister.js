@@ -838,7 +838,7 @@ export default class PackageHoister {
       for (let i = 0; i < keyParts.length; i++) {
         const key = keyParts.slice(0, i + 1).join('#');
         const hoisted = this.tree.get(key);
-        invariant(hoisted, 'expected hoisted manifest');
+        invariant(hoisted, `expected hoisted manifest for "${key}"`);
         parts.push(this.config.getFolder(hoisted.pkg));
         parts.push(keyParts[i]);
       }
