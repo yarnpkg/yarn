@@ -401,8 +401,8 @@ export default class Config {
     }
 
     if (process.platform === 'win32') {
-      const cacheRootFolderDrive = path.parse(this._cacheRootFolder).root;
-      const lockfileFolderDrive = path.parse(this.lockfileFolder).root;
+      const cacheRootFolderDrive = path.parse(this._cacheRootFolder).root.toLowerCase();
+      const lockfileFolderDrive = path.parse(this.lockfileFolder).root.toLowerCase();
 
       if (cacheRootFolderDrive !== lockfileFolderDrive) {
         if (this.plugnplayEnabled) {
@@ -415,6 +415,8 @@ export default class Config {
 
     this.plugnplayShebang = String(this.getOption('plugnplay-shebang') || '') || '/usr/bin/env node';
     this.plugnplayBlacklist = String(this.getOption('plugnplay-blacklist') || '') || null;
+
+    this.ignoreScripts = opts.ignoreScripts || Boolean(this.getOption('ignore-scripts', false));
 
     this.workspacesEnabled = this.getOption('workspaces-experimental') !== false;
     this.workspacesNohoistEnabled = this.getOption('workspaces-nohoist-experimental') !== false;

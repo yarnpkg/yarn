@@ -380,5 +380,69 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
         },
       ),
     );
+
+    test(
+      `it should fail if the environment does not satisfy the os platform`,
+      makeTemporaryEnv(
+        {
+          os: ['unicorn'],
+        },
+        async ({path, run, source}) => {
+          await expect(run(`install`)).rejects.toThrow(/The platform "\w+" is incompatible with this module\./);
+        },
+      ),
+    );
+
+    test(
+      `it should fail if the environment does not satisfy the cpu architecture`,
+      makeTemporaryEnv(
+        {
+          cpu: ['unicorn'],
+        },
+        async ({path, run, source}) => {
+          await expect(run(`install`)).rejects.toThrow(/The CPU architecture "\w+" is incompatible with this module\./);
+        },
+      ),
+    );
+
+    test(
+      `it should fail if the environment does not satisfy the engine requirements`,
+      makeTemporaryEnv(
+        {
+          engines: {
+            node: "0.18.1"
+          }
+        },
+        async ({path, run, source}) => {
+          await expect(run(`install`)).rejects.toThrow(/The engine "node" is incompatible with this module\. Expected version "0.18.1"./);
+        },
+      ),
+    );
+
+    test(
+      `it should not fail if the environment does not satisfy the os and cpu architecture but ignore platform is true`,
+      makeTemporaryEnv(
+        {
+          os: ['unicorn'],
+        },
+        async ({path, run, source}) => {
+          await run(`install`, '--ignore-platform');
+        },
+      ),
+    );
+
+    test(
+      `it should not fail if the environment does not satisfy the engine requirements but ignore engines is true`,
+      makeTemporaryEnv(
+        {
+          engines: {
+            node: "0.18.1"
+          }
+        },
+        async ({path, run, source}) => {
+          await run(`install`, '--ignore-engines');
+        },
+      ),
+    );
   });
 };

@@ -1139,3 +1139,11 @@ test('install will not warn for missing optional peer dependencies', () =>
     const warningMessage = messageParts.every(part => stdout.includes(part));
     expect(warningMessage).toBe(false);
   }));
+
+test('install skips the scripts if the yarnrc specifies skip-scripts true', () =>
+  runInstall({}, 'ignore-scripts-by-yarnrc', (config, reporter, install, getStdout) => {
+    const stdout = getStdout();
+
+    const ignoredScriptsMessage = reporter.lang('ignoredScripts');
+    expect(stdout).toMatch(ignoredScriptsMessage);
+  }));
