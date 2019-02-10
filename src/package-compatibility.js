@@ -8,7 +8,6 @@ import {entries} from './util/misc.js';
 import {version as yarnVersion} from './util/yarn-version.js';
 import {satisfiesWithPrereleases} from './util/semver.js';
 
-const invariant = require('invariant');
 const semver = require('semver');
 
 const VERSIONS = Object.assign({}, process.versions, {
@@ -111,9 +110,8 @@ export function checkOne(info: Manifest, config: Config, ignoreEngines: boolean)
 
   const pushError = msg => {
     const ref = info._reference;
-    invariant(ref, 'expected package reference');
 
-    if (ref.optional) {
+    if (ref && ref.optional) {
       ref.ignore = true;
       ref.incompatible = true;
 
