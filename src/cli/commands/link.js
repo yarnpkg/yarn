@@ -56,7 +56,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       throw new MessageError(reporter.lang('unknownPackageName'));
     }
 
-    const linkLoc = path.join(config.linkFolder, name);
+    const linkLoc = path.join(await fs.realpath(config.linkFolder), name);
     if (await fs.exists(linkLoc)) {
       reporter.warn(reporter.lang('linkCollision', name));
     } else {
