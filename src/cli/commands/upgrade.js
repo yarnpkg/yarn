@@ -85,7 +85,7 @@ function getRangeOperator(version): string {
 // If an explicit operator was specified using --exact, --tilde, --caret, then that will take precedence.
 function buildPatternToUpgradeTo(dep, flags): string {
   if (dep.latest === 'exotic') {
-    return dep.url;
+    return `${dep.name}@${dep.url}`;
   }
 
   const toLatest = flags.latest;
