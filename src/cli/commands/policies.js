@@ -118,6 +118,9 @@ const {run, setFlags, examples} = buildSubCommands('policies', {
     if (range === 'nightly' || range === 'nightlies') {
       bundleUrl = 'https://nightly.yarnpkg.com/latest.js';
       bundleVersion = 'nightly';
+    } else if (range === 'berry' || range === 'v2' || range === '2') {
+      bundleUrl = 'https://github.com/yarnpkg/yarn-berry/raw/master/packages/berry-cli/bin/berry.js';
+      bundleVersion = 'berry';
     } else {
       const releases = await fetchReleases(config, {
         includePrereleases: allowRc,
