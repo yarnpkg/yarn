@@ -215,6 +215,7 @@ test.concurrent('--integrity should fail if --ignore-scripts is changed', async 
     async (config, reporter, install, getStdout): Promise<void> => {
       let thrown = false;
       try {
+        config.ignoreScripts = false;
         await checkCmd.run(config, reporter, {integrity: true, ignoreScripts: false}, []);
       } catch (e) {
         thrown = true;
