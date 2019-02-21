@@ -31,8 +31,8 @@ export const DEFAULTS = {
   'user-agent': [`yarn/${version}`, 'npm/?', `node/${process.version}`, process.platform, process.arch].join(' '),
 };
 
-const RELATIVE_KEYS = ['yarn-offline-mirror', 'cache-folder', 'offline-cache-folder', 'yarn-path'];
-const FOLDER_KEY = ['yarn-offline-mirror', 'cache-folder', 'offline-cache-folder'];
+const RELATIVE_KEYS = ['yarn-offline-mirror', 'cache-folder', 'global-folder', 'offline-cache-folder', 'yarn-path'];
+const FOLDER_KEY = ['yarn-offline-mirror', 'cache-folder', 'global-folder', 'offline-cache-folder'];
 
 const npmMap = {
   'version-git-sign': 'sign-git-tag',
