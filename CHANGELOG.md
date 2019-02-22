@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Allow `global-folder` to be set in `.yarnrc`.
+
+  [#7056](https://github.com/yarnpkg/yarn/pull/7056) - [**Hsiao-nan Cheung**](https://github.com/niheaven)
+
 - Fix yarn `upgrade --scope` when using exotic (github) dependencies.
 
   [#7017](https://github.com/yarnpkg/yarn/pull/7017) - [**Jeff Valore**](https://twitter.com/codingwithspike)
