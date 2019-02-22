@@ -276,11 +276,8 @@ export default class Config {
     try {
       linkedModules = await fs.readdir(this.linkFolder);
     } catch (err) {
-      if (err.code === 'ENOENT') {
-        linkedModules = [];
-      } else {
-        throw err;
-      }
+      if (err.code !== 'ENOENT') throw err;
+      linkedModules = [];
     }
 
     for (const dir of linkedModules) {

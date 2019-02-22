@@ -728,6 +728,8 @@ export class Install {
       }
     }
 
+    this.resolver.clearRequests();
+
     // fin!
     if (this.flags.audit) {
       audit.summary();
