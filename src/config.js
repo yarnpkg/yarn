@@ -50,7 +50,6 @@ export type ConfigOptions = {
   nonInteractive?: boolean,
   enablePnp?: boolean,
   disablePnp?: boolean,
-  scriptsPrependNodePath?: boolean,
   offlineCacheFolder?: string,
 
   enableDefaultRc?: boolean,
@@ -179,8 +178,6 @@ export default class Config {
   plugnplayBlacklist: ?string;
   plugnplayUnplugged: Array<string>;
   plugnplayPurgeUnpluggedPackages: boolean;
-
-  scriptsPrependNodePath: boolean;
 
   workspacesEnabled: boolean;
   workspacesNohoistEnabled: boolean;
@@ -487,8 +484,6 @@ export default class Config {
 
     // $FlowFixMe$
     this.nonInteractive = !!opts.nonInteractive || isCi || !process.stdout.isTTY;
-
-    this.scriptsPrependNodePath = !!opts.scriptsPrependNodePath;
 
     this.requestManager.setOptions({
       offline: !!opts.offline && !opts.preferOffline,
