@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Allow cancelling `yarn version` with ctrl-c or empty version number.
+
+  [#7064](https://github.com/yarnpkg/yarn/pull/7064) - [**Olle Lauri Boström**](https://github.com/ollelauribostrom)
+
 - Adds support for `yarn policies set-version berry`
 
   [#7041](https://github.com/yarnpkg/yarn/pull/7041/files) - [**Maël Nison**](https://twitter.com/arcanis)
