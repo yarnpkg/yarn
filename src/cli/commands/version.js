@@ -100,7 +100,15 @@ export async function setVersion(
       break;
     }
 
-    newVersion = await reporter.question(reporter.lang('newVersion'));
+    // Make sure we dont exit with an error message when pressing Ctrl-C or enter to abort
+    try {
+      newVersion = await reporter.question(reporter.lang('newVersion'));
+      if (!newVersion) {
+        newVersion = oldVersion;
+      }
+    } catch (err) {
+      newVersion = oldVersion;
+    }
 
     if (!required && !newVersion) {
       reporter.info(`${reporter.lang('noVersionOnPublish')}: ${oldVersion}`);
