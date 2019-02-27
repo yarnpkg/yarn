@@ -171,7 +171,9 @@ export default class BaseRegistry {
       key = key.replace(/__/g, '.');
 
       // replace underscores with dashes
-      key = key.replace(/_/g, '-');
+      if (!['_auth', '_authtoken', '_username', '_password'].includes(key)) {
+        key = key.replace(/_/g, '-');
+      }
 
       // set it via a path
       objectPath.set(this.config, key, val);
