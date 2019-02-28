@@ -346,6 +346,11 @@ export default class Config {
       networkTimeout: this.networkTimeout,
     });
 
+    this.globalFolder = opts.globalFolder || String(this.getOption('global-folder', true));
+    if (this.globalFolder === 'undefined') {
+      this.globalFolder = constants.GLOBAL_MODULE_DIRECTORY;
+    }
+
     let cacheRootFolder = opts.cacheFolder || this.getOption('cache-folder', true);
 
     if (!cacheRootFolder) {
@@ -390,7 +395,7 @@ export default class Config {
       this.plugnplayPersist = false;
     } else {
       this.plugnplayEnabled = false;
-      this.plugnplayEnabled = false;
+      this.plugnplayPersist = false;
     }
 
     if (process.platform === 'win32') {
@@ -464,7 +469,6 @@ export default class Config {
 
     this.preferOffline = !!opts.preferOffline;
     this.modulesFolder = opts.modulesFolder;
-    this.globalFolder = opts.globalFolder || constants.GLOBAL_MODULE_DIRECTORY;
     this.linkFolder = opts.linkFolder || constants.LINK_REGISTRY_DIRECTORY;
     this.offline = !!opts.offline;
     this.binLinks = !!opts.binLinks;
