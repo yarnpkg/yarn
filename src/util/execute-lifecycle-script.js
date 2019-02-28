@@ -232,7 +232,7 @@ export async function makeEnv(
     // Note that NODE_OPTIONS doesn't support any style of quoting its arguments at the moment
     // For this reason, it won't work if the user has a space inside its $PATH
     env.NODE_OPTIONS = env.NODE_OPTIONS || '';
-    env.NODE_OPTIONS += ` --require ${pnpFile}`;
+    env.NODE_OPTIONS = `--require ${pnpFile} ${env.NODE_OPTIONS}`;
   }
 
   pathParts.unshift(await getWrappersFolder(config));

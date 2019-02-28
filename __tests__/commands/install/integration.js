@@ -1152,3 +1152,11 @@ test('does not check node_modules for extraneous files when --modules-folder use
     expect(await fs.exists(`${config.cwd}/some_modules/extra.js`)).toEqual(false);
   });
 });
+
+test('install skips the scripts if the yarnrc specifies skip-scripts true', () =>
+  runInstall({}, 'ignore-scripts-by-yarnrc', (config, reporter, install, getStdout) => {
+    const stdout = getStdout();
+
+    const ignoredScriptsMessage = reporter.lang('ignoredScripts');
+    expect(stdout).toMatch(ignoredScriptsMessage);
+  }));

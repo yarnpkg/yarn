@@ -47,8 +47,10 @@ async function fetchReleases(
   config: Config,
   {includePrereleases = false}: FetchReleasesOptions = {},
 ): Promise<Array<Release>> {
+  const token = process.env.GITHUB_TOKEN;
+  const tokenUrlParameter = token ? `?access_token=${token}` : '';
   const request: Array<Release> = await config.requestManager.request({
-    url: `https://api.github.com/repos/yarnpkg/yarn/releases`,
+    url: `https://api.github.com/repos/yarnpkg/yarn/releases${tokenUrlParameter}`,
     json: true,
   });
 
@@ -116,6 +118,9 @@ const {run, setFlags, examples} = buildSubCommands('policies', {
     if (range === 'nightly' || range === 'nightlies') {
       bundleUrl = 'https://nightly.yarnpkg.com/latest.js';
       bundleVersion = 'nightly';
+    } else if (range === 'berry' || range === 'v2' || range === '2') {
+      bundleUrl = 'https://github.com/yarnpkg/berry/raw/master/packages/berry-cli/bin/berry.js';
+      bundleVersion = 'berry';
     } else {
       const releases = await fetchReleases(config, {
         includePrereleases: allowRc,
