@@ -78,12 +78,8 @@ export async function clean(
 
   // build list of possible module folders
   const locs = new Set();
-  if (config.modulesFolder) {
-    locs.add(config.modulesFolder);
-  }
-  for (const name of registryNames) {
-    const registry = config.registries[name];
-    locs.add(path.join(config.lockfileFolder, registry.folder));
+  for (const registryFolder of config.registryFolders) {
+    locs.add(path.resolve(config.lockfileFolder, registryFolder));
   }
 
   const workspaceRootFolder = config.workspaceRootFolder;
