@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Fix `npm_config_` environment variable parsing to support `_auth`, `_authToken`, `_username` and `_password` config options
+
+  [#7070](https://github.com/yarnpkg/yarn/pull/7070) - [**Nicholas Boll**](https://github.com/NicholasBoll)
+
 - Adds support for `yarn policies set-version berry`
 
   [#7041](https://github.com/yarnpkg/yarn/pull/7041/files) - [**Maël Nison**](https://twitter.com/arcanis)
