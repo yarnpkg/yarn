@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Allows `global-folder` to be set in `.yarnrc` files
+
+  [#7056](https://github.com/yarnpkg/yarn/pull/7056) - [**Hsiao-nan Cheung**](https://github.com/niheaven)
+
 - Makes `yarn version` cancellable via ctrl-c or empty string
 
   [#7064](https://github.com/yarnpkg/yarn/pull/7064) - [**Olle Lauri Boström**](https://github.com/ollelauribostrom)
