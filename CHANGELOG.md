@@ -8,6 +8,64 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#6846](https://github.com/yarnpkg/yarn/pull/6846) - [**Jeff Valore**](https://twitter.com/codingwithspike)
 
+- Adds support for `yarn policies set-version berry`
+
+  [#7041](https://github.com/yarnpkg/yarn/pull/7041/files) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Fix yarn `upgrade --scope` when using exotic (github) dependencies.
+
+  [#7017](https://github.com/yarnpkg/yarn/pull/7017) - [**Jeff Valore**](https://twitter.com/codingwithspike)
+
+- Fixes occasionally mismatching upper/lowecases of drive letters in win32 pnp check
+
+  [#7007](https://github.com/yarnpkg/yarn/pull/7007) - [**Christoph Werner**](https://github.com/codepunkt)
+
+- Fixes the error reporting for non-HTTP network errors (such as invalid certificates)
+
+  [#6968](https://github.com/yarnpkg/yarn/pull/6968) - [**Chih-Hsuan Yen**](https://github.com/yan12125)
+
+- Changes the location where the `--require ./.pnp.js` flag gets added into `NODE_OPTIONS`: now at the front (bis)
+
+  [#6951](https://github.com/yarnpkg/yarn/pull/6951) - [**John-David Dalton**](https://twitter.com/jdalton)
+
+- Packages won't be auto-unplugged anymore if `ignore-scripts` is set in the yarnrc file
+
+  [#6983](https://github.com/yarnpkg/yarn/pull/6983) - [**Micha Reiser**](https://github.com/MichaReiser)
+
+## 1.14.0
+
+- Improves PnP compatibility with Node 6
+
+  [#6871](https://github.com/yarnpkg/yarn/pull/6871) - [**Robert Jackson**](https://github.com/rwjblue)
+
+- Fixes PnP detection with workspaces (`installConfig` is now read at the top-level)
+
+  [#6878](https://github.com/yarnpkg/yarn/pull/6878) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Fixes an interaction between `yarn pack` and bundled dependencies
+
+  [#6908](https://github.com/yarnpkg/yarn/pull/6908) - [**Travis Hoover**](https://twitter.com/thoov)
+
+- Adds support for `GITHUB_TOKEN` in `yarn policies set-version`
+
+  [#6912](https://github.com/yarnpkg/yarn/pull/6912) - [**Billy Vong**](https://github.com/billyvg)
+
+- Fixes an issue where `resolve` would forward an incomplete basedir to the PnP hook
+
+  [#6882](https://github.com/yarnpkg/yarn/pull/6882) - [**Zoran Regvart**](https://github.com/zregvart)
+
+- Fixes the command that `yarn unlink` recommends to run as a followup (now `yarn install --force`)
+
+  [#6931](https://github.com/yarnpkg/yarn/pull/6931) - [**Justin Sacbibit**](https://github.com/justinsacbibit)
+
+- Changes the location where the `--require ./.pnp.js` flag gets added into `NODE_OPTIONS`: now at the front
+
+  [#6942](https://github.com/yarnpkg/yarn/pull/6942) - [**John-David Dalton**](https://twitter.com/jdalton)
+
+- Fixes a bug where `os` and `platform` requirements weren't properly checked when `engines` was missing
+
+  [#6976](https://github.com/yarnpkg/yarn/pull/6976) - [**Micha Reiser**](https://github.com/MichaReiser)
+
 ## 1.13.0
 
 - Implements a new `package.json` field: `peerDependenciesMeta`

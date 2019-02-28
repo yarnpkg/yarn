@@ -82,7 +82,7 @@ function blacklistCheck(locator) {
         `A package has been resolved through a blacklisted path - this is usually caused by one of your tools calling`,
         `"realpath" on the return value of "require.resolve". Since the returned values use symlinks to disambiguate`,
         `peer dependencies, they must be passed untransformed to "require".`,
-      ].join(` `),
+      ].join(` `)
     );
   }
 
@@ -116,7 +116,7 @@ function getPackageInformationSafe(packageLocator) {
   if (!packageInformation) {
     throw makeError(
       `INTERNAL`,
-      `Couldn't find a matching entry in the dependency tree for the specified parent (this is probably an internal error)`,
+      `Couldn't find a matching entry in the dependency tree for the specified parent (this is probably an internal error)`
     );
   }
 
@@ -348,7 +348,7 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer, {c
         {
           request,
           issuer,
-        },
+        }
       );
     }
 
@@ -392,7 +392,7 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer, {c
           {
             request,
             issuer,
-          },
+          }
         );
       }
 
@@ -424,13 +424,13 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer, {c
           throw makeError(
             `MISSING_PEER_DEPENDENCY`,
             `You seem to be requiring a peer dependency ("${dependencyName}"), but it is not installed (which might be because you're the top-level package)`,
-            {request, issuer, dependencyName},
+            {request, issuer, dependencyName}
           );
         } else {
           throw makeError(
             `MISSING_PEER_DEPENDENCY`,
             `Package "${issuerLocator.name}@${issuerLocator.reference}" is trying to access a peer dependency ("${dependencyName}") that should be provided by its direct ancestor but isn't`,
-            {request, issuer, issuerLocator: Object.assign({}, issuerLocator), dependencyName},
+            {request, issuer, issuerLocator: Object.assign({}, issuerLocator), dependencyName}
           );
         }
       } else {
@@ -438,16 +438,16 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer, {c
           throw makeError(
             `UNDECLARED_DEPENDENCY`,
             `You cannot require a package ("${dependencyName}") that is not declared in your dependencies (via "${issuer}")`,
-            {request, issuer, dependencyName},
+            {request, issuer, dependencyName}
           );
         } else {
           const candidates = Array.from(issuerInformation.packageDependencies.keys());
           throw makeError(
             `UNDECLARED_DEPENDENCY`,
             `Package "${issuerLocator.name}@${issuerLocator.reference}" (via "${issuer}") is trying to require the package "${dependencyName}" (via "${request}") without it being listed in its dependencies (${candidates.join(
-              `, `,
+              `, `
             )})`,
-            {request, issuer, issuerLocator: Object.assign({}, issuerLocator), dependencyName, candidates},
+            {request, issuer, issuerLocator: Object.assign({}, issuerLocator), dependencyName, candidates}
           );
         }
       }
@@ -463,7 +463,7 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer, {c
       throw makeError(
         `MISSING_DEPENDENCY`,
         `Package "${dependencyLocator.name}@${dependencyLocator.reference}" is a valid dependency, but hasn't been installed and thus cannot be required (it might be caused if you install a partial tree, such as on production environments)`,
-        {request, issuer, dependencyLocator: Object.assign({}, dependencyLocator)},
+        {request, issuer, dependencyLocator: Object.assign({}, dependencyLocator)}
       );
     }
 
@@ -486,7 +486,7 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer, {c
 
 exports.resolveUnqualified = function resolveUnqualified(
   unqualifiedPath,
-  {extensions = Object.keys(Module._extensions)} = {},
+  {extensions = Object.keys(Module._extensions)} = {}
 ) {
   const qualifiedPath = applyNodeExtensionResolution(unqualifiedPath, {extensions});
 
@@ -496,7 +496,7 @@ exports.resolveUnqualified = function resolveUnqualified(
     throw makeError(
       `QUALIFIED_PATH_RESOLUTION_FAILED`,
       `Couldn't find a suitable Node resolution for unqualified path "${unqualifiedPath}"`,
-      {unqualifiedPath},
+      {unqualifiedPath}
     );
   }
 };
@@ -550,7 +550,7 @@ exports.resolveRequest = function resolveRequest(request, issuer, {considerBuilt
             request,
             issuer,
             realIssuer,
-          },
+          }
         );
       }
     }
@@ -673,7 +673,7 @@ exports.setup = function setup() {
       if (optionNames.size > 0) {
         throw makeError(
           `UNSUPPORTED`,
-          `Some options passed to require() aren't supported by PnP yet (${Array.from(optionNames).join(', ')})`,
+          `Some options passed to require() aren't supported by PnP yet (${Array.from(optionNames).join(', ')})`
         );
       }
 
@@ -773,6 +773,10 @@ exports.setupCompatibilityLayer = () => {
           // Extract the name of the package being requested (1=full name, 2=scope name, 3=local name)
           const parts = request.match(/^((?:(@[^\/]+)\/)?([^\/]+))/);
 
+          // make sure that basedir ends with a slash
+          if (basedir.charAt(basedir.length - 1) !== '/') {
+            basedir = path.join(basedir, '/');
+          }
           // This is guaranteed to return the path to the "package.json" file from the given package
           const manifestPath = exports.resolveToUnqualified(`${parts[1]}/package.json`, basedir);
 
