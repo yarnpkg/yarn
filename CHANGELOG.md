@@ -4,11 +4,15 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Fixes `--modules-folder` handling in several places (ex: `yarn check` now respects `--modules-folder`)
+
+  [#6850](https://github.com/yarnpkg/yarn/pull/6850) - [**Jeff Valore**](https://twitter.com/codingwithspike)
+
 - Removes `rootModuleFolders` (internal variable which wasn't used anywhere)
 
   [#6846](https://github.com/yarnpkg/yarn/pull/6846) - [**Jeff Valore**](https://twitter.com/codingwithspike)
 
-- Allows `global-folder` to be set in `.yarnrc` files
+- Adds support for setting `global-folder` from `.yarnrc` files
 
   [#7056](https://github.com/yarnpkg/yarn/pull/7056) - [**Hsiao-nan Cheung**](https://github.com/niheaven)
 

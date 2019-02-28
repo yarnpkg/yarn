@@ -5,7 +5,6 @@ import type Config from '../../config.js';
 import {execCommand, makeEnv} from '../../util/execute-lifecycle-script.js';
 import {dynamicRequire} from '../../util/dynamic-require.js';
 import {MessageError} from '../../errors.js';
-import {registries} from '../../resolvers/index.js';
 import * as fs from '../../util/fs.js';
 import * as constants from '../../constants.js';
 
@@ -29,8 +28,8 @@ export async function getBinEntries(config: Config): Promise<Map<string, string>
   const binEntries = new Map();
 
   // Setup the node_modules/.bin folders for analysis
-  for (const registry of Object.keys(registries)) {
-    binFolders.add(path.join(config.cwd, config.registries[registry].folder, '.bin'));
+  for (const registryFolder of config.registryFolders) {
+    binFolders.add(path.resolve(config.lockfileFolder, registryFolder, '.bin'));
   }
 
   // Same thing, but for the pnp dependencies, located inside the cache
