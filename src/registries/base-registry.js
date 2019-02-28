@@ -171,7 +171,7 @@ export default class BaseRegistry {
       key = key.replace(/__/g, '.');
 
       // replace underscores with dashes ignoring keys that start with an underscore
-      key.replace(/([^_])_/g, '$1-');
+      key = key.replace(/([^_])_/g, '$1-');
 
       // set it via a path
       objectPath.set(this.config, key, val);
