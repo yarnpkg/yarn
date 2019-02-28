@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Removes `--scripts-prepend-node-path` as Yarn has this behavior by default
+
+  [#7057](https://github.com/yarnpkg/yarn/pull/7057/files) - [**Jason Grout**](https://github.com/jasongrout)
+
 - Adds support for `yarn policies set-version berry`
 
   [#7041](https://github.com/yarnpkg/yarn/pull/7041/files) - [**Maël Nison**](https://twitter.com/arcanis)
