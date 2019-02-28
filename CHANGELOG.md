@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Removes `rootModuleFolders` (internal variable which wasn't used anywhere)
+
+  [#6846](https://github.com/yarnpkg/yarn/pull/6846) - [**Jeff Valore**](https://twitter.com/codingwithspike)
+
 - Allows `global-folder` to be set in `.yarnrc` files
 
   [#7056](https://github.com/yarnpkg/yarn/pull/7056) - [**Hsiao-nan Cheung**](https://github.com/niheaven)

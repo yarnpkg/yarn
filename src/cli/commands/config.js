@@ -7,7 +7,6 @@ import buildSubCommands from './_build-sub-commands.js';
 
 const CONFIG_KEYS = [
   // 'reporter',
-  'rootModuleFolders',
   'registryFolders',
   'linkedModules',
   // 'registries',

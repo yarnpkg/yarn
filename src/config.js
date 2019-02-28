@@ -128,9 +128,6 @@ export default class Config {
   linkedModules: Array<string>;
 
   //
-  rootModuleFolders: Array<string>;
-
-  //
   linkFolder: string;
 
   //
@@ -317,10 +314,6 @@ export default class Config {
       if (this.registryFolders.indexOf(registry.folder) === -1) {
         this.registryFolders.push(registry.folder);
       }
-      const rootModuleFolder = path.join(this.cwd, registry.folder);
-      if (this.rootModuleFolders.indexOf(rootModuleFolder) === -1) {
-        this.rootModuleFolders.push(rootModuleFolder);
-      }
     }
 
     if (this.modulesFolder) {
@@ -458,7 +451,6 @@ export default class Config {
   }
 
   _init(opts: ConfigOptions) {
-    this.rootModuleFolders = [];
     this.registryFolders = [];
     this.linkedModules = [];
 
@@ -498,10 +490,6 @@ export default class Config {
       offline: !!opts.offline && !opts.preferOffline,
       captureHar: !!opts.captureHar,
     });
-
-    if (this.modulesFolder) {
-      this.rootModuleFolders.push(this.modulesFolder);
-    }
 
     this.focus = !!opts.focus;
     this.focusedWorkspaceName = '';
