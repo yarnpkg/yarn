@@ -4,15 +4,27 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
-- Fix `--modules-folder` handling in several places (ex: `yarn check` now respects `--modules-folder`)
+- Fixes `--modules-folder` handling in several places (ex: `yarn check` now respects `--modules-folder`)
 
   [#6850](https://github.com/yarnpkg/yarn/pull/6850) - [**Jeff Valore**](https://twitter.com/codingwithspike)
+
+- Removes `rootModuleFolders` (internal variable which wasn't used anywhere)
+
+  [#6846](https://github.com/yarnpkg/yarn/pull/6846) - [**Jeff Valore**](https://twitter.com/codingwithspike)
+
+- Adds support for setting `global-folder` from `.yarnrc` files
+
+  [#7056](https://github.com/yarnpkg/yarn/pull/7056) - [**Hsiao-nan Cheung**](https://github.com/niheaven)
+
+- Makes `yarn version` cancellable via ctrl-c or empty string
+
+  [#7064](https://github.com/yarnpkg/yarn/pull/7064) - [**Olle Lauri Boström**](https://github.com/ollelauribostrom)
 
 - Adds support for `yarn policies set-version berry`
 
   [#7041](https://github.com/yarnpkg/yarn/pull/7041/files) - [**Maël Nison**](https://twitter.com/arcanis)
 
-- Fix yarn `upgrade --scope` when using exotic (github) dependencies.
+- Fixes yarn `upgrade --scope` when using exotic (github) dependencies
 
   [#7017](https://github.com/yarnpkg/yarn/pull/7017) - [**Jeff Valore**](https://twitter.com/codingwithspike)
 
