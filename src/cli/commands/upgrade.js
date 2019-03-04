@@ -12,7 +12,7 @@ import {Install} from './install.js';
 
 // used to detect whether a semver range is simple enough to preserve when doing a --latest upgrade.
 // when not matched, the upgraded version range will default to `^` the same as the `add` command would.
-const basicSemverOperatorRegex = new RegExp('^(\\^|~|>|<=|>=)?[^ |&,]+$');
+const basicSemverOperatorRegex = new RegExp('^(\\^|~|>=|<=|>)?[^ |&,]+$');
 
 // used to detect if a passed parameter is a scope or a package name.
 const validScopeRegex = /^@[a-zA-Z0-9-][a-zA-Z0-9_.-]*\/$/;
