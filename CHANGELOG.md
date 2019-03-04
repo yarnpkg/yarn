@@ -4,7 +4,7 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
-- Removes `--scripts-prepend-node-path` as Yarn has this behavior by default
+- Removes `--scripts-prepend-node-path` as Yarn's default behavior makes this obsolete
 
   [#7057](https://github.com/yarnpkg/yarn/pull/7057/files) - [**Jason Grout**](https://github.com/jasongrout)
 
