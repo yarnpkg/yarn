@@ -7,7 +7,6 @@ import * as child from './child.js';
 import * as fs from './fs.js';
 import {dynamicRequire} from './dynamic-require.js';
 import {makePortableProxyScript} from './portable-script.js';
-import {registries} from '../resolvers/index.js';
 import {fixCmdWinSlashes} from './fix-cmd-win-slashes.js';
 import {getBinFolder as getGlobalBinFolder, run as globalRun} from '../cli/commands/global.js';
 
@@ -191,16 +190,13 @@ export async function makeEnv(
   }
 
   // Add node_modules .bin folders to the PATH
-  for (const registry of Object.keys(registries)) {
-    const binFolder = path.join(config.registries[registry].folder, '.bin');
+  for (const registryFolder of config.registryFolders) {
+    const binFolder = path.join(registryFolder, '.bin');
     if (config.workspacesEnabled && config.workspaceRootFolder) {
       pathParts.unshift(path.join(config.workspaceRootFolder, binFolder));
     }
     pathParts.unshift(path.join(config.linkFolder, binFolder));
     pathParts.unshift(path.join(cwd, binFolder));
-    if (config.modulesFolder) {
-      pathParts.unshift(path.join(config.modulesFolder, '.bin'));
-    }
   }
 
   let pnpFile;
