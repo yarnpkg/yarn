@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Fixes `npm_config_` environment variable parsing to support those prefixed with underscore (ex: `_auth`)
+
+  [#7070](https://github.com/yarnpkg/yarn/pull/7070) - [**Nicholas Boll**](https://github.com/NicholasBoll)
+
 - Fixes yarn `upgrade --latest` for dependencies using `>` or `>=` range specifier
 
   [#7080](https://github.com/yarnpkg/yarn/pull/7080) - [**Xukai Wu**](https://github.com/shilcare)

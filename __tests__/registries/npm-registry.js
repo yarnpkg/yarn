@@ -731,6 +731,37 @@ describe('isScopedPackage functional test', () => {
   });
 });
 
+describe('environment variables functional test', () => {
+  beforeEach(() => {
+    process.env.npm_config_always_auth = 'true';
+    process.env.npm_config__auth = 'auth';
+    process.env.npm_config__authtoken = 'authToken';
+    process.env.npm_config__username = 'username';
+    process.env.npm_config__password = 'password';
+  });
+
+  afterEach(() => {
+    delete process.env.npm_config_always_auth;
+    delete process.env.npm_config__auth;
+    delete process.env.npm_config__authToken;
+    delete process.env.npm_config__username;
+    delete process.env.npm_config__password;
+  });
+
+  test('correctly escapes environment config variables', () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
+
+    npmRegistry.mergeEnv('npm_config_');
+    expect(npmRegistry.config).toHaveProperty('always-auth', true);
+    expect(npmRegistry.config).toHaveProperty('_auth', 'auth');
+    expect(npmRegistry.config).toHaveProperty('_authtoken', 'authToken');
+    expect(npmRegistry.config).toHaveProperty('_username', 'username');
+    expect(npmRegistry.config).toHaveProperty('_password', 'password');
+  });
+});
+
 describe('getRequestUrl functional test', () => {
   test('returns pathname when it is a full URL', () => {
     const testCwd = '.';
