@@ -8,6 +8,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#7070](https://github.com/yarnpkg/yarn/pull/7070) - [**Nicholas Boll**](https://github.com/NicholasBoll)
 
+- Fixes yarn `upgrade --latest` for dependencies using `>` or `>=` range specifier
+
+  [#7080](https://github.com/yarnpkg/yarn/pull/7080) - [**Xukai Wu**](https://github.com/shilcare)
+
 - Fixes `--modules-folder` handling in several places (ex: `yarn check` now respects `--modules-folder`)
 
   [#6850](https://github.com/yarnpkg/yarn/pull/6850) - [**Jeff Valore**](https://twitter.com/codingwithspike)
