@@ -565,7 +565,7 @@ export default class ConsoleReporter extends BaseReporter {
         ...patchRows,
         {'Dependency of': `${resolution.path.split('>')[0]} ${resolution.dev ? '[dev]' : ''}`},
         {Path: resolution.path.split('>').join(' > ')},
-        {'More info': `https://nodesecurity.io/advisories/${auditAdvisory.id}`},
+        {'More info': `https://www.npmjs.com/advisories/${auditAdvisory.id}`},
       ];
     }
 

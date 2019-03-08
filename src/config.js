@@ -127,9 +127,6 @@ export default class Config {
   linkedModules: Array<string>;
 
   //
-  rootModuleFolders: Array<string>;
-
-  //
   linkFolder: string;
 
   //
@@ -314,14 +311,10 @@ export default class Config {
       if (this.registryFolders.indexOf(registry.folder) === -1) {
         this.registryFolders.push(registry.folder);
       }
-      const rootModuleFolder = path.join(this.cwd, registry.folder);
-      if (this.rootModuleFolders.indexOf(rootModuleFolder) === -1) {
-        this.rootModuleFolders.push(rootModuleFolder);
-      }
     }
 
     if (this.modulesFolder) {
-      this.registryFolders.push(this.modulesFolder);
+      this.registryFolders = [this.modulesFolder];
     }
 
     this.networkConcurrency =
@@ -349,6 +342,11 @@ export default class Config {
       networkConcurrency: this.networkConcurrency,
       networkTimeout: this.networkTimeout,
     });
+
+    this.globalFolder = opts.globalFolder || String(this.getOption('global-folder', true));
+    if (this.globalFolder === 'undefined') {
+      this.globalFolder = constants.GLOBAL_MODULE_DIRECTORY;
+    }
 
     let cacheRootFolder = opts.cacheFolder || this.getOption('cache-folder', true);
 
@@ -394,7 +392,7 @@ export default class Config {
       this.plugnplayPersist = false;
     } else {
       this.plugnplayEnabled = false;
-      this.plugnplayEnabled = false;
+      this.plugnplayPersist = false;
     }
 
     if (process.platform === 'win32') {
@@ -450,7 +448,6 @@ export default class Config {
   }
 
   _init(opts: ConfigOptions) {
-    this.rootModuleFolders = [];
     this.registryFolders = [];
     this.linkedModules = [];
 
@@ -469,7 +466,6 @@ export default class Config {
 
     this.preferOffline = !!opts.preferOffline;
     this.modulesFolder = opts.modulesFolder;
-    this.globalFolder = opts.globalFolder || constants.GLOBAL_MODULE_DIRECTORY;
     this.linkFolder = opts.linkFolder || constants.LINK_REGISTRY_DIRECTORY;
     this.offline = !!opts.offline;
     this.binLinks = !!opts.binLinks;
@@ -489,10 +485,6 @@ export default class Config {
       offline: !!opts.offline && !opts.preferOffline,
       captureHar: !!opts.captureHar,
     });
-
-    if (this.modulesFolder) {
-      this.rootModuleFolders.push(this.modulesFolder);
-    }
 
     this.focus = !!opts.focus;
     this.focusedWorkspaceName = '';
