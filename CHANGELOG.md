@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Removes `--scripts-prepend-node-path` as Yarn's default behavior makes this obsolete
+
+  [#7057](https://github.com/yarnpkg/yarn/pull/7057/files) - [**Jason Grout**](https://github.com/jasongrout)
+
 - Fixes the advisory link printed by `yarn audit`
 
   [#7091](https://github.com/yarnpkg/yarn/pull/7091) - [**Jakob Krigovsky**](https://github.com/sonicdoe)
