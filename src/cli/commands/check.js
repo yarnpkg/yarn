@@ -23,6 +23,7 @@ export function hasWrapper(commander: Object): boolean {
 export function setFlags(commander: Object) {
   commander.description('Verifies if versions in the current project’s package.json match that of yarn’s lock file.');
   commander.option('--integrity');
+  commander.option('--no-dedupe-warnings', "don't show or count warnings about deduplication");
   commander.option('--verify-tree');
 }
 
@@ -373,6 +374,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
             const bundledDep = bundledDeps[rootDep] && bundledDeps[rootDep].indexOf(packageName) !== -1;
             if (
+              flags.dedupeWarnings &&
               !bundledDep &&
               (packageJson.version === depPkg.version ||
                 (semver.satisfies(packageJson.version, range, config.looseSemver) &&
