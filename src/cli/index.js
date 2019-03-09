@@ -104,7 +104,10 @@ export async function main({
     '--emoji [bool]',
     'enable emoji in output',
     boolify,
-    process.platform === 'darwin' || process.env.TERM_PROGRAM === 'Hyper' || process.env.TERM_PROGRAM === 'HyperTerm' || process.env.TERM_PROGRAM === 'Terminus',
+    process.platform === 'darwin' ||
+      process.env.TERM_PROGRAM === 'Hyper' ||
+      process.env.TERM_PROGRAM === 'HyperTerm' ||
+      process.env.TERM_PROGRAM === 'Terminus',
   );
   commander.option('-s, --silent', 'skip Yarn console logs, other types of logs (script output) will be printed');
   commander.option('--cwd <cwd>', 'working directory to use', process.cwd());
