@@ -1,0 +1,132 @@
+{
+  "actions": [
+    {
+      "action": "install",
+      "module": "mime",
+      "target": "2.4.0",
+      "isMajor": true,
+      "resolves": [
+        {
+          "id": 535,
+          "path": "mime",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ]
+    },
+    {
+      "action": "install",
+      "module": "hoek",
+      "target": "6.1.2",
+      "isMajor": true,
+      "resolves": [
+        {
+          "id": 566,
+          "path": "hoek",
+          "dev": true,
+          "optional": false,
+          "bundled": false
+        }
+      ]
+    }
+  ],
+  "advisories": {
+    "535": {
+      "findings": [
+        {
+          "version": "1.4.0",
+          "paths": [
+            "mime"
+          ],
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 535,
+      "created": "2017-09-25T19:02:28.152Z",
+      "updated": "2018-04-09T00:38:22.785Z",
+      "deleted": null,
+      "title": "Regular Expression Denial of Service",
+      "found_by": {
+        "name": "Cristian-Alexandru Staicu"
+      },
+      "reported_by": {
+        "name": "Cristian-Alexandru Staicu"
+      },
+      "module_name": "mime",
+      "cves": [
+        "CVE-2017-16138"
+      ],
+      "vulnerable_versions": "< 1.4.1 || > 2.0.0 < 2.0.3",
+      "patched_versions": ">= 1.4.1 < 2.0.0 || >= 2.0.3",
+      "overview": "Affected versions of `mime` are vulnerable to regular expression denial of service when a mime lookup is performed on untrusted user input.",
+      "recommendation": "Update to version 2.0.3 or later.",
+      "references": "[Issue #167](https://github.com/broofa/node-mime/issues/167)",
+      "access": "public",
+      "severity": "moderate",
+      "cwe": "CWE-400",
+      "metadata": {
+        "module_type": "Multi.Library",
+        "exploitability": 4,
+        "affected_components": ""
+      },
+      "url": "https://npmjs.com/advisories/535"
+    },
+    "566": {
+      "findings": [
+        {
+          "version": "4.2.0",
+          "paths": [
+            "hoek"
+          ],
+          "dev": true,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 566,
+      "created": "2018-04-20T21:25:58.421Z",
+      "updated": "2018-04-20T21:25:58.421Z",
+      "deleted": null,
+      "title": "Prototype pollution",
+      "found_by": {
+        "name": "HoLyVieR"
+      },
+      "reported_by": {
+        "name": "HoLyVieR"
+      },
+      "module_name": "hoek",
+      "cves": [],
+      "vulnerable_versions": "<= 4.2.0 || >= 5.0.0 < 5.0.3",
+      "patched_versions": "> 4.2.0 < 5.0.0 || >= 5.0.3",
+      "overview": "Versions of `hoek` prior to 4.2.1 and 5.0.3 are vulnerable to prototype pollution.\n\nThe `merge` function, and the `applyToDefaults` and `applyToDefaultsWithShallow` functions which leverage `merge` behind the scenes, are vulnerable to a prototype pollution attack when provided an _unvalidated_ payload created from a JSON string containing the `__proto__` property.\n\nThis can be demonstrated like so:\n\n```javascript\nvar Hoek = require('hoek');\nvar malicious_payload = '{\"__proto__\":{\"oops\":\"It works !\"}}';\n\nvar a = {};\nconsole.log(\"Before : \" + a.oops);\nHoek.merge({}, JSON.parse(malicious_payload));\nconsole.log(\"After : \" + a.oops);\n```\n\nThis type of attack can be used to overwrite existing properties causing a potential denial of service.",
+      "recommendation": "Update to version 4.2.1, 5.0.3 or later.",
+      "references": "",
+      "access": "public",
+      "severity": "moderate",
+      "cwe": "CWE-471",
+      "metadata": {
+        "module_type": "",
+        "exploitability": 5,
+        "affected_components": ""
+      },
+      "url": "https://npmjs.com/advisories/566"
+    }
+  },
+  "muted": [],
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 2,
+      "high": 0,
+      "critical": 0
+    },
+    "dependencies": 1,
+    "devDependencies": 1,
+    "optionalDependencies": 0,
+    "totalDependencies": 2
+  }
+}

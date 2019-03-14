@@ -68,6 +68,7 @@ test.concurrent('sends correct dependency map to audit api for single dependency
           'brace-expansion': '^1.0.0',
         },
         dependencies: {},
+        dev: false,
       },
       'brace-expansion': {
         version: '1.1.11',
@@ -77,21 +78,25 @@ test.concurrent('sends correct dependency map to audit api for single dependency
           'concat-map': '0.0.1',
         },
         dependencies: {},
+        dev: false,
       },
       'balanced-match': {
         version: '1.0.0',
         integrity: 'sha1-ibTRmasr7kneFk6gK4nORi1xt2c=',
         requires: {},
         dependencies: {},
+        dev: false,
       },
       'concat-map': {
         version: '0.0.1',
         integrity: 'sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=',
         requires: {},
         dependencies: {},
+        dev: false,
       },
     },
     version: '0.0.0',
+    dev: false,
   };
 
   return runAudit([], {}, 'single-vulnerable-dep-installed', async config => {
@@ -141,8 +146,10 @@ test.concurrent('sends correct dependency map to audit api for private package.'
         integrity: 'sha512-XI5MPzVNApjAyhQzphX8BkmKsKUxD4LdyK24iZeQGinBN9yTQT3bFlCBy/aVx2HrNcqQGsdot8ghrjyrvMCoEA==',
         requires: {},
         dependencies: {},
+        dev: false,
       },
     },
+    dev: false,
   };
 
   return runAudit([], {}, 'private-package', async config => {
@@ -166,11 +173,54 @@ test('calls reporter auditSummary with correct data for private package', () => 
   });
 });
 
+test.concurrent('distinguishes dev and prod transitive dependencies in audit request and result', () => {
+  const expectedApiPost = {
+    name: 'foo',
+    version: '1.0.0',
+    install: [],
+    remove: [],
+    metadata: {},
+    requires: {
+      mime: '1.4.0',
+      hoek: '4.2.0',
+    },
+    dependencies: {
+      mime: {
+        version: '1.4.0',
+        integrity: 'sha512-n9ChLv77+QQEapYz8lV+rIZAW3HhAPW2CXnzb1GN5uMkuczshwvkW7XPsbzU0ZQN3sP47Er2KVkp2p3KyqZKSQ==',
+        requires: {},
+        dependencies: {},
+        dev: false,
+      },
+      hoek: {
+        version: '4.2.0',
+        integrity: 'sha512-v0XCLxICi9nPfYrS9RL8HbYnXi9obYAeLbSP00BmnZwCK9+Ih9WOjoZ8YoHCoav2csqn4FOz4Orldsy2dmDwmQ==',
+        requires: {},
+        dependencies: {},
+        dev: true,
+      },
+    },
+    dev: false,
+  };
+
+  return runAudit([], {}, 'dev-and-prod-vulnerabilities', async (config, reporter) => {
+    const calledWithPipe = config.requestManager.request.mock.calls[0][0].body;
+    const calledWith = JSON.parse(await gunzip(calledWithPipe));
+    expect(calledWith).toEqual(expectedApiPost);
+
+    const apiResponse = getAuditResponse(config);
+    expect(reporter.auditSummary).toBeCalledWith(apiResponse.metadata);
+  });
+});
+
 describe('returns semantic exit codes', () => {
+  let lockfileSpy;
+  let installSpy;
+
   beforeAll(() => {
     // mock unrelated stuff
-    jest.spyOn(lockfileModule.default, 'fromDirectory').mockImplementation(jest.fn());
-    jest.spyOn(installModule, 'Install').mockImplementation(() => {
+    lockfileSpy = jest.spyOn(lockfileModule.default, 'fromDirectory').mockImplementation(jest.fn());
+    installSpy = jest.spyOn(installModule, 'Install').mockImplementation(() => {
       return {
         fetchRequestFromCwd: jest.fn(() => {
           return {};
@@ -185,6 +235,11 @@ describe('returns semantic exit codes', () => {
     });
   });
 
+  afterAll(() => {
+    lockfileSpy.mockRestore();
+    installSpy.mockRestore();
+  });
+
   const exitCodeTestCases = [
     [0, {}, 'zero when no vulnerabilities'],
     [1, {info: 77}, '1 for info'],
@@ -196,13 +251,16 @@ describe('returns semantic exit codes', () => {
   ];
   exitCodeTestCases.forEach(([expectedExitCode, foundVulnerabilities, description]) => {
     test(description, async () => {
-      jest.spyOn(auditModule.default.prototype, 'performAudit').mockImplementation(() => {
+      const spy = jest.spyOn(auditModule.default.prototype, 'performAudit').mockImplementation(() => {
         return foundVulnerabilities;
       });
+
       const configMock: any = {};
       const reporterMock: any = {};
       const exitCode = await audit(configMock, reporterMock, {}, []);
       expect(exitCode).toEqual(expectedExitCode);
+
+      spy.mockRestore();
     });
   });
 });
@@ -212,12 +270,14 @@ test.concurrent('sends correct dependency map to audit api for workspaces.', () 
     dependencies: {
       'balanced-match': {
         dependencies: {},
+        dev: false,
         integrity: 'sha1-ibTRmasr7kneFk6gK4nORi1xt2c=',
         requires: {},
         version: '1.0.0',
       },
       'brace-expansion': {
         dependencies: {},
+        dev: false,
         integrity: 'sha512-iCuPHDFgrHX7H2vEI/5xpz07zSHB00TpugqhmYtVmMO6518mCuRMoOYFldEBl0g187ufozdaHgWKcYFb61qGiA==',
         requires: {
           'balanced-match': '^1.0.0',
@@ -227,12 +287,14 @@ test.concurrent('sends correct dependency map to audit api for workspaces.', () 
       },
       'concat-map': {
         dependencies: {},
+        dev: false,
         integrity: 'sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=',
         requires: {},
         version: '0.0.1',
       },
       minimatch: {
         dependencies: {},
+        dev: false,
         integrity: 'sha1-UjYVelHk8ATBd/s8Un/33Xjw74M=',
         requires: {
           'brace-expansion': '^1.0.0',
@@ -241,6 +303,7 @@ test.concurrent('sends correct dependency map to audit api for workspaces.', () 
       },
       prj1: {
         dependencies: {},
+        dev: false,
         integrity: '',
         requires: {
           minimatch: '3.0.0',
@@ -256,6 +319,7 @@ test.concurrent('sends correct dependency map to audit api for workspaces.', () 
       prj1: '0.0.0',
     },
     version: '1.0.0',
+    dev: false,
   };
 
   return runAudit([], {}, 'workspace', async config => {

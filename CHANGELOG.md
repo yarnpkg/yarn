@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Fixes production / development reporting when running `yarn audit`
+
+  [#6970](https://github.com/yarnpkg/yarn/pull/6970) - [**Adam Richardson**](https://github.com/as3richa)
+
 ## 1.15.0
 
 - Removes `--scripts-prepend-node-path` as Yarn's default behavior makes this obsolete
