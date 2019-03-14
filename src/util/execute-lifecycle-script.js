@@ -351,11 +351,14 @@ export async function execCommand({
     return Promise.resolve();
   } catch (err) {
     if (err instanceof ProcessTermError) {
-      throw new MessageError(
+      const formattedError = new ProcessTermError(
         err.EXIT_SIGNAL
           ? reporter.lang('commandFailedWithSignal', err.EXIT_SIGNAL)
           : reporter.lang('commandFailedWithCode', err.EXIT_CODE),
       );
+      formattedError.EXIT_CODE = err.EXIT_CODE;
+      formattedError.EXIT_SIGNAL = err.EXIT_SIGNAL;
+      throw formattedError;
     } else {
       throw err;
     }

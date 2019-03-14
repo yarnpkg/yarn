@@ -24,6 +24,7 @@ import {spawnp, forkp} from '../util/child.js';
 import {version} from '../util/yarn-version.js';
 import handleSignals from '../util/signal-handler.js';
 import {boolify, boolifyWithDefault} from '../util/conversion.js';
+import {ProcessTermError} from '../errors';
 
 function findProjectRoot(base: string): string {
   let prev = null;
@@ -581,6 +582,10 @@ export async function main({
 
       if (command.getDocsInfo) {
         reporter.info(command.getDocsInfo);
+      }
+
+      if (err instanceof ProcessTermError) {
+        return exit(err.EXIT_CODE || 1);
       }
 
       return exit(1);
