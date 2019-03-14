@@ -8,6 +8,52 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#6926](https://github.com/yarnpkg/yarn/pull/6926) - [**Kyle Fang**](https://github.com/zhigang1992)
 
+- Fixes production / development reporting when running `yarn audit`
+
+  [#6970](https://github.com/yarnpkg/yarn/pull/6970) - [**Adam Richardson**](https://github.com/as3richa)
+
+## 1.15.0
+
+- Removes `--scripts-prepend-node-path` as Yarn's default behavior makes this obsolete
+
+  [#7057](https://github.com/yarnpkg/yarn/pull/7057/files) - [**Jason Grout**](https://github.com/jasongrout)
+
+- Fixes the advisory link printed by `yarn audit`
+
+  [#7091](https://github.com/yarnpkg/yarn/pull/7091) - [**Jakob Krigovsky**](https://github.com/sonicdoe)
+
+- Fixes `npm_config_` environment variable parsing to support those prefixed with underscore (ex: `_auth`)
+
+  [#7070](https://github.com/yarnpkg/yarn/pull/7070) - [**Nicholas Boll**](https://github.com/NicholasBoll)
+
+- Fixes yarn `upgrade --latest` for dependencies using `>` or `>=` range specifier
+
+  [#7080](https://github.com/yarnpkg/yarn/pull/7080) - [**Xukai Wu**](https://github.com/shilcare)
+
+- Fixes `--modules-folder` handling in several places (ex: `yarn check` now respects `--modules-folder`)
+
+  [#6850](https://github.com/yarnpkg/yarn/pull/6850) - [**Jeff Valore**](https://twitter.com/codingwithspike)
+
+- Removes `rootModuleFolders` (internal variable which wasn't used anywhere)
+
+  [#6846](https://github.com/yarnpkg/yarn/pull/6846) - [**Jeff Valore**](https://twitter.com/codingwithspike)
+
+- Adds support for setting `global-folder` from `.yarnrc` files
+
+  [#7056](https://github.com/yarnpkg/yarn/pull/7056) - [**Hsiao-nan Cheung**](https://github.com/niheaven)
+
+- Makes `yarn version` cancellable via ctrl-c or empty string
+
+  [#7064](https://github.com/yarnpkg/yarn/pull/7064) - [**Olle Lauri Boström**](https://github.com/ollelauribostrom)
+
+- Adds support for `yarn policies set-version berry`
+
+  [#7041](https://github.com/yarnpkg/yarn/pull/7041/files) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Fixes yarn `upgrade --scope` when using exotic (github) dependencies
+
+  [#7017](https://github.com/yarnpkg/yarn/pull/7017) - [**Jeff Valore**](https://twitter.com/codingwithspike)
+
 - Fixes occasionally mismatching upper/lowecases of drive letters in win32 pnp check
 
   [#7007](https://github.com/yarnpkg/yarn/pull/7007) - [**Christoph Werner**](https://github.com/codepunkt)

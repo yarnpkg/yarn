@@ -1,0 +1,10 @@
+{
+  "name": "foo",
+  "version": "1.0.0",
+  "devDependencies": {
+    "hoek": "4.2.0"
+  },
+  "dependencies": {
+    "mime": "1.4.0"
+  }
+}

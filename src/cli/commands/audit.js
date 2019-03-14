@@ -8,6 +8,7 @@ import type {HoistedTrees} from '../../hoisted-tree-builder.js';
 
 import {promisify} from '../../util/promise.js';
 import {buildTree as hoistedTreeBuilder} from '../../hoisted-tree-builder';
+import {getTransitiveDevDependencies} from '../../util/get-transitive-dev-dependencies';
 import {Install} from './install.js';
 import Lockfile from '../../lockfile';
 import {YARN_REGISTRY} from '../../constants';
@@ -20,6 +21,7 @@ export type AuditNode = {
   integrity: ?string,
   requires: Object,
   dependencies: {[string]: AuditNode},
+  dev: boolean,
 };
 
 export type AuditTree = AuditNode & {
@@ -130,7 +132,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     workspaceLayout,
   });
 
-  const vulnerabilities = await audit.performAudit(manifest, install.resolver, install.linker, patterns);
+  const vulnerabilities = await audit.performAudit(manifest, lockfile, install.resolver, install.linker, patterns);
 
   const EXIT_INFO = 1;
   const EXIT_LOW = 2;
@@ -164,7 +166,7 @@ export default class Audit {
   reporter: Reporter;
   auditData: AuditReport;
 
-  _mapHoistedNodes(auditNode: AuditNode, hoistedNodes: HoistedTrees) {
+  _mapHoistedNodes(auditNode: AuditNode, hoistedNodes: HoistedTrees, transitiveDevDeps: Set<string>) {
     for (const node of hoistedNodes) {
       const pkg = node.manifest.pkg;
       const requires = Object.assign({}, pkg.dependencies || {}, pkg.optionalDependencies || {});
@@ -178,14 +180,15 @@ export default class Audit {
         integrity: pkg._remote ? pkg._remote.integrity || '' : '',
         requires,
         dependencies: {},
+        dev: transitiveDevDeps.has(`${node.name}@${node.version}`),
       };
       if (node.children) {
-        this._mapHoistedNodes(auditNode.dependencies[node.name], node.children);
+        this._mapHoistedNodes(auditNode.dependencies[node.name], node.children, transitiveDevDeps);
       }
     }
   }
 
-  _mapHoistedTreesToAuditTree(manifest: Object, hoistedTrees: HoistedTrees): AuditTree {
+  _mapHoistedTreesToAuditTree(manifest: Object, hoistedTrees: HoistedTrees, transitiveDevDeps: Set<string>): AuditTree {
     const auditTree: AuditTree = {
       name: manifest.name || undefined,
       version: manifest.version || undefined,
@@ -202,9 +205,10 @@ export default class Audit {
       ),
       integrity: undefined,
       dependencies: {},
+      dev: false,
     };
 
-    this._mapHoistedNodes(auditTree, hoistedTrees);
+    this._mapHoistedNodes(auditTree, hoistedTrees, transitiveDevDeps);
     return auditTree;
   }
 
@@ -252,13 +256,15 @@ export default class Audit {
 
   async performAudit(
     manifest: Object,
+    lockfile: Lockfile,
     resolver: PackageResolver,
     linker: PackageLinker,
     patterns: Array<string>,
   ): Promise<AuditVulnerabilityCounts> {
     this._insertWorkspacePackagesIntoManifest(manifest, resolver);
+    const transitiveDevDeps = getTransitiveDevDependencies(manifest, resolver.workspaceLayout, lockfile);
     const hoistedTrees = await hoistedTreeBuilder(resolver, linker, patterns);
-    const auditTree = this._mapHoistedTreesToAuditTree(manifest, hoistedTrees);
+    const auditTree = this._mapHoistedTreesToAuditTree(manifest, hoistedTrees, transitiveDevDeps);
     this.auditData = await this._fetchAudit(auditTree);
     return this.auditData.metadata.vulnerabilities;
   }
