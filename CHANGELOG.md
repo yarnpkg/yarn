@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Reverts a behavior causing boggus interactions between PowerShell and `yarn global`
+
+  [#6954](https://github.com/yarnpkg/yarn/pull/6954) - [**briman0094**](https://github.com/briman0094)
+
 - Improves PnP compatibility with Node 6
 
   [#6871](https://github.com/yarnpkg/yarn/pull/6871) - [**Robert Jackson**](https://github.com/rwjblue)
