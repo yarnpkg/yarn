@@ -7,7 +7,6 @@ import * as child from './child.js';
 import * as fs from './fs.js';
 import {dynamicRequire} from './dynamic-require.js';
 import {makePortableProxyScript} from './portable-script.js';
-import {registries} from '../resolvers/index.js';
 import {fixCmdWinSlashes} from './fix-cmd-win-slashes.js';
 import {getBinFolder as getGlobalBinFolder, run as globalRun} from '../cli/commands/global.js';
 
@@ -165,13 +164,6 @@ export async function makeEnv(
   const envPath = env[constants.ENV_PATH_KEY];
   const pathParts = envPath ? envPath.split(path.delimiter) : [];
 
-  // Include the directory that contains node so that we can guarantee that the scripts
-  // will always run with the exact same Node release than the one use to run Yarn
-  const execBin = path.dirname(process.execPath);
-  if (pathParts.indexOf(execBin) === -1) {
-    pathParts.unshift(execBin);
-  }
-
   // Include node-gyp version that was bundled with the current Node.js version,
   // if available.
   pathParts.unshift(path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'node-gyp-bin'));
@@ -191,16 +183,13 @@ export async function makeEnv(
   }
 
   // Add node_modules .bin folders to the PATH
-  for (const registry of Object.keys(registries)) {
-    const binFolder = path.join(config.registries[registry].folder, '.bin');
+  for (const registryFolder of config.registryFolders) {
+    const binFolder = path.join(registryFolder, '.bin');
     if (config.workspacesEnabled && config.workspaceRootFolder) {
       pathParts.unshift(path.join(config.workspaceRootFolder, binFolder));
     }
     pathParts.unshift(path.join(config.linkFolder, binFolder));
     pathParts.unshift(path.join(cwd, binFolder));
-    if (config.modulesFolder) {
-      pathParts.unshift(path.join(config.modulesFolder, '.bin'));
-    }
   }
 
   let pnpFile;
@@ -236,7 +225,7 @@ export async function makeEnv(
     // Note that NODE_OPTIONS doesn't support any style of quoting its arguments at the moment
     // For this reason, it won't work if the user has a space inside its $PATH
     env.NODE_OPTIONS = env.NODE_OPTIONS || '';
-    env.NODE_OPTIONS += ` --require ${pnpFile}`;
+    env.NODE_OPTIONS = `--require ${pnpFile} ${env.NODE_OPTIONS}`;
   }
 
   pathParts.unshift(await getWrappersFolder(config));

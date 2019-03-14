@@ -248,6 +248,18 @@ test.concurrent('upgrades dependency packages not in registry', (): Promise<void
   });
 });
 
+test.concurrent('upgrades scoped packages not in registry', (): Promise<void> => {
+  return runUpgrade([], {scope: '@yarn/'}, 'package-not-in-registry-scoped', async (config): ?Promise<void> => {
+    const lockfile = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
+    const gitRemote = 'https://github.com/yarnpkg/e2e-test-repo';
+
+    const lockFileIncludes = sha => lockfile.indexOf(`  resolved "${gitRemote}#${sha}"`) > -1;
+    expect(lockfile.indexOf(`"@yarn/test-git-repo@${gitRemote}#master":`)).toBeGreaterThan(-1);
+    expect(lockFileIncludes('5c57959f3c55a6cd6004e3855ca59ba98bfff56c')).toEqual(false);
+    expect(lockFileIncludes('64ed9468f0636a76fbadde0960ed321cc2c2cab0')).toEqual(true);
+  });
+});
+
 test.concurrent('upgrades dev dependency packages not in registry', (): Promise<void> => {
   const packages = ['yarn-test-git-repo', 'e2e-test-repo'];
   return runUpgrade(packages, {}, 'package-not-in-registry-dev', async (config): ?Promise<void> => {

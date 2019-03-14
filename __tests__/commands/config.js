@@ -36,6 +36,24 @@ test('cache-folder flag has higher priorities than .yarnrc file', (): Promise<vo
   );
 });
 
+test('write global-folder config into .yarnrc file', (): Promise<void> => {
+  return runConfig(['set', 'global-folder', 'folder_dir_for_test'], {}, '', async config => {
+    const configFile = await fs.readFile(config.registries.yarn.homeConfigLoc);
+    expect(configFile).toContain('folder_dir_for_test');
+  });
+});
+
+test('global-folder flag has higher priorities than .yarnrc file', (): Promise<void> => {
+  return runConfig(
+    ['set', 'global-folder', 'set_config_folder_dir'],
+    {globalFolder: 'flag_config_folder_dir'},
+    '',
+    config => {
+      expect(config.globalFolder).toContain('flag_config_folder_dir');
+    },
+  );
+});
+
 test('bin-links flag has higher priorities than .yarnrc file', (): Promise<void> => {
   return runConfig(['set', 'bin-links', 'true'], {binLinks: false}, '', config => {
     expect(config.binLinks).toBe(false);

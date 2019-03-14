@@ -56,7 +56,6 @@ type Flags = {
   har: boolean,
   ignorePlatform: boolean,
   ignoreEngines: boolean,
-  ignoreScripts: boolean,
   ignoreOptional: boolean,
   linkDuplicates: boolean,
   force: boolean,
@@ -572,7 +571,7 @@ export class Install {
       this.scripts.setArtifacts(artifacts);
     }
 
-    if (!this.flags.ignoreEngines && typeof manifest.engines === 'object') {
+    if (compatibility.shouldCheck(manifest, this.flags)) {
       steps.push(async (curr: number, total: number) => {
         this.reporter.step(curr, total, this.reporter.lang('checkingManifest'), emoji.get('mag'));
         await this.checkCompatibility();
@@ -609,6 +608,7 @@ export class Install {
           const mergedManifest = Object.assign({}, ...Object.values(preparedManifests).map(m => m.object));
           const auditVulnerabilityCounts = await audit.performAudit(
             mergedManifest,
+            this.lockfile,
             this.resolver,
             this.linker,
             topLevelPatterns,
@@ -685,7 +685,7 @@ export class Install {
           emoji.get('hammer'),
         );
 
-        if (this.flags.ignoreScripts) {
+        if (this.config.ignoreScripts) {
           this.reporter.warn(this.reporter.lang('ignoredScripts'));
         } else {
           await this.scripts.init(flattenedTopLevelPatterns);

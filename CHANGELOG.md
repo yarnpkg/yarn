@@ -8,14 +8,78 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#6954](https://github.com/yarnpkg/yarn/pull/6954) - [**briman0094**](https://github.com/briman0094)
 
+- Fixes production / development reporting when running `yarn audit`
+
+  [#6970](https://github.com/yarnpkg/yarn/pull/6970) - [**Adam Richardson**](https://github.com/as3richa)
+
+## 1.15.0
+
+- Removes `--scripts-prepend-node-path` as Yarn's default behavior makes this obsolete
+
+  [#7057](https://github.com/yarnpkg/yarn/pull/7057/files) - [**Jason Grout**](https://github.com/jasongrout)
+
+- Fixes the advisory link printed by `yarn audit`
+
+  [#7091](https://github.com/yarnpkg/yarn/pull/7091) - [**Jakob Krigovsky**](https://github.com/sonicdoe)
+
+- Fixes `npm_config_` environment variable parsing to support those prefixed with underscore (ex: `_auth`)
+
+  [#7070](https://github.com/yarnpkg/yarn/pull/7070) - [**Nicholas Boll**](https://github.com/NicholasBoll)
+
+- Fixes yarn `upgrade --latest` for dependencies using `>` or `>=` range specifier
+
+  [#7080](https://github.com/yarnpkg/yarn/pull/7080) - [**Xukai Wu**](https://github.com/shilcare)
+
+- Fixes `--modules-folder` handling in several places (ex: `yarn check` now respects `--modules-folder`)
+
+  [#6850](https://github.com/yarnpkg/yarn/pull/6850) - [**Jeff Valore**](https://twitter.com/codingwithspike)
+
+- Removes `rootModuleFolders` (internal variable which wasn't used anywhere)
+
+  [#6846](https://github.com/yarnpkg/yarn/pull/6846) - [**Jeff Valore**](https://twitter.com/codingwithspike)
+
+- Adds support for setting `global-folder` from `.yarnrc` files
+
+  [#7056](https://github.com/yarnpkg/yarn/pull/7056) - [**Hsiao-nan Cheung**](https://github.com/niheaven)
+
+- Makes `yarn version` cancellable via ctrl-c or empty string
+
+  [#7064](https://github.com/yarnpkg/yarn/pull/7064) - [**Olle Lauri Boström**](https://github.com/ollelauribostrom)
+
+- Adds support for `yarn policies set-version berry`
+
+  [#7041](https://github.com/yarnpkg/yarn/pull/7041/files) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Fixes yarn `upgrade --scope` when using exotic (github) dependencies
+
+  [#7017](https://github.com/yarnpkg/yarn/pull/7017) - [**Jeff Valore**](https://twitter.com/codingwithspike)
+
+- Fixes occasionally mismatching upper/lowecases of drive letters in win32 pnp check
+
+  [#7007](https://github.com/yarnpkg/yarn/pull/7007) - [**Christoph Werner**](https://github.com/codepunkt)
+
+- Fixes the error reporting for non-HTTP network errors (such as invalid certificates)
+
+  [#6968](https://github.com/yarnpkg/yarn/pull/6968) - [**Chih-Hsuan Yen**](https://github.com/yan12125)
+
+- Changes the location where the `--require ./.pnp.js` flag gets added into `NODE_OPTIONS`: now at the front (bis)
+
+  [#6951](https://github.com/yarnpkg/yarn/pull/6951) - [**John-David Dalton**](https://twitter.com/jdalton)
+
+- Packages won't be auto-unplugged anymore if `ignore-scripts` is set in the yarnrc file
+
+  [#6983](https://github.com/yarnpkg/yarn/pull/6983) - [**Micha Reiser**](https://github.com/MichaReiser)
+
+## 1.14.0
+
 - Improves PnP compatibility with Node 6
 
   [#6871](https://github.com/yarnpkg/yarn/pull/6871) - [**Robert Jackson**](https://github.com/rwjblue)
-  
+
 - Fixes PnP detection with workspaces (`installConfig` is now read at the top-level)
 
   [#6878](https://github.com/yarnpkg/yarn/pull/6878) - [**Maël Nison**](https://twitter.com/arcanis)
-  
+
 - Fixes an interaction between `yarn pack` and bundled dependencies
 
   [#6908](https://github.com/yarnpkg/yarn/pull/6908) - [**Travis Hoover**](https://twitter.com/thoov)
@@ -35,6 +99,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 - Changes the location where the `--require ./.pnp.js` flag gets added into `NODE_OPTIONS`: now at the front
 
   [#6942](https://github.com/yarnpkg/yarn/pull/6942) - [**John-David Dalton**](https://twitter.com/jdalton)
+
+- Fixes a bug where `os` and `platform` requirements weren't properly checked when `engines` was missing
+
+  [#6976](https://github.com/yarnpkg/yarn/pull/6976) - [**Micha Reiser**](https://github.com/MichaReiser)
 
 ## 1.13.0
 
@@ -77,7 +145,7 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 - Properly reports the error codes when the npm registry throws 500's
 
   [#6817](https://github.com/yarnpkg/yarn/pull/6817) - [**Maël Nison**](https://twitter.com/arcanis)
-  
+
 ## 1.12.3
 
 **Important:** This release contains a cache bump. It will cause the very first install following the upgrade to take slightly more time, especially if you don't use the [Offline Mirror](https://yarnpkg.com/blog/2016/11/24/offline-mirror/) feature. After that everything will be back to normal.

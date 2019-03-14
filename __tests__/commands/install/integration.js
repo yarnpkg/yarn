@@ -1139,3 +1139,24 @@ test('install will not warn for missing optional peer dependencies', () =>
     const warningMessage = messageParts.every(part => stdout.includes(part));
     expect(warningMessage).toBe(false);
   }));
+
+test('does not check node_modules for extraneous files when --modules-folder used', async () => {
+  // Scenario: https://github.com/yarnpkg/yarn/issues/5419
+  // When `--modules-foler` is passed, yarn should check that directory for extraneous files.
+  // Also, the default node_modules dir, if it exists, should not be cleaned out (marked as extraneous).
+  await runInstall({modulesFolder: './some_modules'}, 'extraneous-node-modules', async (config): Promise<void> => {
+    expect(await fs.exists(`${config.cwd}/some_modules/feed`)).toEqual(true);
+    // Extraneous files in node_modules should not have been cleaned.
+    expect(await fs.exists(`${config.cwd}/node_modules/extra.js`)).toEqual(true);
+    // Extraneous files in some_modules should have been cleaned.
+    expect(await fs.exists(`${config.cwd}/some_modules/extra.js`)).toEqual(false);
+  });
+});
+
+test('install skips the scripts if the yarnrc specifies skip-scripts true', () =>
+  runInstall({}, 'ignore-scripts-by-yarnrc', (config, reporter, install, getStdout) => {
+    const stdout = getStdout();
+
+    const ignoredScriptsMessage = reporter.lang('ignoredScripts');
+    expect(stdout).toMatch(ignoredScriptsMessage);
+  }));
