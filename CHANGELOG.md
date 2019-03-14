@@ -8,6 +8,24 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#6970](https://github.com/yarnpkg/yarn/pull/6970) - [**Adam Richardson**](https://github.com/as3richa)
 
+## 1.15.0
+
+- Removes `--scripts-prepend-node-path` as Yarn's default behavior makes this obsolete
+
+  [#7057](https://github.com/yarnpkg/yarn/pull/7057/files) - [**Jason Grout**](https://github.com/jasongrout)
+
+- Fixes the advisory link printed by `yarn audit`
+
+  [#7091](https://github.com/yarnpkg/yarn/pull/7091) - [**Jakob Krigovsky**](https://github.com/sonicdoe)
+
+- Fixes `npm_config_` environment variable parsing to support those prefixed with underscore (ex: `_auth`)
+
+  [#7070](https://github.com/yarnpkg/yarn/pull/7070) - [**Nicholas Boll**](https://github.com/NicholasBoll)
+
+- Fixes yarn `upgrade --latest` for dependencies using `>` or `>=` range specifier
+
+  [#7080](https://github.com/yarnpkg/yarn/pull/7080) - [**Xukai Wu**](https://github.com/shilcare)
+
 - Fixes `--modules-folder` handling in several places (ex: `yarn check` now respects `--modules-folder`)
 
   [#6850](https://github.com/yarnpkg/yarn/pull/6850) - [**Jeff Valore**](https://twitter.com/codingwithspike)

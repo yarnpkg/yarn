@@ -164,13 +164,6 @@ export async function makeEnv(
   const envPath = env[constants.ENV_PATH_KEY];
   const pathParts = envPath ? envPath.split(path.delimiter) : [];
 
-  // Include the directory that contains node so that we can guarantee that the scripts
-  // will always run with the exact same Node release than the one use to run Yarn
-  const execBin = path.dirname(process.execPath);
-  if (pathParts.indexOf(execBin) === -1) {
-    pathParts.unshift(execBin);
-  }
-
   // Include node-gyp version that was bundled with the current Node.js version,
   // if available.
   pathParts.unshift(path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'node-gyp-bin'));
