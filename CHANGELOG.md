@@ -4,7 +4,7 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
-- Preserve none zero exit code in `yarn run`
+- Fixes a bug where non-zero exit codes were converted to a generic 1 when running `yarn run`
 
   [#6926](https://github.com/yarnpkg/yarn/pull/6926) - [**Kyle Fang**](https://github.com/zhigang1992)
 
