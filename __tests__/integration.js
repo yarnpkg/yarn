@@ -450,6 +450,30 @@ test('yarn run <failing script>', async () => {
   expect(stderr).toEqual('error Command failed with exit code 1.');
 });
 
+test('yarn run <failing script with custom exit code>', async () => {
+  const cwd = await makeTemp();
+
+  await fs.writeFile(
+    path.join(cwd, 'package.json'),
+    JSON.stringify({
+      license: 'MIT',
+      scripts: {false: 'exit 78'},
+    }),
+  );
+
+  let stderr = null;
+  let err = null;
+  try {
+    await runYarn(['run', 'false'], {cwd});
+  } catch (e) {
+    stderr = e.stderr.trim();
+    err = e.code;
+  }
+
+  expect(err).toEqual(78);
+  expect(stderr).toEqual('error Command failed with exit code 78.');
+});
+
 test('yarn run in path need escaping', async () => {
   const cwd = await makeTemp('special (chars)');
 
