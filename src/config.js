@@ -50,7 +50,6 @@ export type ConfigOptions = {
   nonInteractive?: boolean,
   enablePnp?: boolean,
   disablePnp?: boolean,
-  scriptsPrependNodePath?: boolean,
   offlineCacheFolder?: string,
 
   enableDefaultRc?: boolean,
@@ -128,9 +127,6 @@ export default class Config {
   linkedModules: Array<string>;
 
   //
-  rootModuleFolders: Array<string>;
-
-  //
   linkFolder: string;
 
   //
@@ -179,8 +175,6 @@ export default class Config {
   plugnplayBlacklist: ?string;
   plugnplayUnplugged: Array<string>;
   plugnplayPurgeUnpluggedPackages: boolean;
-
-  scriptsPrependNodePath: boolean;
 
   workspacesEnabled: boolean;
   workspacesNohoistEnabled: boolean;
@@ -317,14 +311,10 @@ export default class Config {
       if (this.registryFolders.indexOf(registry.folder) === -1) {
         this.registryFolders.push(registry.folder);
       }
-      const rootModuleFolder = path.join(this.cwd, registry.folder);
-      if (this.rootModuleFolders.indexOf(rootModuleFolder) === -1) {
-        this.rootModuleFolders.push(rootModuleFolder);
-      }
     }
 
     if (this.modulesFolder) {
-      this.registryFolders.push(this.modulesFolder);
+      this.registryFolders = [this.modulesFolder];
     }
 
     this.networkConcurrency =
@@ -352,6 +342,11 @@ export default class Config {
       networkConcurrency: this.networkConcurrency,
       networkTimeout: this.networkTimeout,
     });
+
+    this.globalFolder = opts.globalFolder || String(this.getOption('global-folder', true));
+    if (this.globalFolder === 'undefined') {
+      this.globalFolder = constants.GLOBAL_MODULE_DIRECTORY;
+    }
 
     let cacheRootFolder = opts.cacheFolder || this.getOption('cache-folder', true);
 
@@ -383,7 +378,7 @@ export default class Config {
       this._cacheRootFolder = String(cacheRootFolder);
     }
 
-    const manifest = await this.maybeReadManifest(this.cwd);
+    const manifest = await this.maybeReadManifest(this.lockfileFolder);
 
     const plugnplayByEnv = this.getOption('plugnplay-override');
     if (plugnplayByEnv != null) {
@@ -397,12 +392,12 @@ export default class Config {
       this.plugnplayPersist = false;
     } else {
       this.plugnplayEnabled = false;
-      this.plugnplayEnabled = false;
+      this.plugnplayPersist = false;
     }
 
     if (process.platform === 'win32') {
-      const cacheRootFolderDrive = path.parse(this._cacheRootFolder).root;
-      const lockfileFolderDrive = path.parse(this.lockfileFolder).root;
+      const cacheRootFolderDrive = path.parse(this._cacheRootFolder).root.toLowerCase();
+      const lockfileFolderDrive = path.parse(this.lockfileFolder).root.toLowerCase();
 
       if (cacheRootFolderDrive !== lockfileFolderDrive) {
         if (this.plugnplayEnabled) {
@@ -415,6 +410,8 @@ export default class Config {
 
     this.plugnplayShebang = String(this.getOption('plugnplay-shebang') || '') || '/usr/bin/env node';
     this.plugnplayBlacklist = String(this.getOption('plugnplay-blacklist') || '') || null;
+
+    this.ignoreScripts = opts.ignoreScripts || Boolean(this.getOption('ignore-scripts', false));
 
     this.workspacesEnabled = this.getOption('workspaces-experimental') !== false;
     this.workspacesNohoistEnabled = this.getOption('workspaces-nohoist-experimental') !== false;
@@ -451,7 +448,6 @@ export default class Config {
   }
 
   _init(opts: ConfigOptions) {
-    this.rootModuleFolders = [];
     this.registryFolders = [];
     this.linkedModules = [];
 
@@ -470,7 +466,6 @@ export default class Config {
 
     this.preferOffline = !!opts.preferOffline;
     this.modulesFolder = opts.modulesFolder;
-    this.globalFolder = opts.globalFolder || constants.GLOBAL_MODULE_DIRECTORY;
     this.linkFolder = opts.linkFolder || constants.LINK_REGISTRY_DIRECTORY;
     this.offline = !!opts.offline;
     this.binLinks = !!opts.binLinks;
@@ -486,16 +481,10 @@ export default class Config {
     // $FlowFixMe$
     this.nonInteractive = !!opts.nonInteractive || isCi || !process.stdout.isTTY;
 
-    this.scriptsPrependNodePath = !!opts.scriptsPrependNodePath;
-
     this.requestManager.setOptions({
       offline: !!opts.offline && !opts.preferOffline,
       captureHar: !!opts.captureHar,
     });
-
-    if (this.modulesFolder) {
-      this.rootModuleFolders.push(this.modulesFolder);
-    }
 
     this.focus = !!opts.focus;
     this.focusedWorkspaceName = '';

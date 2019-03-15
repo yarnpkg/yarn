@@ -24,6 +24,7 @@ import {spawnp, forkp} from '../util/child.js';
 import {version} from '../util/yarn-version.js';
 import handleSignals from '../util/signal-handler.js';
 import {boolify, boolifyWithDefault} from '../util/conversion.js';
+import {ProcessTermError} from '../errors';
 
 function findProjectRoot(base: string): string {
   let prev = null;
@@ -291,7 +292,7 @@ export async function main({
   const runEventuallyWithFile = (mutexFilename: ?string, isFirstTime?: boolean): Promise<void> => {
     return new Promise(resolve => {
       const lockFilename = mutexFilename || path.join(config.cwd, constants.SINGLE_INSTANCE_FILENAME);
-      lockfile.lock(lockFilename, {realpath: false}, (err: mixed, release: () => void) => {
+      lockfile.lock(lockFilename, {realpath: false}, (err: mixed, release: (() => void) => void) => {
         if (err) {
           if (isFirstTime) {
             reporter.warn(reporter.lang('waitingInstance'));
@@ -303,7 +304,7 @@ export async function main({
           onDeath(() => {
             process.exitCode = 1;
           });
-          resolve(run().then(release));
+          resolve(run().then(() => new Promise(resolve => release(resolve))));
         }
       });
     });
@@ -581,6 +582,10 @@ export async function main({
 
       if (command.getDocsInfo) {
         reporter.info(command.getDocsInfo);
+      }
+
+      if (err instanceof ProcessTermError) {
+        return exit(err.EXIT_CODE || 1);
       }
 
       return exit(1);

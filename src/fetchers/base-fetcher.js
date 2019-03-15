@@ -6,7 +6,6 @@ import type {PackageRemote, FetchedMetadata, FetchedOverride} from '../types.js'
 import type {RegistryNames} from '../registries/index.js';
 import type Config from '../config.js';
 import normalizeManifest from '../util/normalize-manifest/index.js';
-import {makePortableProxyScript} from '../util/portable-script.js';
 import * as constants from '../constants.js';
 import * as fs from '../util/fs.js';
 import lockMutex from '../util/mutex.js';
@@ -82,7 +81,7 @@ export default class BaseFetcher {
           if (process.platform === 'win32') {
             const unlockMutex = await lockMutex(src);
             try {
-              await cmdShim.ifExists(src, `${binDest}/${binName}`);
+              await cmdShim.ifExists(src, `${binDest}/${binName}`, {createPwshFile: false});
             } finally {
               unlockMutex();
             }

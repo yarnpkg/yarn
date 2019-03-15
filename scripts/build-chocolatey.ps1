@@ -25,14 +25,12 @@ if ($Env:YARN_VERSION) {
   $latest_version = [String](Invoke-WebRequest -Uri https://yarnpkg.com/latest-version -UseBasicParsing)
 }
 
-$latest_chocolatey_version = (Find-Package -Name Yarn).Version
-
-if ([Version]$latest_chocolatey_version -ge [Version]$latest_version) {
-  Write-Output ('Current version ({0}) is the latest' -f $latest_chocolatey_version)
+Write-Output "Checking if $latest_version is already on Chocolatey..."
+$choco_output = choco list yarn --exact --version $latest_version | Out-String
+if ($choco_output -notmatch '0 packages found') {
+  Write-Output 'Already on Chocolatey. Nothing to do!'
   Exit
 }
-
-Write-Output ('Latest version is {0}, version on Chocolatey is {1}. Updating...' -f $latest_version, $latest_chocolatey_version)
 
 if (-Not (Test-Path artifacts)) {
   mkdir artifacts

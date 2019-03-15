@@ -8,4 +8,4 @@
 
 "yarn-test-git-repo@https://github.com/yarnpkg/e2e-test-repo#master":
   version "1.0.0"
-  resolved "https://github.com/yarnpkg/e2e-test-repo#64ed9468f0636a76fbadde0960ed321cc2c2cab0"
+  resolved "https://github.com/yarnpkg/e2e-test-repo#5c57959f3c55a6cd6004e3855ca59ba98bfff56c"

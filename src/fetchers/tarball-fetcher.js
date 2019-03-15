@@ -6,6 +6,7 @@ import * as constants from '../constants.js';
 import BaseFetcher from './base-fetcher.js';
 import * as fsUtil from '../util/fs.js';
 import {removePrefix} from '../util/misc.js';
+import normalizeUrl from 'normalize-url';
 
 const crypto = require('crypto');
 const path = require('path');
@@ -228,11 +229,13 @@ export default class TarballFetcher extends BaseFetcher {
     const registry = this.config.registries[this.registry];
 
     try {
+      const headers = this.requestHeaders();
       return await registry.request(
         this.reference,
         {
           headers: {
             'Accept-Encoding': 'gzip',
+            ...headers,
           },
           buffer: true,
           process: (req, resolve, reject) => {
@@ -271,6 +274,24 @@ export default class TarballFetcher extends BaseFetcher {
 
       throw err;
     }
+  }
+
+  requestHeaders(): {[string]: string} {
+    const registry = this.config.registries.yarn;
+    const config = registry.config;
+    const requestParts = urlParts(this.reference);
+    return Object.keys(config).reduce((headers, option) => {
+      const parts = option.split(':');
+      if (parts.length === 3 && parts[1] === '_header') {
+        const registryParts = urlParts(parts[0]);
+        if (requestParts.host === registryParts.host && requestParts.path.startsWith(registryParts.path)) {
+          const headerName = parts[2];
+          const headerValue = config[option];
+          headers[headerName] = headerValue;
+        }
+      }
+      return headers;
+    }, {});
   }
 
   _fetch(): Promise<FetchedOverride> {
@@ -328,4 +349,17 @@ export class LocalTarballFetcher extends TarballFetcher {
   _fetch(): Promise<FetchedOverride> {
     return this.fetchFromLocal(this.reference);
   }
+}
+
+type UrlParts = {
+  host: string,
+  path: string,
+};
+
+function urlParts(requestUrl: string): UrlParts {
+  const normalizedUrl = normalizeUrl(requestUrl);
+  const parsed = url.parse(normalizedUrl);
+  const host = parsed.host || '';
+  const path = parsed.path || '';
+  return {host, path};
 }

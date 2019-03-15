@@ -23,7 +23,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   let nodeOptions = process.env.NODE_OPTIONS || '';
   if (await fs.exists(pnpPath)) {
-    nodeOptions += ` --require ${pnpPath}`;
+    nodeOptions = `--require ${pnpPath} ${nodeOptions}`;
   }
 
   try {

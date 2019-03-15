@@ -1,12 +1,12 @@
 {
   "name": "yarn",
   "installationMethod": "unknown",
-  "version": "1.13.0-0",
+  "version": "1.16.0-0",
   "license": "BSD-2-Clause",
   "preferGlobal": true,
   "description": "📦🐈 Fast, reliable, and secure dependency management.",
   "dependencies": {
-    "@zkochan/cmd-shim": "^2.2.4",
+    "@zkochan/cmd-shim": "^3.1.0",
     "babel-runtime": "^6.26.0",
     "bytes": "^3.0.0",
     "camelcase": "^4.0.0",
@@ -95,6 +95,7 @@
     "minimatch": "^3.0.4",
     "mock-stdin": "^0.3.0",
     "prettier": "^1.5.2",
+    "string-replace-loader": "^2.1.1",
     "temp": "^0.8.3",
     "webpack": "^2.1.0-beta.25",
     "yargs": "^6.3.0"

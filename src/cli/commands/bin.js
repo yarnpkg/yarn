@@ -2,7 +2,6 @@
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
-import RegistryYarn from '../../resolvers/registries/yarn-resolver.js';
 import {getBinEntries} from './run.js';
 
 const path = require('path');
@@ -16,7 +15,7 @@ export function setFlags(commander: Object) {
 }
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-  const binFolder = path.join(config.cwd, config.registries[RegistryYarn.registry].folder, '.bin');
+  const binFolder = path.join(config.cwd, config.registryFolders[0], '.bin');
   if (args.length === 0) {
     reporter.log(binFolder, {force: true});
   } else {
