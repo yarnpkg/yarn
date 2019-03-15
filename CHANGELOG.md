@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Changes the method used to generate global binary shims on Windows so that PowerShell shims do not break (fixes [#6902](https://github.com/yarnpkg/yarn/issues/6902), [#6958](https://github.com/yarnpkg/yarn/issues/6958))
+
+  [#6959](https://github.com/yarnpkg/yarn/pull/6959) - [**Brian Ricketts**](https://github.com/briman0094)
+
 ## 1.15.2
 
 The 1.15.1 doesn't exist due to a release hiccup.
@@ -107,10 +111,6 @@ The 1.15.1 doesn't exist due to a release hiccup.
 - Changes the location where the `--require ./.pnp.js` flag gets added into `NODE_OPTIONS`: now at the front
 
   [#6942](https://github.com/yarnpkg/yarn/pull/6942) - [**John-David Dalton**](https://twitter.com/jdalton)
-  
-- Changes the method used to generate global binary shims on Windows so that PowerShell shims do not break (fixes [#6902](https://github.com/yarnpkg/yarn/issues/6902), [#6958](https://github.com/yarnpkg/yarn/issues/6958))
-
-  [#6959](https://github.com/yarnpkg/yarn/pull/6959) - [**Brian Ricketts**](https://github.com/briman0094)
 
 - Fixes a bug where `os` and `platform` requirements weren't properly checked when `engines` was missing
 
