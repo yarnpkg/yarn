@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+## 1.15.2
+
+The 1.15.1 doesn't exist due to a release hiccup.
+
 - Reverts a behavior causing boggus interactions between PowerShell and `yarn global`
 
   [#6954](https://github.com/yarnpkg/yarn/pull/6954) - [**briman0094**](https://github.com/briman0094)
