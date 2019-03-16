@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Implements `yarn audit --groups group_name [group_name ...]`.
+
+  [#6724](https://github.com/yarnpkg/yarn/pull/6724) - [**Tom Milligan**](https://github.com/tommilligan)
+
 ## 1.15.2
 
 The 1.15.1 doesn't exist due to a release hiccup.
