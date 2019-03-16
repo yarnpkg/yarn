@@ -112,6 +112,7 @@ test('audit groups dependencies does not affect requires', () => {
     install: [],
     remove: [],
     metadata: {},
+    dev: false,
     requires: {
       minimatch: '^3.0.0',
     },
@@ -123,6 +124,7 @@ test('audit groups dependencies does not affect requires', () => {
           'brace-expansion': '^1.0.0',
         },
         dependencies: {},
+        dev: false,
       },
       'brace-expansion': {
         version: '1.1.11',
@@ -132,18 +134,21 @@ test('audit groups dependencies does not affect requires', () => {
           'concat-map': '0.0.1',
         },
         dependencies: {},
+        dev: false,
       },
       'balanced-match': {
         version: '1.0.0',
         integrity: 'sha1-ibTRmasr7kneFk6gK4nORi1xt2c=',
         requires: {},
         dependencies: {},
+        dev: false,
       },
       'concat-map': {
         version: '0.0.1',
         integrity: 'sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=',
         requires: {},
         dependencies: {},
+        dev: false,
       },
     },
     version: '0.0.0',
@@ -163,6 +168,7 @@ test('audit groups only devDependencies omits dependencies from requires', () =>
     remove: [],
     metadata: {},
     requires: {},
+    dev: false,
     dependencies: {
       minimatch: {
         version: '3.0.0',
@@ -170,6 +176,7 @@ test('audit groups only devDependencies omits dependencies from requires', () =>
         requires: {
           'brace-expansion': '^1.0.0',
         },
+        dev: false,
         dependencies: {},
       },
       'brace-expansion': {
@@ -179,18 +186,21 @@ test('audit groups only devDependencies omits dependencies from requires', () =>
           'balanced-match': '^1.0.0',
           'concat-map': '0.0.1',
         },
+        dev: false,
         dependencies: {},
       },
       'balanced-match': {
         version: '1.0.0',
         integrity: 'sha1-ibTRmasr7kneFk6gK4nORi1xt2c=',
         requires: {},
+        dev: false,
         dependencies: {},
       },
       'concat-map': {
         version: '0.0.1',
         integrity: 'sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=',
         requires: {},
+        dev: false,
         dependencies: {},
       },
     },
