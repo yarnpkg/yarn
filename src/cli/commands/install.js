@@ -115,6 +115,10 @@ function getUpdateCommand(installationMethod: InstallationMethod): ?string {
     return 'apk update && apk add -u yarn';
   }
 
+  if (installationMethod === 'portage') {
+    return 'sudo emerge --sync && sudo emerge -au sys-apps/yarn';
+  }
+
   return null;
 }
 
