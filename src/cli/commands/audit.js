@@ -18,6 +18,7 @@ const gzip = promisify(zlib.gzip);
 
 export type AuditOptions = {
   groups: Array<string>,
+  level?: string,
 };
 
 export type AuditNode = {
@@ -127,6 +128,12 @@ export function setFlags(commander: Object) {
     groups => groups.split(' '),
     OWNED_DEPENDENCY_TYPES,
   );
+  commander.option(
+    '--level <severity>',
+    `Only print advisories with severity greater than or equal to one of the following: \
+    info|low|moderate|high|critical. Default: info`,
+    'info',
+  );
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
@@ -134,7 +141,11 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 }
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<number> {
-  const audit = new Audit(config, reporter, {groups: flags.groups || OWNED_DEPENDENCY_TYPES});
+  const DEFAULT_LOG_LEVEL = 'info';
+  const audit = new Audit(config, reporter, {
+    groups: flags.groups || OWNED_DEPENDENCY_TYPES,
+    level: flags.level || DEFAULT_LOG_LEVEL,
+  });
   const lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
   const install = new Install({}, config, reporter, lockfile);
   const {manifest, requests, patterns, workspaceLayout} = await install.fetchRequestFromCwd();
@@ -167,6 +178,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 }
 
 export default class Audit {
+  severityLevels = ['info', 'low', 'moderate', 'high', 'critical'];
+
   constructor(config: Config, reporter: Reporter, options: AuditOptions) {
     this.config = config;
     this.reporter = reporter;
@@ -292,9 +305,14 @@ export default class Audit {
       return;
     }
 
+    const startLoggingAt: number = Math.max(0, this.severityLevels.indexOf(this.options.level));
+
     const reportAdvisory = (resolution: AuditResolution) => {
       const advisory = this.auditData.advisories[resolution.id.toString()];
-      this.reporter.auditAdvisory(resolution, advisory);
+
+      if (this.severityLevels.indexOf(advisory.severity) >= startLoggingAt) {
+        this.reporter.auditAdvisory(resolution, advisory);
+      }
     };
 
     if (Object.keys(this.auditData.advisories).length !== 0) {
