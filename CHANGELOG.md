@@ -85,6 +85,10 @@ The 1.15.1 doesn't exist due to a release hiccup.
 - Packages won't be auto-unplugged anymore if `ignore-scripts` is set in the yarnrc file
 
   [#6983](https://github.com/yarnpkg/yarn/pull/6983) - [**Micha Reiser**](https://github.com/MichaReiser)
+  
+- Enables displaying Emojis on [Terminus](https://github.com/Eugeny/terminus) by default
+
+  [#7093](https://github.com/yarnpkg/yarn/pull/7093) - [**David Refoua**](https://github.com/DRSDavidSoft)
 
 ## 1.14.0
 
