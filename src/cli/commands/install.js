@@ -745,7 +745,7 @@ export class Install {
 
   async checkCompatibility(): Promise<void> {
     const {manifest} = await this.fetchRequestFromCwd();
-    await compatibility.checkOne({_reference: {}, ...manifest}, this.config, this.flags.ignoreEngines);
+    await compatibility.checkOne(manifest, this.config, this.flags.ignoreEngines);
   }
 
   async persistChanges(): Promise<void> {

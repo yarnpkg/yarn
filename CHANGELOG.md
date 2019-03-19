@@ -90,6 +90,10 @@ The 1.15.1 doesn't exist due to a release hiccup.
 
   [#7093](https://github.com/yarnpkg/yarn/pull/7093) - [**David Refoua**](https://github.com/DRSDavidSoft)
 
+- Run the engines check before executing `run` scripts.
+
+  [#7013](https://github.com/yarnpkg/yarn/issues/7013) - [**Eloy Durán**](https://github.com/alloy)
+
 ## 1.14.0
 
 - Improves PnP compatibility with Node 6

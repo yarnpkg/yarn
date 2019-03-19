@@ -229,11 +229,12 @@ const messages = {
   nodeGypAutoInstallFailed:
     'Failed to auto-install node-gyp. Please run "yarn global add node-gyp" manually. Error: $0',
 
-  foundIncompatible: 'Found incompatible module',
+  foundIncompatible: 'Found incompatible module.',
   incompatibleEngine: 'The engine $0 is incompatible with this module. Expected version $1. Got $2',
   incompatibleCPU: 'The CPU architecture $0 is incompatible with this module.',
   incompatibleOS: 'The platform $0 is incompatible with this module.',
   invalidEngine: 'The engine $0 appears to be invalid.',
+  cannotRunWithIncompatibleEnv: 'Commands cannot run with an incompatible environment.',
 
   optionalCompatibilityExcluded:
     '$0 is an optional dependency and failed compatibility check. Excluding it from installation.',
