@@ -11,6 +11,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 - Implements `yarn audit --groups group_name [group_name ...]`.
 
   [#6724](https://github.com/yarnpkg/yarn/pull/6724) - [**Tom Milligan**](https://github.com/tommilligan)
+  
+- Adds package.json private fields to JSON output of `yarn workspaces info`.
+  
+  [#7133](https://github.com/yarnpkg/yarn/pull/7133) - [**Ryan Tsao**](https://github.com/rtsao)
 
 ## 1.15.2
 
