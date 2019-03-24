@@ -4,6 +4,7 @@ import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
 import type {Reporter} from '../../reporters/index.js';
 import * as child from '../../util/child.js';
+import {makeEnv} from '../../util/execute-lifecycle-script';
 import {run as runGlobal, getBinFolder} from './global.js';
 
 const path = require('path');
@@ -61,6 +62,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   const binFolder = await getBinFolder(config, {});
   const command = path.resolve(binFolder, commandName);
+  const env = await makeEnv('create', config.cwd, config);
 
-  await child.spawn(command, rest, {stdio: `inherit`, shell: true});
+  await child.spawn(command, rest, {stdio: `inherit`, shell: true, env});
 }
