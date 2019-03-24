@@ -12,7 +12,7 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#6724](https://github.com/yarnpkg/yarn/pull/6724) - [**Tom Milligan**](https://github.com/tommilligan)
 
-- Add environment variables to spawned `create` process.
+- Exposes the script environment variables to `yarn create` spawned processes.
 
   [#7127](https://github.com/yarnpkg/yarn/pull/7127) - [**Eli Perelman**](https://github.com/eliperelman)
 
