@@ -186,8 +186,10 @@ function ls(manifest: Manifest, reporter: Reporter, saved: boolean) {
       reporter.info(reporter.lang('packageHasBinaries', human));
     }
     reporter.list(`bins-${manifest.name}`, bins);
-  } else {
+  } else if (saved) {
     reporter.warn(reporter.lang('packageHasNoBinaries', human));
+  } else {
+    reporter.info(reporter.lang('package', human));
   }
 }
 

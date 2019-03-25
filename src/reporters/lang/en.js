@@ -363,6 +363,7 @@ const messages = {
 
   plugnplayWindowsSupport: "Plug'n'Play on Windows doesn't support the cache and project to be kept on separate drives",
 
+  package: '$0',
   packageInstalledWithBinaries: 'Installed $0 with binaries:',
   packageHasBinaries: '$0 has binaries:',
   packageHasNoBinaries: '$0 has no binaries',
