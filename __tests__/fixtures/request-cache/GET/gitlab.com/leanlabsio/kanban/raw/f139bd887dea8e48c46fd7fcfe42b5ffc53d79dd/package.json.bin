@@ -1,0 +1,56 @@
+HTTP/1.1 200 OK
+Server: nginx
+Date: Wed, 27 Mar 2019 12:51:12 GMT
+Content-Type: text/plain; charset=utf-8
+Content-Length: 1181
+Cache-Control: max-age=3600, public
+Content-Disposition: inline
+Etag: W/"78309fbf8af4479c47eca65b0c5e3f51"
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+X-Request-Id: kTsEGIR9zSa
+X-Runtime: 0.099649
+X-Ua-Compatible: IE=edge
+X-Xss-Protection: 1; mode=block
+Strict-Transport-Security: max-age=31536000
+Content-Security-Policy: object-src 'none'; worker-src https://assets.gitlab-static.net https://gl-canary.freetls.fastly.net https://gitlab.com blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://assets.gitlab-static.net https://gl-canary.freetls.fastly.net https://www.google.com/recaptcha/ https://www.recaptcha.net/ https://www.gstatic.com/recaptcha/ https://apis.google.com; style-src 'self' 'unsafe-inline' https://assets.gitlab-static.net https://gl-canary.freetls.fastly.net; img-src * data: blob:; frame-src 'self' https://www.google.com/recaptcha/ https://www.recaptcha.net/ https://content.googleapis.com https://content-compute.googleapis.com https://content-cloudbilling.googleapis.com https://content-cloudresourcemanager.googleapis.com https://*.codesandbox.io; frame-ancestors 'self'; connect-src 'self' https://assets.gitlab-static.net https://gl-canary.freetls.fastly.net wss://gitlab.com https://sentry.gitlab.net https://customers.gitlab.com https://snowplow.trx.gitlab.net
+
+{
+  "name": "kanban",
+  "version": "0.0.1",
+  "repository": "gitlab.com/leanlabsio/kanban",
+  "scripts": {
+      "install": "npm install",
+      "build": "grunt build",
+      "watch": "grunt watch"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-cli": "~0.1.13",
+    "grunt-contrib-copy": "^0.5.0",
+    "grunt-contrib-concat": "~0.5.0",
+    "grunt-contrib-watch": "~0.5.3",
+    "grunt-contrib-uglify": "~0.7.0",
+    "grunt-sass": "1.0.0",
+    "grunt-contrib-connect": "~0.8.0",
+    "grunt-connect-proxy": "~0.1.11"
+  },
+  "dependencies": {
+    "angular": "=1.5.6",
+    "angular-lodash": "https://github.com/EMSSConsulting/angular-lodash.git#68a726c",
+    "foundation-sites": "5.5.2",
+    "angular-foundation": "https://github.com/pineconellc/angular-foundation.git#8f3f260",
+    "angular-loading-bar": "=0.5.2",
+    "angular-storage": "=0.0.6",
+    "angular-ui-router": "=0.3.0",
+    "angularjs-datepicker": "=0.2.15",
+    "font-awesome": "=4.6.3",
+    "markdown-it": "=5.0.2",
+    "markdown-it-emoji": "=1.1.0",
+    "ng-sortable": "=1.3.6",
+    "sass-flex-mixin": "=1.0.3",
+    "lodash": "=4.13.1",
+    "twemoji": "=2.1.0",
+    "angular-file-upload": "=2.3.4"
+  }
+}

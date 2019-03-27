@@ -207,6 +207,16 @@ test('adds workspace root node_modules/.bin to path when in a workspace', (): Pr
     expect(envPaths).toContain(path.join(config.cwd, 'packages', 'pkg1', 'node_modules', '.bin'));
   }));
 
+test('adds cwd node_modules/.bin to path when in a workspace usig nohoist', (): Promise<void> =>
+  runRunInWorkspacePackage('packages/pkg1', ['env'], {}, 'nohoist-workspace', (config, reporter): ?Promise<void> => {
+    const logEntry = reporter.getBuffer().find(entry => entry.type === 'log');
+    const parsedLogData = JSON.parse(logEntry ? logEntry.data.toString() : '{}');
+    const envPaths = (parsedLogData.PATH || parsedLogData.Path).split(path.delimiter);
+
+    expect(envPaths).toContain(path.join(config.cwd, 'node_modules', '.bin'));
+    expect(envPaths).toContain(path.join(config.cwd, 'packages', 'pkg1', 'node_modules', '.bin'));
+  }));
+
 test('runs script with custom script-shell', (): Promise<void> =>
   runRunWithCustomShell('/usr/bin/dummy', ['start'], {}, 'script-shell', async (config): ?Promise<void> => {
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
