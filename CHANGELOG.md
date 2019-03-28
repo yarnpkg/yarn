@@ -6,7 +6,7 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 - Implements `yarn audit --level [severity]` flag to filter the audit command's output.
 
-[#6716](https://github.com/yarnpkg/yarn/pull/6716) - [**Rogério Vicente**](https://twitter.com/rogeriopvl)
+  [#6716](https://github.com/yarnpkg/yarn/pull/6716) - [**Rogério Vicente**](https://twitter.com/rogeriopvl)
 
 - Implements `yarn audit --groups group_name [group_name ...]`.
 
@@ -15,6 +15,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 - Exposes the script environment variables to `yarn create` spawned processes.
 
   [#7127](https://github.com/yarnpkg/yarn/pull/7127) - [**Eli Perelman**](https://github.com/eliperelman)
+
+- Always run postversion lifecycle method.
+
+  [#7154](https://github.com/yarnpkg/yarn/pull/7154) - [**Hampus Tågerud**](https://github.com/hampustagerud)
 
 ## 1.15.2
 
