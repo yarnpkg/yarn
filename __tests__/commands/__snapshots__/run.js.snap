@@ -51,3 +51,18 @@ Array [
   },
 ]
 `;
+
+exports[`runs non-existent script with parameter --if-present 1`] = `
+Array [
+  Object {
+    "data": "package.json: No license field",
+    "error": true,
+    "type": "warning",
+  },
+  Object {
+    "data": "Command \\"foo\\" not found.",
+    "error": true,
+    "type": "warning",
+  },
+]
+`;

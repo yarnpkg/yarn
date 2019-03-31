@@ -220,3 +220,11 @@ test('runs script with custom script-shell', (): Promise<void> =>
       customShell: '/usr/bin/dummy',
     });
   }));
+
+test('runs non-existent script with parameter --if-present', (): Promise<void> =>
+  runRun(['foo'], {ifPresent: true}, 'bin', (config, reporter) => {
+    expect(reporter.getBuffer()).toMatchSnapshot();
+  }));
+
+test('return non-zero exit code if script does not exist and is executed without --if-present', (): Promise<void> =>
+  expect(runRun(['foo'], {}, 'bin')).rejects.toBeDefined());
