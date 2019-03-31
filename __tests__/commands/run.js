@@ -226,5 +226,6 @@ test('runs non-existent script with parameter --if-present', (): Promise<void> =
     expect(reporter.getBuffer()).toMatchSnapshot();
   }));
 
-test('return non-zero exit code if script does not exist and is executed without --if-present', (): Promise<void> =>
-  expect(runRun(['foo'], {}, 'bin')).rejects.toBeDefined());
+test('return non-zero exit code if script does not exist and is executed without --if-present', async () => {
+  await expect(runRun(['foo'], {}, 'bin')).rejects.toBeDefined();
+});
