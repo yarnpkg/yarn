@@ -4,6 +4,8 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Retries downloading a package on `yarn install` when we get a ETIMEDOUT error.
+
 - Implements `yarn audit --level [severity]` flag to filter the audit command's output.
 
 [#6716](https://github.com/yarnpkg/yarn/pull/6716) - [**Rogério Vicente**](https://twitter.com/rogeriopvl)
