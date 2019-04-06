@@ -5,7 +5,7 @@ import type Config from '../../config.js';
 import PackageRequest from '../../package-request.js';
 import Lockfile from '../../lockfile';
 import {Install} from './install.js';
-import { colorAndEmojiForVersions } from '../../util/color-for-versions';
+import {colorAndEmojiForVersions} from '../../util/color-for-versions';
 import colorizeDiff from '../../util/colorize-diff.js';
 
 export const requireLockfile = true;
@@ -34,7 +34,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const colorizeName = ({current, latest, name}) => {
     const [color, emoji] = colorAndEmojiForVersions(current, latest);
     return reporter.format[color](reporter._prependEmoji(name, emoji));
-  }
+  };
 
   if (deps.length) {
     const usesWorkspaces = !!config.workspaceRootFolder;
