@@ -7,7 +7,7 @@ import inquirer from 'inquirer';
 import Lockfile from '../../lockfile';
 import {Add} from './add.js';
 import {getOutdated, cleanLockfile} from './upgrade.js';
-import colorForVersions from '../../util/color-for-versions';
+import {colorAndEmojiForVersions} from '../../util/color-for-versions';
 import colorizeDiff from '../../util/colorize-diff.js';
 import {Install} from './install.js';
 
@@ -82,7 +82,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const headerPadding = (header, key) =>
     `${reporter.format.bold.underline(header)}${' '.repeat(maxLengthArr[key] - header.length)}`;
 
-  const colorizeName = (from, to) => reporter.format[colorForVersions(from, to)];
+  const colorizeName = (from, to) => {
+    const [color, emoji] = colorAndEmojiForVersions(from, to);
+    return msg => reporter.format[color](reporter._prependEmoji(msg, emoji));
+  };
 
   const getNameFromHint = hint => (hint ? `${hint}Dependencies` : 'dependencies');
 
