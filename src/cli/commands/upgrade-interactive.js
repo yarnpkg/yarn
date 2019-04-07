@@ -1,7 +1,7 @@
 /* @flow */
 
 import type {Dependency} from '../../types.js';
-import type {Reporter} from '../../reporters/index.js';
+import type {ConsoleReporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import inquirer from 'inquirer';
 import Lockfile from '../../lockfile';
@@ -35,7 +35,12 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 
-export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+export async function run(
+  config: Config,
+  reporter: ConsoleReporter,
+  flags: Object,
+  args: Array<string>,
+): Promise<void> {
   const outdatedFieldName = flags.latest ? 'latest' : 'wanted';
   const lockfile = await Lockfile.fromDirectory(config.lockfileFolder);
 
@@ -84,7 +89,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   const colorizeName = (from, to) => {
     const [color, emoji] = colorAndEmojiForVersions(from, to);
-    return msg => reporter.format[color](reporter._prependEmoji(msg, emoji));
+    return msg => reporter.format[color](reporter.prependEmoji(msg, emoji));
   };
 
   const getNameFromHint = hint => (hint ? `${hint}Dependencies` : 'dependencies');

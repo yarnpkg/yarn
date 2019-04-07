@@ -1,6 +1,6 @@
 /* @flow */
 
-import type {Reporter} from '../../reporters/index.js';
+import type {ConsoleReporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import PackageRequest from '../../package-request.js';
 import Lockfile from '../../lockfile';
@@ -19,7 +19,12 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 
-export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<number> {
+export async function run(
+  config: Config,
+  reporter: ConsoleReporter,
+  flags: Object,
+  args: Array<string>,
+): Promise<number> {
   const lockfile = await Lockfile.fromDirectory(config.lockfileFolder);
   const install = new Install({...flags, includeWorkspaceDeps: true}, config, reporter, lockfile);
   let deps = await PackageRequest.getOutdatedPackages(lockfile, install, config, reporter);
@@ -33,7 +38,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const getNameFromHint = hint => (hint ? `${hint}Dependencies` : 'dependencies');
   const colorizeName = ({current, latest, name}) => {
     const [color, emoji] = colorAndEmojiForVersions(current, latest);
-    return reporter.format[color](reporter._prependEmoji(name, emoji));
+    return reporter.format[color](reporter.prependEmoji(name, emoji));
   };
 
   if (deps.length) {
@@ -54,9 +59,9 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       return row;
     });
 
-    const red = reporter.format.red(reporter._prependEmoji('<red>', '🛑'));
-    const yellow = reporter.format.yellow(reporter._prependEmoji(' <yellow>', '⚠️'));
-    const green = reporter.format.green(reporter._prependEmoji('<green>', '✅'));
+    const red = reporter.format.red(reporter.prependEmoji('<red>', '🛑'));
+    const yellow = reporter.format.yellow(reporter.prependEmoji(' <yellow>', '⚠️'));
+    const green = reporter.format.green(reporter.prependEmoji('<green>', '✅'));
     reporter.info(reporter.lang('legendColorsForVersionUpdates', red, yellow, green));
 
     const header = ['Package', 'Current', 'Wanted', 'Latest', 'Workspace', 'Package Type', 'URL'];
