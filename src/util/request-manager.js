@@ -301,7 +301,7 @@ export default class RequestManager {
     }
 
     // TCP timeout
-    if (code === 'ESOCKETTIMEDOUT') {
+    if (code === 'ESOCKETTIMEDOUT' || code === 'ETIMEDOUT') {
       return true;
     }
 
