@@ -66,6 +66,12 @@ test('filterOverridenGitignores', () => {
     filterOverridenGitignores([
       {relative: '.gitignore', basename: '.gitignore', absolute: '/home/user/p/.gitignore', mtime: 0},
       {relative: '.npmignore', basename: '.npmignore', absolute: '/home/user/p/.npmignore', mtime: 0},
+      {
+        relative: '.gitignore_global',
+        basename: '.gitignore_global',
+        absolute: '/home/user/p/.gitignore_global',
+        mtime: 0,
+      },
       {relative: 'docs', basename: 'lib', absolute: '/home/user/p/docs', mtime: 0},
       {relative: 'docs/file.txt', basename: 'file.txt', absolute: '/home/user/p/docs/file.txt', mtime: 0},
       {relative: 'index.js', basename: 'index.js', absolute: '/home/user/p/index.js', mtime: 0},
@@ -78,8 +84,15 @@ test('filterOverridenGitignores', () => {
       {relative: 'src/app.js', basename: 'app.js', absolute: '/home/user/p/src/app.js', mtime: 0},
     ]),
   ).toEqual([
-    {relative: '.npmignore', basename: '.npmignore', absolute: '/home/user/p/.npmignore', mtime: 0},
-    {relative: 'lib/.gitignore', basename: '.gitignore', absolute: '/home/user/p/lib/.gitignore', mtime: 0},
-    {relative: 'src/.yarnignore', basename: '.yarnignore', absolute: '/home/user/p/src/.yarnignore', mtime: 0},
+    {absolute: '/home/user/p/.gitignore', basename: '.gitignore', mtime: 0, relative: '.gitignore'},
+    {absolute: '/home/user/p/.npmignore', basename: '.npmignore', mtime: 0, relative: '.npmignore'},
+    {
+      absolute: '/home/user/p/.gitignore_global',
+      basename: '.gitignore_global',
+      mtime: 0,
+      relative: '.gitignore_global',
+    },
+    {absolute: '/home/user/p/lib/.gitignore', basename: '.gitignore', mtime: 0, relative: 'lib/.gitignore'},
+    {absolute: '/home/user/p/src/.yarnignore', basename: '.yarnignore', mtime: 0, relative: 'src/.yarnignore'},
   ]);
 });
