@@ -15,7 +15,7 @@ export async function getRegistryFolder(config: Config, name: string): Promise<s
     return config.modulesFolder;
   }
 
-  const src = path.join(fs.realpath(config.linkFolder), name);
+  const src = path.join(await fs.realpath(config.linkFolder), name);
   const {_registry} = await config.readManifest(src);
   invariant(_registry, 'expected registry');
 
@@ -34,7 +34,7 @@ export function setFlags(commander: Object) {
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   if (args.length) {
     for (const name of args) {
-      const src = path.join(fs.realpath(config.linkFolder), name);
+      const src = path.join(await fs.realpath(config.linkFolder), name);
 
       if (await fs.exists(src)) {
         const folder = await getRegistryFolder(config, name);
