@@ -15,7 +15,7 @@ export async function getRegistryFolder(config: Config, name: string): Promise<s
     return config.modulesFolder;
   }
 
-  const src = path.join(config.linkFolder, name);
+  const src = path.join(fs.realpath(config.linkFolder), name);
   const {_registry} = await config.readManifest(src);
   invariant(_registry, 'expected registry');
 
@@ -34,7 +34,7 @@ export function setFlags(commander: Object) {
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   if (args.length) {
     for (const name of args) {
-      const src = path.join(config.linkFolder, name);
+      const src = path.join(fs.realpath(config.linkFolder), name);
 
       if (await fs.exists(src)) {
         const folder = await getRegistryFolder(config, name);
@@ -56,8 +56,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       throw new MessageError(reporter.lang('unknownPackageName'));
     }
 
-    const realCwd = await fs.realpath(process.cwd())
-    const realLinkFolder = await fs.realpath(config.linkFolder)
+    const realCwd = await fs.realpath(process.cwd());
+    const realLinkFolder = await fs.realpath(config.linkFolder);
     const realLinkLoc = path.join(realLinkFolder, name);
     if (await fs.exists(realLinkLoc)) {
       reporter.warn(reporter.lang('linkCollision', name));
