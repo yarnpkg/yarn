@@ -20,7 +20,7 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#7127](https://github.com/yarnpkg/yarn/pull/7127) - [**Eli Perelman**](https://github.com/eliperelman)
 
-- Support NPM Enterprise URLs in offline mirror filename calculation.
+- Adds support for the npm enterprise URLs when computing the offline mirror filenames.
 
   [#7200](https://github.com/yarnpkg/yarn/pull/7200) - [**John Millikin**](https://john-millikin.com)
 
