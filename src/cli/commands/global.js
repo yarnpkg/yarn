@@ -51,6 +51,7 @@ async function updateCwd(config: Config): Promise<void> {
     binLinks: true,
     globalFolder: config.globalFolder,
     cacheFolder: config._cacheRootFolder,
+    wrapperFolder: config.wrapperFolder,
     linkFolder: config.linkFolder,
     enableDefaultRc: config.enableDefaultRc,
     extraneousYarnrcFiles: config.extraneousYarnrcFiles,

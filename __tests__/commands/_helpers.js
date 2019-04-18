@@ -88,6 +88,7 @@ export function makeConfigFromDirectory(cwd: string, reporter: Reporter, flags: 
       ignoreScripts: flags.ignoreScripts,
       globalFolder: flags.globalFolder || path.join(cwd, '.yarn-global'),
       cacheFolder: flags.cacheFolder || path.join(cwd, '.yarn-cache'),
+      wrapperFolder: flags.wrapperFolder || path.join(cwd, '.yarn-wrapper'),
       linkFolder: flags.linkFolder || path.join(cwd, '.yarn-link'),
       prefix: flags.prefix,
       production: flags.production,

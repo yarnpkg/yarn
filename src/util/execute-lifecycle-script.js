@@ -32,7 +32,7 @@ export async function getWrappersFolder(config: Config): Promise<string> {
     return wrappersFolder;
   }
 
-  wrappersFolder = await fs.makeTempDir();
+  wrappersFolder = await fs.makeTempDir(null, config.wrapperFolder);
 
   await makePortableProxyScript(process.execPath, wrappersFolder, {
     proxyBasename: 'node',

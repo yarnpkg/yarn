@@ -16,6 +16,7 @@ const PATH_KEYS = new Set([
   'modules-folder',
   'cwd',
   'offline-cache-folder',
+  'wrapper-folder',
 ]);
 
 // given a cwd, load all .yarnrc files relative to it
