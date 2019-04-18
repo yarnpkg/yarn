@@ -84,6 +84,7 @@ export const POSIX_GLOBAL_PREFIX = `${process.env.DESTDIR || ''}/usr/local`;
 export const FALLBACK_GLOBAL_PREFIX = path.join(userHome, '.yarn');
 
 export const META_FOLDER = '.yarn-meta';
+export const WRAPPER_FOLDER = '.yarn.wrapper';
 export const INTEGRITY_FILENAME = '.yarn-integrity';
 export const LOCKFILE_FILENAME = 'yarn.lock';
 export const METADATA_FILENAME = '.yarn-metadata.json';

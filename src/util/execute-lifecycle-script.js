@@ -228,7 +228,10 @@ export async function makeEnv(
     env.NODE_OPTIONS = `--require ${pnpFile} ${env.NODE_OPTIONS}`;
   }
 
-  pathParts.unshift(await getWrappersFolder(config));
+  // Track our wrapper folder so we can clean up after ourselves … 'cause we're awesome!
+  const wrapperFolder = await getWrappersFolder(config);
+  env[constants.WRAPPER_FOLDER] = wrapperFolder;
+  pathParts.unshift(wrapperFolder);
 
   // join path back together
   env[constants.ENV_PATH_KEY] = pathParts.join(path.delimiter);
