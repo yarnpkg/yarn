@@ -24,6 +24,14 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#7194](https://github.com/yarnpkg/yarn/pull/7194) - [**Abhishek Reddy**](https://github.com/arbscht)
 
+- Adds support for the npm enterprise URLs when computing the offline mirror filenames.
+
+  [#7200](https://github.com/yarnpkg/yarn/pull/7200) - [**John Millikin**](https://john-millikin.com)
+  
+- Tweaks the lockfile parser logic to parse a few extra cases
+
+  [#7210](https://github.com/yarnpkg/yarn/pull/7210) - [**Maël Nison**](https://twitter.com/arcanis)
+
 ## 1.15.2
 
 The 1.15.1 doesn't exist due to a release hiccup.
