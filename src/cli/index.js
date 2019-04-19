@@ -597,7 +597,7 @@ export async function main({
 
 async function start(): Promise<void> {
   const rc = getRcConfigForCwd(process.cwd(), process.argv.slice(2));
-  const yarnPath = rc['yarn-path'];
+  const yarnPath = rc['yarn-path'] || rc['yarnPath'];
 
   if (yarnPath && !boolifyWithDefault(process.env.YARN_IGNORE_PATH, false)) {
     const argv = process.argv.slice(2);
