@@ -20,6 +20,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#7127](https://github.com/yarnpkg/yarn/pull/7127) - [**Eli Perelman**](https://github.com/eliperelman)
 
+- Prevents EPIPE errors from being printed.
+
+  [#7194](https://github.com/yarnpkg/yarn/pull/7194) - [**Abhishek Reddy**](https://github.com/arbscht)
+
 ## 1.15.2
 
 The 1.15.1 doesn't exist due to a release hiccup.
