@@ -337,7 +337,7 @@ test('parse merge conflict fail', () => {
   const file = `
 <<<<<<< HEAD
 b:
-  foo: "bar"
+  foo "bar
 =======
 c:
   bar "foo"
