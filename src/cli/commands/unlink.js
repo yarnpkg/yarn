@@ -20,7 +20,7 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   if (args.length) {
     for (const name of args) {
-      const linkLoc = path.join(fs.realpath(config.linkFolder), name);
+      const linkLoc = path.join(await fs.realpath(config.linkFolder), name);
       if (await fs.exists(linkLoc)) {
         await fs.unlink(path.join(await getRegistryFolder(config, name), name));
         reporter.success(reporter.lang('linkDisusing', name));
