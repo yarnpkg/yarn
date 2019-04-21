@@ -58,7 +58,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
     const linkLoc = path.join(config.linkFolder, name);
     if (await fs.exists(linkLoc)) {
-      reporter.warn(reporter.lang('linkCollision', name));
+      const linkTarget = await fs.readlink(linkLoc);
+      reporter.warn(reporter.lang('linkCollision', name, linkTarget));
     } else {
       await fs.mkdirp(path.dirname(linkLoc));
       await fs.symlink(config.cwd, linkLoc);
@@ -72,7 +73,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
           const binSrcLoc = path.join(linkLoc, binSrc);
           const binDestLoc = path.join(globalBinFolder, binName);
           if (await fs.exists(binDestLoc)) {
-            reporter.warn(reporter.lang('binLinkCollision', binName));
+            const binDestLinkTarget = await fs.readlink(binDestLoc);
+            reporter.warn(reporter.lang('binLinkCollision', binName, binDestLinkTarget));
           } else {
             if (process.platform === 'win32') {
               await cmdShim(binSrcLoc, binDestLoc, {createPwshFile: false});
