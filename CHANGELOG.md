@@ -4,6 +4,8 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+## 1.16.0
+
 - Retries downloading a package on `yarn install` when we get a ETIMEDOUT error.
 
 [#7163](https://github.com/yarnpkg/yarn/pull/7163) - [**Vincent Bailly**](https://github.com/VincentBailly)
