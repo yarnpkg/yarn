@@ -26,6 +26,14 @@ import handleSignals from '../util/signal-handler.js';
 import {boolify, boolifyWithDefault} from '../util/conversion.js';
 import {ProcessTermError} from '../errors';
 
+process.stdout.prependListener('error', err => {
+  // swallow err only if downstream consumer process closed pipe early
+  if (err.code === 'EPIPE' || err.code === 'ERR_STREAM_DESTROYED') {
+    return;
+  }
+  throw err;
+});
+
 function findProjectRoot(base: string): string {
   let prev = null;
   let dir = base;
@@ -597,7 +605,7 @@ export async function main({
 
 async function start(): Promise<void> {
   const rc = getRcConfigForCwd(process.cwd(), process.argv.slice(2));
-  const yarnPath = rc['yarn-path'];
+  const yarnPath = rc['yarn-path'] || rc['yarnPath'];
 
   if (yarnPath && !boolifyWithDefault(process.env.YARN_IGNORE_PATH, false)) {
     const argv = process.argv.slice(2);

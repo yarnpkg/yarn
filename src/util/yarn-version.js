@@ -37,4 +37,14 @@ export async function getInstallationMethod(): Promise<InstallationMethod> {
   return installationMethod;
 }
 
-export type InstallationMethod = 'tar' | 'homebrew' | 'deb' | 'rpm' | 'msi' | 'chocolatey' | 'apk' | 'npm' | 'unknown';
+export type InstallationMethod =
+  | 'tar'
+  | 'homebrew'
+  | 'deb'
+  | 'rpm'
+  | 'msi'
+  | 'chocolatey'
+  | 'apk'
+  | 'npm'
+  | 'portage'
+  | 'unknown';

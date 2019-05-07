@@ -4,6 +4,12 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+## 1.16.0
+
+- Retries downloading a package on `yarn install` when we get a ETIMEDOUT error.
+
+[#7163](https://github.com/yarnpkg/yarn/pull/7163) - [**Vincent Bailly**](https://github.com/VincentBailly)
+
 - Implements `yarn audit --level [severity]` flag to filter the audit command's output.
 
   [#6716](https://github.com/yarnpkg/yarn/pull/6716) - [**Rogério Vicente**](https://twitter.com/rogeriopvl)
@@ -19,6 +25,18 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 - Always run postversion lifecycle method.
 
   [#7154](https://github.com/yarnpkg/yarn/pull/7154) - [**Hampus Tågerud**](https://github.com/hampustagerud)
+  
+- Prevents EPIPE errors from being printed.
+
+  [#7194](https://github.com/yarnpkg/yarn/pull/7194) - [**Abhishek Reddy**](https://github.com/arbscht)
+
+- Adds support for the npm enterprise URLs when computing the offline mirror filenames.
+
+  [#7200](https://github.com/yarnpkg/yarn/pull/7200) - [**John Millikin**](https://john-millikin.com)
+  
+- Tweaks the lockfile parser logic to parse a few extra cases
+
+  [#7210](https://github.com/yarnpkg/yarn/pull/7210) - [**Maël Nison**](https://twitter.com/arcanis)
 
 ## 1.15.2
 
