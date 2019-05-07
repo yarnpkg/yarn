@@ -162,6 +162,108 @@ test('run version and make sure commit hooks are disabled by config', async (): 
   });
 });
 
+test('run version with --no-git-tag-version and make sure git tags are disabled', async (): Promise<void> => {
+  const fixture = 'no-args';
+  await fs.mkdirp(path.join(fixturesLoc, fixture, '.git'));
+
+  return runRun([], {newVersion, gitTagVersion: false}, fixture, async (config): ?Promise<void> => {
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    expect(pkg.version).toBe(newVersion);
+
+    expect(spawn.mock.calls.length).toBe(0);
+  });
+});
+
+test('run version and make sure git tags are disabled by config', async (): Promise<void> => {
+  const fixture = 'no-args-no-git-tags';
+  await fs.mkdirp(path.join(fixturesLoc, fixture, '.git'));
+
+  return runRun([], {newVersion, gitTagVersion}, fixture, async (config): ?Promise<void> => {
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    expect(pkg.version).toBe(newVersion);
+
+    expect(spawn.mock.calls.length).toBe(0);
+  });
+});
+
+test('run version with --no-git-tag-version, make sure all lifecycle steps runs', async (): Promise<void> => {
+  const fixture = 'no-args';
+  await fs.mkdirp(path.join(fixturesLoc, fixture, '.git'));
+
+  return runRun([], {newVersion, gitTagVersion: false}, fixture, async (config): ?Promise<void> => {
+    expect(spawn.mock.calls.length).toBe(0);
+
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+
+    const preversionLifecycle = {
+      stage: 'preversion',
+      config,
+      cmd: pkg.scripts.preversion,
+      cwd: config.cwd,
+      isInteractive: true,
+    };
+    const versionLifecycle = {
+      stage: 'version',
+      config,
+      cmd: pkg.scripts.version,
+      cwd: config.cwd,
+      isInteractive: true,
+    };
+    const postversionLifecycle = {
+      stage: 'postversion',
+      config,
+      cmd: pkg.scripts.postversion,
+      cwd: config.cwd,
+      isInteractive: true,
+    };
+
+    expect(execCommand.mock.calls.length).toBe(3);
+
+    expect(execCommand.mock.calls[0]).toEqual([preversionLifecycle]);
+    expect(execCommand.mock.calls[1]).toEqual([versionLifecycle]);
+    expect(execCommand.mock.calls[2]).toEqual([postversionLifecycle]);
+  });
+});
+
+test('run version with git tags disabled in config, make sure all lifecycle steps runs', async (): Promise<void> => {
+  const fixture = 'no-args-no-git-tags';
+  await fs.mkdirp(path.join(fixturesLoc, fixture, '.git'));
+
+  return runRun([], {newVersion, gitTagVersion}, fixture, async (config): ?Promise<void> => {
+    expect(spawn.mock.calls.length).toBe(0);
+
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+
+    const preversionLifecycle = {
+      stage: 'preversion',
+      config,
+      cmd: pkg.scripts.preversion,
+      cwd: config.cwd,
+      isInteractive: true,
+    };
+    const versionLifecycle = {
+      stage: 'version',
+      config,
+      cmd: pkg.scripts.version,
+      cwd: config.cwd,
+      isInteractive: true,
+    };
+    const postversionLifecycle = {
+      stage: 'postversion',
+      config,
+      cmd: pkg.scripts.postversion,
+      cwd: config.cwd,
+      isInteractive: true,
+    };
+
+    expect(execCommand.mock.calls.length).toBe(3);
+
+    expect(execCommand.mock.calls[0]).toEqual([preversionLifecycle]);
+    expect(execCommand.mock.calls[1]).toEqual([versionLifecycle]);
+    expect(execCommand.mock.calls[2]).toEqual([postversionLifecycle]);
+  });
+});
+
 test('run version with --major flag and make sure major version is incremented', (): Promise<void> => {
   return runRun([], {gitTagVersion, major: true}, 'no-args', async (config): ?Promise<void> => {
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
