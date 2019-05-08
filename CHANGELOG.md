@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Always run postversion lifecycle method.
+
+  [#7154](https://github.com/yarnpkg/yarn/pull/7154) - [**Hampus Tågerud**](https://github.com/hampustagerud)
+
 ## 1.16.0
 
 - Retries downloading a package on `yarn install` when we get a ETIMEDOUT error.
@@ -21,10 +25,6 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 - Exposes the script environment variables to `yarn create` spawned processes.
 
   [#7127](https://github.com/yarnpkg/yarn/pull/7127) - [**Eli Perelman**](https://github.com/eliperelman)
-
-- Always run postversion lifecycle method.
-
-  [#7154](https://github.com/yarnpkg/yarn/pull/7154) - [**Hampus Tågerud**](https://github.com/hampustagerud)
   
 - Prevents EPIPE errors from being printed.
 
