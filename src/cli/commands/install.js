@@ -225,6 +225,7 @@ export class Install {
   async fetchRequestFromCwd(
     excludePatterns?: Array<string> = [],
     ignoreUnusedPatterns?: boolean = false,
+    overrideResolutionMap?: ResolutionMap,
   ): Promise<InstallCwdRequest> {
     const patterns = [];
     const deps: DependencyRequestPatterns = [];
@@ -234,6 +235,7 @@ export class Install {
     const ignorePatterns = [];
     const usedPatterns = [];
     let workspaceLayout;
+    const resolutionMap = overrideResolutionMap ? overrideResolutionMap : this.resolutionMap;
 
     // some commands should always run in the context of the entire workspace
     const cwd =
@@ -283,9 +285,9 @@ export class Install {
       Object.assign(this.resolutions, projectManifestJson.resolutions);
       Object.assign(manifest, projectManifestJson);
 
-      this.resolutionMap.init(this.resolutions);
-      for (const packageName of Object.keys(this.resolutionMap.resolutionsByPackage)) {
-        for (const {pattern} of this.resolutionMap.resolutionsByPackage[packageName]) {
+      resolutionMap.init(this.resolutions);
+      for (const packageName of Object.keys(resolutionMap.resolutionsByPackage)) {
+        for (const {pattern} of resolutionMap.resolutionsByPackage[packageName]) {
           resolutionDeps = [...resolutionDeps, {registry, pattern, optional: false, hint: 'resolution'}];
         }
       }
@@ -926,12 +928,7 @@ export class Install {
    */
 
   async saveLockfileAndIntegrity(patterns: Array<string>, workspaceLayout: ?WorkspaceLayout): Promise<void> {
-    const resolvedPatterns: {[packagePattern: string]: Manifest} = {};
-    Object.keys(this.resolver.patterns).forEach(pattern => {
-      if (!workspaceLayout || !workspaceLayout.getManifestByPattern(pattern)) {
-        resolvedPatterns[pattern] = this.resolver.patterns[pattern];
-      }
-    });
+    const resolvedPatterns = this.resolver.resolveNonWorkspacePatterns();
 
     // TODO this code is duplicated in a few places, need a common way to filter out workspace patterns from lockfile
     patterns = patterns.filter(p => !workspaceLayout || !workspaceLayout.getManifestByPattern(p));

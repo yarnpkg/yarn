@@ -35,6 +35,7 @@ import * as pack from './pack.js';
 import * as policies from './policies.js';
 import * as publish from './publish.js';
 import * as remove from './remove.js';
+import * as resolveMerge from './resolve-merge.js';
 import * as run from './run.js';
 import * as tag from './tag.js';
 import * as team from './team.js';
@@ -83,6 +84,7 @@ const commands = {
   prune: buildUseless("The prune command isn't necessary. `yarn install` will prune extraneous packages."),
   publish,
   remove,
+  resolveMerge,
   run,
   tag,
   team,

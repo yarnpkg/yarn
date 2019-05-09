@@ -127,6 +127,10 @@ const messages = {
     'Pattern $0 is trying to unpack in the same destination $1 as pattern $2. This could result in non-deterministic behavior, skipping.',
   incorrectLockfileEntry: 'Lockfile has incorrect entry for $0. Ignoring it.',
 
+  mergeLockfileMissing: 'Cannot resolve merge for missing lockfile.',
+  mergeLockfileUnresolvedConflict: 'A merge conflict was found in yarn.lock but it could not be successfully merged',
+  mergeLockfileNoConflict: 'No conflict found in lockfile.',
+
   invalidResolutionName: 'Resolution field $0 does not end with a valid package name and will be ignored',
   invalidResolutionVersion: 'Resolution field $0 has an invalid version entry and may be ignored',
   incompatibleResolutionVersion: 'Resolution field $0 is incompatible with requested version $1',
