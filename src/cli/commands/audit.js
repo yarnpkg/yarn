@@ -19,6 +19,7 @@ const gzip = promisify(zlib.gzip);
 export type AuditOptions = {
   groups: Array<string>,
   level?: string,
+  registry?: string,
 };
 
 export type AuditNode = {
@@ -145,6 +146,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const audit = new Audit(config, reporter, {
     groups: flags.groups || OWNED_DEPENDENCY_TYPES,
     level: flags.level || DEFAULT_LOG_LEVEL,
+    registry: flags.registry,
   });
   const lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
   const install = new Install({}, config, reporter, lockfile);
@@ -238,7 +240,7 @@ export default class Audit {
 
   async _fetchAudit(auditTree: AuditTree): Object {
     let responseJson;
-    const registry = YARN_REGISTRY;
+    const registry = this.options.registry || YARN_REGISTRY;
     this.reporter.verbose(`Audit Request: ${JSON.stringify(auditTree, null, 2)}`);
     const requestBody = await gzip(JSON.stringify(auditTree));
     const response = await this.config.requestManager.request({
