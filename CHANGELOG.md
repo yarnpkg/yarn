@@ -35,6 +35,7 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
   [#7210](https://github.com/yarnpkg/yarn/pull/7210) - [**Maël Nison**](https://twitter.com/arcanis)
 
 - Implements `yarn audit --registry [url]`.
+
   [#7263](https://github.com/yarnpkg/yarn/pull/7263) - [**Charles-Henri Guérin**](https://twitter.com/charlyx)
 
 ## 1.15.2
