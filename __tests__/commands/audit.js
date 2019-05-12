@@ -450,3 +450,12 @@ test.concurrent('sends correct dependency map to audit api for workspaces.', () 
     expect(calledWith).toEqual(expectedApiPost);
   });
 });
+
+test('calls specified registry when using --registry high flag', () => {
+  const privateRegistry = 'https://my-private.registry.org';
+  const expectedUrl = `${privateRegistry}/-/npm/v1/security/audits`;
+
+  return runAudit([], {registry: privateRegistry}, 'single-vulnerable-dep-installed', (config, reporter) => {
+    expect(config.requestManager.request).toHaveBeenCalledWith(expect.objectContaining({url: expectedUrl}));
+  });
+});
