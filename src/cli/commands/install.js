@@ -202,6 +202,7 @@ export class Install {
     this.integrityChecker = new InstallationIntegrityChecker(config);
     this.linker = new PackageLinker(config, this.resolver);
     this.scripts = new PackageInstallScripts(config, this.resolver, this.flags.force);
+    this.depsByPattern = new Map(); // Keep track of dependencies for access by key
   }
 
   flags: Flags;
@@ -283,13 +284,6 @@ export class Install {
       Object.assign(this.resolutions, projectManifestJson.resolutions);
       Object.assign(manifest, projectManifestJson);
 
-      this.resolutionMap.init(this.resolutions);
-      for (const packageName of Object.keys(this.resolutionMap.resolutionsByPackage)) {
-        for (const {pattern} of this.resolutionMap.resolutionsByPackage[packageName]) {
-          resolutionDeps = [...resolutionDeps, {registry, pattern, optional: false, hint: 'resolution'}];
-        }
-      }
-
       const pushDeps = (
         depType,
         manifest: Object,
@@ -306,6 +300,9 @@ export class Install {
           return;
         }
         const depMap = manifest[depType];
+        const workspaceName = manifest.name;
+        const workspaceLoc = manifest._loc;
+
         for (const name in depMap) {
           if (excludeNames.indexOf(name) >= 0) {
             continue;
@@ -327,7 +324,13 @@ export class Install {
 
           this.rootPatternsToOrigin[pattern] = depType;
           patterns.push(pattern);
-          deps.push({pattern, registry, hint, optional, workspaceName: manifest.name, workspaceLoc: manifest._loc});
+
+          // Not ideal, but we need to track deps as key/values
+          // to avoid iterating over the entire collection when
+          // handling optional dependencies
+          const depObject = {pattern, registry, hint, optional, workspaceName, workspaceLoc};
+          this.depsByPattern.set(pattern, depObject);
+          deps.push(depObject);
         }
       };
 
@@ -335,6 +338,20 @@ export class Install {
         pushDeps('dependencies', projectManifestJson, {hint: null, optional: false}, true);
         pushDeps('devDependencies', projectManifestJson, {hint: 'dev', optional: false}, !this.config.production);
         pushDeps('optionalDependencies', projectManifestJson, {hint: 'optional', optional: true}, true);
+      }
+
+      this.resolutionMap.init(this.resolutions);
+      for (const packageName of Object.keys(this.resolutionMap.resolutionsByPackage)) {
+        for (const {pattern} of this.resolutionMap.resolutionsByPackage[packageName]) {
+          // Get the existing dep and check if it is optional
+          const existingDep = this.depsByPattern.get(pattern);
+          const depIsOptional = existingDep && existingDep.optional;
+
+          // Add the dependency to resolutionDeps only if it is *not* optional
+          if (!depIsOptional) {
+            resolutionDeps = [...resolutionDeps, {registry, pattern, optional: false, hint: 'resolution'}];
+          }
+        }
       }
 
       if (this.config.workspaceRootFolder) {
