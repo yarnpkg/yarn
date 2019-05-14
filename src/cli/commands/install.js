@@ -3,7 +3,7 @@
 import type {InstallationMethod} from '../../util/yarn-version.js';
 import type {Reporter} from '../../reporters/index.js';
 import type {ReporterSelectOption} from '../../reporters/types.js';
-import type {Manifest, DependencyRequestPatterns} from '../../types.js';
+import type {Manifest, DependencyRequestPatterns, DependencyRequestPattern} from '../../types.js';
 import type Config, {RootManifests} from '../../config.js';
 import type {RegistryNames} from '../../registries/index.js';
 import type {LockfileObject} from '../../lockfile';
@@ -218,6 +218,7 @@ export class Install {
   rootPatternsToOrigin: {[pattern: string]: string};
   integrityChecker: InstallationIntegrityChecker;
   resolutionMap: ResolutionMap;
+  depsByPattern: Map<string, DependencyRequestPattern>;
 
   /**
    * Create a list of dependency requests from the current directories manifests.
