@@ -1,0 +1,30 @@
+kind: pipeline
+name: Yarn test
+
+steps:
+  - name: install
+    image: yarnpkg/dev:latest
+    commands:
+      - yarn install --frozen-lockfile
+
+  - name: testing
+    image: yarnpkg/dev:latest
+    commands:
+      - yarn test-only --maxWorkers 3
+    depends_on:
+      - install
+
+  - name: linting
+    image: yarnpkg/dev:latest
+    commands:
+      - yarn lint
+    depends_on:
+      - install
+
+  - name: build
+    image: yarnpkg/dev:latest
+    commands:
+      - yarn build
+    depends_on:
+      - linting
+      - testing
