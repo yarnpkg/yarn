@@ -134,6 +134,7 @@ export function setFlags(commander: Object) {
     info|low|moderate|high|critical. Default: info`,
     'info',
   );
+  commander.option('--fail-silently', 'Would not raise exception if NPM registry domain is down.', false);
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
@@ -142,6 +143,7 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<number> {
   const DEFAULT_LOG_LEVEL = 'info';
+  const FAIL_SILENTLY = flags.failSilently || false;
   const audit = new Audit(config, reporter, {
     groups: flags.groups || OWNED_DEPENDENCY_TYPES,
     level: flags.level || DEFAULT_LOG_LEVEL,
@@ -153,7 +155,17 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     workspaceLayout,
   });
 
-  const vulnerabilities = await audit.performAudit(manifest, lockfile, install.resolver, install.linker, patterns);
+  let vulnerabilities;
+  try {
+    vulnerabilities = await audit.performAudit(manifest, lockfile, install.resolver, install.linker, patterns);
+  } catch (ex) {
+    if (FAIL_SILENTLY) {
+      reporter.verbose(`Audit error: ${ex}`);
+      return 0;
+    } else {
+      throw ex;
+    }
+  }
 
   const EXIT_INFO = 1;
   const EXIT_LOW = 2;
