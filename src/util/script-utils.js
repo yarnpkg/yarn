@@ -3,7 +3,7 @@
 import * as fs from './fs.js';
 import type {Reporter} from '../reporters/index.js';
 
-export async function checkImportScripts(scripts: string | Object, reporter: Reporter): Promise<Object> {
+export async function checkImportScripts(scripts: string || Object, reporter: Reporter): Promise<Object> {
   if (typeof scripts === 'string' && scripts.length > 0) {
     if (await fs.exists(scripts)) {
       const module = require(await fs.realpath(scripts));
