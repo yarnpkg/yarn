@@ -5,6 +5,7 @@ import type {Reporter} from './reporters/index.js';
 import type {Manifest, PackageRemote, WorkspacesManifestMap, WorkspacesConfig} from './types.js';
 import type PackageReference from './package-reference.js';
 import {execFromManifest} from './util/execute-lifecycle-script.js';
+import {checkImportScripts} from './util/script-utils';
 import {resolveWithHome} from './util/path.js';
 import {boolifyWithDefault} from './util/conversion.js';
 import normalizeManifest from './util/normalize-manifest/index.js';
@@ -747,6 +748,7 @@ export default class Config {
       const data = await this.readJson(loc);
       data._registry = registry;
       data._loc = loc;
+      data.scripts = await checkImportScripts(data.scripts, this.reporter);
       return normalizeManifest(data, dir, this, isRoot);
     } else {
       return null;
