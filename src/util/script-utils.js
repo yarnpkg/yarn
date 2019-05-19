@@ -33,24 +33,20 @@ function iterateScripts(node: Object, path: string = '', delim: string = '.', re
   if (node['script'] && typeof node['script'] === 'string') {
     addScript(path, node['script']); // Add script, ignore other non object keys
   } else {
-    Object.keys(node)
-      .filter(k => typeof node[k] === 'string')
-      .forEach(k => {
-        if (k === 'default') {
-          addScript(path, node[k]);
-        } else {
-          addScript([path, k].filter(Boolean).join(delim), node[k]);
-        }
-      });
+    Object.keys(node).filter(k => typeof node[k] === 'string').forEach(k => {
+      if (k === 'default') {
+        addScript(path, node[k]);
+      } else {
+        addScript([path, k].filter(Boolean).join(delim), node[k]);
+      }
+    });
   }
 
   // Process remaining object nodes
-  Object.keys(node)
-    .filter(k => typeof node[k] === 'object')
-    .forEach(k => {
-      const nodepath = k === 'default' ? path : [path, k].filter(Boolean).join(delim);
-      const iteratedScripts = iterateScripts(node[k], nodepath, delim, reporter);
-      Object.keys(iteratedScripts).forEach(k => addScript(k, iteratedScripts[k]));
-    });
+  Object.keys(node).filter(k => typeof node[k] === 'object').forEach(k => {
+    const nodepath = k === 'default' ? path : [path, k].filter(Boolean).join(delim);
+    const iteratedScripts = iterateScripts(node[k], nodepath, delim, reporter);
+    Object.keys(iteratedScripts).forEach(k => addScript(k, iteratedScripts[k]));
+  });
   return scripts;
 }
