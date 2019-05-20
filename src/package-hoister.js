@@ -835,6 +835,14 @@ export default class PackageHoister {
       // up of modules from different registries so we need to handle this specially
       const parts: Array<string> = [];
       const keyParts = key.split('#');
+      const isWorkspaceEntry = this.workspaceLayout && keyParts[0] === this.workspaceLayout.virtualManifestName;
+
+      // we don't need to install the virtual manifest or workspace packages
+      // which already have a different version in the root
+      if (isWorkspaceEntry && keyParts.length <= 2) {
+        continue;
+      }
+
       for (let i = 0; i < keyParts.length; i++) {
         const key = keyParts.slice(0, i + 1).join('#');
         const hoisted = this.tree.get(key);
@@ -843,16 +851,26 @@ export default class PackageHoister {
         parts.push(keyParts[i]);
       }
 
-      const shallowLocs = [];
-      if (this.config.modulesFolder) {
-        // remove the first part which will be the folder name and replace it with a
-        // hardcoded modules folder
-        parts.splice(0, 1, this.config.modulesFolder);
+      // Check if the destination is pointing to a sub folder of the virtualManifestName
+      // e.g. _project_/node_modules/workspace-aggregator-123456/node_modules/workspaceChild/node_modules/dependency
+      // This probably happened because the hoister was not able to hoist the workspace child to the root
+      // So we have to change the folder to the workspace package location
+      if (this.workspaceLayout && isWorkspaceEntry) {
+        const wspPkg = this.workspaceLayout.workspaces[keyParts[1]];
+        invariant(wspPkg, `expected workspace package to exist for "${keyParts[1]}"`);
+        parts.splice(0, 4, wspPkg.loc);
       } else {
-        // first part will be the registry-specific module folder
-        parts.splice(0, 0, this.config.lockfileFolder);
+        if (this.config.modulesFolder) {
+          // remove the first part which will be the folder name and replace it with a
+          // hardcoded modules folder
+          parts.splice(0, 1, this.config.modulesFolder);
+        } else {
+          // first part will be the registry-specific module folder
+          parts.splice(0, 0, this.config.lockfileFolder);
+        }
       }
 
+      const shallowLocs = [];
       info.shallowPaths.forEach(shallowPath => {
         const shallowCopyParts = parts.slice();
         shallowCopyParts[0] = this.config.cwd;

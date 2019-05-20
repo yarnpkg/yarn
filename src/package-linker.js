@@ -251,10 +251,6 @@ export default class PackageLinker {
       } else if (workspaceLayout && remote.type === 'workspace' && !isShallow) {
         src = remote.reference;
         type = 'symlink';
-        if (dest.indexOf(workspaceLayout.virtualManifestName) !== -1) {
-          // we don't need to install virtual manifest
-          continue;
-        }
         // to get real path for non hoisted dependencies
         symlinkPaths.set(dest, src);
       } else {
