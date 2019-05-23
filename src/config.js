@@ -17,6 +17,7 @@ import {registries, registryNames} from './registries/index.js';
 import {NoopReporter} from './reporters/index.js';
 import map from './util/map.js';
 
+const multimatch = require('multimatch');
 const detectIndent = require('detect-indent');
 const invariant = require('invariant');
 const path = require('path');
@@ -69,6 +70,11 @@ export type ConfigOptions = {
   focus?: boolean,
 
   otp?: string,
+
+  only?: string,
+  ignore?: string,
+  onlyFs?: string,
+  ignoreFs?: string,
 };
 
 type PackageMetadata = {
@@ -204,6 +210,8 @@ export default class Config {
   autoAddIntegrity: boolean;
 
   otp: ?string;
+
+  workspaceFilterFlags: ?Object;
 
   /**
    * Execute a promise produced by factory if it doesn't exist in our cache with
@@ -490,6 +498,15 @@ export default class Config {
     this.focusedWorkspaceName = '';
 
     this.otp = opts.otp || '';
+
+    if (opts.only || opts.ignore || opts.onlyFs || opts.ignoreFs) {
+      this.workspaceFilterFlags = {
+        only: opts.only,
+        ignore: opts.ignore,
+        onlyFs: opts.onlyFs,
+        ignoreFs: opts.ignoreFs,
+      };
+    }
   }
 
   /**
@@ -791,6 +808,7 @@ export default class Config {
     return null;
   }
 
+  // workspaces functions
   async resolveWorkspaces(root: string, rootManifest: Manifest): Promise<WorkspacesManifestMap> {
     const workspaces = {};
     if (!this.workspacesEnabled) {
@@ -844,10 +862,40 @@ export default class Config {
       workspaces[manifest.name] = {loc, manifest};
     }
 
+    if (this.workspaceFilterFlags) {
+      return this.filterWorkspacesByFilterFlags(workspaces, this.workspaceFilterFlags);
+    }
+
     return workspaces;
   }
 
-  // workspaces functions
+  filterWorkspacesByFilterFlags(workspaces: WorkspacesManifestMap, workspaceFilterFlags: Object): boolean {
+    const packageNames = Object.keys(workspaces);
+    const packageLocations = packageNames.map(packageName => workspaces[packageName].loc);
+
+    const filteredByName = multimatch(packageNames, [
+      workspaceFilterFlags.only || '**',
+      workspaceFilterFlags.ignore ? `!${workspaceFilterFlags.ignore}` : '',
+    ]);
+
+    const filteredByFs = multimatch(packageLocations, [
+      workspaceFilterFlags.onlyFs || '**',
+      workspaceFilterFlags.ignoreFs ? `!${workspaceFilterFlags.ignoreFs}` : '',
+    ]);
+
+    return packageNames.reduce((acc, packageName) => {
+      const packageLocation = workspaces[packageName].loc;
+      const shouldIncludePackage =
+        filteredByName.indexOf(packageName) >= 0 && filteredByFs.indexOf(packageLocation) >= 0;
+
+      if (shouldIncludePackage) {
+        acc[packageName] = workspaces[packageName];
+      }
+
+      return acc;
+    }, {});
+  }
+
   getWorkspaces(manifest: ?Manifest, shouldThrow: boolean = false): ?WorkspacesConfig {
     if (!manifest || !this.workspacesEnabled) {
       return undefined;

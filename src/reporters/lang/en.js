@@ -205,6 +205,7 @@ const messages = {
   workspaceMissingCommand: 'Missing command name.',
   workspaceUnknownWorkspace: 'Unknown workspace $0.',
   workspaceVersionMandatory: 'Missing version in workspace at $0, ignoring.',
+  workspaceIgnored: 'Ignoring workspace $0 due to workspace filter flags.',
   workspaceNameMandatory: 'Missing name in workspace at $0, ignoring.',
   workspaceNameDuplicate: 'There are more than one workspace with name $0',
 

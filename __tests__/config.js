@@ -204,6 +204,104 @@ describe('workspaces config', () => {
     expect(mockReporter.numberOfCalls()).toEqual(1);
     expect(mockReporter.findCalls('workspacesNohoistRequirePrivatePackages').length).toEqual(1);
   });
+  test('should include workspace that matches only flag', async () => {
+    const config = await initConfig({});
+
+    const ignoredWorkspaces = {
+      a: {
+        loc: '/dir/a',
+      },
+      ab: {
+        loc: '/dir/ab',
+      },
+    };
+
+    expect(
+      config.filterWorkspacesByFilterFlags(ignoredWorkspaces, {
+        only: 'a*',
+      }),
+    ).toEqual(ignoredWorkspaces);
+  });
+  test('should not include workspace that matches ignore flag', async () => {
+    const config = await initConfig({});
+
+    const ignoredWorkspaces = {
+      a: {
+        loc: '/dir/a',
+      },
+    };
+
+    const includedWorkspaces = {
+      b: {
+        loc: '/dir/b',
+      },
+    };
+
+    expect(
+      config.filterWorkspacesByFilterFlags(
+        {...ignoredWorkspaces, ...includedWorkspaces},
+        {
+          ignore: 'a',
+        },
+      ),
+    ).toEqual(includedWorkspaces);
+  });
+  test('should not include workspace that matches include flag, but also the ignore flag', async () => {
+    const config = await initConfig({});
+
+    const ignoredWorkspace = {
+      someString: {
+        loc: '/dir/a',
+      },
+    };
+
+    expect(
+      config.filterWorkspacesByFilterFlags(ignoredWorkspace, {
+        include: 'some*',
+        ignore: 'some*',
+      }),
+    ).toEqual({});
+  });
+  test('should include workspace that matches a certain location', async () => {
+    const config = await initConfig({});
+
+    const includedWorkspaces = {
+      a: {
+        loc: '/dir/a',
+      },
+    };
+
+    expect(
+      config.filterWorkspacesByFilterFlags(includedWorkspaces, {
+        includeFs: '/dir/*',
+      }),
+    ).toEqual(includedWorkspaces);
+  });
+  test('should not include workspace that has an ignored location', async () => {
+    const config = await initConfig({});
+
+    const ignoredWorkspaces = {
+      a: {
+        loc: '/dir/a',
+      },
+    };
+
+    const includedWorkspaces = {
+      b: {
+        loc: '/dir/b',
+      },
+    };
+
+    expect(
+      config.filterWorkspacesByFilterFlags(
+        {...ignoredWorkspaces, ...includedWorkspaces},
+        {
+          includeFs: '/dir/b',
+          ignoreFs: '/dir/a',
+        },
+      ),
+    ).toEqual(includedWorkspaces);
+  });
 });
 
 class MockReporter extends BufferReporter {

@@ -135,6 +135,10 @@ export async function main({
   commander.option('--no-node-version-check', 'do not warn when using a potentially unsupported Node version');
   commander.option('--focus', 'Focus on a single workspace by installing remote copies of its sibling workspaces.');
   commander.option('--otp <otpcode>', 'one-time password for two factor authentication');
+  commander.option('--only <nameGlob>', 'only use workspaces that match name');
+  commander.option('--ignore <nameGlob>', 'ignore workspaces that match name');
+  commander.option('--only-fs <fileGlob>', 'only use workspaces that match file location pattern');
+  commander.option('--ignore-fs <fileGlob>', 'ignore workspaces that match file location pattern');
 
   // if -v is the first command, then always exit after returning the version
   if (args[0] === '-v') {
@@ -541,6 +545,10 @@ export async function main({
       updateChecksums: commander.updateChecksums,
       focus: commander.focus,
       otp: commander.otp,
+      only: commander.only,
+      ignore: commander.ignore,
+      onlyFs: commander.onlyFs,
+      ignoreFs: commander.ignoreFs,
     })
     .then(() => {
       // lockfile check must happen after config.init sets lockfileFolder
