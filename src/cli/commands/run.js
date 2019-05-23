@@ -7,6 +7,7 @@ import {dynamicRequire} from '../../util/dynamic-require.js';
 import {MessageError} from '../../errors.js';
 import {checkOne as checkCompatibility} from '../../package-compatibility.js';
 import * as fs from '../../util/fs.js';
+import {realpathSync} from 'fs';
 import * as constants from '../../constants.js';
 
 const invariant = require('invariant');
@@ -135,7 +136,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
           stage,
           config,
           cmd: cmdWithArgs,
-          cwd: fs.realpathSync(flags.into || config.cwd),
+          cwd: realpathSync(flags.into || config.cwd),
           isInteractive: true,
           customShell: customShell ? String(customShell) : undefined,
         });
