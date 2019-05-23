@@ -135,7 +135,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
           stage,
           config,
           cmd: cmdWithArgs,
-          cwd: flags.into || config.cwd,
+          cwd: fs.realpathSync(flags.into || config.cwd),
           isInteractive: true,
           customShell: customShell ? String(customShell) : undefined,
         });
