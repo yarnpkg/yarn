@@ -648,4 +648,14 @@ export default class PackageResolver {
 
     return req;
   }
+
+  resolveNonWorkspacePatterns(): {[packagePattern: string]: Manifest} {
+    const resolvedPatterns = {};
+    Object.keys(this.patterns).forEach(pattern => {
+      if (!this.workspaceLayout || !this.workspaceLayout.getManifestByPattern(pattern)) {
+        resolvedPatterns[pattern] = this.patterns[pattern];
+      }
+    });
+    return resolvedPatterns;
+  }
 }
