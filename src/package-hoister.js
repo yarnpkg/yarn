@@ -837,8 +837,9 @@ export default class PackageHoister {
       const keyParts = key.split('#');
       const isWorkspaceEntry = this.workspaceLayout && keyParts[0] === this.workspaceLayout.virtualManifestName;
 
-      // we don't need to install the virtual manifest or workspace packages
-      // which already have a different version in the root
+      // Don't add the virtual manifest (keyParts.length === 1)
+      // or ws childs which were not hoisted to the root (keyParts.length === 2).
+      // If a ws child was hoisted its key would not contain the virtual manifest name
       if (isWorkspaceEntry && keyParts.length <= 2) {
         continue;
       }
