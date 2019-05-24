@@ -185,11 +185,11 @@ export async function makeEnv(
   // Add node_modules .bin folders to the PATH
   for (const registryFolder of config.registryFolders) {
     const binFolder = path.join(registryFolder, '.bin');
+    pathParts.unshift(path.join(config.linkFolder, binFolder));
+    pathParts.unshift(path.join(cwd, binFolder));
     if (config.workspacesEnabled && config.workspaceRootFolder) {
       pathParts.unshift(path.join(config.workspaceRootFolder, binFolder));
     }
-    pathParts.unshift(path.join(config.linkFolder, binFolder));
-    pathParts.unshift(path.join(cwd, binFolder));
   }
 
   let pnpFile;
