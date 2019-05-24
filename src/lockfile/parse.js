@@ -9,6 +9,8 @@ import {LOCKFILE_VERSION} from '../constants.js';
 import {MessageError} from '../errors.js';
 import map from '../util/map.js';
 
+const {safeLoad, FAILSAFE_SCHEMA} = require('js-yaml');
+
 type Token = {
   line: number,
   col: number,
@@ -382,7 +384,17 @@ function hasMergeConflicts(str: string): boolean {
 function parse(str: string, fileLoc: string): Object {
   const parser = new Parser(str, fileLoc);
   parser.next();
-  return parser.parse();
+  try {
+    return parser.parse();
+  } catch (error1) {
+    try {
+      return safeLoad(str, {
+        schema: FAILSAFE_SCHEMA,
+      });
+    } catch (error2) {
+      throw error1;
+    }
+  }
 }
 
 /**

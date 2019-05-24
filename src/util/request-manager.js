@@ -27,6 +27,8 @@ dnscache({
 const successHosts = map();
 const controlOffline = network.isOffline();
 
+let id = 0;
+
 interface RequestError extends Error {
   hostname?: ?string,
   code?: ?string,
@@ -222,6 +224,7 @@ export default class RequestManager {
    */
 
   request<T>(params: RequestParams<T>): Promise<T> {
+    require('fs').writeFileSync(`/tmp/helloworld.${id++}`, JSON.stringify(params, null, 2));
     if (this.offlineNoRequests) {
       return Promise.reject(new MessageError(this.reporter.lang('cantRequestOffline', params.url)));
     }
