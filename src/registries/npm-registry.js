@@ -138,7 +138,7 @@ export default class NpmRegistry extends Registry {
   async request(pathname: string, opts?: RegistryRequestOptions = {}, packageName: ?string): Promise<*> {
     // packageName needs to be escaped when if it is passed
     const packageIdent = (packageName && NpmRegistry.escapeName(packageName)) || pathname;
-    const registry = opts.registry || this.getRegistry(packageIdent);
+    const registry = opts.registry || this.getRegistry(packageIdent, pathname);
     const requestUrl = this.getRequestUrl(registry, pathname);
 
     const alwaysAuth = this.getRegistryOrGlobalOption(registry, 'always-auth');
@@ -157,7 +157,7 @@ export default class NpmRegistry extends Registry {
 
     // this.token must be checked to account for publish requests on non-scoped packages
     if (this.token || (isToRegistry && (alwaysAuth || this.isScopedPackage(packageIdent)))) {
-      const authorization = this.getAuth(packageIdent);
+      const authorization = this.getAuth(packageIdent, pathname);
       if (authorization) {
         headers.authorization = authorization;
       }
@@ -333,11 +333,13 @@ export default class NpmRegistry extends Registry {
     return (match && match[1]) || '';
   }
 
-  getRegistry(packageIdent: string): string {
+  getRegistry(packageIdent: string, pathname: ?string): string {
     // Try extracting registry from the url, then scoped registry, and default registry
-    if (packageIdent.match(REGEX_REGISTRY_PREFIX)) {
+    if (packageIdent.match(REGEX_REGISTRY_PREFIX) || (pathname && pathname.match(REGEX_REGISTRY_PREFIX))) {
       const availableRegistries = this.getAvailableRegistries();
-      const registry = availableRegistries.find(registry => packageIdent.startsWith(registry));
+      const registry = availableRegistries.find(
+        registry => packageIdent.startsWith(registry) || (pathname && pathname.startsWith(registry)),
+      );
       if (registry) {
         return String(registry);
       }
@@ -378,12 +380,12 @@ export default class NpmRegistry extends Registry {
     return '';
   }
 
-  getAuth(packageIdent: string): string {
+  getAuth(packageIdent: string, pathname: ?string): string {
     if (this.token) {
       return this.token;
     }
 
-    const baseRegistry = this.getRegistry(packageIdent);
+    const baseRegistry = this.getRegistry(packageIdent, pathname);
     const registries = [baseRegistry];
 
     // If sending a request to the Yarn registry, we must also send it the auth token for the npm registry
