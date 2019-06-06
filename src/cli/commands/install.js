@@ -1,5 +1,6 @@
 /* @flow */
 
+import objectPath from 'object-path';
 import type {InstallationMethod} from '../../util/yarn-version.js';
 import type {Reporter} from '../../reporters/index.js';
 import type {ReporterSelectOption} from '../../reporters/types.js';
@@ -285,8 +286,9 @@ export class Install {
 
       this.resolutionMap.init(this.resolutions);
       for (const packageName of Object.keys(this.resolutionMap.resolutionsByPackage)) {
+        const optional = objectPath.has(manifest.optionalDependencies, packageName) && this.flags.ignoreOptional;
         for (const {pattern} of this.resolutionMap.resolutionsByPackage[packageName]) {
-          resolutionDeps = [...resolutionDeps, {registry, pattern, optional: false, hint: 'resolution'}];
+          resolutionDeps = [...resolutionDeps, {registry, pattern, optional, hint: 'resolution'}];
         }
       }
 
