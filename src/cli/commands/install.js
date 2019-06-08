@@ -443,10 +443,6 @@ export class Install {
   }
 
   async bailout(patterns: Array<string>, workspaceLayout: ?WorkspaceLayout): Promise<boolean> {
-    // We don't want to skip the audit - it could yield important errors
-    if (this.flags.audit) {
-      return false;
-    }
     // PNP is so fast that the integrity check isn't pertinent
     if (this.config.plugnplayEnabled) {
       return false;
@@ -597,6 +593,7 @@ export class Install {
         });
         topLevelPatterns = this.preparePatterns(rawPatterns);
         flattenedTopLevelPatterns = await this.flatten(topLevelPatterns);
+        // We don't want to skip the audit - it could yield important errors
         return {bailout: !this.flags.audit && (await this.bailout(topLevelPatterns, workspaceLayout))};
       }),
     );
