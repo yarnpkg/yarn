@@ -155,8 +155,9 @@ test.concurrent('should fail to find non-existent package offline', async () => 
   );
   await expectAnErrorMessage(
     command,
-    `error Couldn't find any versions for "doesnotexistqwertyuiop" that matches "2.0.0-doesnotexist" in our cache (possible versions are ""). ` +
-      'This is usually caused by a missing entry in the lockfile, running Yarn without the --offline flag may help fix this issue.',
+    `error Couldn't find any versions for "doesnotexistqwertyuiop" that matches "2.0.0-doesnotexist" in our cache ` +
+      '(possible versions are ""). This is usually caused by a missing entry in the lockfile, running Yarn without ' +
+      'the --offline flag may help fix this issue.',
   );
 });
 
