@@ -4,6 +4,8 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Adds support for --offline flag to global add command
+
 - Yarn will tolerate Yaml at parse time. Full support isn't ready yet and will only come at the next major.
 
   [#7300](https://github.com/yarnpkg/yarn/pull/7300) - [**Maël Nison**](https://twitter.com/arcanis)

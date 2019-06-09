@@ -146,6 +146,20 @@ if (semver.satisfies(ver, '>=5.0.0')) {
   });
 }
 
+test.concurrent('should fail to find non-existent package offline', async () => {
+  const command = execCommand(
+    '--offline',
+    ['global', 'add', 'doesnotexistqwertyuiop@2.0.0-doesnotexist', '--global-folder', './global'],
+    'run-global-add-offline',
+    true,
+  );
+  await expectAnErrorMessage(
+    command,
+    `error Couldn't find any versions for "doesnotexistqwertyuiop" that matches "2.0.0-doesnotexist" in our cache (possible versions are ""). ` +
+      'This is usually caused by a missing entry in the lockfile, running Yarn without the --offline flag may help fix this issue.',
+  );
+});
+
 test.concurrent('should run custom script', async () => {
   const stdout = await execCommand('run', ['custom-script'], 'run-custom-script');
   expectRunOutput(stdout);
