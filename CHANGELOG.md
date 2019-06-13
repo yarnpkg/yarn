@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Adds prereleases flags and prerelease identifier to `yarn version`.
+
+  [#7336](https://github.com/yarnpkg/yarn/pull/7336) - [**Daniel Seijo**](https://github.com/daniseijo)
+
 - Fixes audits when used with `yarn add` & `yarn upgrade`
 
   [#7326](https://github.com/yarnpkg/yarn/pull/7326) - [**David Sanders**](https://github.com/dsanders11)
@@ -41,7 +45,7 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 - Adds support for the npm enterprise URLs when computing the offline mirror filenames.
 
   [#7200](https://github.com/yarnpkg/yarn/pull/7200) - [**John Millikin**](https://john-millikin.com)
-  
+
 - Tweaks the lockfile parser logic to parse a few extra cases
 
   [#7210](https://github.com/yarnpkg/yarn/pull/7210) - [**Maël Nison**](https://twitter.com/arcanis)
@@ -119,7 +123,7 @@ The 1.15.1 doesn't exist due to a release hiccup.
 - Packages won't be auto-unplugged anymore if `ignore-scripts` is set in the yarnrc file
 
   [#6983](https://github.com/yarnpkg/yarn/pull/6983) - [**Micha Reiser**](https://github.com/MichaReiser)
-  
+
 - Enables displaying Emojis on [Terminus](https://github.com/Eugeny/terminus) by default
 
   [#7093](https://github.com/yarnpkg/yarn/pull/7093) - [**David Refoua**](https://github.com/DRSDavidSoft)

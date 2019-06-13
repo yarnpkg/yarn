@@ -41,7 +41,8 @@ declare module 'semver' {
   // Functions
   declare function clean(v: string, loose?: boolean): string | null;
   declare function valid(v: string, loose?: boolean): string | null;
-  declare function inc(v: string, release: string, loose?: boolean): string | null;
+  declare function inc(v: string, release: string, loose?: boolean, identifier?: string): string | null;
+  declare function inc(v: string, release: string, identifier: string): string | null;
   declare function major(v: string, loose?: boolean): number;
   declare function minor(v: string, loose?: boolean): number;
   declare function patch(v: string, loose?: boolean): number;
