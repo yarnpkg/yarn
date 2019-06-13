@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Fixes audits when used with `yarn add` & `yarn upgrade`
+
+  [#7326](https://github.com/yarnpkg/yarn/pull/7326) - [**David Sanders**](https://github.com/dsanders11)
+
 - Yarn will tolerate Yaml at parse time. Full support isn't ready yet and will only come at the next major.
 
   [#7300](https://github.com/yarnpkg/yarn/pull/7300) - [**Maël Nison**](https://twitter.com/arcanis)
