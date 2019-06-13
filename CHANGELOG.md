@@ -4,7 +4,11 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
-- Adds support for --offline flag to global add command
+- Fixes audits when used with `yarn add` & `yarn upgrade`
+
+  [#7326](https://github.com/yarnpkg/yarn/pull/7326) - [**David Sanders**](https://github.com/dsanders11)
+
+- Adds support for the `--offline` flag to `yarn global add`
 
   [#7330](https://github.com/yarnpkg/yarn/pull/7330) - [**Francis Crick**](https://guthub.com/fcrick)
 
