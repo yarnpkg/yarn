@@ -19,6 +19,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 - Yarn will tolerate Yaml at parse time. Full support isn't ready yet and will only come at the next major.
 
   [#7300](https://github.com/yarnpkg/yarn/pull/7300) - [**Maël Nison**](https://twitter.com/arcanis)
+  
+- Fixes a bug when using the `link:` protocol with a folder that doesn't contain a `package.json`
+
+  [#7337](https://github.com/yarnpkg/yarn/pull/7337) - [**Maël Nison**](https://twitter.com/arcanis)
 
 ## 1.16.0
 
