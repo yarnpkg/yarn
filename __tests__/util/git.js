@@ -249,3 +249,32 @@ test('resolveCommit', async () => {
   expect(lastCall[0]).toContain('rev-list');
   expect(lastCall[0]).toContain('7a053e2');
 });
+
+test('A proper error message', async () => {
+  const spawnGitMock = (spawnGit: any);
+  const config = await Config.create();
+  const git = new Git(
+    config,
+    {
+      protocol: 'ssh',
+      hostname: 'test.url',
+      repository: 'some',
+    },
+    '',
+  );
+  spawnGitMock.mockRejectedValueOnce({
+    EXIT_CODE: 128,
+    message: 'TEST ERROR MESSAGE',
+  });
+
+  try {
+    await git.init();
+    expect('This to never happen').toBeFalsy();
+  } catch (error) {
+    expect(error.message).toContain('This error might be due to your ssh-agent not configured properly');
+    expect(error.message).toContain(
+      'https://help.github.com/en/enterprise/2.16/user/articles/' +
+        'generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent',
+    );
+  }
+});
