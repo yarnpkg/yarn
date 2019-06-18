@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Adds a useful error message to a git failure that might be due to misconfiguration
+
+  [#7344](https://github.com/yarnpkg/yarn/pull/7344) - [**Marton Meszaros**](https://github.com/meza)
+
 - Adds prereleases flags and prerelease identifier to `yarn version`.
 
   [#7336](https://github.com/yarnpkg/yarn/pull/7336) - [**Daniel Seijo**](https://github.com/daniseijo)
