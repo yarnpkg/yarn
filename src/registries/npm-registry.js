@@ -34,7 +34,7 @@ export const SCOPE_SEPARATOR = '%2f';
 // The reason for matching a plain `/` is NPM registry being inconsistent about escaping `/` in
 // scoped package names: when you're fetching a tarball, it is not escaped, when you want info
 // about the package, it is escaped.
-const SCOPED_PKG_REGEXP = /(?:^|\/)(@[^\/?]+?)(?=%2f|\/)/;
+const SCOPED_PKG_REGEXP = /(?:^|\/|npm:)(@[^\/?]+?)(?=%2f|\/)/;
 
 // TODO: Use the method from src/cli/commands/global.js for this instead
 function getGlobalPrefix(): string {
