@@ -206,7 +206,7 @@ const messages = {
   workspaceUnknownWorkspace: 'Unknown workspace $0.',
   workspaceVersionMandatory: 'Missing version in workspace at $0, ignoring.',
   workspaceNameMandatory: 'Missing name in workspace at $0, ignoring.',
-  workspaceNameDuplicate: 'There are more than one workspace with name $0',
+  workspaceNameDuplicate: 'There are more than one workspaces with name $0',
 
   cacheFolderSkipped: 'Skipping preferred cache folder $0 because it is not writable.',
   cacheFolderMissing:
