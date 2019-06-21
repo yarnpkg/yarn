@@ -19,10 +19,10 @@ function getRcPaths(name: string, cwd: string): Array<string> {
   }
 
   function unshiftConfigPath(...segments) {
-    configPaths.unshift(path.join(...segments));
     if (segments[segments.length - 1] === `.${name}rc`) {
       configPaths.unshift(path.join(...segments.slice(0, -1), `.${name}rc.yml`));
     }
+    configPaths.unshift(path.join(...segments));
   }
 
   if (!isWin) {
