@@ -46,7 +46,7 @@ function loadRcFile(fileText: string, filePath: string): {[key: string]: string}
   let {object: values} = parse(fileText, 'yarnrc');
 
   if (filePath.match(/\.yml$/)) {
-    values = {yarnPath: values.yarnPath};
+    values = {'yarn-path': values.yarnPath};
   }
 
   // some keys reference directories so keep their relativity
