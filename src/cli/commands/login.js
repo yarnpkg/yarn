@@ -120,6 +120,7 @@ export async function getToken(
       reporter.success(reporter.lang('revokedToken'));
       await config.registries.npm.request(`-/user/token/${token}`, {
         method: 'DELETE',
+        registry,
       });
     };
   } else {
