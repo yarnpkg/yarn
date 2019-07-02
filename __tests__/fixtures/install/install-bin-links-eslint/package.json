@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "devDependencies": {
-    "eslint": "^3.19.0",
+    "eslint": "^4.18.2",
     "eslint-plugin-react": "^6.9.0",
     "react-scripts": "0.9.5",
     "uglify-js": "3.0.14"
