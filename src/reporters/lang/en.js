@@ -135,6 +135,9 @@ const messages = {
   yarnOutdatedInstaller: 'To upgrade, download the latest installer at $0.',
   yarnOutdatedCommand: 'To upgrade, run the following command:',
 
+  yarnAddRelativePathDetected:
+    'Detected a relative path. --cwd only supports an absolute path. A current working directory will be used instead.',
+
   tooManyArguments: 'Too many arguments, maximum of $0.',
   tooFewArguments: 'Not enough arguments, expected at least $0.',
   noArguments: "This command doesn't require any arguments.",
