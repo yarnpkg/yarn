@@ -455,7 +455,7 @@ export default class Config {
     this.cache = map();
 
     if (opts.cwd !== undefined) {
-      if (!path.isAbsolute(opts.cwd)) {
+      if (!path.isAbsolute(String(opts.cwd))) {
         this.reporter.warn(this.reporter.lang('yarnAddRelativePathDetected'));
       }
     }
