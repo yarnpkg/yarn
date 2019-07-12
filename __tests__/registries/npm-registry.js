@@ -792,7 +792,7 @@ describe('getRequestUrl functional test', () => {
     expect(npmRegistry.getRequestUrl(registry, pathname)).toEqual('https://registry.yarnpkg.com/registry/foo/bar/baz');
   });
 
-  test('enforces loading packages through https when they come from yarn', () => {
+  test('enforces loading packages through https when they come from npm', () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
     const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
@@ -802,14 +802,16 @@ describe('getRequestUrl functional test', () => {
     expect(npmRegistry.getRequestUrl(registry, pathname)).toEqual('https://registry.npmjs.org/registry/foo/bar/baz');
   });
 
-  test('doesn\'t change the protocol for packages from other registries', () => {
+  test("doesn't change the protocol for packages from other registries", () => {
     const testCwd = '.';
     const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
     const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
     const registry = 'http://registry.mylittlepony.org/registry';
     const pathname = 'foo/bar/baz';
 
-    expect(npmRegistry.getRequestUrl(registry, pathname)).toEqual('http://registry.mylittlepony.org/registry/foo/bar/baz');
+    expect(npmRegistry.getRequestUrl(registry, pathname)).toEqual(
+      'http://registry.mylittlepony.org/registry/foo/bar/baz',
+    );
   });
 });
 
