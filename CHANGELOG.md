@@ -2,11 +2,13 @@
 
 Please add one entry in this file for each change in Yarn's behavior. Use the same format for all entries, including the third-person verb. Make sure you don't add more than one line of text to keep it clean. Thanks!
 
-## Master
+## 1.17.3
 
 - Enforces https for the Yarn and npm registries.
 
   [#7393](https://github.com/yarnpkg/yarn/pull/7393) - [**Maël Nison**](https://twitter.com/arcanis)
+
+## 1.17.2
 
 - Adds support for reading `yarnPath` from v2-produced `.yarnrc.yml` files.
 
