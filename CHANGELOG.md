@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Enforces https for the Yarn and npm registries.
+
+  [#7393](https://github.com/yarnpkg/yarn/pull/7393) - [**Maël Nison**](https://twitter.com/arcanis)
+
 - Adds support for reading `yarnPath` from v2-produced `.yarnrc.yml` files.
 
   [#7350](https://github.com/yarnpkg/yarn/pull/7350) - [**Maël Nison**](https://twitter.com/arcanis)
