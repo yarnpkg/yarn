@@ -1,0 +1,10 @@
+{
+  "name": "project",
+  "version": "1.0.0",
+  "optionalDependencies": {
+    "left-pad": "^1.0.0"
+  },
+  "resolutions": {
+    "left-pad": "^1.1.1"
+  }
+}

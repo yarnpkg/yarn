@@ -22,6 +22,7 @@ import url from 'url';
 import ini from 'ini';
 
 const DEFAULT_REGISTRY = 'https://registry.npmjs.org/';
+const REGEX_REGISTRY_ENFORCED_HTTPS = /^https?:\/\/([^\/]+\.)?(yarnpkg\.com|npmjs\.(org|com))(\/|$)/;
 const REGEX_REGISTRY_HTTP_PROTOCOL = /^https?:/i;
 const REGEX_REGISTRY_PREFIX = /^(https?:)?\/\//i;
 const REGEX_REGISTRY_SUFFIX = /registry\/?$/;
@@ -112,13 +113,17 @@ export default class NpmRegistry extends Registry {
   }
 
   getRequestUrl(registry: string, pathname: string): string {
-    const isUrl = REGEX_REGISTRY_PREFIX.test(pathname);
+    let resolved = pathname;
 
-    if (isUrl) {
-      return pathname;
-    } else {
-      return url.resolve(addSuffix(registry, '/'), pathname);
+    if (!REGEX_REGISTRY_PREFIX.test(pathname)) {
+      resolved = url.resolve(addSuffix(registry, '/'), pathname);
     }
+
+    if (REGEX_REGISTRY_ENFORCED_HTTPS.test(resolved)) {
+      resolved = resolved.replace(/^http:\/\//, 'https://');
+    }
+
+    return resolved;
   }
 
   isRequestToRegistry(requestUrl: string, registryUrl: string): boolean {

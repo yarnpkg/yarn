@@ -43,7 +43,11 @@ export function getRcConfigForCwd(cwd: string, args: Array<string>): {[key: stri
 }
 
 function loadRcFile(fileText: string, filePath: string): {[key: string]: string} {
-  const {object: values} = parse(fileText, 'yarnrc');
+  let {object: values} = parse(fileText, 'yarnrc');
+
+  if (filePath.match(/\.yml$/)) {
+    values = {'yarn-path': values.yarnPath};
+  }
 
   // some keys reference directories so keep their relativity
   for (const key in values) {

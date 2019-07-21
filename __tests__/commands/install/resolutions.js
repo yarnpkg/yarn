@@ -46,6 +46,12 @@ test.concurrent('install with --frozen-lockfile with resolutions', async (): Pro
   }
 });
 
+test.concurrent('install with resolutions on optional dependencies should not resolve', (): Promise<void> => {
+  return runInstall({ignoreOptional: true}, {source: 'resolutions', cwd: 'optional-deps'}, async config => {
+    expect(await isPackagePresent(config, 'left-pad')).toEqual(false);
+  });
+});
+
 test.concurrent('install with exotic resolutions should override versions', (): Promise<void> => {
   return runInstall({}, {source: 'resolutions', cwd: 'exotic-version'}, async config => {
     expect(await getPackageVersion(config, 'left-pad')).toEqual('1.1.1');

@@ -30,7 +30,7 @@ export default class LinkResolver extends ExoticResolver {
     const name = path.basename(loc);
     const registry: RegistryNames = 'npm';
 
-    const manifest: Manifest = !await fs.exists(loc)
+    const manifest: Manifest = !await fs.exists(`${loc}/package.json`)
       ? {_uid: '', name, version: '0.0.0', _registry: registry}
       : await this.config.readManifest(loc, this.registry);
 

@@ -284,3 +284,101 @@ test('run version with --patch flag and make sure patch version is incremented',
     expect(pkg.version).toEqual('1.0.1');
   });
 });
+
+test('run version with --premajor flag and make sure premajor version is incremented', (): Promise<void> => {
+  return runRun([], {gitTagVersion, premajor: true}, 'no-args', async (config): ?Promise<void> => {
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    expect(pkg.version).toEqual('2.0.0-0');
+  });
+});
+
+test('run version with --premajor flag with preid and make sure premajor version is incremented', (): Promise<void> => {
+  return runRun([], {gitTagVersion, premajor: true, preid: 'alpha'}, 'no-args', async (config): ?Promise<void> => {
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    expect(pkg.version).toEqual('2.0.0-alpha.0');
+  });
+});
+
+test('run version with --preminor flag and make sure preminor version is incremented', (): Promise<void> => {
+  return runRun([], {gitTagVersion, preminor: true}, 'no-args', async (config): ?Promise<void> => {
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    expect(pkg.version).toEqual('1.1.0-0');
+  });
+});
+
+test('run version with --preminor flag with preid and make sure preminor version is incremented', (): Promise<void> => {
+  return runRun([], {gitTagVersion, preminor: true, preid: 'alpha'}, 'no-args', async (config): ?Promise<void> => {
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    expect(pkg.version).toEqual('1.1.0-alpha.0');
+  });
+});
+
+test('run version with --prepatch flag and make sure prepatch version is incremented', (): Promise<void> => {
+  return runRun([], {gitTagVersion, prepatch: true}, 'no-args', async (config): ?Promise<void> => {
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    expect(pkg.version).toEqual('1.0.1-0');
+  });
+});
+
+test('run version with --prepatch flag with preid and make sure prepatch version is incremented', (): Promise<void> => {
+  return runRun([], {gitTagVersion, prepatch: true, preid: 'alpha'}, 'no-args', async (config): ?Promise<void> => {
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    expect(pkg.version).toEqual('1.0.1-alpha.0');
+  });
+});
+
+test('run version with --prerelease flag and make sure prerelease version is incremented', (): Promise<void> => {
+  return runRun([], {gitTagVersion, prerelease: true}, 'no-args', async (config): ?Promise<void> => {
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    expect(pkg.version).toEqual('1.0.1-0');
+  });
+});
+
+test('run version with --prerelease flag with preid and make sure prerelease version is incremented', (): Promise<
+  void,
+> => {
+  return runRun([], {gitTagVersion, prerelease: true, preid: 'alpha'}, 'no-args', async (config): ?Promise<void> => {
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    expect(pkg.version).toEqual('1.0.1-alpha.0');
+  });
+});
+
+test('run version with --new-version prerelease flag and make sure prerelease version is incremented', (): Promise<
+  void,
+> => {
+  return runRun([], {gitTagVersion, newVersion: 'prerelease'}, 'no-args', async (config): ?Promise<void> => {
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    expect(pkg.version).toEqual('1.0.1-0');
+  });
+});
+
+test('run version with --new-version and preid flags and make sure prerelease version is incremented', (): Promise<
+  void,
+> => {
+  return runRun([], {gitTagVersion, newVersion: 'prerelease', preid: 'beta'}, 'no-args', async (config): ?Promise<
+    void,
+  > => {
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    expect(pkg.version).toEqual('1.0.1-beta.0');
+  });
+});
+
+test('run version with --new-version and preid flags and make sure premajor version is incremented', (): Promise<
+  void,
+> => {
+  return runRun([], {gitTagVersion, newVersion: 'premajor', preid: 'beta'}, 'no-args', async (config): ?Promise<
+    void,
+  > => {
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    expect(pkg.version).toEqual('2.0.0-beta.0');
+  });
+});
+
+test('run version with main release and --new-version and preid flags and make sure identifier is ignored', (): Promise<
+  void,
+> => {
+  return runRun([], {gitTagVersion, newVersion: 'major', preid: 'beta'}, 'no-args', async (config): ?Promise<void> => {
+    const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));
+    expect(pkg.version).toEqual('2.0.0');
+  });
+});

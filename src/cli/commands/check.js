@@ -275,7 +275,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     const remoteType = pkg._reference.remote.type;
     const isLinkedDependency =
       remoteType === 'link' || remoteType === 'workspace' || (remoteType === 'file' && config.linkFileDependencies);
-    if (isLinkedDependency) {
+    const isResolution = pkg._reference.hint === 'resolution';
+    if (isLinkedDependency || isResolution) {
       continue;
     }
 

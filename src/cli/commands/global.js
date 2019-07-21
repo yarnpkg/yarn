@@ -48,6 +48,7 @@ async function updateCwd(config: Config): Promise<void> {
 
   await config.init({
     cwd: config.globalFolder,
+    offline: config.offline,
     binLinks: true,
     globalFolder: config.globalFolder,
     cacheFolder: config._cacheRootFolder,
