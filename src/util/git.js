@@ -22,7 +22,7 @@ const GIT_PROTOCOL_PREFIX = 'git+';
 const SSH_PROTOCOL = 'ssh:';
 const SCP_PATH_PREFIX = '/:';
 const FILE_PROTOCOL = 'file:';
-const GIT_VALID_REF_LINE_REGEXP = /^([a-fA-F0-9]+|ref)/;
+const GIT_VALID_REF_LINE_REGEXP = /^([a-fA-F0-9]+|ref:)\s/;
 
 const validRef = line => {
   return GIT_VALID_REF_LINE_REGEXP.exec(line);
