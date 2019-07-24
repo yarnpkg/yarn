@@ -170,44 +170,41 @@ export async function setVersion(
 
   await runLifecycle('version');
 
-  // check if committing the new version to git is overriden
-  if (!flags.gitTagVersion || !config.getOption('version-git-tag')) {
-    // Don't tag the version in Git
-    return () => Promise.resolve();
-  }
-
   return async function(): Promise<void> {
     invariant(newVersion, 'expected version');
 
-    // add git commit and tag
-    let isGit = false;
-    const parts = config.cwd.split(path.sep);
-    while (parts.length) {
-      isGit = await fs.exists(path.join(parts.join(path.sep), '.git'));
-      if (isGit) {
-        break;
-      } else {
-        parts.pop();
+    // check if a new git tag should be created
+    if (flags.gitTagVersion && config.getOption('version-git-tag')) {
+      // add git commit and tag
+      let isGit = false;
+      const parts = config.cwd.split(path.sep);
+      while (parts.length) {
+        isGit = await fs.exists(path.join(parts.join(path.sep), '.git'));
+        if (isGit) {
+          break;
+        } else {
+          parts.pop();
+        }
       }
-    }
 
-    if (isGit) {
-      const message = (flags.message || String(config.getOption('version-git-message'))).replace(/%s/g, newVersion);
-      const sign: boolean = Boolean(config.getOption('version-sign-git-tag'));
-      const flag = sign ? '-sm' : '-am';
-      const prefix: string = String(config.getOption('version-tag-prefix'));
-      const args: Array<string> = ['commit', '-m', message, ...(isCommitHooksDisabled() ? ['-n'] : [])];
+      if (isGit) {
+        const message = (flags.message || String(config.getOption('version-git-message'))).replace(/%s/g, newVersion);
+        const sign: boolean = Boolean(config.getOption('version-sign-git-tag'));
+        const flag = sign ? '-sm' : '-am';
+        const prefix: string = String(config.getOption('version-tag-prefix'));
+        const args: Array<string> = ['commit', '-m', message, ...(isCommitHooksDisabled() ? ['-n'] : [])];
 
-      const gitRoot = (await spawnGit(['rev-parse', '--show-toplevel'], {cwd: config.cwd})).trim();
+        const gitRoot = (await spawnGit(['rev-parse', '--show-toplevel'], {cwd: config.cwd})).trim();
 
-      // add manifest
-      await spawnGit(['add', path.relative(gitRoot, pkgLoc)], {cwd: gitRoot});
+        // add manifest
+        await spawnGit(['add', path.relative(gitRoot, pkgLoc)], {cwd: gitRoot});
 
-      // create git commit
-      await spawnGit(args, {cwd: gitRoot});
+        // create git commit
+        await spawnGit(args, {cwd: gitRoot});
 
-      // create git tag
-      await spawnGit(['tag', `${prefix}${newVersion}`, flag, message], {cwd: gitRoot});
+        // create git tag
+        await spawnGit(['tag', `${prefix}${newVersion}`, flag, message], {cwd: gitRoot});
+      }
     }
 
     await runLifecycle('postversion');
