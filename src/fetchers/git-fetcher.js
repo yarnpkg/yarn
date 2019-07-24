@@ -164,6 +164,7 @@ export default class GitFetcher extends BaseFetcher {
           binLinks: true,
           cwd: prepareDirectory,
           disablePrepublish: true,
+          production: false,
         },
         this.reporter,
       ),

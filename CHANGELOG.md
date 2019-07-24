@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Runs the `prepare` lifecycle of git dependencies even if `NODE_ENV` is set to `production`.
+
+  [#7398](https://github.com/yarnpkg/yarn/pull/7398) - [**John Firebaugh**](https://github.com/jfirebaugh)
+
 - Fixes the `postversion` lifecycle method not being called when using `--no-git-tag-version`.
 
   [#7154](https://github.com/yarnpkg/yarn/pull/7154) - [**Hampus Tågerud**](https://github.com/hampustagerud)
