@@ -8,6 +8,14 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#7398](https://github.com/yarnpkg/yarn/pull/7398) - [**John Firebaugh**](https://github.com/jfirebaugh)
 
+- Fixes the `postversion` lifecycle method not being called when using `--no-git-tag-version`.
+
+  [#7154](https://github.com/yarnpkg/yarn/pull/7154) - [**Hampus Tågerud**](https://github.com/hampustagerud)
+  
+- Ignores potentially large vscode keys in package.json to avoid E2BIG errors.
+
+  [#7419](https://github.com/yarnpkg/yarn/pull/7419) - [**Eric Amodio**](https://twitter.com/eamodio)
+
 - Enforces https for the Yarn and npm registries.
 
   [#7393](https://github.com/yarnpkg/yarn/pull/7393) - [**Maël Nison**](https://twitter.com/arcanis)
@@ -55,7 +63,7 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 - Exposes the script environment variables to `yarn create` spawned processes.
 
   [#7127](https://github.com/yarnpkg/yarn/pull/7127) - [**Eli Perelman**](https://github.com/eliperelman)
-
+  
 - Prevents EPIPE errors from being printed.
 
   [#7194](https://github.com/yarnpkg/yarn/pull/7194) - [**Abhishek Reddy**](https://github.com/arbscht)
