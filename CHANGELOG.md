@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Adds package location to JSON output of `yarn list`.
+
+  [#7462](https://github.com/yarnpkg/yarn/pull/7462) - [**Krzysztof Pawlik**](https://github.com/krzysztof-pawlik-gat)
+
 - Runs the `prepare` lifecycle of git dependencies even if `NODE_ENV` is set to `production`.
 
   [#7398](https://github.com/yarnpkg/yarn/pull/7398) - [**John Firebaugh**](https://github.com/jfirebaugh)
