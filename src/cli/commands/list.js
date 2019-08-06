@@ -105,8 +105,6 @@ export async function buildTree(
     if (topLevel || nextDepthIsValid || showAll) {
       treesByKey[info.key] = {
         name: `${info.pkg.name}@${info.pkg.version}`,
-        _name: info.pkg.name,
-        _version: info.pkg.version,
         _path: info.loc,
         children,
         hint,

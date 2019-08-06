@@ -16,9 +16,7 @@ Array [
     "data": Object {
       "trees": Array [
         Object {
-          "_name": "a",
           "_path": "../v4/npm-a-1.0.2-f80c6c397144596c990213074b51f3a0b0f3c6f9/node_modules/a",
-          "_version": "1.0.2",
           "children": Array [],
           "color": "bold",
           "depth": 0,
@@ -50,9 +48,7 @@ Array [
     "data": Object {
       "trees": Array [
         Object {
-          "_name": "a",
           "_path": "../v4/npm-a-1.0.2-f80c6c397144596c990213074b51f3a0b0f3c6f9/node_modules/a",
-          "_version": "1.0.2",
           "children": Array [],
           "color": "bold",
           "depth": 0,
@@ -60,9 +56,7 @@ Array [
           "name": "a@1.0.2",
         },
         Object {
-          "_name": "b",
           "_path": "../v4/npm-b-1.0.0-f80c6c397144596c990213074b51f3a0b0f3c6f9/node_modules/b",
-          "_version": "1.0.0",
           "children": Array [],
           "color": "bold",
           "depth": 0,

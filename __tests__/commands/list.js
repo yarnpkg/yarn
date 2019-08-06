@@ -15,8 +15,6 @@ function makeTree(name, {children = [], hint = null, color = null, depth = 0}: O
   const name_split = name.split('@');
   return {
     name,
-    _name: name_split[0],
-    _version: name_split[1],
     _path: `../v4/npm-${name_split[0].replace(/[A-Z]/, '')}-${name_split[1]}-${HASH}/node_modules/${name_split[0]}`,
     children,
     hint,
@@ -25,7 +23,7 @@ function makeTree(name, {children = [], hint = null, color = null, depth = 0}: O
   };
 }
 
-function removePaths(originalTrees: Array<Object>): Array<Object> {
+function cleanPaths(originalTrees: Array<Object>): Array<Object> {
   const trees = Array.from(originalTrees);
   trees.forEach((tree, index) => {
     if (tree['type'] === 'tree') {
@@ -65,7 +63,7 @@ describe('list', () => {
   test.concurrent('lists everything with no args', (): Promise<void> => {
     return runList([], {}, 'no-args', (config, reporter): ?Promise<void> => {
       const rprtr = new BufferReporter({});
-      const tree = removePaths(reporter.getBuffer().slice(-1));
+      const tree = cleanPaths(reporter.getBuffer().slice(-1));
       const children = [{name: 'is-plain-obj@^1.0.0', color: 'dim', shadow: true}];
       const trees = [
         makeTree('left-pad@1.1.3', {color: 'bold'}),
@@ -82,7 +80,7 @@ describe('list', () => {
   test.concurrent('respects depth flag', (): Promise<void> => {
     return runList([], {depth: 1}, 'depth-flag', (config, reporter): ?Promise<void> => {
       const rprtr = new BufferReporter({});
-      const tree = removePaths(reporter.getBuffer().slice(-1));
+      const tree = cleanPaths(reporter.getBuffer().slice(-1));
       const trees = [makeTree('sort-keys@1.1.2', {color: 'bold'}), makeTree('is-plain-obj@1.1.0')];
 
       rprtr.tree('list', trees);
@@ -94,7 +92,7 @@ describe('list', () => {
   test.concurrent('accepts an argument', (): Promise<void> => {
     return runList(['is-plain-obj'], {}, 'one-arg', (config, reporter): ?Promise<void> => {
       const rprtr = new BufferReporter({});
-      const tree = removePaths(reporter.getBuffer().slice(-1));
+      const tree = cleanPaths(reporter.getBuffer().slice(-1));
       const trees = [makeTree('is-plain-obj@1.1.0')];
 
       rprtr.tree('list', trees);
@@ -106,7 +104,7 @@ describe('list', () => {
   test.concurrent('accepts a pattern', (): Promise<void> => {
     return runList([], {pattern: 'is-plain-obj'}, 'one-arg', (config, reporter): ?Promise<void> => {
       const rprtr = new BufferReporter({});
-      const tree = removePaths(reporter.getBuffer().slice(-1));
+      const tree = cleanPaths(reporter.getBuffer().slice(-1));
       const trees = [makeTree('is-plain-obj@1.1.0')];
 
       rprtr.tree('list', trees);
@@ -118,7 +116,7 @@ describe('list', () => {
   test.concurrent('should not throw when list is called with resolutions field', (): Promise<void> => {
     return runList([], {}, {source: '', cwd: 'resolutions'}, (config, reporter): ?Promise<void> => {
       const rprtr = new BufferReporter({});
-      const tree = removePaths(reporter.getBuffer().slice(-1));
+      const tree = cleanPaths(reporter.getBuffer().slice(-1));
       const children = [{name: 'left-pad@^1.1.3', color: 'dim', shadow: true}];
       const trees = [makeTree('depA@1.0.0', {children, color: 'bold'}), makeTree('left-pad@1.0.0')];
 
@@ -131,7 +129,7 @@ describe('list', () => {
   test.concurrent('respects depth flag', (): Promise<void> => {
     return runList([], {depth: 1}, 'depth-flag', (config, reporter): ?Promise<void> => {
       const rprtr = new BufferReporter({});
-      const tree = removePaths(reporter.getBuffer().slice(-1));
+      const tree = cleanPaths(reporter.getBuffer().slice(-1));
       const trees = [makeTree('sort-keys@1.1.2', {color: 'bold'}), makeTree('is-plain-obj@1.1.0')];
 
       rprtr.tree('list', trees);
@@ -143,7 +141,7 @@ describe('list', () => {
   test.concurrent('matches exactly without glob in argument', (): Promise<void> => {
     return runList(['gulp'], {}, 'glob-arg', (config, reporter): ?Promise<void> => {
       const rprtr = new BufferReporter({});
-      const tree = removePaths(reporter.getBuffer().slice(-1));
+      const tree = cleanPaths(reporter.getBuffer().slice(-1));
       const trees = [makeTree('gulp@3.9.1', {color: 'bold'})];
 
       const messageParts = reporter.lang('deprecatedListArgs').split('undefined');
@@ -160,7 +158,7 @@ describe('list', () => {
   test.concurrent('expands a glob in argument', (): Promise<void> => {
     return runList(['gulp*'], {}, 'glob-arg', (config, reporter): ?Promise<void> => {
       const rprtr = new BufferReporter({});
-      const tree = removePaths(reporter.getBuffer().slice(-1));
+      const tree = cleanPaths(reporter.getBuffer().slice(-1));
       const trees = [makeTree('gulp@3.9.1', {color: 'bold'}), makeTree('gulp-babel@6.1.2', {color: 'bold'})];
 
       rprtr.tree('list', trees);
@@ -172,7 +170,7 @@ describe('list', () => {
   test.concurrent('expands a glob in pattern', (): Promise<void> => {
     return runList([], {pattern: 'gulp*'}, 'glob-arg', (config, reporter): ?Promise<void> => {
       const rprtr = new BufferReporter({});
-      const tree = removePaths(reporter.getBuffer().slice(-1));
+      const tree = cleanPaths(reporter.getBuffer().slice(-1));
       const trees = [makeTree('gulp@3.9.1', {color: 'bold'}), makeTree('gulp-babel@6.1.2', {color: 'bold'})];
 
       rprtr.tree('list', trees);
@@ -183,13 +181,13 @@ describe('list', () => {
 
   test('lists all dependencies when not production', (): Promise<void> => {
     return runList([], {}, 'dev-deps-prod', (config, reporter): ?Promise<void> => {
-      expect(removePaths(reporter.getBuffer())).toMatchSnapshot();
+      expect(cleanPaths(reporter.getBuffer())).toMatchSnapshot();
     });
   });
 
   test('does not list devDependencies when production', (): Promise<void> => {
     return runList([], {production: true}, 'dev-deps-prod', (config, reporter): ?Promise<void> => {
-      expect(removePaths(reporter.getBuffer())).toMatchSnapshot();
+      expect(cleanPaths(reporter.getBuffer())).toMatchSnapshot();
     });
   });
 
