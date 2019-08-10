@@ -179,7 +179,7 @@ const messages = {
     'You can now run `yarn unlink $0` in the projects where you no longer want to use this package.',
   linkUsing: 'Using linked package for $0.',
   linkDisusing: 'Removed linked package $0.',
-  linkDisusingMessage: 'You will need to run `yarn install --force` to re-install the package that was linked.',
+  linkDisusingMessage: 'You will need to run `yarn add --force` to re-install the package that was linked.',
   linkTargetMissing: 'The target of linked package $0 is missing. Removing link.',
 
   createInvalidBin: 'Invalid bin entry found in package $0.',
