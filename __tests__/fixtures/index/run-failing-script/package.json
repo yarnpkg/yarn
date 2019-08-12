@@ -1,0 +1,8 @@
+{
+  "name": "test_run_failing_script",
+  "version": "1.0.0",
+  "license": "UNLICENSED",
+  "scripts": {
+    "custom-script": "echo \"Hi\" && exit 1"
+  }
+}
