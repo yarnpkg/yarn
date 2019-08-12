@@ -52,7 +52,7 @@ const ignore = [
   'teleport', // a module bundler used by some modules
   'rhino', // once a target for older modules
   'cordovaDependencies', // http://bit.ly/2tkUePg
-  'parcel' // used for plugins of the Parcel bundler
+  'parcel', // used for plugins of the Parcel bundler
 ];
 
 type Versions = {
