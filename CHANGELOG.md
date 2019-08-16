@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Update fixture certificates to prevent false negatives during testing
+
+  [#7457](https://github.com/yarnpkg/yarn/pull/7457) - [**Thomas Jouannic**](https://github.com/eilgin)
+
 - Runs the `prepare` lifecycle of git dependencies even if `NODE_ENV` is set to `production`.
 
   [#7398](https://github.com/yarnpkg/yarn/pull/7398) - [**John Firebaugh**](https://github.com/jfirebaugh)
