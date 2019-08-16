@@ -585,6 +585,10 @@ export async function main({
     .catch((err: Error) => {
       reporter.verbose(err.stack);
 
+      if (err instanceof ProcessTermError && reporter.isSilent) {
+        return exit(err.EXIT_CODE || 1);
+      }
+
       if (err instanceof MessageError) {
         reporter.error(err.message);
       } else {
