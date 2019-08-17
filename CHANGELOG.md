@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Prevent mixing iojs and node engine detection on `yarn install`.
+
+  [#7456](https://github.com/yarnpkg/yarn/pull/7456) - [**Thomas Jouannic**](https://github.com/eilgin)
+
 - Update fixture certificates to prevent false negatives during testing
 
   [#7457](https://github.com/yarnpkg/yarn/pull/7457) - [**Thomas Jouannic**](https://github.com/eilgin)
@@ -15,7 +19,7 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 - Fixes the `postversion` lifecycle method not being called when using `--no-git-tag-version`.
 
   [#7154](https://github.com/yarnpkg/yarn/pull/7154) - [**Hampus Tågerud**](https://github.com/hampustagerud)
-  
+
 - Ignores potentially large vscode keys in package.json to avoid E2BIG errors.
 
   [#7419](https://github.com/yarnpkg/yarn/pull/7419) - [**Eric Amodio**](https://twitter.com/eamodio)
@@ -67,7 +71,7 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 - Exposes the script environment variables to `yarn create` spawned processes.
 
   [#7127](https://github.com/yarnpkg/yarn/pull/7127) - [**Eli Perelman**](https://github.com/eliperelman)
-  
+
 - Prevents EPIPE errors from being printed.
 
   [#7194](https://github.com/yarnpkg/yarn/pull/7194) - [**Abhishek Reddy**](https://github.com/arbscht)

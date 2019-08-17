@@ -3,7 +3,6 @@
 import type {Manifest} from './types.js';
 import type Config from './config.js';
 import {MessageError} from './errors.js';
-import map from './util/map.js';
 import {entries} from './util/misc.js';
 import {version as yarnVersion} from './util/yarn-version.js';
 import {satisfiesWithPrereleases} from './util/semver.js';
@@ -43,11 +42,8 @@ function isValid(items: Array<string>, actual: string): boolean {
   return isBlacklist && isNotWhitelist;
 }
 
-const aliases = map({
-  iojs: 'node', // we should probably prompt these libraries to fix this
-});
-
 const ignore = [
+  'iojs', // an older fork that is ignored when node is running
   'npm', // we'll never satisfy this for obvious reasons
   'teleport', // a module bundler used by some modules
   'rhino', // once a target for older modules
@@ -139,12 +135,8 @@ export function checkOne(info: Manifest, config: Config, ignoreEngines: boolean)
 
   if (shouldCheckEngines(engines, ignoreEngines)) {
     for (const entry of entries(info.engines)) {
-      let name = entry[0];
+      const name = entry[0];
       const range = entry[1];
-
-      if (aliases[name]) {
-        name = aliases[name];
-      }
 
       if (VERSIONS[name]) {
         if (!testEngine(name, range, VERSIONS, config.looseSemver)) {
