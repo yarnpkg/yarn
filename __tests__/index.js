@@ -49,9 +49,9 @@ async function execCommand(
         cwd: workingDir,
         env: cleanedEnv,
       },
-      (error, stdout) => {
+      (error, stdout, stderr) => {
         if (error) {
-          reject(Object.assign((new Error(error.message): any), {stdout}));
+          reject(Object.assign((new Error(error.message): any), {stdout, stderr}));
         } else {
           const stdoutLines = stdout
             .toString()
@@ -169,6 +169,15 @@ test.concurrent('should run custom script', async () => {
 test.concurrent('should run custom script without run command', async () => {
   const stdout = await execCommand('custom-script', [], 'run-custom-script');
   expectRunOutput(stdout);
+});
+
+test.concurrent('should run without extra output for failing sub commands', async () => {
+  try {
+    await execCommand('run', ['--silent', 'custom-script'], 'run-failing-script');
+    throw new Error('the command did not fail');
+  } catch (err) {
+    expect(err.stderr).toBe('');
+  }
 });
 
 test.concurrent('should run help command', async () => {

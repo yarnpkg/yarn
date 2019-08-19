@@ -83,6 +83,7 @@ const getRandomPort = () => Math.floor(Math.random() * PORT_RANGE) + MIN_PORT_NU
 async function runYarn(args: Array<string> = [], options: Object = {}): Promise<Array<Buffer>> {
   if (!options['env']) {
     options['env'] = {...process.env};
+    options['env']['YARN_SILENT'] = 0;
     options['extendEnv'] = false;
   }
   options['env']['FORCE_COLOR'] = 0;
