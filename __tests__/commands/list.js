@@ -29,6 +29,7 @@ function cleanPaths(originalTrees: Array<Object>): Array<Object> {
     if (tree['type'] === 'tree') {
       tree['data']['trees'].forEach((value, index) => {
         value['_path'] = value['_path']
+          .replace(/\\/g, '/')
           .replace(/^.+yarn-cache\/v[0-9]/, '.../v4')
           .replace(/[a-z0-9]{40}/, HASH)
           .replace(/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}-[0-9]{13}/, HASH);

@@ -312,7 +312,9 @@ test('yarnrc arguments', async () => {
   await fs.writeFile(`${cwd}/package.json`, JSON.stringify({name: 'test', license: 'ISC', version: '1.0.0'}));
 
   const [stdoutOutput] = await runYarn(['add', 'left-pad@1.1.3'], {cwd});
-  const filteredStdoutOutput = String(stdoutOutput).replace(/"_path":".+yarn-cache\/v[0-9]/g, '"_path":".../v4');
+  const filteredStdoutOutput = String(stdoutOutput)
+    .replace(/\\/g, '/')
+    .replace(/"_path":".+yarn-cache\/v[0-9]/g, '"_path":".../v4');
   expect(filteredStdoutOutput).toMatchSnapshot('yarnrc-args');
   expect(JSON.parse(await fs.readFile(`${cwd}/package.json`)).dependencies['left-pad']).toMatch(/^\d+\./);
   expect((await fs.stat(`${cwd}/yarn-cache`)).isDirectory()).toBe(true);
