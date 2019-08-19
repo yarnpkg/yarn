@@ -313,7 +313,7 @@ test('yarnrc arguments', async () => {
 
   const [stdoutOutput] = await runYarn(['add', 'left-pad@1.1.3'], {cwd});
   const filteredStdoutOutput = String(stdoutOutput)
-    .replace(/\\/g, '/')
+    .replace(/\\+/g, '/')
     .replace(/"_path":".+yarn-cache\/v[0-9]/g, '"_path":".../v4');
   expect(filteredStdoutOutput).toMatchSnapshot('yarnrc-args');
   expect(JSON.parse(await fs.readFile(`${cwd}/package.json`)).dependencies['left-pad']).toMatch(/^\d+\./);
