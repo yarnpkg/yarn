@@ -15,7 +15,7 @@ function makeTree(name, {children = [], hint = null, color = null, depth = 0}: O
   const name_split = name.split('@');
   return {
     name,
-    _path: `../v4/npm-${name_split[0].replace(/[A-Z]/, '')}-${name_split[1]}-${HASH}/node_modules/${name_split[0]}`,
+    _path: `.../v4/npm-${name_split[0].replace(/[A-Z]/, '')}-${name_split[1]}-${HASH}/node_modules/${name_split[0]}`,
     children,
     hint,
     color,
@@ -29,7 +29,7 @@ function cleanPaths(originalTrees: Array<Object>): Array<Object> {
     if (tree['type'] === 'tree') {
       tree['data']['trees'].forEach((value, index) => {
         value['_path'] = value['_path']
-          .replace(/^.+yarn-cache\/v[0-9]/, '../v4')
+          .replace(/^.+yarn-cache\/v[0-9]/, '.../v4')
           .replace(/[a-z0-9]{40}/, HASH)
           .replace(/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}-[0-9]{13}/, HASH);
         tree['data']['trees'][index] = value;
