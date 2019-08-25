@@ -27,7 +27,7 @@ const setupMockRequestManager = function(config) {
 
 const setupMockReporter = function(reporter) {
   // $FlowFixMe
-  reporter.auditAdvisory = jest.fn();
+  reporter.auditAdvisories = jest.fn();
   // $FlowFixMe
   reporter.auditAction = jest.fn();
   // $FlowFixMe
@@ -214,24 +214,24 @@ test('audit groups only devDependencies omits dependencies from requires', () =>
   });
 });
 
-test('calls reporter auditAdvisory when using --level high flag', () => {
+test('calls reporter auditAdvisories when using --level high flag', () => {
   return runAudit([], {level: 'high'}, 'single-vulnerable-dep-installed', (config, reporter) => {
     const apiResponse = getAuditResponse(config);
-    expect(reporter.auditAdvisory).toBeCalledWith(apiResponse.actions[0].resolves[0], apiResponse.advisories['118']);
+    expect(reporter.auditAdvisories).toBeCalledWith({'118': apiResponse.advisories['118']});
   });
 });
 
-test(`doesn't call reporter auditAdvisory when using --level critical flag`, () => {
+test(`doesn't call reporter auditAdvisories when using --level critical flag`, () => {
   return runAudit([], {level: 'critical'}, 'single-vulnerable-dep-installed', (config, reporter) => {
     getAuditResponse(config);
-    expect(reporter.auditAdvisory).not.toHaveBeenCalled();
+    expect(reporter.auditAdvisories).not.toHaveBeenCalled();
   });
 });
 
-test('calls reporter auditAdvisory with correct data', () => {
+test('calls reporter auditAdvisories with correct data', () => {
   return runAudit([], {}, 'single-vulnerable-dep-installed', (config, reporter) => {
     const apiResponse = getAuditResponse(config);
-    expect(reporter.auditAdvisory).toBeCalledWith(apiResponse.actions[0].resolves[0], apiResponse.advisories['118']);
+    expect(reporter.auditAdvisories).toBeCalledWith({'118': apiResponse.advisories['118']});
   });
 });
 
@@ -281,10 +281,10 @@ test.concurrent('sends correct dependency map to audit api for private package.'
   });
 });
 
-test('calls reporter auditAdvisory with correct data for private package', () => {
+test('calls reporter auditAdvisories with correct data for private package', () => {
   return runAudit([], {}, 'single-vulnerable-dep-installed', (config, reporter) => {
     const apiResponse = getAuditResponse(config);
-    expect(reporter.auditAdvisory).toBeCalledWith(apiResponse.actions[0].resolves[0], apiResponse.advisories['118']);
+    expect(reporter.auditAdvisories).toBeCalledWith({'118': apiResponse.advisories['118']});
   });
 });
 

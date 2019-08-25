@@ -307,45 +307,19 @@ export default class Audit {
 
     const startLoggingAt: number = Math.max(0, this.severityLevels.indexOf(this.options.level));
 
-    const reportAdvisory = (resolution: AuditResolution) => {
-      const advisory = this.auditData.advisories[resolution.id.toString()];
+    const advisoriesIds = Object.keys(this.auditData.advisories);
+    if (advisoriesIds.length !== 0) {
+      const filteredAdvisories = advisoriesIds.reduce((acc, advisoryKey) => {
+        const advisory = this.auditData.advisories[advisoryKey];
+        if (this.severityLevels.indexOf(advisory.severity) >= startLoggingAt) {
+          acc[advisoryKey] = advisory;
+        }
+        return acc;
+      }, {});
 
-      if (this.severityLevels.indexOf(advisory.severity) >= startLoggingAt) {
-        this.reporter.auditAdvisory(resolution, advisory);
+      if (Object.keys(filteredAdvisories).length > 0) {
+        this.reporter.auditAdvisories(filteredAdvisories);
       }
-    };
-
-    if (Object.keys(this.auditData.advisories).length !== 0) {
-      // let printedManualReviewHeader = false;
-
-      this.auditData.actions.forEach(action => {
-        action.resolves.forEach(reportAdvisory);
-
-        /* The following block has been temporarily removed
-         * because the actions returned by npm are not valid for yarn.
-         * Removing this action reporting until we can come up with a way
-         * to correctly resolve issues.
-         */
-        // if (action.action === 'update' || action.action === 'install') {
-        //   // these advisories can be resolved automatically by running a yarn command
-        //   const recommendation: AuditActionRecommendation = {
-        //     cmd: `yarn upgrade ${action.module}@${action.target}`,
-        //     isBreaking: action.isMajor,
-        //     action,
-        //   };
-        //   this.reporter.auditAction(recommendation);
-        //   action.resolves.forEach(reportAdvisory);
-        // }
-
-        // if (action.action === 'review') {
-        //   // these advisories cannot be resolved automatically and require manual review
-        //   if (!printedManualReviewHeader) {
-        //     this.reporter.auditManualReview();
-        //   }
-        //   printedManualReviewHeader = true;
-        //   action.resolves.forEach(reportAdvisory);
-        // }
-      });
     }
 
     this.summary();
