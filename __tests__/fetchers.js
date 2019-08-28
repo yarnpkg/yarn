@@ -313,11 +313,9 @@ test('TarballFetcher.fetch properly stores tarball of scoped package in offline 
 });
 
 test('TarballFetcher.fetch properly stores tarball of scoped package in offline mirror for Verdaccio', async () => {
-  const dir = await mkdir('tarball-fetcher');
-  const offlineMirrorDir = await mkdir('offline-mirror');
-
+  const dir = await mkdir('git-fetcher');
   const config = await Config.create();
-  config.registries.npm.config['yarn-offline-mirror'] = offlineMirrorDir;
+  config.registries.yarn.config['yarn-offline-mirror'] = 'test';
 
   const fetcher = new TarballFetcher(
     dir,
@@ -329,10 +327,8 @@ test('TarballFetcher.fetch properly stores tarball of scoped package in offline 
     },
     config,
   );
-
-  await fetcher.fetch();
-  const exists = await fs.exists(path.join(offlineMirrorDir, '@types-events-3.0.0.tgz'));
-  expect(exists).toBe(true);
+  const cachePath = fetcher.getTarballMirrorPath();
+  expect(cachePath).toBe(path.join('test', '@types-events-3.0.0.tgz'));
 });
 
 test('TarballFetcher.fetch properly stores tarball for scoped package resolved from artifactory registry', async () => {
