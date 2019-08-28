@@ -312,6 +312,29 @@ test('TarballFetcher.fetch properly stores tarball of scoped package in offline 
   expect(exists).toBe(true);
 });
 
+test('TarballFetcher.fetch properly stores tarball of scoped package in offline mirror for Verdaccio', async () => {
+  const dir = await mkdir('tarball-fetcher');
+  const offlineMirrorDir = await mkdir('offline-mirror');
+
+  const config = await Config.create();
+  config.registries.npm.config['yarn-offline-mirror'] = offlineMirrorDir;
+
+  const fetcher = new TarballFetcher(
+    dir,
+    {
+      type: 'tarball',
+      hash: '6f0ab73cdd7b82d8e81e80838b49e9e4c7fbcc44',
+      reference: 'http://npm.xxxyyyzzz.ru/@types%2fevents/-/events-3.0.0.tgz',
+      registry: 'npm',
+    },
+    config,
+  );
+
+  await fetcher.fetch();
+  const exists = await fs.exists(path.join(offlineMirrorDir, '@types-events-3.0.0.tgz'));
+  expect(exists).toBe(true);
+});
+
 test('TarballFetcher.fetch properly stores tarball for scoped package resolved from artifactory registry', async () => {
   const dir = await mkdir('tarball-fetcher');
   const offlineMirrorDir = await mkdir('offline-mirror');
