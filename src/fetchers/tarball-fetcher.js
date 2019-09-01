@@ -18,7 +18,7 @@ const gunzip = require('gunzip-maybe');
 const invariant = require('invariant');
 const ssri = require('ssri');
 
-const RE_URL_NAME_MATCH = /\/(?:(@[^/]+)\/)?[^/]+\/(?:-|_attachments)\/(?:@[^/]+\/)?([^/]+)$/;
+const RE_URL_NAME_MATCH = /\/(?:(@[^/]+)(?:\/|%2f))?[^/]+\/(?:-|_attachments)\/(?:@[^/]+\/)?([^/]+)$/;
 
 const isHashAlgorithmSupported = name => {
   const cachedResult = isHashAlgorithmSupported.__cache[name];
