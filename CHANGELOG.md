@@ -6,7 +6,7 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 - Fixes using `link:.` to refer to the package folder
 
-  []() - [**Maël Nison**](https://twitter.com/arcanis)
+  [#7512](https://github.com/yarnpkg/yarn/pull/7512) - [**Maël Nison**](https://twitter.com/arcanis)
 
 - Runs the `prepare` lifecycle of git dependencies even if `NODE_ENV` is set to `production`.
 
