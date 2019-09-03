@@ -85,7 +85,7 @@ export async function packTarball(
       '*', // ignore all files except those that are explicitly included with a negation filter
     ];
     lines = lines.concat(
-      onlyFiles.map((filename: string): string => `!${filename}`),
+      onlyFiles.map((filename: string): string => `!${path.normalize(filename)}`),
       onlyFiles.map((filename: string): string => `!${path.join(filename, '**')}`),
     );
     const regexes = ignoreLinesToRegex(lines, './');

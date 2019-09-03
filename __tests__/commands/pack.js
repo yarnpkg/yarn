@@ -67,6 +67,17 @@ test.concurrent('pack should include all files listed in the files array', (): P
   });
 });
 
+test.concurrent('pack should include files whose paths begin with "./"', (): Promise<void> => {
+  return runPack([], {}, 'files-include-from-cwd', async (config): Promise<void> => {
+    const {cwd} = config;
+    const files = await getFilesFromArchive(
+      path.join(cwd, 'files-include-from-cwd-v1.0.0.tgz'),
+      path.join(cwd, 'files-include-from-cwd-v1.0.0'),
+    );
+    expect(files.sort()).toEqual(['a.js', 'b.js', 'dir', path.join('dir', 'nested.js'), 'index.js', 'package.json']);
+  });
+});
+
 test.concurrent('pack should include files based from the package’s root', (): Promise<void> => {
   return runPack([], {}, 'files-include-from-root', async (config): Promise<void> => {
     const {cwd} = config;
