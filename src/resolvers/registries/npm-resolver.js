@@ -73,7 +73,7 @@ export default class NpmResolver extends RegistryResolver {
           name: 'package',
           type: 'list',
           message: config.reporter.lang('chooseVersionFromList', body.name),
-          choices: (semver: Object).rsort(Object.keys(body.versions)),
+          choices: (semver: Object).rsort(Object.values(body.versions).filter(p => !p.deprecated).map(p => p.version)),
           pageSize,
         },
       ]);
