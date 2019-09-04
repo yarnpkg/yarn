@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Fixes paths in "files" which start with `./` not being included by `yarn pack`
+
+  [#7518](https://github.com/yarnpkg/yarn/pull/7518) - [**Samuel Meuli**](https://github.com/samuelmeuli)
+
 - Fixes the offline mirror filenames when using Verdaccio
 
   [#7499](https://github.com/yarnpkg/yarn/pull/7499) - [**xv2**](https://github.com/xv2)
