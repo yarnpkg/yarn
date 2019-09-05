@@ -1,0 +1,22 @@
+name: Test yarn workflow
+on: push
+jobs:
+  Install:
+    name: Install
+    runs-on: yarnpkg/dev:latest
+    steps:
+      - uses: actions/checkout@master
+      - run: yarn install
+  Lint:
+    name: Lint
+    needs: Install
+    runs-on: yarnpkg/dev:latest
+    steps:
+      - run: yarn lint
+  Build:
+    name: Build
+    needs: Install
+    runs-on: yarnpkg/dev:latest
+    steps:
+      - run: yarn build
+
