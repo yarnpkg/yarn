@@ -13,8 +13,13 @@ command_exists() {
   command -v "$1" >/dev/null 2>&1;
 }
 
+is_tty() {
+  [ -t 0 ] && [ -t 1 ];
+}
+
 if command_exists node; then
-  if [ "$YARN_FORCE_WINPTY" = 1 ] || command_exists winpty && test -t 1; then
+  # A "good" tty for Cygwin/MSYS is a bad tty for win32-node (which needs conhost)
+  if [ "$YARN_FORCE_WINPTY" = 1 ] || is_tty && command_exists winpty; then
     winpty node "$basedir/yarn.js" "$@"
   else
     exec node "$basedir/yarn.js" "$@"
