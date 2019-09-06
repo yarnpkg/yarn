@@ -396,6 +396,27 @@ test('TarballFetcher.fetch properly stores tarball for scoped package resolved f
   expect(fetcher.getTarballMirrorPath()).toBe(path.join(offlineMirrorDir, '@exponent-configurator-1.0.2.tgz'));
 });
 
+test('TarballFetcher.fetch properly stores tarball for scoped package resolved from taobao npm registry', async () => {
+  const dir = await mkdir('tarball-fetcher');
+  const offlineMirrorDir = await mkdir('offline-mirror');
+
+  const config = await Config.create();
+  config.registries.npm.config['yarn-offline-mirror'] = offlineMirrorDir;
+
+  const fetcher = new TarballFetcher(
+    dir,
+    {
+      type: 'tarball',
+      hash: '0e58ae66773d7fd7c372a493aff740878ec9ceaa',
+      reference: 'https://registry.npm.taobao.org:443/@types/prop-types/download/@types/prop-types-15.7.2.tgz',
+      registry: 'npm',
+    },
+    config,
+  );
+
+  expect(fetcher.getTarballMirrorPath()).toBe(path.join(offlineMirrorDir, '@types-prop-types-15.7.2.tgz'));
+});
+
 test('TarballFetcher.fetch throws on truncated tar data', async () => {
   const dir = await mkdir('tarball-fetcher');
   const reporter = new Reporter();
