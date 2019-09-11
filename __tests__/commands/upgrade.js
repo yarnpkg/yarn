@@ -493,3 +493,13 @@ test.concurrent('latest flag does not downgrade from a beta', (): Promise<void> 
     await expectInstalledDependency(config, 'react-refetch', '^1.0.3-0', '1.0.3-0');
   });
 });
+
+test.concurrent('does not upgrade transitive deps with prefer-locked-dependencies', (): Promise<void> => {
+  const flags = {preferLockedDependencies: true};
+  return runUpgrade(['strip-ansi'], flags, 'prefer-locked', async (config): ?Promise<void> => {
+    await expectInstalledDependency(config, 'strip-ansi', '^2.0.0', '2.0.1');
+    await expectInstalledTransitiveDependency(config, 'ansi-regex', '^1.0.0', '1.0.0');
+    await expectInstalledDependency(config, 'array-union', '^1.0.1', '1.0.2');
+    await expectInstalledTransitiveDependency(config, 'array-uniq', '^1.0.1', '1.0.3');
+  });
+});
