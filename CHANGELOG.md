@@ -4,7 +4,7 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
-- Preserve linked packages in create command
+- Preserves linked packages when calling `yarn create`
 
   [#7543](https://github.com/yarnpkg/yarn/pull/7543) - [**Nick McCurdy**](https://github.com/nickmccurdy)
 
