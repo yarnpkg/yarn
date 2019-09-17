@@ -61,7 +61,9 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const {fullName: packageName, name: commandName} = coerceCreatePackageName(builderName);
 
   const linkLoc = path.join(config.linkFolder, commandName);
-  if (!await fs.exists(linkLoc)) {
+  if (await fs.exists(linkLoc)) {
+    reporter.info(reporter.lang('linkUsing', packageName));
+  } else {
     await runGlobal(config, reporter, {}, ['add', packageName]);
   }
 
