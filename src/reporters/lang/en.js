@@ -361,6 +361,8 @@ const messages = {
 
   unplugDisabled: "Packages can only be unplugged when Plug'n'Play is enabled.",
 
+  plugnplaySuggestV2L1: "Plug'n'Play support has been greatly improved on the Yarn v2 development branch.",
+  plugnplaySuggestV2L2: "Please give it a try and tell us what you think! - https://next.yarnpkg.com/getting-started/install",
   plugnplayWindowsSupport: "Plug'n'Play on Windows doesn't support the cache and project to be kept on separate drives",
 
   packageInstalledWithBinaries: 'Installed $0 with binaries:',
