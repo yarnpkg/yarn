@@ -92,7 +92,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
   }
 
-  async function runCommand([action, ...args]): Promise<void> {
+  function runCommand([action, ...args]): Promise<void> {
     return callThroughHook('runScript', () => realRunCommand(action, args), {action, args});
   }
 
