@@ -8,6 +8,14 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#7462](https://github.com/yarnpkg/yarn/pull/7462) - [**Krzysztof Pawlik**](https://github.com/krzysztof-pawlik-gat)
 
+- Suggests using the Yarn 2 development trunk on PnP-enabled projects
+
+  [#7512](https://github.com/yarnpkg/yarn/pull/7512) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Preserves linked packages when calling `yarn create`
+
+  [#7543](https://github.com/yarnpkg/yarn/pull/7543) - [**Nick McCurdy**](https://github.com/nickmccurdy)
+
 - Fixes the offline mirror filenames when using Verdaccio
 
   [#7499](https://github.com/yarnpkg/yarn/pull/7499) - [**xv2**](https://github.com/xv2)
