@@ -49,6 +49,7 @@ const aliases = map({
 
 const ignore = [
   'npm', // we'll never satisfy this for obvious reasons
+  'pnpm', // used by alternative package manager
   'teleport', // a module bundler used by some modules
   'rhino', // once a target for older modules
   'cordovaDependencies', // http://bit.ly/2tkUePg
