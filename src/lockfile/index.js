@@ -179,6 +179,11 @@ export default class Lockfile {
       reporter.info(reporter.lang('noLockfileFound'));
     }
 
+    if (lockfile.__metadata) {
+      const lockfilev2 = lockfile;
+      lockfile = {};
+    }
+
     return new Lockfile({cache: lockfile, source: rawLockfile, parseResultType: parseResult && parseResult.type});
   }
 
