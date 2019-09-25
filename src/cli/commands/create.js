@@ -4,8 +4,9 @@ import type Config from '../../config.js';
 import {MessageError} from '../../errors.js';
 import type {Reporter} from '../../reporters/index.js';
 import * as child from '../../util/child.js';
-import {makeEnv} from '../../util/execute-lifecycle-script';
+import {makeEnv} from '../../util/execute-lifecycle-script.js';
 import * as fs from '../../util/fs.js';
+import {fixCmdWinSpaces} from '../../util/fix-cmd-win-spaces.js';
 import {run as runGlobal, getBinFolder} from './global.js';
 
 const path = require('path');
@@ -68,7 +69,12 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   }
 
   const binFolder = await getBinFolder(config, {});
-  const command = path.resolve(binFolder, commandName);
+  let command = path.resolve(binFolder, commandName);
+
+  if (process.platform === 'win32') {
+    command = fixCmdWinSpaces(command);
+  }
+
   const env = await makeEnv('create', config.cwd, config);
 
   await child.spawn(command, rest, {stdio: `inherit`, shell: true, env});
