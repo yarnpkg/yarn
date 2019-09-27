@@ -17,6 +17,7 @@ import {registries, registryNames} from './registries/index.js';
 import {NoopReporter} from './reporters/index.js';
 import map from './util/map.js';
 
+const crypto = require('crypto');
 const detectIndent = require('detect-indent');
 const invariant = require('invariant');
 const path = require('path');
@@ -508,7 +509,7 @@ export default class Config {
       slug = `unknown-${slug}`;
     }
 
-    const {hash} = pkg.remote;
+    const {hash, integrity} = pkg.remote;
 
     if (pkg.version) {
       slug += `-${pkg.version}`;
@@ -518,6 +519,10 @@ export default class Config {
       slug += `-${pkg.uid}`;
     } else if (hash) {
       slug += `-${hash}`;
+    }
+
+    if (integrity != null) {
+      slug += `-${crypto.createHash('sha1').update(integrity).digest('hex')}`;
     }
 
     return slug;
