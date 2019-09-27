@@ -179,7 +179,7 @@ export default class Lockfile {
       reporter.info(reporter.lang('noLockfileFound'));
     }
 
-    if (lockfile.__metadata) {
+    if (lockfile && lockfile.__metadata) {
       const lockfilev2 = lockfile;
       lockfile = {};
     }
