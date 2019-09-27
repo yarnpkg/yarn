@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Add flag on outdated command to allow exit code 0
+
+  [#7577](https://github.com/yarnpkg/yarn/pull/7577) - [**Vincent Migot**](https://github.com/vincentmigot)
+
 ## 1.18.0
 
 - Suggests using the Yarn 2 development trunk on PnP-enabled projects
