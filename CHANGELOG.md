@@ -4,6 +4,14 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+## 1.19.0
+
+**Important:** This release contains a cache bump. It will cause the very first install following the upgrade to take slightly more time, especially if you don't use the [Offline Mirror](https://yarnpkg.com/blog/2016/11/24/offline-mirror/) feature. After that everything will be back to normal.
+
+- Fixes a potential vulnerability regarding how the build artifacts are stored
+
+  [**Maël Nison**](https://twitter.com/arcanis)
+
 ## 1.18.0
 
 - Suggests using the Yarn 2 development trunk on PnP-enabled projects
