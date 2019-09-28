@@ -10,7 +10,7 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 - Fixes a potential vulnerability regarding how the build artifacts are stored
 
-  [**Maël Nison**](https://twitter.com/arcanis)
+  Reported by [**ChALkeR**](https://github.com/ChALkeR), fixed by [**Maël Nison**](https://twitter.com/arcanis)
 
 ## 1.18.0
 
