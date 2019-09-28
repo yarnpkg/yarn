@@ -15,13 +15,20 @@ async function fetchCache(
   dest: string,
   fetcher: Fetchers,
   config: Config,
-  integrity: ?string,
+  remote: PackageRemote,
 ): Promise<FetchedMetadata> {
   // $FlowFixMe: This error doesn't make sense
-  const {hash, package: pkg, remote} = await config.readPackageMetadata(dest);
+  const {hash, package: pkg, remote: cacheRemote} = await config.readPackageMetadata(dest);
 
-  if (integrity) {
-    if (!remote.integrity || !ssri.parse(integrity).match(remote.integrity)) {
+  if (remote.integrity) {
+    if (!cacheRemote.integrity || !ssri.parse(remote.integrity).match(cacheRemote.integrity)) {
+      // eslint-disable-next-line yarn-internal/warn-language
+      throw new MessageError('Incorrect integrity when fetching from the cache');
+    }
+  }
+
+  if (remote.hash) {
+    if (!cacheRemote.hash || cacheRemote.hash !== remote.hash) {
       // eslint-disable-next-line yarn-internal/warn-language
       throw new MessageError('Incorrect integrity when fetching from the cache');
     }
@@ -56,7 +63,7 @@ export async function fetchOneRemote(
 
   const fetcher = new Fetcher(dest, remote, config);
   if (await config.isValidModuleDest(dest)) {
-    return fetchCache(dest, fetcher, config, remote.integrity);
+    return fetchCache(dest, fetcher, config, remote);
   }
 
   // remove as the module may be invalid
