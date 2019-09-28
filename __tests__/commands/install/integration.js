@@ -245,7 +245,7 @@ test('changes the cache path when bumping the cache version', () =>
     });
   }));
 
-test.skip('changes the cache directory when bumping the cache version', () =>
+test('changes the cache directory when bumping the cache version', () =>
   runInstall({}, 'install-production', async (config, reporter): Promise<void> => {
     const lockfile = await Lockfile.fromDirectory(config.cwd);
 
@@ -800,7 +800,7 @@ test('install should fail with unsupported algorithms', () =>
     message: expect.stringContaining('none of the specified algorithms are supported'),
   }));
 
-test('install should update integrity in yarn.lock (--update-checksums)', () =>
+test.concurrent('install should update integrity in yarn.lock (--update-checksums)', () =>
   runInstall({updateChecksums: true}, 'install-update-checksums', async config => {
     const lockFileLines = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
     expect(lockFileLines[3]).toEqual(
@@ -811,7 +811,7 @@ test('install should update integrity in yarn.lock (--update-checksums)', () =>
   }),
 );
 
-test('install should update malformed integrity string in yarn.lock (--update-checksums)', () =>
+test.concurrent('install should update malformed integrity string in yarn.lock (--update-checksums)', () =>
   runInstall({updateChecksums: true}, 'install-update-checksums-malformed', async config => {
     const lockFileLines = explodeLockfile(await fs.readFile(path.join(config.cwd, 'yarn.lock')));
     expect(lockFileLines[3]).toEqual(

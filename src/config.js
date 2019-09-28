@@ -509,18 +509,16 @@ export default class Config {
       slug = `unknown-${slug}`;
     }
 
-    const {hash, resolved} = pkg.remote;
+    const {hash, integrity} = pkg.remote;
 
     if (pkg.version) {
       slug += `-${pkg.version}`;
     }
 
-    if (resolved) {
-      if (hash) {
-        slug += `-${crypto.createHmac('sha1', resolved).update(hash).digest('hex')}`;
-      } else {
-        slug += `-${crypto.createHash('sha1').update(resolved).digest('hex')}`;
-      }
+    if (pkg.uid && pkg.version !== pkg.uid) {
+      slug += `-${pkg.uid}`;
+    } else if (integrity != null) {
+      slug += `-${crypto.createHash('sha1').update(integrity.toString()).digest('hex')}`;
     } else if (hash) {
       slug += `-${hash}`;
     }
