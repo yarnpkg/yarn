@@ -9,8 +9,24 @@ import * as fetchers from './fetchers/index.js';
 import * as fs from './util/fs.js';
 import * as promise from './util/promise.js';
 
-async function fetchCache(dest: string, fetcher: Fetchers, config: Config): Promise<FetchedMetadata> {
-  const {hash, package: pkg} = await config.readPackageMetadata(dest);
+const ssri = require('ssri');
+
+async function fetchCache(
+  dest: string,
+  fetcher: Fetchers,
+  config: Config,
+  integrity: ?string,
+): Promise<FetchedMetadata> {
+  // $FlowFixMe: This error doesn't make sense
+  const {hash, package: pkg, remote} = await config.readPackageMetadata(dest);
+
+  if (integrity) {
+    if (!remote.integrity || !ssri.parse(integrity).match(remote.integrity)) {
+      // eslint-disable-next-line yarn-internal/warn-language
+      throw new MessageError('Incorrect integrity when fetching from the cache');
+    }
+  }
+
   await fetcher.setupMirrorFromCache();
   return {
     package: pkg,
@@ -40,7 +56,7 @@ export async function fetchOneRemote(
 
   const fetcher = new Fetcher(dest, remote, config);
   if (await config.isValidModuleDest(dest)) {
-    return fetchCache(dest, fetcher, config);
+    return fetchCache(dest, fetcher, config, remote.integrity);
   }
 
   // remove as the module may be invalid
