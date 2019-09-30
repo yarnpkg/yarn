@@ -632,6 +632,11 @@ test('install should be idempotent', () =>
     null,
   ));
 
+test('install should fail to authenticate integrity with incorrect hash and correct sha512', () =>
+  expect(runInstall({}, 'invalid-checksum-good-integrity')).rejects.toMatchObject({
+    message: expect.stringContaining("computed integrity doesn't match our records"),
+  }));
+
 test('install should authenticate integrity field with sha1 checksums', () =>
   runInstall({}, 'install-update-auth-sha1', async config => {
     const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
