@@ -14,7 +14,7 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 const path = require('path');
 
 // regexp which verifies that the cache path contains a path component ending with semver + hash
-const cachePathRe = /-\d+\.\d+\.\d+-[\dabcdef]{40}[\\\/]/;
+const cachePathRe = /-\d+\.\d+\.\d+-[\dabcdef]{40}(?:-integrity)?[\\\/]/;
 
 async function createEnv(configOptions): Object {
   const lockfile = new Lockfile();
