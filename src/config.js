@@ -518,7 +518,7 @@ export default class Config {
     if (pkg.uid && pkg.version !== pkg.uid) {
       slug += `-${pkg.uid}`;
     } else if (hash) {
-      slug += `-${hash}1`;
+      slug += `-${hash}`;
     }
 
     if (pkg.remote.integrity) {
