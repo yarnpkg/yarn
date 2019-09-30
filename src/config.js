@@ -517,12 +517,12 @@ export default class Config {
 
     if (pkg.uid && pkg.version !== pkg.uid) {
       slug += `-${pkg.uid}`;
-    } else if (pkg.remote.integrity) {
-      const integrity = pkg.remote.integrity.toString();
-      const hash = crypto.createHash('sha1').update(integrity).digest('hex');
-      slug += `-${hash}`;
     } else if (hash) {
-      slug += `-${hash}`;
+      slug += `-${hash}1`;
+    }
+
+    if (pkg.remote.integrity) {
+      slug += `-integrity`;
     }
 
     return slug;
