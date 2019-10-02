@@ -20,15 +20,18 @@ async function fetchCache(
   // $FlowFixMe: This error doesn't make sense
   const {hash, package: pkg, remote: cacheRemote} = await config.readPackageMetadata(dest);
 
+  const cacheIntegrity = cacheRemote.cacheIntegrity || cacheRemote.integrity;
+  const cacheHash = cacheRemote.hash;
+
   if (remote.integrity) {
-    if (!cacheRemote.integrity || !ssri.parse(remote.integrity).match(cacheRemote.integrity)) {
+    if (!cacheIntegrity || !ssri.parse(cacheIntegrity).match(remote.integrity)) {
       // eslint-disable-next-line yarn-internal/warn-language
       throw new MessageError('Incorrect integrity when fetching from the cache');
     }
   }
 
   if (remote.hash) {
-    if (!cacheRemote.hash || cacheRemote.hash !== remote.hash) {
+    if (!cacheHash || cacheHash !== remote.hash) {
       // eslint-disable-next-line yarn-internal/warn-language
       throw new MessageError('Incorrect integrity when fetching from the cache');
     }
