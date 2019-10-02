@@ -617,10 +617,10 @@ async function start(): Promise<void> {
     let exitCode = 0;
 
     try {
-      exitCode = await spawnp(yarnPath, argv, opts);
+      exitCode = await forkp(yarnPath, argv, opts);
     } catch (firstError) {
       try {
-        exitCode = await forkp(yarnPath, argv, opts);
+        exitCode = await spawnp(yarnPath, argv, opts);
       } catch (error) {
         throw firstError;
       }
