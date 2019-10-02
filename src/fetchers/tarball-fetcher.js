@@ -170,7 +170,7 @@ export default class TarballFetcher extends BaseFetcher {
         this.remote.cacheIntegrity = this.validateIntegrity.toString();
       }
 
-      if (integrityInfo.algorithms.length === 0) {
+      if (integrityInfo.integrity && Object.keys(integrityInfo.integrity).length === 0) {
         return reject(
           new SecurityError(
             this.config.reporter.lang('fetchBadIntegrityAlgorithm', this.packageName, this.remote.reference),
