@@ -166,9 +166,11 @@ export default class TarballFetcher extends BaseFetcher {
         this.remote.integrity !== this.validateIntegrity.toString()
       ) {
         this.remote.integrity = this.validateIntegrity.toString();
+      } else if (this.validateIntegrity) {
+        this.remote.cacheIntegrity = this.validateIntegrity.toString();
       }
 
-      if (integrityInfo.algorithms.length === 0) {
+      if (integrityInfo.integrity && Object.keys(integrityInfo.integrity).length === 0) {
         return reject(
           new SecurityError(
             this.config.reporter.lang('fetchBadIntegrityAlgorithm', this.packageName, this.remote.reference),
@@ -350,7 +352,7 @@ export default class TarballFetcher extends BaseFetcher {
       return {integrity: null, algorithms};
     }
 
-    const algorithms = new Set();
+    const algorithms = new Set(['sha512']);
     const integrity = {};
     for (const algorithm of expectedIntegrityAlgorithms) {
       if (isHashAlgorithmSupported(algorithm)) {
