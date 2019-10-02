@@ -617,10 +617,14 @@ async function start(): Promise<void> {
     let exitCode = 0;
 
     try {
-      exitCode = await forkp(yarnPath, argv, opts);
+      if (yarnPath.endsWith(`.js`)) {
+        exitCode = await spawnp(process.execPath, [yarnPath, ...argv], opts);
+      } else {
+        exitCode = await spawnp(yarnPath, argv, opts);
+      }
     } catch (firstError) {
       try {
-        exitCode = await spawnp(yarnPath, argv, opts);
+        exitCode = await forkp(yarnPath, argv, opts);
       } catch (error) {
         throw firstError;
       }
