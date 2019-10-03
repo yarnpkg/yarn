@@ -352,7 +352,7 @@ export default class TarballFetcher extends BaseFetcher {
       return {integrity: null, algorithms};
     }
 
-    const algorithms = new Set(['sha512']);
+    const algorithms = new Set(['sha512', 'sha1']);
     const integrity = {};
     for (const algorithm of expectedIntegrityAlgorithms) {
       if (isHashAlgorithmSupported(algorithm)) {
