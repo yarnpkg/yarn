@@ -346,6 +346,10 @@ const messages = {
   requestError: 'Request $0 returned a $1',
   requestFailed: 'Request failed $0',
   tarballNotInNetworkOrCache: '$0: Tarball is not in network and can not be located in cache ($1)',
+  fetchBadIntegrityCache:
+    'Incorrect integrity when fetching from the cache for $0. Cache has $1 and remote has $2. Run `yarn cache clean` to fix the problem',
+  fetchBadHashCache:
+    'Incorrect hash when fetching from the cache for $0. Cache has $1 and remote has $2. Run `yarn cache clean` to fix the problem',
   fetchBadHashWithPath: "Integrity check failed for $0 (computed integrity doesn't match our records, got $2)",
   fetchBadIntegrityAlgorithm: 'Integrity checked failed for $0 (none of the specified algorithms are supported)',
   fetchErrorCorrupt:

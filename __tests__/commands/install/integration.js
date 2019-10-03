@@ -1245,7 +1245,14 @@ describe('Cache', () => {
 
   test('install should fail when cached package integrity does not match lockfile integrity field', () =>
     expect(runInstall({}, 'install-update-auth-invalid-cache-integrity')).rejects.toThrow(
-      'Incorrect integrity when fetching from the cache',
+      // eslint-disable-next-line max-len
+      'Incorrect integrity when fetching from the cache for "safe-buffer". Cache has "sha512-foo sha1-bar" and remote has "sha1-iTMSr2myEj3vcfV4iQAWce6yyFM="',
+    ));
+
+  test('install should fail when cached package hash does not match remote hash', () =>
+    expect(runInstall({}, 'install-update-auth-invalid-cache-hash')).rejects.toThrow(
+      // eslint-disable-next-line max-len
+      'Incorrect hash when fetching from the cache for "safe-buffer". Cache has "bad-hash" and remote has "893312af69b2123def71f57889001671eeb2c853"',
     ));
 
   test('install should not fail cache integrity validation when lockfile has sha1 integrity field', () =>
