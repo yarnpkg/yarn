@@ -4,6 +4,7 @@
 import * as constants from '../constants.js';
 import BlockingQueue from './blocking-queue.js';
 import {ProcessSpawnError, ProcessTermError} from '../errors.js';
+import * as fs from './fs.js';
 import {promisify} from './promise.js';
 
 const child = require('child_process');
@@ -94,6 +95,7 @@ export function spawn(
         }
 
         function finish() {
+          fs.unlink(opts.env[constants.WRAPPER_FOLDER]);
           delete spawnedProcesses[key];
           if (err) {
             reject(err);

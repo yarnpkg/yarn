@@ -29,6 +29,7 @@ export type ConfigOptions = {
   _cacheRootFolder?: ?string,
   cacheFolder?: ?string,
   tempFolder?: ?string,
+  wrapperFolder?: ?string,
   modulesFolder?: ?string,
   globalFolder?: ?string,
   linkFolder?: ?string,
@@ -157,6 +158,9 @@ export default class Config {
 
   //
   tempFolder: string;
+
+  //
+  wrapperFolder: string;
 
   //
   reporter: Reporter;
@@ -430,6 +434,7 @@ export default class Config {
     //init & create cacheFolder, tempFolder
     this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));
     this.tempFolder = opts.tempFolder || path.join(this.cacheFolder, '.tmp');
+    this.wrapperFolder = opts.wrapperFolder || '';
     await fs.mkdirp(this.cacheFolder);
     await fs.mkdirp(this.tempFolder);
 

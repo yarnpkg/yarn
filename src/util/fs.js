@@ -806,8 +806,8 @@ export async function hardlinksWork(dir: string): Promise<boolean> {
 }
 
 // not a strict polyfill for Node's fs.mkdtemp
-export async function makeTempDir(prefix?: string): Promise<string> {
-  const dir = path.join(os.tmpdir(), `yarn-${prefix || ''}-${Date.now()}-${Math.random()}`);
+export async function makeTempDir(prefix?: string, base?: string): Promise<string> {
+  const dir = path.join(base || os.tmpdir(), `yarn-${prefix || ''}-${Date.now()}-${Math.random()}`);
   await unlink(dir);
   await mkdirp(dir);
   return dir;

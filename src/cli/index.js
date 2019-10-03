@@ -108,6 +108,10 @@ export async function main({
   );
   commander.option('--preferred-cache-folder <path>', 'specify a custom folder to store the yarn cache if possible');
   commander.option('--cache-folder <path>', 'specify a custom folder that must be used to store the yarn cache');
+  commander.option(
+    '--wrapper-folder <path>',
+    'specify a custom base folder that must be used to store the node wrappers',
+  );
   commander.option('--mutex <type>[:specifier]', 'use a mutex to ensure only one yarn instance is executing');
   commander.option(
     '--emoji [bool]',
@@ -524,6 +528,7 @@ export async function main({
       globalFolder: commander.globalFolder,
       preferredCacheFolder: commander.preferredCacheFolder,
       cacheFolder: commander.cacheFolder,
+      wrapperFolder: commander.wrapperFolder,
       preferOffline: commander.preferOffline,
       captureHar: commander.har,
       ignorePlatform: commander.ignorePlatform,
