@@ -64,6 +64,7 @@ export async function getBinEntries(config: Config): Promise<Map<string, string>
 
 export function setFlags(commander: Object) {
   commander.description('Runs a defined package script.');
+  commander.option('--if-present', 'ignore missing scripts');
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
@@ -159,7 +160,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       if (suggestion) {
         msg += ` Did you mean ${JSON.stringify(suggestion)}?`;
       }
-      throw new MessageError(msg);
+
+      if (!flags.ifPresent) {
+        throw new MessageError(msg);
+      }
     }
   }
 

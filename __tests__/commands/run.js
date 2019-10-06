@@ -220,3 +220,22 @@ test('runs script with custom script-shell', (): Promise<void> =>
       customShell: '/usr/bin/dummy',
     });
   }));
+
+test('missing script does not fail with --if-present', (): Promise<void> =>
+  runRun(['does-not-exist'], {ifPresent: true}, 'if-present', () => {}));
+
+test('missing script fails by default', (): Promise<void> =>
+  runRun(['does-not-exist'], {}, 'if-present', () => {}).catch(err => {
+    expect(err.message).toContain('Error: Command "does-not-exist" not found.');
+  }));
+
+test('runs existing script with --if-present', (): Promise<void> =>
+  runRun(['exists'], {ifPresent: true}, 'if-present', config => {
+    expect(execCommand).toBeCalledWith({
+      stage: 'exists',
+      config,
+      cmd: `echo 'this entry exists'`,
+      cwd: config.cwd,
+      isInteractive: true,
+    });
+  }));
