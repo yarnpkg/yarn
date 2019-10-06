@@ -838,9 +838,9 @@ describe('getPossibleConfigLocations', () => {
   });
 
   test('aware of NPM_CONFIG_GLOBALCONFIG directory when present', async () => {
-    const customrc = pathSep + pathJoin('tmp', 'customrc')
+    const customrc = pathSep + pathJoin('tmp', 'customrc');
     try {
-      process.env.NPM_CONFIG_GLOBALCONFIG = customrc
+      process.env.NPM_CONFIG_GLOBALCONFIG = customrc;
       const testCwd = './project/subdirectory';
       const {mockRequestManager, mockRegistries} = createMocks();
       const reporter = new BufferReporter({verbose: true});
@@ -857,7 +857,7 @@ describe('getPossibleConfigLocations', () => {
         ]),
       );
     } finally {
-      delete process.env.NPM_GLOBAL_GLOBALCONFIG
+      delete process.env.NPM_GLOBAL_GLOBALCONFIG;
     }
   });
 });
