@@ -4,6 +4,40 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+## 1.19.1
+
+**Important:** This release contains a cache bump. It will cause the very first install following the upgrade to take slightly more time, especially if you don't use the [Offline Mirror](https://yarnpkg.com/blog/2016/11/24/offline-mirror/) feature. After that everything will be back to normal.
+
+- Computes the `--modules-folder` & friends paths based on the cwd.
+
+  [#7607](https://github.com/yarnpkg/yarn/pull/7607) - [**mbpreble**](https://github.com/mbpreble)
+
+- Stores the sha512 in the cache even when not provided by the server.
+
+  [#7591](https://github.com/yarnpkg/yarn/pull/7591) - [**Maël Nison**](https://twitter.com/arcanis) / [#7595](https://github.com/yarnpkg/yarn/pull/7595) - [**Michael**](https://github.com/Blasz)
+
+- Uses the right Node binary when using `yarn-path`.
+
+  [#7592](https://github.com/yarnpkg/yarn/pull/7592) - [**Maël Nison**](https://twitter.com/arcanis)
+
+## 1.19.0
+
+**Important:** This release contains a cache bump. It will cause the very first install following the upgrade to take slightly more time, especially if you don't use the [Offline Mirror](https://yarnpkg.com/blog/2016/11/24/offline-mirror/) feature. After that everything will be back to normal.
+
+- Fixes a potential vulnerability regarding how the build artifacts are stored
+
+  Reported by [**ChALkeR**](https://github.com/ChALkeR), fixed by [**Maël Nison**](https://twitter.com/arcanis)
+
+## 1.18.0
+
+- Suggests using the Yarn 2 development trunk on PnP-enabled projects
+
+  [#7512](https://github.com/yarnpkg/yarn/pull/7512) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Preserves linked packages when calling `yarn create`
+
+  [#7543](https://github.com/yarnpkg/yarn/pull/7543) - [**Nick McCurdy**](https://github.com/nickmccurdy)
+
 - Fixes the offline mirror filenames when using Verdaccio
 
   [#7499](https://github.com/yarnpkg/yarn/pull/7499) - [**xv2**](https://github.com/xv2)

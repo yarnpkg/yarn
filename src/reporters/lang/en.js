@@ -346,6 +346,10 @@ const messages = {
   requestError: 'Request $0 returned a $1',
   requestFailed: 'Request failed $0',
   tarballNotInNetworkOrCache: '$0: Tarball is not in network and can not be located in cache ($1)',
+  fetchBadIntegrityCache:
+    'Incorrect integrity when fetching from the cache for $0. Cache has $1 and remote has $2. Run `yarn cache clean` to fix the problem',
+  fetchBadHashCache:
+    'Incorrect hash when fetching from the cache for $0. Cache has $1 and remote has $2. Run `yarn cache clean` to fix the problem',
   fetchBadHashWithPath: "Integrity check failed for $0 (computed integrity doesn't match our records, got $2)",
   fetchBadIntegrityAlgorithm: 'Integrity checked failed for $0 (none of the specified algorithms are supported)',
   fetchErrorCorrupt:
@@ -361,6 +365,9 @@ const messages = {
 
   unplugDisabled: "Packages can only be unplugged when Plug'n'Play is enabled.",
 
+  plugnplaySuggestV2L1: "Plug'n'Play support has been greatly improved on the Yarn v2 development branch.",
+  plugnplaySuggestV2L2:
+    'Please give it a try and tell us what you think! - https://next.yarnpkg.com/getting-started/install',
   plugnplayWindowsSupport: "Plug'n'Play on Windows doesn't support the cache and project to be kept on separate drives",
 
   packageInstalledWithBinaries: 'Installed $0 with binaries:',

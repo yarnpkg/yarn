@@ -44,7 +44,9 @@ export default function(info: Object, moduleLoc: string, lockfileFolder: string)
       const absoluteTarget = path.resolve(lockfileFolder, moduleLoc, unprefixed);
       let relativeTarget = path.relative(lockfileFolder, absoluteTarget) || '.';
 
-      if (hasPathPrefix) {
+      if (absoluteTarget === lockfileFolder) {
+        relativeTarget = '.';
+      } else if (hasPathPrefix) {
         // TODO: This logic should be removed during the next major bump
         // If the original value was using the "./" prefix, then we output a similar path.
         // We need to do this because otherwise it would cause problems with already existing
