@@ -4,6 +4,22 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+## 1.19.1
+
+**Important:** This release contains a cache bump. It will cause the very first install following the upgrade to take slightly more time, especially if you don't use the [Offline Mirror](https://yarnpkg.com/blog/2016/11/24/offline-mirror/) feature. After that everything will be back to normal.
+
+- Computes the `--modules-folder` & friends paths based on the cwd.
+
+  [#7607](https://github.com/yarnpkg/yarn/pull/7607) - [**mbpreble**](https://github.com/mbpreble)
+
+- Stores the sha512 in the cache even when not provided by the server.
+
+  [#7591](https://github.com/yarnpkg/yarn/pull/7591) - [**Maël Nison**](https://twitter.com/arcanis) / [#7595](https://github.com/yarnpkg/yarn/pull/7595) - [**Michael**](https://github.com/Blasz)
+
+- Uses the right Node binary when using `yarn-path`.
+
+  [#7592](https://github.com/yarnpkg/yarn/pull/7592) - [**Maël Nison**](https://twitter.com/arcanis)
+
 ## 1.19.0
 
 **Important:** This release contains a cache bump. It will cause the very first install following the upgrade to take slightly more time, especially if you don't use the [Offline Mirror](https://yarnpkg.com/blog/2016/11/24/offline-mirror/) feature. After that everything will be back to normal.
