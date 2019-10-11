@@ -4,7 +4,7 @@ import type {FetchedMetadata, Manifest, PackageRemote} from './types.js';
 import type {Fetchers} from './fetchers/index.js';
 import type PackageReference from './package-reference.js';
 import type Config from './config.js';
-import {MessageError} from './errors.js';
+import {MessageError, SecurityError} from './errors.js';
 import * as fetchers from './fetchers/index.js';
 import * as fs from './util/fs.js';
 import * as promise from './util/promise.js';
@@ -20,17 +20,20 @@ async function fetchCache(
   // $FlowFixMe: This error doesn't make sense
   const {hash, package: pkg, remote: cacheRemote} = await config.readPackageMetadata(dest);
 
+  const cacheIntegrity = cacheRemote.cacheIntegrity || cacheRemote.integrity;
+  const cacheHash = cacheRemote.hash;
+
   if (remote.integrity) {
-    if (!cacheRemote.integrity || !ssri.parse(remote.integrity).match(cacheRemote.integrity)) {
-      // eslint-disable-next-line yarn-internal/warn-language
-      throw new MessageError('Incorrect integrity when fetching from the cache');
+    if (!cacheIntegrity || !ssri.parse(cacheIntegrity).match(remote.integrity)) {
+      throw new SecurityError(
+        config.reporter.lang('fetchBadIntegrityCache', pkg.name, cacheIntegrity, remote.integrity),
+      );
     }
   }
 
   if (remote.hash) {
-    if (!cacheRemote.hash || cacheRemote.hash !== remote.hash) {
-      // eslint-disable-next-line yarn-internal/warn-language
-      throw new MessageError('Incorrect integrity when fetching from the cache');
+    if (!cacheHash || cacheHash !== remote.hash) {
+      throw new SecurityError(config.reporter.lang('fetchBadHashCache', pkg.name, cacheHash, remote.hash));
     }
   }
 
