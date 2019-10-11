@@ -9,7 +9,7 @@ import {getParent, getReqDepth, run as list} from '../../src/cli/commands/list.j
 import * as reporters from '../../src/reporters/index.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
-const HASH = 'f80c6c397144596c990213074b51f3a0b0f3c6f9';
+const HASH = 'f80c6c397144596c990213074b51f3a0b0f3c6f9-integrity';
 
 function makeTree(name, {children = [], hint = null, color = null, depth = 0}: Object = {}): Tree {
   const name_split = name.split('@');
@@ -31,7 +31,7 @@ function cleanPaths(originalTrees: Array<Object>): Array<Object> {
         value['_path'] = value['_path']
           .replace(/\\/g, '/')
           .replace(/^.+yarn-cache\/v[0-9]/, '.../v4')
-          .replace(/[a-z0-9]{40}/, HASH)
+          .replace(/[a-z0-9]{40}(-integrity)?/, HASH)
           .replace(/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}-[0-9]{13}/, HASH);
         tree['data']['trees'][index] = value;
       });
