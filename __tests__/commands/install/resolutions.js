@@ -75,6 +75,7 @@ test.concurrent('should warn when resolution entries are incorrrect or incompati
   expect(error).toContain('Resolution field "left-pad@1.0.0" is incompatible with requested version "left-pad@~1.1.0');
   expect(error).toContain('Resolution field "wrongversion" has an invalid version entry and may be ignored');
   expect(error).toContain('Resolution field "invalidname/" does not end with a valid package name and will be ignored');
+  expect(error).toContain('A resolution appears to attempt to change a top level dependency');
 });
 
 test.concurrent('install with resolutions should correctly install simple scoped packages', (): Promise<void> => {
