@@ -20,10 +20,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#7592](https://github.com/yarnpkg/yarn/pull/7592) - [**Maël Nison**](https://twitter.com/arcanis)
 
-- Warn if a resolution appears to attempt to change a top level dependency .
+- Warn if a resolution appears to attempt to change a top level dependency.
 
   [#7622](https://github.com/yarnpkg/yarn/pull/7622) - [**Gonzalo Rodríguez**](https://github.com/gonzarodriguezt)
-  
+
 ## 1.19.0
 
 **Important:** This release contains a cache bump. It will cause the very first install following the upgrade to take slightly more time, especially if you don't use the [Offline Mirror](https://yarnpkg.com/blog/2016/11/24/offline-mirror/) feature. After that everything will be back to normal.
