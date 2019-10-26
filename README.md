@@ -31,7 +31,7 @@
 * **Network Performance.** Yarn efficiently queues requests and avoids request waterfalls in order to maximize network utilization.
 * **Network Resilience.** A single request that fails will not cause the entire installation to fail. Requests are automatically retried upon failure.
 * **Flat Mode.** Yarn resolves mismatched versions of dependencies to a single version to avoid creating duplicates.
-* **More emojis.** 🐈
+* **More Emojis.** 🐈
 
 ## Installing Yarn
 
@@ -43,11 +43,11 @@ Read the [Usage Guide](https://yarnpkg.com/en/docs/usage) on our website for det
 
 ## Contributing to Yarn
 
-Contributions are always welcome, no matter how large or small. Substantial feature requests should be proposed as an [RFC](https://github.com/yarnpkg/rfcs). Before contributing, please read the [code of conduct](CODE_OF_CONDUCT.md).
+Contributions are always welcome, no matter how large or small. Substantial feature requests should be proposed as an [RFC](https://github.com/yarnpkg/rfcs). Before contributing, please read the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 See [Contributing](https://yarnpkg.com/org/contributing/).
 
-## Prior art
+## Prior Art
 
 Yarn wouldn't exist if it wasn't for excellent prior art. Yarn has been inspired by the following projects:
 
