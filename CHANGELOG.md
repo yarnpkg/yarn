@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Makes running scripts with Plug'n Play possible on node 13
+
+  [#7650](https://github.com/yarnpkg/yarn/pull/7650) - [**Sander Verweij**](https://github.com/sverweij)
+
 ## 1.19.1
 
 **Important:** This release contains a cache bump. It will cause the very first install following the upgrade to take slightly more time, especially if you don't use the [Offline Mirror](https://yarnpkg.com/blog/2016/11/24/offline-mirror/) feature. After that everything will be back to normal.
