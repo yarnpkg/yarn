@@ -14,8 +14,8 @@ const semver = require('semver');
 const path = require('path');
 
 const NEW_VERSION_FLAG = '--new-version [version]';
-function isValidNewVersion(oldVersion: string, newVersion: string, looseSemver: boolean): boolean {
-  return !!(semver.valid(newVersion, looseSemver) || semver.inc(oldVersion, newVersion, looseSemver));
+function isValidNewVersion(oldVersion: string, newVersion: string, looseSemver: boolean, identifier?: string): boolean {
+  return !!(semver.valid(newVersion, looseSemver) || semver.inc(oldVersion, newVersion, looseSemver, identifier));
 }
 
 export function setFlags(commander: Object) {
@@ -24,6 +24,11 @@ export function setFlags(commander: Object) {
   commander.option('--major', 'auto-increment major version number');
   commander.option('--minor', 'auto-increment minor version number');
   commander.option('--patch', 'auto-increment patch version number');
+  commander.option('--premajor', 'auto-increment premajor version number');
+  commander.option('--preminor', 'auto-increment preminor version number');
+  commander.option('--prepatch', 'auto-increment prepatch version number');
+  commander.option('--prerelease', 'auto-increment prerelease version number');
+  commander.option('--preid [preid]', 'add a custom identifier to the prerelease');
   commander.option('--message [message]', 'message');
   commander.option('--no-git-tag-version', 'no git tag version');
   commander.option('--no-commit-hooks', 'bypass git hooks when committing new version');
@@ -44,6 +49,10 @@ export async function setVersion(
   const pkgLoc = pkg._loc;
   const scripts = map();
   let newVersion = flags.newVersion;
+  let identifier = undefined;
+  if (flags.preid) {
+    identifier = flags.preid;
+  }
   invariant(pkgLoc, 'expected package location');
 
   if (args.length && !newVersion) {
@@ -76,7 +85,7 @@ export async function setVersion(
   }
 
   // get new version
-  if (newVersion && !isValidNewVersion(oldVersion, newVersion, config.looseSemver)) {
+  if (newVersion && !isValidNewVersion(oldVersion, newVersion, config.looseSemver, identifier)) {
     throw new MessageError(reporter.lang('invalidVersion'));
   }
 
@@ -88,6 +97,14 @@ export async function setVersion(
       newVersion = semver.inc(oldVersion, 'minor');
     } else if (flags.patch) {
       newVersion = semver.inc(oldVersion, 'patch');
+    } else if (flags.premajor) {
+      newVersion = semver.inc(oldVersion, 'premajor', identifier);
+    } else if (flags.preminor) {
+      newVersion = semver.inc(oldVersion, 'preminor', identifier);
+    } else if (flags.prepatch) {
+      newVersion = semver.inc(oldVersion, 'prepatch', identifier);
+    } else if (flags.prerelease) {
+      newVersion = semver.inc(oldVersion, 'prerelease', identifier);
     }
   }
 
@@ -117,7 +134,7 @@ export async function setVersion(
       };
     }
 
-    if (isValidNewVersion(oldVersion, newVersion, config.looseSemver)) {
+    if (isValidNewVersion(oldVersion, newVersion, config.looseSemver, identifier)) {
       break;
     } else {
       newVersion = null;
@@ -125,7 +142,7 @@ export async function setVersion(
     }
   }
   if (newVersion) {
-    newVersion = semver.inc(oldVersion, newVersion, config.looseSemver) || newVersion;
+    newVersion = semver.inc(oldVersion, newVersion, config.looseSemver, identifier) || newVersion;
   }
   invariant(newVersion, 'expected new version');
 
@@ -153,44 +170,41 @@ export async function setVersion(
 
   await runLifecycle('version');
 
-  // check if committing the new version to git is overriden
-  if (!flags.gitTagVersion || !config.getOption('version-git-tag')) {
-    // Don't tag the version in Git
-    return () => Promise.resolve();
-  }
-
   return async function(): Promise<void> {
     invariant(newVersion, 'expected version');
 
-    // add git commit and tag
-    let isGit = false;
-    const parts = config.cwd.split(path.sep);
-    while (parts.length) {
-      isGit = await fs.exists(path.join(parts.join(path.sep), '.git'));
-      if (isGit) {
-        break;
-      } else {
-        parts.pop();
+    // check if a new git tag should be created
+    if (flags.gitTagVersion && config.getOption('version-git-tag')) {
+      // add git commit and tag
+      let isGit = false;
+      const parts = config.cwd.split(path.sep);
+      while (parts.length) {
+        isGit = await fs.exists(path.join(parts.join(path.sep), '.git'));
+        if (isGit) {
+          break;
+        } else {
+          parts.pop();
+        }
       }
-    }
 
-    if (isGit) {
-      const message = (flags.message || String(config.getOption('version-git-message'))).replace(/%s/g, newVersion);
-      const sign: boolean = Boolean(config.getOption('version-sign-git-tag'));
-      const flag = sign ? '-sm' : '-am';
-      const prefix: string = String(config.getOption('version-tag-prefix'));
-      const args: Array<string> = ['commit', '-m', message, ...(isCommitHooksDisabled() ? ['-n'] : [])];
+      if (isGit) {
+        const message = (flags.message || String(config.getOption('version-git-message'))).replace(/%s/g, newVersion);
+        const sign: boolean = Boolean(config.getOption('version-sign-git-tag'));
+        const flag = sign ? '-sm' : '-am';
+        const prefix: string = String(config.getOption('version-tag-prefix'));
+        const args: Array<string> = ['commit', '-m', message, ...(isCommitHooksDisabled() ? ['-n'] : [])];
 
-      const gitRoot = (await spawnGit(['rev-parse', '--show-toplevel'], {cwd: config.cwd})).trim();
+        const gitRoot = (await spawnGit(['rev-parse', '--show-toplevel'], {cwd: config.cwd})).trim();
 
-      // add manifest
-      await spawnGit(['add', path.relative(gitRoot, pkgLoc)], {cwd: gitRoot});
+        // add manifest
+        await spawnGit(['add', path.relative(gitRoot, pkgLoc)], {cwd: gitRoot});
 
-      // create git commit
-      await spawnGit(args, {cwd: gitRoot});
+        // create git commit
+        await spawnGit(args, {cwd: gitRoot});
 
-      // create git tag
-      await spawnGit(['tag', `${prefix}${newVersion}`, flag, message], {cwd: gitRoot});
+        // create git tag
+        await spawnGit(['tag', `${prefix}${newVersion}`, flag, message], {cwd: gitRoot});
+      }
     }
 
     await runLifecycle('postversion');

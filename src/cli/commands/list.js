@@ -152,7 +152,7 @@ export async function buildTree(
 }
 
 export function getParent(key: string, treesByKey: Object): Object {
-  const parentKey = key.split('#').slice(0, -1).join('#');
+  const parentKey = key.slice(0, key.lastIndexOf('#'));
   return treesByKey[parentKey];
 }
 

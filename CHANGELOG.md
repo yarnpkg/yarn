@@ -8,6 +8,120 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 [#7151](https://github.com/yarnpkg/yarn/pull/7151) - [**Jeff Valore**](https://twitter.com/codingwithspike)
 
+## 1.19.1
+
+**Important:** This release contains a cache bump. It will cause the very first install following the upgrade to take slightly more time, especially if you don't use the [Offline Mirror](https://yarnpkg.com/blog/2016/11/24/offline-mirror/) feature. After that everything will be back to normal.
+
+- Computes the `--modules-folder` & friends paths based on the cwd.
+
+  [#7607](https://github.com/yarnpkg/yarn/pull/7607) - [**mbpreble**](https://github.com/mbpreble)
+
+- Stores the sha512 in the cache even when not provided by the server.
+
+  [#7591](https://github.com/yarnpkg/yarn/pull/7591) - [**Maël Nison**](https://twitter.com/arcanis) / [#7595](https://github.com/yarnpkg/yarn/pull/7595) - [**Michael**](https://github.com/Blasz)
+
+- Uses the right Node binary when using `yarn-path`.
+
+  [#7592](https://github.com/yarnpkg/yarn/pull/7592) - [**Maël Nison**](https://twitter.com/arcanis)
+
+## 1.19.0
+
+**Important:** This release contains a cache bump. It will cause the very first install following the upgrade to take slightly more time, especially if you don't use the [Offline Mirror](https://yarnpkg.com/blog/2016/11/24/offline-mirror/) feature. After that everything will be back to normal.
+
+- Fixes a potential vulnerability regarding how the build artifacts are stored
+
+  Reported by [**ChALkeR**](https://github.com/ChALkeR), fixed by [**Maël Nison**](https://twitter.com/arcanis)
+
+## 1.18.0
+
+- Suggests using the Yarn 2 development trunk on PnP-enabled projects
+
+  [#7512](https://github.com/yarnpkg/yarn/pull/7512) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Preserves linked packages when calling `yarn create`
+
+  [#7543](https://github.com/yarnpkg/yarn/pull/7543) - [**Nick McCurdy**](https://github.com/nickmccurdy)
+
+- Fixes the offline mirror filenames when using Verdaccio
+
+  [#7499](https://github.com/yarnpkg/yarn/pull/7499) - [**xv2**](https://github.com/xv2)
+
+- Fixes using `link:.` to refer to the package folder
+
+  [#7512](https://github.com/yarnpkg/yarn/pull/7512) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Runs the `prepare` lifecycle of git dependencies even if `NODE_ENV` is set to `production`.
+
+  [#7398](https://github.com/yarnpkg/yarn/pull/7398) - [**John Firebaugh**](https://github.com/jfirebaugh)
+
+- Fixes the `postversion` lifecycle method not being called when using `--no-git-tag-version`.
+
+  [#7154](https://github.com/yarnpkg/yarn/pull/7154) - [**Hampus Tågerud**](https://github.com/hampustagerud)
+
+- Ignores potentially large vscode keys in package.json to avoid E2BIG errors.
+
+  [#7419](https://github.com/yarnpkg/yarn/pull/7419) - [**Eric Amodio**](https://twitter.com/eamodio)
+
+- Enforces https for the Yarn and npm registries.
+
+  [#7393](https://github.com/yarnpkg/yarn/pull/7393) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Adds support for reading `yarnPath` from v2-produced `.yarnrc.yml` files.
+
+  [#7350](https://github.com/yarnpkg/yarn/pull/7350) - [**Maël Nison**](https://twitter.com/arcanis)
+
+## 1.17.0
+
+- Adds prereleases flags and prerelease identifier to `yarn version`.
+
+  [#7336](https://github.com/yarnpkg/yarn/pull/7336) - [**Daniel Seijo**](https://github.com/daniseijo)
+
+- Fixes audits when used with `yarn add` & `yarn upgrade`
+
+  [#7326](https://github.com/yarnpkg/yarn/pull/7326) - [**David Sanders**](https://github.com/dsanders11)
+
+- Adds support for the `--offline` flag to `yarn global add`
+
+  [#7330](https://github.com/yarnpkg/yarn/pull/7330) - [**Francis Crick**](https://guthub.com/fcrick)
+
+- Yarn will tolerate Yaml at parse time. Full support isn't ready yet and will only come at the next major.
+
+  [#7300](https://github.com/yarnpkg/yarn/pull/7300) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Fixes a bug when using the `link:` protocol with a folder that doesn't contain a `package.json`
+
+  [#7337](https://github.com/yarnpkg/yarn/pull/7337) - [**Maël Nison**](https://twitter.com/arcanis)
+
+## 1.16.0
+
+- Retries downloading a package on `yarn install` when we get a ETIMEDOUT error.
+
+  [#7163](https://github.com/yarnpkg/yarn/pull/7163) - [**Vincent Bailly**](https://github.com/VincentBailly)
+
+- Implements `yarn audit --level [severity]` flag to filter the audit command's output.
+
+  [#6716](https://github.com/yarnpkg/yarn/pull/6716) - [**Rogério Vicente**](https://twitter.com/rogeriopvl)
+
+- Implements `yarn audit --groups group_name [group_name ...]`.
+
+  [#6724](https://github.com/yarnpkg/yarn/pull/6724) - [**Tom Milligan**](https://github.com/tommilligan)
+
+- Exposes the script environment variables to `yarn create` spawned processes.
+
+  [#7127](https://github.com/yarnpkg/yarn/pull/7127) - [**Eli Perelman**](https://github.com/eliperelman)
+
+- Prevents EPIPE errors from being printed.
+
+  [#7194](https://github.com/yarnpkg/yarn/pull/7194) - [**Abhishek Reddy**](https://github.com/arbscht)
+
+- Adds support for the npm enterprise URLs when computing the offline mirror filenames.
+
+  [#7200](https://github.com/yarnpkg/yarn/pull/7200) - [**John Millikin**](https://john-millikin.com)
+
+- Tweaks the lockfile parser logic to parse a few extra cases
+
+  [#7210](https://github.com/yarnpkg/yarn/pull/7210) - [**Maël Nison**](https://twitter.com/arcanis)
+
 ## 1.15.2
 
 The 1.15.1 doesn't exist due to a release hiccup.
@@ -81,6 +195,14 @@ The 1.15.1 doesn't exist due to a release hiccup.
 - Packages won't be auto-unplugged anymore if `ignore-scripts` is set in the yarnrc file
 
   [#6983](https://github.com/yarnpkg/yarn/pull/6983) - [**Micha Reiser**](https://github.com/MichaReiser)
+
+- Enables displaying Emojis on [Terminus](https://github.com/Eugeny/terminus) by default
+
+  [#7093](https://github.com/yarnpkg/yarn/pull/7093) - [**David Refoua**](https://github.com/DRSDavidSoft)
+
+- Run the engines check before executing `run` scripts.
+
+  [#7013](https://github.com/yarnpkg/yarn/issues/7013) - [**Eloy Durán**](https://github.com/alloy)
 
 ## 1.14.0
 

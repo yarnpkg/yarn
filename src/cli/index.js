@@ -26,6 +26,14 @@ import handleSignals from '../util/signal-handler.js';
 import {boolify, boolifyWithDefault} from '../util/conversion.js';
 import {ProcessTermError} from '../errors';
 
+process.stdout.prependListener('error', err => {
+  // swallow err only if downstream consumer process closed pipe early
+  if (err.code === 'EPIPE' || err.code === 'ERR_STREAM_DESTROYED') {
+    return;
+  }
+  throw err;
+});
+
 function findProjectRoot(base: string): string {
   let prev = null;
   let dir = base;
@@ -105,7 +113,10 @@ export async function main({
     '--emoji [bool]',
     'enable emoji in output',
     boolify,
-    process.platform === 'darwin' || process.env.TERM_PROGRAM === 'Hyper' || process.env.TERM_PROGRAM === 'HyperTerm',
+    process.platform === 'darwin' ||
+      process.env.TERM_PROGRAM === 'Hyper' ||
+      process.env.TERM_PROGRAM === 'HyperTerm' ||
+      process.env.TERM_PROGRAM === 'Terminus',
   );
   commander.option('-s, --silent', 'skip Yarn console logs, other types of logs (script output) will be printed');
   commander.option('--cwd <cwd>', 'working directory to use', process.cwd());
@@ -498,21 +509,26 @@ export async function main({
 
   const cwd = command.shouldRunInCurrentCwd ? commander.cwd : findProjectRoot(commander.cwd);
 
+  const folderOptionKeys = ['linkFolder', 'globalFolder', 'preferredCacheFolder', 'cacheFolder', 'modulesFolder'];
+
+  // Resolve all folder options relative to cwd
+  const resolvedFolderOptions = {};
+  folderOptionKeys.forEach(folderOptionKey => {
+    const folderOption = commander[folderOptionKey];
+    const resolvedFolderOption = folderOption ? path.resolve(commander.cwd, folderOption) : folderOption;
+    resolvedFolderOptions[folderOptionKey] = resolvedFolderOption;
+  });
+
   await config
     .init({
       cwd,
       commandName,
-
+      ...resolvedFolderOptions,
       enablePnp: commander.pnp,
       disablePnp: commander.disablePnp,
       enableDefaultRc: commander.defaultRc,
       extraneousYarnrcFiles: commander.useYarnrc,
       binLinks: commander.binLinks,
-      modulesFolder: commander.modulesFolder,
-      linkFolder: commander.linkFolder,
-      globalFolder: commander.globalFolder,
-      preferredCacheFolder: commander.preferredCacheFolder,
-      cacheFolder: commander.cacheFolder,
       preferOffline: commander.preferOffline,
       captureHar: commander.har,
       ignorePlatform: commander.ignorePlatform,
@@ -574,6 +590,10 @@ export async function main({
     .catch((err: Error) => {
       reporter.verbose(err.stack);
 
+      if (err instanceof ProcessTermError && reporter.isSilent) {
+        return exit(err.EXIT_CODE || 1);
+      }
+
       if (err instanceof MessageError) {
         reporter.error(err.message);
       } else {
@@ -594,7 +614,7 @@ export async function main({
 
 async function start(): Promise<void> {
   const rc = getRcConfigForCwd(process.cwd(), process.argv.slice(2));
-  const yarnPath = rc['yarn-path'];
+  const yarnPath = rc['yarn-path'] || rc['yarnPath'];
 
   if (yarnPath && !boolifyWithDefault(process.env.YARN_IGNORE_PATH, false)) {
     const argv = process.argv.slice(2);
@@ -602,7 +622,11 @@ async function start(): Promise<void> {
     let exitCode = 0;
 
     try {
-      exitCode = await spawnp(yarnPath, argv, opts);
+      if (yarnPath.endsWith(`.js`)) {
+        exitCode = await spawnp(process.execPath, [yarnPath, ...argv], opts);
+      } else {
+        exitCode = await spawnp(yarnPath, argv, opts);
+      }
     } catch (firstError) {
       try {
         exitCode = await forkp(yarnPath, argv, opts);

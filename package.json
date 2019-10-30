@@ -1,7 +1,7 @@
 {
   "name": "yarn",
   "installationMethod": "unknown",
-  "version": "1.16.0-0",
+  "version": "1.20.0-0",
   "license": "BSD-2-Clause",
   "preferGlobal": true,
   "description": "📦🐈 Fast, reliable, and secure dependency management.",
@@ -28,6 +28,7 @@
     "is-builtin-module": "^2.0.0",
     "is-ci": "^1.0.10",
     "is-webpack-bundle": "^1.0.0",
+    "js-yaml": "^3.13.1",
     "leven": "^2.0.0",
     "loud-rejection": "^1.2.0",
     "micromatch": "^2.3.11",

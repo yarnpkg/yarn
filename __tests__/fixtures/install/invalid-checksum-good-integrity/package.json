@@ -1,0 +1,14 @@
+{
+  "name": "badpkg",
+  "version": "1.0.0",
+  "description": "A bad package",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "express": "4.11.1"
+  }
+}

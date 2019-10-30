@@ -9,6 +9,8 @@ import {LOCKFILE_VERSION} from '../constants.js';
 import {MessageError} from '../errors.js';
 import map from '../util/map.js';
 
+const {safeLoad, FAILSAFE_SCHEMA} = require('js-yaml');
+
 type Token = {
   line: number,
   col: number,
@@ -133,7 +135,7 @@ function* tokenise(input: string): Iterator<Token> {
     } else if (input[0] === ',') {
       yield buildToken(TOKEN_TYPES.comma);
       chop++;
-    } else if (/^[a-zA-Z\/-]/g.test(input)) {
+    } else if (/^[a-zA-Z\/.-]/g.test(input)) {
       let i = 0;
       for (; i < input.length; i++) {
         const char = input[i];
@@ -286,12 +288,19 @@ class Parser {
           this.next();
         }
 
-        const valToken = this.token;
-
-        if (valToken.type === TOKEN_TYPES.colon) {
-          // object
+        const wasColon = this.token.type === TOKEN_TYPES.colon;
+        if (wasColon) {
           this.next();
+        }
 
+        if (isValidPropValueToken(this.token)) {
+          // plain value
+          for (const key of keys) {
+            obj[key] = this.token.value;
+          }
+
+          this.next();
+        } else if (wasColon) {
           // parse object
           const val = this.parse(indent + 1);
 
@@ -302,13 +311,6 @@ class Parser {
           if (indent && this.token.type !== TOKEN_TYPES.indent) {
             break;
           }
-        } else if (isValidPropValueToken(valToken)) {
-          // plain value
-          for (const key of keys) {
-            obj[key] = valToken.value;
-          }
-
-          this.next();
         } else {
           this.unexpected('Invalid value type');
         }
@@ -382,7 +384,17 @@ function hasMergeConflicts(str: string): boolean {
 function parse(str: string, fileLoc: string): Object {
   const parser = new Parser(str, fileLoc);
   parser.next();
-  return parser.parse();
+  try {
+    return parser.parse();
+  } catch (error1) {
+    try {
+      return safeLoad(str, {
+        schema: FAILSAFE_SCHEMA,
+      });
+    } catch (error2) {
+      throw error1;
+    }
+  }
 }
 
 /**

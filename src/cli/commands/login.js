@@ -105,6 +105,7 @@ export async function getToken(
   //
   const res = await config.registries.npm.request(`-/user/org.couchdb.user:${encodeURIComponent(username)}`, {
     method: 'PUT',
+    registry,
     body: userobj,
     auth: {username, password, email},
   });
@@ -119,6 +120,7 @@ export async function getToken(
       reporter.success(reporter.lang('revokedToken'));
       await config.registries.npm.request(`-/user/token/${token}`, {
         method: 'DELETE',
+        registry,
       });
     };
   } else {

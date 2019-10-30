@@ -18,6 +18,9 @@ for (const obj of objs) {
 }
 
 test('parse', () => {
+  // Yaml
+  expect(parse('foo:\n  bar\n').object).toEqual(nullify({foo: 'bar'}));
+
   expect(parse('foo "bar"').object).toEqual(nullify({foo: 'bar'}));
   expect(parse('"foo" "bar"').object).toEqual(nullify({foo: 'bar'}));
   expect(parse('foo "bar"').object).toEqual(nullify({foo: 'bar'}));
@@ -337,7 +340,7 @@ test('parse merge conflict fail', () => {
   const file = `
 <<<<<<< HEAD
 b:
-  foo: "bar"
+  foo: "bar
 =======
 c:
   bar "foo"

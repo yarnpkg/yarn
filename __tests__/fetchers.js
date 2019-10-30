@@ -125,6 +125,40 @@ test('GitFetcher.fetch with prepare script', async () => {
   expect(await fs.exists(path.join(dir, 'generated', 'prepublish'))).toBe(false);
 });
 
+test('GitFetcher.fetch with prepare script, NODE_ENV=production', async () => {
+  const NODE_ENV = process.env.NODE_ENV;
+  try {
+    process.env.NODE_ENV = 'production';
+    const dir = await mkdir('git-fetcher-with-prepare');
+    const fetcher = new GitFetcher(
+      dir,
+      {
+        type: 'git',
+        reference: 'https://github.com/Volune/test-js-git-repo',
+        hash: '0e56593e326069ed4bcec8126bb48a1891215c57',
+        registry: 'npm',
+      },
+      await Config.create(),
+    );
+    await fetcher.fetch();
+    const name = (await fs.readJson(path.join(dir, 'package.json'))).name;
+    expect(name).toBe('test-js-git-repo');
+    const dependencyName = (await fs.readJson(path.join(dir, 'dependency-package.json'))).name;
+    expect(dependencyName).toBe('beeper');
+    // The file "prepare.js" is not in "files" list
+    expect(await fs.exists(path.join(dir, 'prepare.js'))).toBe(false);
+    // Check the dependency with a bin script was correctly executed
+    expect(await fs.exists(path.join(dir, 'testscript.output.txt'))).toBe(true);
+    // Check executed lifecycle scripts
+    expect(await fs.exists(path.join(dir, 'generated', 'preinstall'))).toBe(true);
+    expect(await fs.exists(path.join(dir, 'generated', 'install'))).toBe(true);
+    expect(await fs.exists(path.join(dir, 'generated', 'postinstall'))).toBe(true);
+    expect(await fs.exists(path.join(dir, 'generated', 'prepublish'))).toBe(false);
+  } finally {
+    process.env.NODE_ENV = NODE_ENV;
+  }
+});
+
 test('TarballFetcher.fetch', async () => {
   const dir = await mkdir('tarball-fetcher');
   const fetcher = new TarballFetcher(
@@ -278,6 +312,25 @@ test('TarballFetcher.fetch properly stores tarball of scoped package in offline 
   expect(exists).toBe(true);
 });
 
+test('TarballFetcher.fetch properly stores tarball of scoped package in offline mirror for Verdaccio', async () => {
+  const dir = await mkdir('git-fetcher');
+  const config = await Config.create();
+  config.registries.yarn.config['yarn-offline-mirror'] = 'test';
+
+  const fetcher = new TarballFetcher(
+    dir,
+    {
+      type: 'tarball',
+      hash: '6f0ab73cdd7b82d8e81e80838b49e9e4c7fbcc44',
+      reference: 'http://npm.xxxyyyzzz.ru/@types%2fevents/-/events-3.0.0.tgz',
+      registry: 'npm',
+    },
+    config,
+  );
+  const cachePath = fetcher.getTarballMirrorPath();
+  expect(cachePath).toBe(path.join('test', '@types-events-3.0.0.tgz'));
+});
+
 test('TarballFetcher.fetch properly stores tarball for scoped package resolved from artifactory registry', async () => {
   const dir = await mkdir('tarball-fetcher');
   const offlineMirrorDir = await mkdir('offline-mirror');
@@ -314,6 +367,27 @@ test('TarballFetcher.fetch properly stores tarball for scoped package resolved f
       hash: '6f0ab73cdd7b82d8e81e80838b49e9e4c7fbcc44',
       reference:
         'https://artifactory.internal.site:443/artifactory/api/npm/external-mirror/@exponent/configurator/-/@exponent/configurator-1.0.2.tgz',
+      registry: 'npm',
+    },
+    config,
+  );
+
+  expect(fetcher.getTarballMirrorPath()).toBe(path.join(offlineMirrorDir, '@exponent-configurator-1.0.2.tgz'));
+});
+
+test('TarballFetcher.fetch properly stores tarball for scoped package resolved from npm enterprise registry', async () => {
+  const dir = await mkdir('tarball-fetcher');
+  const offlineMirrorDir = await mkdir('offline-mirror');
+
+  const config = await Config.create();
+  config.registries.npm.config['yarn-offline-mirror'] = offlineMirrorDir;
+
+  const fetcher = new TarballFetcher(
+    dir,
+    {
+      type: 'tarball',
+      hash: '6f0ab73cdd7b82d8e81e80838b49e9e4c7fbcc44',
+      reference: 'https://npm.internal.site:443/@/@exponent/configurator/_attachments/configurator-1.0.2.tgz',
       registry: 'npm',
     },
     config,
