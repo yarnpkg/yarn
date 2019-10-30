@@ -6,7 +6,7 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 - Change run command to check cwd/node_modules/.bin for commands. Fixes run in workspaces.
 
-[#7151](https://github.com/yarnpkg/yarn/pull/7151) - [**Jeff Valore**](https://twitter.com/codingwithspike)
+  [#7151](https://github.com/yarnpkg/yarn/pull/7151) - [**Jeff Valore**](https://twitter.com/codingwithspike)
 
 ## 1.19.1
 
