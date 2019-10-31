@@ -59,7 +59,13 @@ type RequestParams<T> = {
   headers?: {
     [name: string]: string,
   },
-  process?: (req: Object, resolve: (body: T) => void, reject: (err: Error) => void) => void,
+  process?: (
+    req: Object,
+    res: any,
+    resolve: (body: T) => void,
+    reject: (err: Error) => void,
+    queueForRetry: (reason: string) => boolean,
+  ) => void,
   callback?: (err: ?Error, res: any, body: any) => void,
   retryAttempts?: number,
   maxRetryAttempts?: number,
@@ -92,6 +98,7 @@ export default class RequestManager {
     this.cache = {};
     this.max = constants.NETWORK_CONCURRENCY;
     this.maxRetryAttempts = 5;
+    this.retryDelay = 3000;
   }
 
   offlineNoRequests: boolean;
@@ -110,6 +117,8 @@ export default class RequestManager {
   max: number;
   timeout: number;
   maxRetryAttempts: number;
+  retryDelay: number;
+
   cache: {
     [key: string]: Promise<any>,
   };
@@ -348,7 +357,7 @@ export default class RequestManager {
       for (const opts of queue) {
         this.execute(opts);
       }
-    }, 3000);
+    }, this.retryDelay);
   }
 
   /**
@@ -503,16 +512,28 @@ export default class RequestManager {
     const process = params.process;
     if (process) {
       req.on('response', res => {
-        if (res.statusCode >= 200 && res.statusCode < 300) {
+        if (res.statusCode === 408 || res.statusCode >= 500) {
+          // Retryable server responses
+          const description = `${res.statusCode} ${http.STATUS_CODES[res.statusCode]}`;
+          if (!queueForRetry(this.reporter.lang('internalServerErrorRetrying', description))) {
+            reject(new ResponseError(this.reporter.lang('requestFailed', description), res.statusCode));
+          }
           return;
         }
 
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          // Pass the response on to the process function.
+          // It may resolve, reject, or retry the request.
+          process(req, res, resolve, reject, queueForRetry);
+          return;
+        }
+
+        // Non-retryable response code - fail directly.
         const description = `${res.statusCode} ${http.STATUS_CODES[res.statusCode]}`;
         reject(new ResponseError(this.reporter.lang('requestFailed', description), res.statusCode));
 
         req.abort();
       });
-      process(req, resolve, reject);
     }
   }
 

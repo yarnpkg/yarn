@@ -433,3 +433,78 @@ test('TarballFetcher.fetch throws on truncated tar header', async () => {
     new RegExp(reporter.lang('errorExtractingTarball', '.*', '.*broken-tar-header.tgz')),
   );
 });
+
+test('TarballFetcher.fetch retries on a truncated response', async () => {
+  const dir = await mkdir('tarball-fetcher');
+  const config = await Config.create({});
+
+  const workingUrl = 'https://registry.npmjs.org/lodash.isempty/-/lodash.isempty-4.4.0.tgz';
+  // This one returns a truncated response - body is shorter than the Content-Length header.
+  const brokenUrl = 'https://registry.npmjs.org/lodash.isempty/-/lodash.isempty-4.4.0-broken.tgz';
+
+  const mockRequest = (require: any).requireActual('./__mocks__/request');
+
+  let retryCount = 2;
+
+  // Shorter retry delay for tests
+  config.requestManager.retryDelay = 10;
+  config.requestManager._requestModule = options => {
+    retryCount -= 1;
+    if (retryCount >= 0) {
+      // Fail the first requests
+      return mockRequest({
+        ...options,
+        url: brokenUrl,
+      });
+    } else if (retryCount == -1) {
+      // Then give a successful response
+      return mockRequest({
+        ...options,
+        url: workingUrl,
+      });
+    } else {
+      // This is not expected - fail.
+      throw new Error(`Unexpected request after success to: ${options.url}`);
+    }
+  };
+
+  const fetcher = new TarballFetcher(
+    dir,
+    {
+      type: 'tarball',
+      hash: '6f86cbedd8be4ec987be9aaf33c9684db1b31e7e',
+      reference: 'https://registry.npmjs.org/lodash.isempty/-/lodash.isempty-4.4.0.tgz',
+      registry: 'npm',
+    },
+    config,
+  );
+
+  await fetcher.fetch();
+
+  const name = (await fs.readJson(path.join(dir, 'package.json'))).name;
+  expect(name).toBe('lodash.isempty');
+});
+
+test('TarballFetcher.fetch throws after failed retries for truncated response', async () => {
+  const dir = await mkdir('tarball-fetcher');
+  const config = await Config.create({});
+  config.requestManager.retryDelay = 10;
+
+  const fetcher = new TarballFetcher(
+    dir,
+    {
+      type: 'tarball',
+      hash: '6f86cbedd8be4ec987be9aaf33c9684db1b31e7e',
+      reference: 'https://registry.npmjs.org/lodash.isempty/-/lodash.isempty-4.4.0-broken.tgz',
+      registry: 'npm',
+    },
+    config,
+  );
+
+  await expect(fetcher.fetch()).rejects.toThrow(
+    // This could be replaced with a better error message.
+    // Full message:
+    //   https://registry.npmjs.org/lodash.isempty/-/lodash.isempty-4.4.0-broken.tgz: unexpected end of file
+    /unexpected end of file/,
+  );
+});

@@ -87,6 +87,7 @@ export default class TarballFetcher extends BaseFetcher {
     resolve: (fetched: FetchedOverride) => void,
     reject: (error: Error) => void,
     tarballPath?: string,
+    size?: number,
   ): {
     hashValidateStream: stream.PassThrough,
     integrityValidateStream: stream.PassThrough,
@@ -126,7 +127,7 @@ export default class TarballFetcher extends BaseFetcher {
       },
     });
 
-    const hashValidateStream = new ssri.integrityStream(hashInfo);
+    const hashValidateStream = new ssri.integrityStream({...hashInfo, size});
     const integrityValidateStream = new ssri.integrityStream(integrityInfo);
 
     const untarStream = tarFs.extract(this.dest, {
@@ -146,7 +147,10 @@ export default class TarballFetcher extends BaseFetcher {
       this.validateError = err;
     });
     integrityValidateStream.once('error', err => {
-      this.validateError = err;
+      if (this.validateError == null) {
+        // Don't overwrite error if one is already there
+        this.validateError = err;
+      }
     });
     integrityValidateStream.once('integrity', sri => {
       this.validateIntegrity = sri;
@@ -254,7 +258,16 @@ export default class TarballFetcher extends BaseFetcher {
             ...headers,
           },
           buffer: true,
-          process: (req, resolve, reject) => {
+          process: (req, res, resolve, reject, queueForRetry) => {
+            // Clear errors when retrying
+            this.validateError = null;
+            this.validateIntegrity = null;
+
+            const contentLength = res.headers['content-length'];
+            // Content-Length header is optional in the response.
+            // If it is present, we validate the body length against it.
+            const size = contentLength ? parseInt(contentLength, 10) : undefined;
+
             // should we save this to the offline cache?
             const tarballMirrorPath = this.getTarballMirrorPath();
             const tarballCachePath = this.getTarballCachePath();
@@ -262,6 +275,8 @@ export default class TarballFetcher extends BaseFetcher {
             const {hashValidateStream, integrityValidateStream, extractorStream} = this.createExtractor(
               resolve,
               reject,
+              undefined,
+              size,
             );
 
             req.pipe(hashValidateStream);
@@ -275,24 +290,43 @@ export default class TarballFetcher extends BaseFetcher {
               integrityValidateStream.pipe(fs.createWriteStream(tarballCachePath)).on('error', reject);
             }
 
-            integrityValidateStream.pipe(extractorStream).on('error', reject);
+            integrityValidateStream.pipe(extractorStream).on('error', async err => {
+              try {
+                // Cleanup before retrying
+                await this.removeDownloadedFiles();
+                if (this.validateError && this.validateError.code == 'EBADSIZE') {
+                  // Content-Length did not match the body size. Retry the request.
+                  if (!queueForRetry(err.message)) {
+                    reject(err);
+                  }
+                  return;
+                }
+                reject(err);
+              } catch (err2) {
+                // Not expected, but handle rather be safe.
+                reject(err2);
+              }
+            });
           },
         },
         this.packageName,
       );
     } catch (err) {
-      const tarballMirrorPath = this.getTarballMirrorPath();
-      const tarballCachePath = this.getTarballCachePath();
-
-      if (tarballMirrorPath && (await fsUtil.exists(tarballMirrorPath))) {
-        await fsUtil.unlink(tarballMirrorPath);
-      }
-
-      if (tarballCachePath && (await fsUtil.exists(tarballCachePath))) {
-        await fsUtil.unlink(tarballCachePath);
-      }
-
+      await this.removeDownloadedFiles();
       throw err;
+    }
+  }
+
+  async removeDownloadedFiles(): Promise<void> {
+    const tarballMirrorPath = this.getTarballMirrorPath();
+    const tarballCachePath = this.getTarballCachePath();
+
+    if (tarballMirrorPath && (await fsUtil.exists(tarballMirrorPath))) {
+      await fsUtil.unlink(tarballMirrorPath);
+    }
+
+    if (tarballCachePath && (await fsUtil.exists(tarballCachePath))) {
+      await fsUtil.unlink(tarballCachePath);
     }
   }
 
