@@ -487,7 +487,7 @@ test('TarballFetcher.fetch retries on a truncated response', async () => {
 
 test('TarballFetcher.fetch throws after failed retries for truncated response', async () => {
   const dir = await mkdir('tarball-fetcher');
-  const config = await Config.create({});
+  const config = await Config.create({}, new Reporter());
   // Remove retry delay for tests
   config.requestManager.retryDelay = 0;
 
@@ -505,7 +505,9 @@ test('TarballFetcher.fetch throws after failed retries for truncated response', 
   await expect(fetcher.fetch()).rejects.toThrow(
     // This could be replaced with a better error message.
     // Full message:
-    //   https://registry.npmjs.org/lodash.isempty/-/lodash.isempty-4.4.0-broken.tgz: unexpected end of file
-    /unexpected end of file/,
+    //   https://registry.npmjs.org/lodash.isempty/-/lodash.isempty-4.4.0-broken.tgz: Request failed "https://registry.npmjs.org/lodash.isempty/-/lodash.isempty-4.4.0-broken.tgz: stream size mismatch when checking sha1-b4bL7di+TsmHvpqvM8loTbGzHn4=.
+    //       Wanted: 5756
+    //       Found: 5597"
+    /stream size mismatch/,
   );
 });

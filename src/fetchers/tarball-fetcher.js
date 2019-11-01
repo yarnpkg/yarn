@@ -13,7 +13,6 @@ const path = require('path');
 const tarFs = require('tar-fs');
 const url = require('url');
 const fs = require('fs');
-const stream = require('stream');
 const gunzip = require('gunzip-maybe');
 const invariant = require('invariant');
 const ssri = require('ssri');
@@ -41,8 +40,6 @@ const isHashAlgorithmSupported = name => {
 isHashAlgorithmSupported.__cache = {};
 
 export default class TarballFetcher extends BaseFetcher {
-  validateError: ?Object = null;
-  validateIntegrity: ?Object = null;
   async setupMirrorFromCache(): Promise<?string> {
     const tarballMirrorPath = this.getTarballMirrorPath();
     const tarballCachePath = this.getTarballCachePath();
@@ -83,16 +80,12 @@ export default class TarballFetcher extends BaseFetcher {
     return this.config.getOfflineMirrorPath(packageFilename);
   }
 
-  createExtractor(
-    resolve: (fetched: FetchedOverride) => void,
-    reject: (error: Error) => void,
+  async extract(
+    stream: Object,
     tarballPath?: string,
     size?: number,
-  ): {
-    hashValidateStream: stream.PassThrough,
-    integrityValidateStream: stream.PassThrough,
-    extractorStream: stream.Transform,
-  } {
+    pipeTar?: Object[],
+  ): Promise<FetchedOverride> {
     const hashInfo = this._supportedIntegrity({hashOnly: true});
     const integrityInfo = this._supportedIntegrity({hashOnly: false});
 
@@ -127,6 +120,13 @@ export default class TarballFetcher extends BaseFetcher {
       },
     });
 
+    // stream ->
+    //   hashValidateStream ->
+    //     integrityValidateStream ->
+    //       extractorStream ->
+    //         tar file
+    //       ...pipeTar
+
     const hashValidateStream = new ssri.integrityStream({...hashInfo, size});
     const integrityValidateStream = new ssri.integrityStream(integrityInfo);
 
@@ -143,69 +143,108 @@ export default class TarballFetcher extends BaseFetcher {
     });
     const extractorStream = gunzip();
 
-    hashValidateStream.once('error', err => {
-      this.validateError = err;
+    // Keep track of streams, so that we can wait until either all of them have finished, or one of then has failed.
+    const streamPromises = [];
+
+    let hashError: ?Object = null;
+    let integrityError: ?Object = null;
+    let validateIntegrity: ?Object = null;
+
+    // These two may emit _both_ 'finish' and 'error', so we don't turn them into Promises.
+    // No need to explicitly wait for the finish event on these.
+    hashValidateStream.once('error', error => {
+      hashError = error;
     });
-    integrityValidateStream.once('error', err => {
-      if (this.validateError == null) {
-        // Don't overwrite error if one is already there
-        this.validateError = err;
-      }
+
+    integrityValidateStream.once('error', error => {
+      integrityError = error;
     });
+
     integrityValidateStream.once('integrity', sri => {
-      this.validateIntegrity = sri;
+      validateIntegrity = sri;
     });
 
-    untarStream.on('error', err => {
-      reject(new MessageError(this.config.reporter.lang('errorExtractingTarball', err.message, tarballPath)));
-    });
-
-    extractorStream.pipe(untarStream).on('finish', () => {
-      const error = this.validateError;
-      const hexDigest = this.validateIntegrity ? this.validateIntegrity.hexDigest() : '';
-      if (
-        this.config.updateChecksums &&
-        this.remote.integrity &&
-        this.validateIntegrity &&
-        this.remote.integrity !== this.validateIntegrity.toString()
-      ) {
-        this.remote.integrity = this.validateIntegrity.toString();
-      } else if (this.validateIntegrity) {
-        this.remote.cacheIntegrity = this.validateIntegrity.toString();
+    stream.pipe(hashValidateStream);
+    hashValidateStream.pipe(integrityValidateStream);
+    integrityValidateStream.pipe(extractorStream);
+    if (pipeTar) {
+      for (const out of pipeTar) {
+        streamPromises.push(streamToPromise(integrityValidateStream.pipe(out)));
       }
+    }
 
-      if (integrityInfo.integrity && Object.keys(integrityInfo.integrity).length === 0) {
-        return reject(
-          new SecurityError(
-            this.config.reporter.lang('fetchBadIntegrityAlgorithm', this.packageName, this.remote.reference),
+    streamPromises.push(
+      streamToPromise(extractorStream).catch(error => {
+        if (tarballPath) {
+          throw new MessageError(this.config.reporter.lang('fetchErrorCorrupt', error.message, tarballPath));
+        } else {
+          throw error;
+        }
+      }),
+    );
+
+    streamPromises.push(
+      streamToPromise(extractorStream.pipe(untarStream)).catch(error => {
+        if (tarballPath) {
+          throw new MessageError(this.config.reporter.lang('errorExtractingTarball', error.message, tarballPath));
+        } else {
+          throw error;
+        }
+      }),
+    );
+
+    try {
+      await Promise.all(streamPromises);
+    } catch (err) {
+      if (hashError && hashError.code == 'EBADSIZE') {
+        // Report Content-Length mismatch, rather than extract errors.
+        const retryableError: Object = new MessageError(
+          this.reporter.lang('requestFailed', this.reference + ': ' + hashError.message),
+        );
+        retryableError.retry = true;
+        throw retryableError;
+      }
+      throw err;
+    }
+
+    const hexDigest = validateIntegrity ? validateIntegrity.hexDigest() : '';
+    if (
+      this.config.updateChecksums &&
+      this.remote.integrity &&
+      validateIntegrity &&
+      this.remote.integrity !== validateIntegrity.toString()
+    ) {
+      this.remote.integrity = validateIntegrity.toString();
+    } else if (validateIntegrity) {
+      this.remote.cacheIntegrity = validateIntegrity.toString();
+    }
+
+    if (integrityInfo.integrity && Object.keys(integrityInfo.integrity).length === 0) {
+      throw new SecurityError(
+        this.config.reporter.lang('fetchBadIntegrityAlgorithm', this.packageName, this.remote.reference),
+      );
+    }
+
+    const error = integrityError || hashError;
+    if (error && error.code == 'EINTEGRITY') {
+      if (this.config.updateChecksums) {
+        this.remote.integrity = error.found.toString();
+      } else {
+        throw new SecurityError(
+          this.config.reporter.lang(
+            'fetchBadHashWithPath',
+            this.packageName,
+            this.remote.reference,
+            error.found.toString(),
+            error.expected.toString(),
           ),
         );
       }
+    } else if (error) {
+      throw error;
+    }
 
-      if (error) {
-        if (this.config.updateChecksums) {
-          this.remote.integrity = error.found.toString();
-        } else {
-          return reject(
-            new SecurityError(
-              this.config.reporter.lang(
-                'fetchBadHashWithPath',
-                this.packageName,
-                this.remote.reference,
-                error.found.toString(),
-                error.expected.toString(),
-              ),
-            ),
-          );
-        }
-      }
-
-      return resolve({
-        hash: this.hash || hexDigest,
-      });
-    });
-
-    return {hashValidateStream, integrityValidateStream, extractorStream};
+    return {hash: this.hash || hexDigest};
   }
 
   getLocalPaths(override: ?string): Array<string> {
@@ -222,27 +261,13 @@ export default class TarballFetcher extends BaseFetcher {
     const tarPaths = this.getLocalPaths(override);
     const stream = await fsUtil.readFirstAvailableStream(tarPaths);
 
-    return new Promise((resolve, reject) => {
-      if (!stream) {
-        reject(new MessageError(this.reporter.lang('tarballNotInNetworkOrCache', this.reference, tarPaths)));
-        return;
-      }
-      invariant(stream, 'stream should be available at this point');
-      // $FlowFixMe - This is available https://nodejs.org/api/fs.html#fs_readstream_path
-      const tarballPath = stream.path;
-      const {hashValidateStream, integrityValidateStream, extractorStream} = this.createExtractor(
-        resolve,
-        reject,
-        tarballPath,
-      );
-
-      stream.pipe(hashValidateStream);
-      hashValidateStream.pipe(integrityValidateStream);
-
-      integrityValidateStream.pipe(extractorStream).on('error', err => {
-        reject(new MessageError(this.config.reporter.lang('fetchErrorCorrupt', err.message, tarballPath)));
-      });
-    });
+    if (!stream) {
+      throw new MessageError(this.reporter.lang('tarballNotInNetworkOrCache', this.reference, tarPaths));
+    }
+    invariant(stream, 'stream should be available at this point');
+    // $FlowFixMe - This is available https://nodejs.org/api/fs.html#fs_readstream_path
+    const tarballPath = stream.path;
+    return this.extract(stream, tarballPath);
   }
 
   async fetchFromExternal(): Promise<FetchedOverride> {
@@ -258,11 +283,7 @@ export default class TarballFetcher extends BaseFetcher {
             ...headers,
           },
           buffer: true,
-          process: (req, res, resolve, reject, queueForRetry) => {
-            // Clear errors when retrying
-            this.validateError = null;
-            this.validateIntegrity = null;
-
+          process: async (req, res) => {
             // Content-Length header is optional in the response.
             // If it is present, we validate the body length against it.
             const contentLength = parseInt(res.headers['content-length'], 10) || undefined;
@@ -271,42 +292,20 @@ export default class TarballFetcher extends BaseFetcher {
             const tarballMirrorPath = this.getTarballMirrorPath();
             const tarballCachePath = this.getTarballCachePath();
 
-            const {hashValidateStream, integrityValidateStream, extractorStream} = this.createExtractor(
-              resolve,
-              reject,
-              undefined,
-              contentLength,
-            );
-
-            req.pipe(hashValidateStream);
-            hashValidateStream.pipe(integrityValidateStream);
-
+            const tarballStreams = [];
             if (tarballMirrorPath) {
-              integrityValidateStream.pipe(fs.createWriteStream(tarballMirrorPath)).on('error', reject);
+              tarballStreams.push(fs.createWriteStream(tarballMirrorPath));
             }
-
             if (tarballCachePath) {
-              integrityValidateStream.pipe(fs.createWriteStream(tarballCachePath)).on('error', reject);
+              tarballStreams.push(fs.createWriteStream(tarballCachePath));
             }
 
-            integrityValidateStream.pipe(extractorStream).on('error', async err => {
-              try {
-                // Cleanup before retrying
-                await this.removeDownloadedFiles();
-                if (this.validateError && this.validateError.code == 'EBADSIZE') {
-                  // Content-Length did not match the body size. Retry the request.
-                  if (!queueForRetry(err.message)) {
-                    reject(err);
-                  }
-                  return;
-                }
-                reject(err);
-              } catch (uncaughtError) {
-                // Likely from removeDownloadedFiles().
-                // Not expected, but rather be safe.
-                reject(uncaughtError);
-              }
-            });
+            try {
+              return await this.extract(req, undefined, contentLength, tarballStreams);
+            } catch (error) {
+              await this.removeDownloadedFiles();
+              throw error;
+            }
           },
         },
         this.packageName,
@@ -415,4 +414,11 @@ function urlParts(requestUrl: string): UrlParts {
   const host = parsed.host || '';
   const path = parsed.path || '';
   return {host, path};
+}
+
+function streamToPromise(stream: Object): Promise<void> {
+  return new Promise((resolve, reject) => {
+    stream.on('error', reject);
+    stream.on('finish', resolve);
+  });
 }

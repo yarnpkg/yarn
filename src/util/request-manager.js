@@ -59,13 +59,7 @@ type RequestParams<T> = {
   headers?: {
     [name: string]: string,
   },
-  process?: (
-    req: Object,
-    res: any,
-    resolve: (body: T) => void,
-    reject: (err: Error) => void,
-    queueForRetry: (reason: string) => boolean,
-  ) => void,
+  process?: (req: Object, res: any) => Promise<T>,
   callback?: (err: ?Error, res: any, body: any) => void,
   retryAttempts?: number,
   maxRetryAttempts?: number,
@@ -524,7 +518,15 @@ export default class RequestManager {
         if (res.statusCode >= 200 && res.statusCode < 300) {
           // Pass the response on to the process function.
           // It may resolve, reject, or retry the request.
-          process(req, res, resolve, reject, queueForRetry);
+          process(req, res).then(resolve, error => {
+            if (error.retry) {
+              if (!queueForRetry(error.message)) {
+                reject(error);
+              }
+            } else {
+              reject(error);
+            }
+          });
           return;
         }
 
