@@ -98,7 +98,7 @@ export default class RequestManager {
     this.cache = {};
     this.max = constants.NETWORK_CONCURRENCY;
     this.maxRetryAttempts = 5;
-    this.retryDelay = 3000;
+    this.retryDelay = constants.RETRY_DELAY;
   }
 
   offlineNoRequests: boolean;

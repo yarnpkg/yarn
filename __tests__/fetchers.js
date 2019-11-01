@@ -444,19 +444,19 @@ test('TarballFetcher.fetch retries on a truncated response', async () => {
 
   const mockRequest = (require: any).requireActual('./__mocks__/request');
 
-  let retryCount = 2;
+  let tryCount = 0;
 
-  // Shorter retry delay for tests
-  config.requestManager.retryDelay = 10;
+  // Remove retry delay for tests
+  config.requestManager.retryDelay = 0;
   config.requestManager._requestModule = options => {
-    retryCount -= 1;
-    if (retryCount >= 0) {
-      // Fail the first requests
+    tryCount += 1;
+    if (tryCount <= 2) {
+      // Fail the first two requests
       return mockRequest({
         ...options,
         url: brokenUrl,
       });
-    } else if (retryCount == -1) {
+    } else if (tryCount == 3) {
       // Then give a successful response
       return mockRequest({
         ...options,
@@ -488,7 +488,8 @@ test('TarballFetcher.fetch retries on a truncated response', async () => {
 test('TarballFetcher.fetch throws after failed retries for truncated response', async () => {
   const dir = await mkdir('tarball-fetcher');
   const config = await Config.create({});
-  config.requestManager.retryDelay = 10;
+  // Remove retry delay for tests
+  config.requestManager.retryDelay = 0;
 
   const fetcher = new TarballFetcher(
     dir,

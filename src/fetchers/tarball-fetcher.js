@@ -263,10 +263,9 @@ export default class TarballFetcher extends BaseFetcher {
             this.validateError = null;
             this.validateIntegrity = null;
 
-            const contentLength = res.headers['content-length'];
             // Content-Length header is optional in the response.
             // If it is present, we validate the body length against it.
-            const size = contentLength ? parseInt(contentLength, 10) : undefined;
+            const contentLength = parseInt(res.headers['content-length'], 10) || undefined;
 
             // should we save this to the offline cache?
             const tarballMirrorPath = this.getTarballMirrorPath();
@@ -276,7 +275,7 @@ export default class TarballFetcher extends BaseFetcher {
               resolve,
               reject,
               undefined,
-              size,
+              contentLength,
             );
 
             req.pipe(hashValidateStream);
@@ -302,9 +301,10 @@ export default class TarballFetcher extends BaseFetcher {
                   return;
                 }
                 reject(err);
-              } catch (err2) {
-                // Not expected, but handle rather be safe.
-                reject(err2);
+              } catch (uncaughtError) {
+                // Likely from removeDownloadedFiles().
+                // Not expected, but rather be safe.
+                reject(uncaughtError);
               }
             });
           },
@@ -318,14 +318,13 @@ export default class TarballFetcher extends BaseFetcher {
   }
 
   async removeDownloadedFiles(): Promise<void> {
+    // fsUtil.unlink takes care of recursively removing a folder if it exists
     const tarballMirrorPath = this.getTarballMirrorPath();
     const tarballCachePath = this.getTarballCachePath();
-
-    if (tarballMirrorPath && (await fsUtil.exists(tarballMirrorPath))) {
+    if (tarballMirrorPath) {
       await fsUtil.unlink(tarballMirrorPath);
     }
-
-    if (tarballCachePath && (await fsUtil.exists(tarballCachePath))) {
+    if (tarballCachePath) {
       await fsUtil.unlink(tarballCachePath);
     }
   }

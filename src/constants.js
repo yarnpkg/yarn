@@ -39,6 +39,9 @@ export const NETWORK_CONCURRENCY = 8;
 // HTTP timeout used when downloading packages
 export const NETWORK_TIMEOUT = 30 * 1000; // in milliseconds
 
+// Delay before retrying HTTP requests after failure
+export const RETRY_DELAY = 3 * 1000; // in milliseconds
+
 // max amount of child processes to execute concurrently
 export const CHILD_CONCURRENCY = 5;
 
