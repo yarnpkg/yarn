@@ -80,12 +80,7 @@ export default class TarballFetcher extends BaseFetcher {
     return this.config.getOfflineMirrorPath(packageFilename);
   }
 
-  async extract(
-    stream: Object,
-    tarballPath?: string,
-    size?: number,
-    pipeTar?: Object[],
-  ): Promise<FetchedOverride> {
+  async extract(stream: Object, tarballPath?: string, size?: number, pipeTar?: Object[]): Promise<FetchedOverride> {
     const hashInfo = this._supportedIntegrity({hashOnly: true});
     const integrityInfo = this._supportedIntegrity({hashOnly: false});
 
