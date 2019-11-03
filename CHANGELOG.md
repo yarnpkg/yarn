@@ -8,6 +8,11 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#7650](https://github.com/yarnpkg/yarn/pull/7650) - [**Sander Verweij**](https://github.com/sverweij)
 
+- Change run command to check cwd/node_modules/.bin for commands. Fixes run in workspaces.
+
+  [#7151](https://github.com/yarnpkg/yarn/pull/7151) - [**Jeff Valore**](https://twitter.com/codingwithspike)
+
+
 ## 1.19.1
 
 **Important:** This release contains a cache bump. It will cause the very first install following the upgrade to take slightly more time, especially if you don't use the [Offline Mirror](https://yarnpkg.com/blog/2016/11/24/offline-mirror/) feature. After that everything will be back to normal.
