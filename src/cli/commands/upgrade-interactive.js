@@ -180,6 +180,9 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
           reporter.info(reporter.lang('updateInstalling', getNameFromHint(hint)));
           if (loc !== '') {
             config.cwd = path.resolve(path.dirname(loc));
+          } else {
+            // Missing loc means that a dependency is located in root of the workspace
+            config.cwd = config.workspaceRootFolder;
           }
           const add = new Add(patterns, flags, config, reporter, lockfile);
           await add.init();
