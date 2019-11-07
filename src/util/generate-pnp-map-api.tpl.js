@@ -714,7 +714,7 @@ exports.setup = function setup() {
       return originalFindPath.call(Module, request, paths, isMain);
     }
 
-    for (const path of paths) {
+    for (const path of paths || []) {
       let resolution;
 
       try {
