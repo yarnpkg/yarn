@@ -7,7 +7,7 @@ docker_defaults: &docker_defaults
 
 macos_defaults: &macos_defaults
   macos:
-    xcode: "9.0"
+    xcode: "11.0"
   working_directory: ~/project/yarn
 
 attach_workspace: &attach_workspace
@@ -155,7 +155,6 @@ jobs:
           name: Install Node 10
           command: |
             brew uninstall --ignore-dependencies node
-            brew update
             HOMEBREW_NO_AUTO_UPDATE=1 brew install node@10
             brew link --overwrite --force node@10
             [[ $(node --version) =~ ^v10\. ]]
@@ -177,6 +176,8 @@ jobs:
       - *test_run
   test-macos-node6:
     <<: *macos_defaults
+    macos:
+      xcode: "9.0"
     steps:
       - run:
           name: Install Node 6
