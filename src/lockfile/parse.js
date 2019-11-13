@@ -9,6 +9,8 @@ import {LOCKFILE_VERSION} from '../constants.js';
 import {MessageError} from '../errors.js';
 import map from '../util/map.js';
 
+const {safeLoad, FAILSAFE_SCHEMA} = require('js-yaml');
+
 type Token = {
   line: number,
   col: number,
@@ -69,44 +71,43 @@ function* tokenise(input: string): Iterator<Token> {
     } else if (input[0] === '#') {
       chop++;
 
-      let val = '';
-      while (input[chop] !== '\n') {
-        val += input[chop];
-        chop++;
+      let nextNewline = input.indexOf('\n', chop);
+      if (nextNewline === -1) {
+        nextNewline = input.length;
       }
+      const val = input.substring(chop, nextNewline);
+      chop = nextNewline;
       yield buildToken(TOKEN_TYPES.comment, val);
     } else if (input[0] === ' ') {
       if (lastNewline) {
-        let indent = '';
-        for (let i = 0; input[i] === ' '; i++) {
-          indent += input[i];
+        let indentSize = 1;
+        for (let i = 1; input[i] === ' '; i++) {
+          indentSize++;
         }
 
-        if (indent.length % 2) {
+        if (indentSize % 2) {
           throw new TypeError('Invalid number of spaces');
         } else {
-          chop = indent.length;
-          yield buildToken(TOKEN_TYPES.indent, indent.length / 2);
+          chop = indentSize;
+          yield buildToken(TOKEN_TYPES.indent, indentSize / 2);
         }
       } else {
         chop++;
       }
     } else if (input[0] === '"') {
-      let val = '';
-
-      for (let i = 0; ; i++) {
-        const currentChar = input[i];
-        val += currentChar;
-
-        if (i > 0 && currentChar === '"') {
+      let i = 1;
+      for (; i < input.length; i++) {
+        if (input[i] === '"') {
           const isEscaped = input[i - 1] === '\\' && input[i - 2] !== '\\';
           if (!isEscaped) {
+            i++;
             break;
           }
         }
       }
+      const val = input.substring(0, i);
 
-      chop = val.length;
+      chop = i;
 
       try {
         yield buildToken(TOKEN_TYPES.string, JSON.parse(val));
@@ -118,10 +119,7 @@ function* tokenise(input: string): Iterator<Token> {
         }
       }
     } else if (/^[0-9]/.test(input)) {
-      let val = '';
-      for (let i = 0; /^[0-9]$/.test(input[i]); i++) {
-        val += input[i];
-      }
+      const val = /^[0-9]+/.exec(input)[0];
       chop = val.length;
 
       yield buildToken(TOKEN_TYPES.number, +val);
@@ -137,17 +135,16 @@ function* tokenise(input: string): Iterator<Token> {
     } else if (input[0] === ',') {
       yield buildToken(TOKEN_TYPES.comma);
       chop++;
-    } else if (/^[a-zA-Z\/-]/g.test(input)) {
-      let name = '';
-      for (let i = 0; i < input.length; i++) {
+    } else if (/^[a-zA-Z\/.-]/g.test(input)) {
+      let i = 0;
+      for (; i < input.length; i++) {
         const char = input[i];
         if (char === ':' || char === ' ' || char === '\n' || char === '\r' || char === ',') {
           break;
-        } else {
-          name += char;
         }
       }
-      chop = name.length;
+      const name = input.substring(0, i);
+      chop = i;
 
       yield buildToken(TOKEN_TYPES.string, name);
     } else {
@@ -291,12 +288,19 @@ class Parser {
           this.next();
         }
 
-        const valToken = this.token;
-
-        if (valToken.type === TOKEN_TYPES.colon) {
-          // object
+        const wasColon = this.token.type === TOKEN_TYPES.colon;
+        if (wasColon) {
           this.next();
+        }
 
+        if (isValidPropValueToken(this.token)) {
+          // plain value
+          for (const key of keys) {
+            obj[key] = this.token.value;
+          }
+
+          this.next();
+        } else if (wasColon) {
           // parse object
           const val = this.parse(indent + 1);
 
@@ -307,13 +311,6 @@ class Parser {
           if (indent && this.token.type !== TOKEN_TYPES.indent) {
             break;
           }
-        } else if (isValidPropValueToken(valToken)) {
-          // plain value
-          for (const key of keys) {
-            obj[key] = valToken.value;
-          }
-
-          this.next();
         } else {
           this.unexpected('Invalid value type');
         }
@@ -387,7 +384,17 @@ function hasMergeConflicts(str: string): boolean {
 function parse(str: string, fileLoc: string): Object {
   const parser = new Parser(str, fileLoc);
   parser.next();
-  return parser.parse();
+  try {
+    return parser.parse();
+  } catch (error1) {
+    try {
+      return safeLoad(str, {
+        schema: FAILSAFE_SCHEMA,
+      });
+    } catch (error2) {
+      throw error1;
+    }
+  }
 }
 
 /**

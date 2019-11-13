@@ -1,10 +1,11 @@
 const cp = require('child_process');
 const {existsSync, statSync, stat, rename, readdir, remove} = require('fs-extra');
 const {relative, isAbsolute} = require('path');
+const {satisfies} = require('semver');
 
 const {
   fs: {createTemporaryFolder, readFile, readJson, writeFile, writeJson},
-  tests: {getPackageDirectoryPath},
+  tests: {getPackageDirectoryPath, testIf},
 } = require('pkg-tests-core');
 
 module.exports = makeTemporaryEnv => {
@@ -311,7 +312,7 @@ module.exports = makeTemporaryEnv => {
       makeTemporaryEnv(
         {
           dependencies: {[`no-deps`]: `1.0.0`},
-          scripts: {myScript: `node -p 'require("no-deps/package.json").version'`},
+          scripts: {myScript: `node -p "require('no-deps/package.json').version"`},
         },
         {
           plugNPlay: true,
@@ -460,6 +461,110 @@ module.exports = makeTemporaryEnv => {
       ),
     );
 
+    if (satisfies(process.versions.node, `>=8.9.0`)) {
+      test(
+        `it should support the 'paths' option from require.resolve (same dependency tree)`,
+        makeTemporaryEnv(
+          {
+            private: true,
+            workspaces: [`workspace-*`],
+          },
+          {
+            plugNPlay: true,
+          },
+          async ({path, run, source}) => {
+            await writeJson(`${path}/workspace-a/package.json`, {
+              name: `workspace-a`,
+              version: `1.0.0`,
+              dependencies: {[`no-deps`]: `1.0.0`},
+            });
+
+            await writeJson(`${path}/workspace-b/package.json`, {
+              name: `workspace-b`,
+              version: `1.0.0`,
+              dependencies: {[`no-deps`]: `2.0.0`, [`one-fixed-dep`]: `1.0.0`},
+            });
+
+            await run(`install`);
+
+            await expect(
+              source(
+                `require(require.resolve('no-deps', {paths: ${JSON.stringify([
+                  `${path}/workspace-a`,
+                  `${path}/workspace-b`,
+                ])}}))`,
+              ),
+            ).resolves.toMatchObject({
+              name: `no-deps`,
+              version: `1.0.0`,
+            });
+          },
+        ),
+      );
+
+      // Skipped because not supported (we can't require files from within other dependency trees, since we couldn't
+      // reconcile them together: dependency tree A could think that package X has deps Y@1 while dependency tree B
+      // could think that X has deps Y@2 instead. Since they would share the same location on the disk, PnP wouldn't
+      // be able to tell which one should be used)
+      test.skip(
+        `it should support the 'paths' option from require.resolve (different dependency trees)`,
+        makeTemporaryEnv(
+          {
+            dependencies: {},
+          },
+          {
+            plugNPlay: true,
+          },
+          async ({path, run, source}) => {
+            await run(`install`);
+
+            const tmpA = await createTemporaryFolder();
+            const tmpB = await createTemporaryFolder();
+
+            await writeJson(`${tmpA}/package.json`, {
+              dependencies: {[`no-deps`]: `1.0.0`},
+            });
+
+            await writeJson(`${tmpB}/package.json`, {
+              dependencies: {[`no-deps`]: `2.0.0`, [`one-fixed-dep`]: `1.0.0`},
+            });
+
+            await run(`install`, {
+              cwd: tmpA,
+            });
+
+            await run(`install`, {
+              cwd: tmpB,
+            });
+
+            await expect(
+              source(`require(require.resolve('no-deps', {paths: ${JSON.stringify([tmpA, tmpB])}}))`),
+            ).resolves.toMatchObject({
+              name: `no-deps`,
+              version: `1.0.0`,
+            });
+          },
+        ),
+      );
+
+      test(
+        `using require.resolve with unsupported options should throw`,
+        makeTemporaryEnv(
+          {
+            dependencies: {[`no-deps`]: `1.0.0`},
+          },
+          {
+            plugNPlay: true,
+          },
+          async ({path, run, source}) => {
+            await run(`install`);
+
+            await expect(source(`require.resolve('no-deps', {foobar: 42})`)).rejects.toBeTruthy();
+          },
+        ),
+      );
+    }
+
     test(
       `it should load the index.js file when loading from a folder`,
       makeTemporaryEnv({}, {plugNPlay: true}, async ({path, run, source}) => {
@@ -469,7 +574,7 @@ module.exports = makeTemporaryEnv => {
 
         await writeFile(`${tmp}/folder/index.js`, `module.exports = 42;`);
 
-        await expect(source(`require("${tmp}/folder")`)).resolves.toEqual(42);
+        await expect(source(`require(${JSON.stringify(tmp)} + "/folder")`)).resolves.toEqual(42);
       }),
     );
 
@@ -482,8 +587,28 @@ module.exports = makeTemporaryEnv => {
 
         await writeFile(`${tmp}/file.js`, `module.exports = 42;`);
 
-        await expect(source(`require("${tmp}/file")`)).resolves.toEqual(42);
+        await expect(source(`require(${JSON.stringify(tmp)} + "/file")`)).resolves.toEqual(42);
       }),
+    );
+
+    test(
+      `it should ignore the "main" entry if it doesn't resolve`,
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`invalid-main`]: `1.0.0`,
+          },
+        },
+        {plugNPlay: true},
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await expect(source(`require("invalid-main")`)).resolves.toMatchObject({
+            name: `invalid-main`,
+            version: `1.0.0`,
+          });
+        },
+      ),
     );
 
     test(
@@ -496,7 +621,7 @@ module.exports = makeTemporaryEnv => {
         await writeFile(`${tmp}/node_modules/dep/index.js`, `module.exports = 42;`);
         await writeFile(`${tmp}/index.js`, `require('dep')`);
 
-        await source(`require("${tmp}/index.js")`);
+        await source(`require(${JSON.stringify(tmp)} + "/index.js")`);
       }),
     );
 
@@ -619,7 +744,8 @@ module.exports = makeTemporaryEnv => {
       ),
     );
 
-    test(
+    testIf(
+      () => process.platform !== 'win32',
       `it should generate a file that can be used as an executable to resolve a request (valid request)`,
       makeTemporaryEnv(
         {
@@ -648,7 +774,8 @@ module.exports = makeTemporaryEnv => {
       ),
     );
 
-    test(
+    testIf(
+      () => process.platform !== `win32`,
       `it should generate a file that can be used as an executable to resolve a request (builtin request)`,
       makeTemporaryEnv(
         {
@@ -672,7 +799,8 @@ module.exports = makeTemporaryEnv => {
       ),
     );
 
-    test(
+    testIf(
+      () => process.platform !== `win32`,
       `it should generate a file that can be used as an executable to resolve a request (invalid request)`,
       makeTemporaryEnv(
         {
@@ -1234,6 +1362,98 @@ module.exports = makeTemporaryEnv => {
           expect(rndAfter).not.toEqual(rndBefore);
         },
       ),
+    );
+
+    test(
+      `it should not break spawning new Node processes ('node' command)`,
+      makeTemporaryEnv(
+        {
+          dependencies: {[`no-deps`]: `1.0.0`},
+        },
+        {plugNPlay: true},
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await writeFile(`${path}/script.js`, `console.log(JSON.stringify(require('no-deps')))`);
+
+          await expect(
+            source(
+              `JSON.parse(require('child_process').execFileSync(process.execPath, [${JSON.stringify(
+                `${path}/script.js`,
+              )}]).toString())`,
+            ),
+          ).resolves.toMatchObject({
+            name: `no-deps`,
+            version: `1.0.0`,
+          });
+        },
+      ),
+    );
+
+    test(
+      `it should not break spawning new Node processes ('run' command)`,
+      makeTemporaryEnv(
+        {
+          dependencies: {[`no-deps`]: `1.0.0`},
+          scripts: {[`script`]: `node main.js`},
+        },
+        {plugNPlay: true},
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await writeFile(`${path}/sub.js`, `console.log(JSON.stringify(require('no-deps')))`);
+          await writeFile(
+            `${path}/main.js`,
+            `console.log(require('child_process').execFileSync(process.execPath, [${JSON.stringify(
+              `${path}/sub.js`,
+            )}]).toString())`,
+          );
+
+          expect(JSON.parse((await run(`run`, `script`)).stdout)).toMatchObject({
+            name: `no-deps`,
+            version: `1.0.0`,
+          });
+        },
+      ),
+    );
+
+    test(
+      `it should properly forward the NODE_OPTIONS environment variable`,
+      makeTemporaryEnv({}, {plugNPlay: true}, async ({path, run, source}) => {
+        await run(`install`);
+
+        await writeFile(`${path}/foo.js`, `console.log(42);`);
+
+        await expect(
+          run(`node`, `-e`, `console.log(21);`, {env: {NODE_OPTIONS: `--require ${path}/foo`}}),
+        ).resolves.toMatchObject({
+          // Note that '42' is present twice: the first one because Node executes Yarn, and the second one because Yarn spawns Node
+          stdout: `42\n42\n21\n`,
+        });
+      }),
+    );
+
+    test(
+      `it should transparently support the "resolve" package`,
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`resolve`]: `https://github.com/browserify/resolve.git`,
+          },
+          resolutions: {
+            [`path-parse`]: `https://registry.yarnpkg.com/path-parse/-/path-parse-1.0.6.tgz`,
+          },
+        },
+        {plugNPlay: true},
+        async ({path, run, source}) => {
+          await run(`install`);
+
+          await expect(source(`require('resolve').sync('resolve')`)).resolves.toEqual(
+            await source(`require.resolve('resolve')`),
+          );
+        },
+      ),
+      15000,
     );
   });
 };

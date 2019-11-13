@@ -85,6 +85,10 @@ describe('request', () => {
     const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
     npmRegistry.config = config;
     return {
+      setOtp(otp: string) {
+        npmRegistry.setOtp(otp);
+      },
+
       request(url: string, options: Object, packageName: string): Object {
         npmRegistry.request(url, options, packageName);
         const lastIndex = mockRequestManager.request.mock.calls.length - 1;
@@ -99,6 +103,17 @@ describe('request', () => {
     const config = {};
     const requestParams = createRegistry(config).request(url);
     expect(requestParams.url).toBe(url);
+  });
+
+  test('should add `npm-otp` header', () => {
+    const url = 'https://registry.npmjs.org/yarn';
+    const config = {};
+    const registry = createRegistry(config);
+
+    registry.setOtp('123 456');
+
+    const requestParams = registry.request(url);
+    expect(requestParams.headers['npm-otp']).toBe('123 456');
   });
 
   const testCases = [
@@ -716,6 +731,37 @@ describe('isScopedPackage functional test', () => {
   });
 });
 
+describe('environment variables functional test', () => {
+  beforeEach(() => {
+    process.env.npm_config_always_auth = 'true';
+    process.env.npm_config__auth = 'auth';
+    process.env.npm_config__authtoken = 'authToken';
+    process.env.npm_config__username = 'username';
+    process.env.npm_config__password = 'password';
+  });
+
+  afterEach(() => {
+    delete process.env.npm_config_always_auth;
+    delete process.env.npm_config__auth;
+    delete process.env.npm_config__authToken;
+    delete process.env.npm_config__username;
+    delete process.env.npm_config__password;
+  });
+
+  test('correctly escapes environment config variables', () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
+
+    npmRegistry.mergeEnv('npm_config_');
+    expect(npmRegistry.config).toHaveProperty('always-auth', true);
+    expect(npmRegistry.config).toHaveProperty('_auth', 'auth');
+    expect(npmRegistry.config).toHaveProperty('_authtoken', 'authToken');
+    expect(npmRegistry.config).toHaveProperty('_username', 'username');
+    expect(npmRegistry.config).toHaveProperty('_password', 'password');
+  });
+});
+
 describe('getRequestUrl functional test', () => {
   test('returns pathname when it is a full URL', () => {
     const testCwd = '.';
@@ -734,6 +780,30 @@ describe('getRequestUrl functional test', () => {
     const pathname = 'foo/bar/baz';
 
     expect(npmRegistry.getRequestUrl(registry, pathname)).toEqual('https://my.registry.co/registry/foo/bar/baz');
+  });
+
+  for (const host of [`registry.yarnpkg.com`, `registry.npmjs.org`, `registry.npmjs.com`]) {
+    test(`enforces loading packages through https when they come from ${host}`, () => {
+      const testCwd = '.';
+      const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+      const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
+      const registry = `http://${host}/registry`;
+      const pathname = 'foo/bar/baz';
+
+      expect(npmRegistry.getRequestUrl(registry, pathname)).toEqual(`https://${host}/registry/foo/bar/baz`);
+    });
+  }
+
+  test("doesn't change the protocol for packages from other registries", () => {
+    const testCwd = '.';
+    const {mockRequestManager, mockRegistries, mockReporter} = createMocks();
+    const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, mockReporter, true, []);
+    const registry = 'http://registry.mylittlepony.org/registry';
+    const pathname = 'foo/bar/baz';
+
+    expect(npmRegistry.getRequestUrl(registry, pathname)).toEqual(
+      'http://registry.mylittlepony.org/registry/foo/bar/baz',
+    );
   });
 });
 

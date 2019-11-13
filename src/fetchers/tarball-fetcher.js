@@ -6,6 +6,7 @@ import * as constants from '../constants.js';
 import BaseFetcher from './base-fetcher.js';
 import * as fsUtil from '../util/fs.js';
 import {removePrefix} from '../util/misc.js';
+import normalizeUrl from 'normalize-url';
 
 const crypto = require('crypto');
 const path = require('path');
@@ -17,7 +18,7 @@ const gunzip = require('gunzip-maybe');
 const invariant = require('invariant');
 const ssri = require('ssri');
 
-const RE_URL_NAME_MATCH = /\/(?:(@[^/]+)\/)?[^/]+\/-\/(?:@[^/]+\/)?([^/]+)$/;
+const RE_URL_NAME_MATCH = /\/(?:(@[^/]+)(?:\/|%2f))?[^/]+\/(?:-|_attachments)\/(?:@[^/]+\/)?([^/]+)$/;
 
 const isHashAlgorithmSupported = name => {
   const cachedResult = isHashAlgorithmSupported.__cache[name];
@@ -87,10 +88,12 @@ export default class TarballFetcher extends BaseFetcher {
     reject: (error: Error) => void,
     tarballPath?: string,
   ): {
-    validateStream: ssri.integrityStream,
+    hashValidateStream: stream.PassThrough,
+    integrityValidateStream: stream.PassThrough,
     extractorStream: stream.Transform,
   } {
-    const integrityInfo = this._supportedIntegrity();
+    const hashInfo = this._supportedIntegrity({hashOnly: true});
+    const integrityInfo = this._supportedIntegrity({hashOnly: false});
 
     const now = new Date();
 
@@ -123,7 +126,9 @@ export default class TarballFetcher extends BaseFetcher {
       },
     });
 
-    const validateStream = new ssri.integrityStream(integrityInfo);
+    const hashValidateStream = new ssri.integrityStream(hashInfo);
+    const integrityValidateStream = new ssri.integrityStream(integrityInfo);
+
     const untarStream = tarFs.extract(this.dest, {
       strip: 1,
       dmode: 0o755, // all dirs should be readable
@@ -137,10 +142,13 @@ export default class TarballFetcher extends BaseFetcher {
     });
     const extractorStream = gunzip();
 
-    validateStream.once('error', err => {
+    hashValidateStream.once('error', err => {
       this.validateError = err;
     });
-    validateStream.once('integrity', sri => {
+    integrityValidateStream.once('error', err => {
+      this.validateError = err;
+    });
+    integrityValidateStream.once('integrity', sri => {
       this.validateIntegrity = sri;
     });
 
@@ -158,9 +166,11 @@ export default class TarballFetcher extends BaseFetcher {
         this.remote.integrity !== this.validateIntegrity.toString()
       ) {
         this.remote.integrity = this.validateIntegrity.toString();
+      } else if (this.validateIntegrity) {
+        this.remote.cacheIntegrity = this.validateIntegrity.toString();
       }
 
-      if (integrityInfo.algorithms.length === 0) {
+      if (integrityInfo.integrity && Object.keys(integrityInfo.integrity).length === 0) {
         return reject(
           new SecurityError(
             this.config.reporter.lang('fetchBadIntegrityAlgorithm', this.packageName, this.remote.reference),
@@ -190,7 +200,8 @@ export default class TarballFetcher extends BaseFetcher {
         hash: this.hash || hexDigest,
       });
     });
-    return {validateStream, extractorStream};
+
+    return {hashValidateStream, integrityValidateStream, extractorStream};
   }
 
   getLocalPaths(override: ?string): Array<string> {
@@ -215,9 +226,16 @@ export default class TarballFetcher extends BaseFetcher {
       invariant(stream, 'stream should be available at this point');
       // $FlowFixMe - This is available https://nodejs.org/api/fs.html#fs_readstream_path
       const tarballPath = stream.path;
-      const {validateStream, extractorStream} = this.createExtractor(resolve, reject, tarballPath);
+      const {hashValidateStream, integrityValidateStream, extractorStream} = this.createExtractor(
+        resolve,
+        reject,
+        tarballPath,
+      );
 
-      stream.pipe(validateStream).pipe(extractorStream).on('error', err => {
+      stream.pipe(hashValidateStream);
+      hashValidateStream.pipe(integrityValidateStream);
+
+      integrityValidateStream.pipe(extractorStream).on('error', err => {
         reject(new MessageError(this.config.reporter.lang('fetchErrorCorrupt', err.message, tarballPath)));
       });
     });
@@ -227,11 +245,13 @@ export default class TarballFetcher extends BaseFetcher {
     const registry = this.config.registries[this.registry];
 
     try {
+      const headers = this.requestHeaders();
       return await registry.request(
         this.reference,
         {
           headers: {
             'Accept-Encoding': 'gzip',
+            ...headers,
           },
           buffer: true,
           process: (req, resolve, reject) => {
@@ -239,19 +259,23 @@ export default class TarballFetcher extends BaseFetcher {
             const tarballMirrorPath = this.getTarballMirrorPath();
             const tarballCachePath = this.getTarballCachePath();
 
-            const {validateStream, extractorStream} = this.createExtractor(resolve, reject);
+            const {hashValidateStream, integrityValidateStream, extractorStream} = this.createExtractor(
+              resolve,
+              reject,
+            );
 
-            req.pipe(validateStream);
+            req.pipe(hashValidateStream);
+            hashValidateStream.pipe(integrityValidateStream);
 
             if (tarballMirrorPath) {
-              validateStream.pipe(fs.createWriteStream(tarballMirrorPath)).on('error', reject);
+              integrityValidateStream.pipe(fs.createWriteStream(tarballMirrorPath)).on('error', reject);
             }
 
             if (tarballCachePath) {
-              validateStream.pipe(fs.createWriteStream(tarballCachePath)).on('error', reject);
+              integrityValidateStream.pipe(fs.createWriteStream(tarballCachePath)).on('error', reject);
             }
 
-            validateStream.pipe(extractorStream).on('error', reject);
+            integrityValidateStream.pipe(extractorStream).on('error', reject);
           },
         },
         this.packageName,
@@ -272,6 +296,24 @@ export default class TarballFetcher extends BaseFetcher {
     }
   }
 
+  requestHeaders(): {[string]: string} {
+    const registry = this.config.registries.yarn;
+    const config = registry.config;
+    const requestParts = urlParts(this.reference);
+    return Object.keys(config).reduce((headers, option) => {
+      const parts = option.split(':');
+      if (parts.length === 3 && parts[1] === '_header') {
+        const registryParts = urlParts(parts[0]);
+        if (requestParts.host === registryParts.host && requestParts.path.startsWith(registryParts.path)) {
+          const headerName = parts[2];
+          const headerValue = config[option];
+          headers[headerName] = headerValue;
+        }
+      }
+      return headers;
+    }, {});
+  }
+
   _fetch(): Promise<FetchedOverride> {
     const isFilePath = this.reference.startsWith('file:');
     this.reference = removePrefix(this.reference, 'file:');
@@ -289,8 +331,8 @@ export default class TarballFetcher extends BaseFetcher {
     return this.fetchFromLocal().catch(err => this.fetchFromExternal());
   }
 
-  _findIntegrity(): ?Object {
-    if (this.remote.integrity) {
+  _findIntegrity({hashOnly}: {hashOnly: boolean}): ?Object {
+    if (this.remote.integrity && !hashOnly) {
       return ssri.parse(this.remote.integrity);
     }
     if (this.hash) {
@@ -299,18 +341,18 @@ export default class TarballFetcher extends BaseFetcher {
     return null;
   }
 
-  _supportedIntegrity(): {integrity: ?Object, algorithms: Array<string>} {
-    const expectedIntegrity = this._findIntegrity() || {};
+  _supportedIntegrity({hashOnly}: {hashOnly: boolean}): {integrity: ?Object, algorithms: Array<string>} {
+    const expectedIntegrity = this._findIntegrity({hashOnly}) || {};
     const expectedIntegrityAlgorithms = Object.keys(expectedIntegrity);
     const shouldValidateIntegrity = (this.hash || this.remote.integrity) && !this.config.updateChecksums;
 
-    if (expectedIntegrityAlgorithms.length === 0 && !shouldValidateIntegrity) {
+    if (expectedIntegrityAlgorithms.length === 0 && (!shouldValidateIntegrity || hashOnly)) {
       const algorithms = this.config.updateChecksums ? ['sha512'] : ['sha1'];
       // for consistency, return sha1 for packages without a remote integrity (eg. github)
       return {integrity: null, algorithms};
     }
 
-    const algorithms = new Set();
+    const algorithms = new Set(['sha512', 'sha1']);
     const integrity = {};
     for (const algorithm of expectedIntegrityAlgorithms) {
       if (isHashAlgorithmSupported(algorithm)) {
@@ -327,4 +369,17 @@ export class LocalTarballFetcher extends TarballFetcher {
   _fetch(): Promise<FetchedOverride> {
     return this.fetchFromLocal(this.reference);
   }
+}
+
+type UrlParts = {
+  host: string,
+  path: string,
+};
+
+function urlParts(requestUrl: string): UrlParts {
+  const normalizedUrl = normalizeUrl(requestUrl);
+  const parsed = url.parse(normalizedUrl);
+  const host = parsed.host || '';
+  const path = parsed.path || '';
+  return {host, path};
 }

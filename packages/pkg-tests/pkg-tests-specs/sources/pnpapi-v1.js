@@ -1,9 +1,10 @@
+const {normalize} = require('path');
 const {fs: {writeFile, writeJson}} = require('pkg-tests-core');
 
 module.exports = makeTemporaryEnv => {
   describe(`Plug'n'Play API (v1)`, () => {
     test(
-      `it should expost VERSIONS`,
+      `it should expose VERSIONS`,
       makeTemporaryEnv({}, {plugNPlay: true}, async ({path, run, source}) => {
         await run(`install`);
 
@@ -12,7 +13,7 @@ module.exports = makeTemporaryEnv => {
     );
 
     test(
-      `it should expost resolveToUnqualified`,
+      `it should expose resolveToUnqualified`,
       makeTemporaryEnv({}, {plugNPlay: true}, async ({path, run, source}) => {
         await run(`install`);
 
@@ -21,7 +22,7 @@ module.exports = makeTemporaryEnv => {
     );
 
     test(
-      `it should expost resolveToUnqualified`,
+      `it should expose resolveToUnqualified`,
       makeTemporaryEnv({}, {plugNPlay: true}, async ({path, run, source}) => {
         await run(`install`);
 
@@ -30,7 +31,7 @@ module.exports = makeTemporaryEnv => {
     );
 
     test(
-      `it should expost resolveToUnqualified`,
+      `it should expose resolveToUnqualified`,
       makeTemporaryEnv({}, {plugNPlay: true}, async ({path, run, source}) => {
         await run(`install`);
 
@@ -40,11 +41,24 @@ module.exports = makeTemporaryEnv => {
 
     describe(`resolveRequest`, () => {
       test(
+        `it should return the path to the PnP file for when 'pnpapi' is requested`,
+        makeTemporaryEnv({}, {plugNPlay: true}, async ({path, run, source}) => {
+          await run(`install`);
+
+          await expect(
+            source(`require('pnpapi').resolveRequest('pnpapi', ${JSON.stringify(path + '/')})`),
+          ).resolves.toEqual(normalize(`${path}/.pnp.js`));
+        }),
+      );
+
+      test(
         `it should return null for builtins`,
         makeTemporaryEnv({}, {plugNPlay: true}, async ({path, run, source}) => {
           await run(`install`);
 
-          await expect(source(`require('pnpapi').resolveRequest('fs', '${path}/')`)).resolves.toEqual(null);
+          await expect(
+            source(`require('pnpapi').resolveRequest('fs', ${JSON.stringify(path)} + '/')`),
+          ).resolves.toEqual(null);
         }),
       );
 
@@ -65,8 +79,10 @@ module.exports = makeTemporaryEnv => {
             await run(`install`);
 
             await expect(
-              source(`require('pnpapi').resolveRequest('fs', '${path}/', {considerBuiltins: false})`),
-            ).resolves.toEqual(`${path}/fs/index.js`);
+              source(
+                `require('pnpapi').resolveRequest('fs', ${JSON.stringify(path)} + '/', {considerBuiltins: false})`,
+              ),
+            ).resolves.toEqual(normalize(`${path}/fs/index.js`));
           },
         ),
       );
@@ -79,8 +95,8 @@ module.exports = makeTemporaryEnv => {
           await run(`install`);
 
           await expect(
-            source(`require('pnpapi').resolveRequest('./foo', '${path}/', {extensions: ['.bar']})`),
-          ).resolves.toEqual(`${path}/foo.bar`);
+            source(`require('pnpapi').resolveRequest('./foo', ${JSON.stringify(path)} + '/', {extensions: ['.bar']})`),
+          ).resolves.toEqual(normalize(`${path}/foo.bar`));
         }),
       );
     });

@@ -51,8 +51,8 @@ afterEach(request.__resetAuthedRequests);
 test('install should hoist nested bin scripts', (): Promise<void> => {
   return runInstall({binLinks: true}, 'install-nested-bin', async config => {
     const binScripts = await fs.walk(path.join(config.cwd, 'node_modules', '.bin'));
-    // need to double the amount as windows makes 2 entries for each dependency
-    // so for below, there would be an entry for eslint and eslint.cmd on win32
+    // need to triple the amount as windows makes 3 entries for each dependency
+    // so for below, there would be an entry for eslint, eslint.cmd and eslint.ps1 on win32
     const amount = process.platform === 'win32' ? 20 : 10;
     expect(binScripts).toHaveLength(amount);
 

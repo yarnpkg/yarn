@@ -36,6 +36,10 @@ async function getCredentials(
   return {username, email};
 }
 
+export function getOneTimePassword(reporter: Reporter): Promise<string> {
+  return reporter.question(reporter.lang('npmOneTimePassword'));
+}
+
 export async function getToken(
   config: Config,
   reporter: Reporter,
@@ -44,6 +48,10 @@ export async function getToken(
   registry: string = '',
 ): Promise<() => Promise<void>> {
   const auth = registry ? config.registries.npm.getAuthByRegistry(registry) : config.registries.npm.getAuth(name);
+
+  if (config.otp) {
+    config.registries.npm.setOtp(config.otp);
+  }
 
   if (auth) {
     config.registries.npm.setToken(auth);
@@ -97,6 +105,7 @@ export async function getToken(
   //
   const res = await config.registries.npm.request(`-/user/org.couchdb.user:${encodeURIComponent(username)}`, {
     method: 'PUT',
+    registry,
     body: userobj,
     auth: {username, password, email},
   });
@@ -111,6 +120,7 @@ export async function getToken(
       reporter.success(reporter.lang('revokedToken'));
       await config.registries.npm.request(`-/user/token/${token}`, {
         method: 'DELETE',
+        registry,
       });
     };
   } else {

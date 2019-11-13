@@ -83,6 +83,7 @@ const getRandomPort = () => Math.floor(Math.random() * PORT_RANGE) + MIN_PORT_NU
 async function runYarn(args: Array<string> = [], options: Object = {}): Promise<Array<Buffer>> {
   if (!options['env']) {
     options['env'] = {...process.env};
+    options['env']['YARN_SILENT'] = 0;
     options['extendEnv'] = false;
   }
   options['env']['FORCE_COLOR'] = 0;
@@ -450,6 +451,30 @@ test('yarn run <failing script>', async () => {
   expect(stderr).toEqual('error Command failed with exit code 1.');
 });
 
+test('yarn run <failing script with custom exit code>', async () => {
+  const cwd = await makeTemp();
+
+  await fs.writeFile(
+    path.join(cwd, 'package.json'),
+    JSON.stringify({
+      license: 'MIT',
+      scripts: {false: 'exit 78'},
+    }),
+  );
+
+  let stderr = null;
+  let err = null;
+  try {
+    await runYarn(['run', 'false'], {cwd});
+  } catch (e) {
+    stderr = e.stderr.trim();
+    err = e.code;
+  }
+
+  expect(err).toEqual(78);
+  expect(stderr).toEqual('error Command failed with exit code 78.');
+});
+
 test('yarn run in path need escaping', async () => {
   const cwd = await makeTemp('special (chars)');
 
@@ -534,4 +559,37 @@ test('yarn init -y', async () => {
 
   const manifestFile = await fs.readFile(path.join(cwd, 'package.json'));
   expect(manifestFile).toEqual(initialManifestFile);
+});
+
+test('--modules-folder option', async () => {
+  /**
+   * The behavior of --modules-folder (and other folder options) was that it resolved relative not to the current
+   * working directory, but instead to the closest project root (folder containing a package.json file).
+   *
+   * This behavior was at best surprising and could result in data loss. This test captures a scenario in which
+   * there would previously have been data loss, demonstrating the fix for --modules-folder and other folder options.
+   *
+   */
+  const projectFolder = await makeTemp();
+  const libraryFolder = path.join(projectFolder, 'lib');
+
+  const initialManifestFile = JSON.stringify({name: 'test', license: 'ISC', version: '1.0.0'});
+  const importantData = 'I definitely care about this file!';
+
+  await fs.writeFile(`${projectFolder}/package.json`, initialManifestFile);
+  await fs.writeFile(`${projectFolder}/IMPORTANT_FILE.txt`, importantData);
+  await fs.mkdirp(libraryFolder);
+
+  const options = {cwd: libraryFolder};
+
+  // This yarn command fails with the previous behavior, the rest of the test is defense in depth
+  await runYarn(['add', 'left-pad', '--modules-folder', '.'], options);
+
+  // Dependencies should have been installed in the 'lib' folder
+  const libraryFolderContents = await fs.readdir(`${libraryFolder}`);
+  expect(libraryFolderContents).toContain('left-pad');
+
+  // Additionally, there should have not been any data loss in the project folder
+  const importantFile = await fs.readFile(`${projectFolder}/IMPORTANT_FILE.txt`);
+  expect(importantFile).toBe(importantData);
 });

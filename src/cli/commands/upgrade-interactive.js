@@ -46,6 +46,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     return;
   }
 
+  // Fail early with runtime compatibility checks so that it doesn't fail after you've made your selections
+  const install = new Install(flags, config, reporter, lockfile);
+  await install.checkCompatibility();
+
   const usesWorkspaces = !!config.workspaceRootFolder;
 
   const maxLengthArr = {

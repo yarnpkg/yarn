@@ -179,7 +179,7 @@ const messages = {
     'You can now run `yarn unlink $0` in the projects where you no longer want to use this package.',
   linkUsing: 'Using linked package for $0.',
   linkDisusing: 'Removed linked package $0.',
-  linkDisusingMessage: 'You will need to run `yarn` to re-install the package that was linked.',
+  linkDisusingMessage: 'You will need to run `yarn install --force` to re-install the package that was linked.',
   linkTargetMissing: 'The target of linked package $0 is missing. Removing link.',
 
   createInvalidBin: 'Invalid bin entry found in package $0.',
@@ -229,11 +229,12 @@ const messages = {
   nodeGypAutoInstallFailed:
     'Failed to auto-install node-gyp. Please run "yarn global add node-gyp" manually. Error: $0',
 
-  foundIncompatible: 'Found incompatible module',
+  foundIncompatible: 'Found incompatible module.',
   incompatibleEngine: 'The engine $0 is incompatible with this module. Expected version $1. Got $2',
   incompatibleCPU: 'The CPU architecture $0 is incompatible with this module.',
   incompatibleOS: 'The platform $0 is incompatible with this module.',
   invalidEngine: 'The engine $0 appears to be invalid.',
+  cannotRunWithIncompatibleEnv: 'Commands cannot run with an incompatible environment.',
 
   optionalCompatibilityExcluded:
     '$0 is an optional dependency and failed compatibility check. Excluding it from installation.',
@@ -311,6 +312,7 @@ const messages = {
   npmUsername: 'npm username',
   npmPassword: 'npm password',
   npmEmail: 'npm email',
+  npmOneTimePassword: 'npm one-time password',
 
   loggingIn: 'Logging in',
   loggedIn: 'Logged in.',
@@ -322,6 +324,8 @@ const messages = {
 
   loginAsPublic: 'Logging in as public',
   incorrectCredentials: 'Incorrect username or password.',
+  incorrectOneTimePassword: 'Incorrect one-time password.',
+  twoFactorAuthenticationEnabled: 'Two factor authentication enabled.',
   clearedCredentials: 'Cleared login credentials.',
 
   publishFail: "Couldn't publish package: $0",
@@ -342,6 +346,10 @@ const messages = {
   requestError: 'Request $0 returned a $1',
   requestFailed: 'Request failed $0',
   tarballNotInNetworkOrCache: '$0: Tarball is not in network and can not be located in cache ($1)',
+  fetchBadIntegrityCache:
+    'Incorrect integrity when fetching from the cache for $0. Cache has $1 and remote has $2. Run `yarn cache clean` to fix the problem',
+  fetchBadHashCache:
+    'Incorrect hash when fetching from the cache for $0. Cache has $1 and remote has $2. Run `yarn cache clean` to fix the problem',
   fetchBadHashWithPath: "Integrity check failed for $0 (computed integrity doesn't match our records, got $2)",
   fetchBadIntegrityAlgorithm: 'Integrity checked failed for $0 (none of the specified algorithms are supported)',
   fetchErrorCorrupt:
@@ -357,6 +365,9 @@ const messages = {
 
   unplugDisabled: "Packages can only be unplugged when Plug'n'Play is enabled.",
 
+  plugnplaySuggestV2L1: "Plug'n'Play support has been greatly improved on the Yarn v2 development branch.",
+  plugnplaySuggestV2L2:
+    'Please give it a try and tell us what you think! - https://next.yarnpkg.com/getting-started/install',
   plugnplayWindowsSupport: "Plug'n'Play on Windows doesn't support the cache and project to be kept on separate drives",
 
   packageInstalledWithBinaries: 'Installed $0 with binaries:',

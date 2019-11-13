@@ -7,7 +7,6 @@ import * as child from './child.js';
 import * as fs from './fs.js';
 import {dynamicRequire} from './dynamic-require.js';
 import {makePortableProxyScript} from './portable-script.js';
-import {registries} from '../resolvers/index.js';
 import {fixCmdWinSlashes} from './fix-cmd-win-slashes.js';
 import {getBinFolder as getGlobalBinFolder, run as globalRun} from '../cli/commands/global.js';
 
@@ -19,20 +18,18 @@ export type LifecycleReturn = Promise<{
   stdout: string,
 }>;
 
-export const IGNORE_MANIFEST_KEYS: Set<string> = new Set(['readme', 'notice', 'licenseText']);
+export const IGNORE_MANIFEST_KEYS: Set<string> = new Set([
+  'readme',
+  'notice',
+  'licenseText',
+  'activationEvents',
+  'contributes',
+]);
 
 // We treat these configs as internal, thus not expose them to process.env.
 // This helps us avoid some gyp issues when building native modules.
 // See https://github.com/yarnpkg/yarn/issues/2286.
 const IGNORE_CONFIG_KEYS = ['lastUpdateCheck'];
-
-async function getPnpParameters(config: Config): Promise<Array<string>> {
-  if (await fs.exists(`${config.lockfileFolder}/${constants.PNP_FILENAME}`)) {
-    return ['-r', `${config.lockfileFolder}/${constants.PNP_FILENAME}`];
-  } else {
-    return [];
-  }
-}
 
 let wrappersFolder = null;
 
@@ -45,7 +42,6 @@ export async function getWrappersFolder(config: Config): Promise<string> {
 
   await makePortableProxyScript(process.execPath, wrappersFolder, {
     proxyBasename: 'node',
-    prependArguments: [...(await getPnpParameters(config))],
   });
 
   await makePortableProxyScript(process.execPath, wrappersFolder, {
@@ -174,13 +170,6 @@ export async function makeEnv(
   const envPath = env[constants.ENV_PATH_KEY];
   const pathParts = envPath ? envPath.split(path.delimiter) : [];
 
-  // Include the directory that contains node so that we can guarantee that the scripts
-  // will always run with the exact same Node release than the one use to run Yarn
-  const execBin = path.dirname(process.execPath);
-  if (pathParts.indexOf(execBin) === -1) {
-    pathParts.unshift(execBin);
-  }
-
   // Include node-gyp version that was bundled with the current Node.js version,
   // if available.
   pathParts.unshift(path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'node-gyp-bin'));
@@ -200,22 +189,30 @@ export async function makeEnv(
   }
 
   // Add node_modules .bin folders to the PATH
-  for (const registry of Object.keys(registries)) {
-    const binFolder = path.join(config.registries[registry].folder, '.bin');
+  for (const registryFolder of config.registryFolders) {
+    const binFolder = path.join(registryFolder, '.bin');
     if (config.workspacesEnabled && config.workspaceRootFolder) {
       pathParts.unshift(path.join(config.workspaceRootFolder, binFolder));
     }
     pathParts.unshift(path.join(config.linkFolder, binFolder));
     pathParts.unshift(path.join(cwd, binFolder));
-    if (config.modulesFolder) {
-      pathParts.unshift(path.join(config.modulesFolder, '.bin'));
+  }
+
+  let pnpFile;
+
+  if (process.versions.pnp) {
+    pnpFile = dynamicRequire.resolve('pnpapi');
+  } else {
+    const candidate = `${config.lockfileFolder}/${constants.PNP_FILENAME}`;
+    if (await fs.exists(candidate)) {
+      pnpFile = candidate;
     }
   }
 
-  if (await fs.exists(`${config.lockfileFolder}/${constants.PNP_FILENAME}`)) {
-    const pnpApi = dynamicRequire(`${config.lockfileFolder}/${constants.PNP_FILENAME}`);
+  if (pnpFile) {
+    const pnpApi = dynamicRequire(pnpFile);
 
-    const packageLocator = pnpApi.findPackageLocator(`${config.cwd}/`);
+    const packageLocator = pnpApi.findPackageLocator(`${cwd}/`);
     const packageInformation = pnpApi.getPackageInformation(packageLocator);
 
     for (const [name, reference] of packageInformation.packageDependencies.entries()) {
@@ -225,8 +222,16 @@ export async function makeEnv(
         continue;
       }
 
-      pathParts.unshift(`${dependencyInformation.packageLocation}/.bin`);
+      const binFolder = `${dependencyInformation.packageLocation}/.bin`;
+      if (await fs.exists(binFolder)) {
+        pathParts.unshift(binFolder);
+      }
     }
+
+    // Note that NODE_OPTIONS doesn't support any style of quoting its arguments at the moment
+    // For this reason, it won't work if the user has a space inside its $PATH
+    env.NODE_OPTIONS = env.NODE_OPTIONS || '';
+    env.NODE_OPTIONS = `--require ${pnpFile} ${env.NODE_OPTIONS}`;
   }
 
   pathParts.unshift(await getWrappersFolder(config));
@@ -352,11 +357,14 @@ export async function execCommand({
     return Promise.resolve();
   } catch (err) {
     if (err instanceof ProcessTermError) {
-      throw new MessageError(
+      const formattedError = new ProcessTermError(
         err.EXIT_SIGNAL
           ? reporter.lang('commandFailedWithSignal', err.EXIT_SIGNAL)
           : reporter.lang('commandFailedWithCode', err.EXIT_CODE),
       );
+      formattedError.EXIT_CODE = err.EXIT_CODE;
+      formattedError.EXIT_SIGNAL = err.EXIT_SIGNAL;
+      throw formattedError;
     } else {
       throw err;
     }

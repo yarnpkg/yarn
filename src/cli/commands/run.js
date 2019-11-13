@@ -4,8 +4,9 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {execCommand, makeEnv} from '../../util/execute-lifecycle-script.js';
 import {dynamicRequire} from '../../util/dynamic-require.js';
+import {callThroughHook} from '../../util/hooks.js';
 import {MessageError} from '../../errors.js';
-import {registries} from '../../resolvers/index.js';
+import {checkOne as checkCompatibility} from '../../package-compatibility.js';
 import * as fs from '../../util/fs.js';
 import * as constants from '../../constants.js';
 
@@ -29,8 +30,9 @@ export async function getBinEntries(config: Config): Promise<Map<string, string>
   const binEntries = new Map();
 
   // Setup the node_modules/.bin folders for analysis
-  for (const registry of Object.keys(registries)) {
-    binFolders.add(path.join(config.cwd, config.registries[registry].folder, '.bin'));
+  for (const registryFolder of config.registryFolders) {
+    binFolders.add(path.resolve(config.cwd, registryFolder, '.bin'));
+    binFolders.add(path.resolve(config.lockfileFolder, registryFolder, '.bin'));
   }
 
   // Same thing, but for the pnp dependencies, located inside the cache
@@ -91,9 +93,11 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
   }
 
-  async function runCommand(args): Promise<void> {
-    const action = args.shift();
+  function runCommand([action, ...args]): Promise<void> {
+    return callThroughHook('runScript', () => realRunCommand(action, args), {action, args});
+  }
 
+  async function realRunCommand(action, args): Promise<void> {
     // build up list of commands
     const cmds = [];
 
@@ -118,6 +122,13 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
 
     if (cmds.length) {
+      const ignoreEngines = !!(flags.ignoreEngines || config.getOption('ignore-engines'));
+      try {
+        await checkCompatibility(pkg, config, ignoreEngines);
+      } catch (err) {
+        throw err instanceof MessageError ? new MessageError(reporter.lang('cannotRunWithIncompatibleEnv')) : err;
+      }
+
       // Disable wrapper in executed commands
       process.env.YARN_WRAP_OUTPUT = 'false';
       for (const [stage, cmd] of cmds) {

@@ -8,7 +8,7 @@ import invariant from 'invariant';
 import RequestCaptureHar from 'request-capture-har';
 
 import type {Reporter} from '../reporters/index.js';
-import {MessageError, ResponseError} from '../errors.js';
+import {MessageError, ResponseError, OneTimePasswordError} from '../errors.js';
 import BlockingQueue from './blocking-queue.js';
 import * as constants from '../constants.js';
 import * as network from './network.js';
@@ -301,7 +301,7 @@ export default class RequestManager {
     }
 
     // TCP timeout
-    if (code === 'ESOCKETTIMEDOUT') {
+    if (code === 'ESOCKETTIMEDOUT' || code === 'ETIMEDOUT') {
       return true;
     }
 
@@ -401,6 +401,8 @@ export default class RequestManager {
         if (!queueForRetry(this.reporter.lang('offlineRetrying'))) {
           reject(err);
         }
+      } else {
+        reject(err);
       }
     };
 
@@ -422,6 +424,15 @@ export default class RequestManager {
           if (!queueForRetry(this.reporter.lang('internalServerErrorRetrying', description))) {
             throw new ResponseError(this.reporter.lang('requestFailed', description), res.statusCode);
           } else {
+            return;
+          }
+        }
+
+        if (res.statusCode === 401 && res.headers['www-authenticate']) {
+          const authMethods = res.headers['www-authenticate'].split(/,\s*/).map(s => s.toLowerCase());
+
+          if (authMethods.indexOf('otp') !== -1) {
+            reject(new OneTimePasswordError());
             return;
           }
         }
@@ -489,8 +500,19 @@ export default class RequestManager {
       req.on('data', queue.stillActive.bind(queue));
     }
 
-    if (params.process) {
-      params.process(req, resolve, reject);
+    const process = params.process;
+    if (process) {
+      req.on('response', res => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          return;
+        }
+
+        const description = `${res.statusCode} ${http.STATUS_CODES[res.statusCode]}`;
+        reject(new ResponseError(this.reporter.lang('requestFailed', description), res.statusCode));
+
+        req.abort();
+      });
+      process(req, resolve, reject);
     }
   }
 

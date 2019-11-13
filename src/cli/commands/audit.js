@@ -8,18 +8,25 @@ import type {HoistedTrees} from '../../hoisted-tree-builder.js';
 
 import {promisify} from '../../util/promise.js';
 import {buildTree as hoistedTreeBuilder} from '../../hoisted-tree-builder';
+import {getTransitiveDevDependencies} from '../../util/get-transitive-dev-dependencies';
 import {Install} from './install.js';
 import Lockfile from '../../lockfile';
-import {YARN_REGISTRY} from '../../constants';
+import {OWNED_DEPENDENCY_TYPES, YARN_REGISTRY} from '../../constants';
 
 const zlib = require('zlib');
 const gzip = promisify(zlib.gzip);
+
+export type AuditOptions = {
+  groups: Array<string>,
+  level?: string,
+};
 
 export type AuditNode = {
   version: ?string,
   integrity: ?string,
   requires: Object,
   dependencies: {[string]: AuditNode},
+  dev: boolean,
 };
 
 export type AuditTree = AuditNode & {
@@ -115,6 +122,18 @@ export type AuditActionRecommendation = {
 export function setFlags(commander: Object) {
   commander.description('Checks for known security issues with the installed packages.');
   commander.option('--summary', 'Only print the summary.');
+  commander.option(
+    '--groups <group_name> [<group_name> ...]',
+    `Only audit dependencies from listed groups. Default: ${OWNED_DEPENDENCY_TYPES.join(', ')}`,
+    groups => groups.split(' '),
+    OWNED_DEPENDENCY_TYPES,
+  );
+  commander.option(
+    '--level <severity>',
+    `Only print advisories with severity greater than or equal to one of the following: \
+    info|low|moderate|high|critical. Default: info`,
+    'info',
+  );
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
@@ -122,7 +141,11 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 }
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<number> {
-  const audit = new Audit(config, reporter);
+  const DEFAULT_LOG_LEVEL = 'info';
+  const audit = new Audit(config, reporter, {
+    groups: flags.groups || OWNED_DEPENDENCY_TYPES,
+    level: flags.level || DEFAULT_LOG_LEVEL,
+  });
   const lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
   const install = new Install({}, config, reporter, lockfile);
   const {manifest, requests, patterns, workspaceLayout} = await install.fetchRequestFromCwd();
@@ -130,13 +153,20 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     workspaceLayout,
   });
 
-  const vulnerabilities = await audit.performAudit(manifest, install.resolver, install.linker, patterns);
-  const totalVulnerabilities =
-    vulnerabilities.info +
-    vulnerabilities.low +
-    vulnerabilities.moderate +
-    vulnerabilities.high +
-    vulnerabilities.critical;
+  const vulnerabilities = await audit.performAudit(manifest, lockfile, install.resolver, install.linker, patterns);
+
+  const EXIT_INFO = 1;
+  const EXIT_LOW = 2;
+  const EXIT_MODERATE = 4;
+  const EXIT_HIGH = 8;
+  const EXIT_CRITICAL = 16;
+
+  const exitCode =
+    (vulnerabilities.info ? EXIT_INFO : 0) +
+    (vulnerabilities.low ? EXIT_LOW : 0) +
+    (vulnerabilities.moderate ? EXIT_MODERATE : 0) +
+    (vulnerabilities.high ? EXIT_HIGH : 0) +
+    (vulnerabilities.critical ? EXIT_CRITICAL : 0);
 
   if (flags.summary) {
     audit.summary();
@@ -144,55 +174,65 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     audit.report();
   }
 
-  return totalVulnerabilities;
+  return exitCode;
 }
 
 export default class Audit {
-  constructor(config: Config, reporter: Reporter) {
+  severityLevels = ['info', 'low', 'moderate', 'high', 'critical'];
+
+  constructor(config: Config, reporter: Reporter, options: AuditOptions) {
     this.config = config;
     this.reporter = reporter;
+    this.options = options;
   }
 
   config: Config;
   reporter: Reporter;
+  options: AuditOptions;
   auditData: AuditReport;
 
-  _mapHoistedNodes(auditNode: AuditNode, hoistedNodes: HoistedTrees) {
+  _mapHoistedNodes(auditNode: AuditNode, hoistedNodes: HoistedTrees, transitiveDevDeps: Set<string>) {
     for (const node of hoistedNodes) {
       const pkg = node.manifest.pkg;
+      const requires = Object.assign({}, pkg.dependencies || {}, pkg.optionalDependencies || {});
+      for (const name of Object.keys(requires)) {
+        if (!requires[name]) {
+          requires[name] = '*';
+        }
+      }
       auditNode.dependencies[node.name] = {
         version: node.version,
         integrity: pkg._remote ? pkg._remote.integrity || '' : '',
-        requires: Object.assign({}, pkg.dependencies || {}, pkg.optionalDependencies || {}),
+        requires,
         dependencies: {},
+        dev: transitiveDevDeps.has(`${node.name}@${node.version}`),
       };
-
       if (node.children) {
-        this._mapHoistedNodes(auditNode.dependencies[node.name], node.children);
+        this._mapHoistedNodes(auditNode.dependencies[node.name], node.children, transitiveDevDeps);
       }
     }
   }
 
-  _mapHoistedTreesToAuditTree(manifest: Object, hoistedTrees: HoistedTrees): AuditTree {
+  _mapHoistedTreesToAuditTree(manifest: Object, hoistedTrees: HoistedTrees, transitiveDevDeps: Set<string>): AuditTree {
+    const requiresGroups = this.options.groups.map(function(group: string): Object {
+      return manifest[group] || {};
+    });
+
     const auditTree: AuditTree = {
-      name: manifest.name,
+      name: manifest.name || undefined,
       version: manifest.version || undefined,
       install: [],
       remove: [],
       metadata: {
         //TODO: What do we send here? npm sends npm version, node version, etc.
       },
-      requires: Object.assign(
-        {},
-        manifest.dependencies || {},
-        manifest.devDependencies || {},
-        manifest.optionalDependencies || {},
-      ),
+      requires: Object.assign({}, ...requiresGroups),
       integrity: undefined,
       dependencies: {},
+      dev: false,
     };
 
-    this._mapHoistedNodes(auditTree, hoistedTrees);
+    this._mapHoistedNodes(auditTree, hoistedTrees, transitiveDevDeps);
     return auditTree;
   }
 
@@ -224,14 +264,31 @@ export default class Audit {
     return responseJson;
   }
 
+  _insertWorkspacePackagesIntoManifest(manifest: Object, resolver: PackageResolver) {
+    if (resolver.workspaceLayout) {
+      const workspaceAggregatorName = resolver.workspaceLayout.virtualManifestName;
+      const workspaceManifest = resolver.workspaceLayout.workspaces[workspaceAggregatorName].manifest;
+
+      manifest.dependencies = Object.assign(manifest.dependencies || {}, workspaceManifest.dependencies);
+      manifest.devDependencies = Object.assign(manifest.devDependencies || {}, workspaceManifest.devDependencies);
+      manifest.optionalDependencies = Object.assign(
+        manifest.optionalDependencies || {},
+        workspaceManifest.optionalDependencies,
+      );
+    }
+  }
+
   async performAudit(
     manifest: Object,
+    lockfile: Lockfile,
     resolver: PackageResolver,
     linker: PackageLinker,
     patterns: Array<string>,
   ): Promise<AuditVulnerabilityCounts> {
+    this._insertWorkspacePackagesIntoManifest(manifest, resolver);
+    const transitiveDevDeps = getTransitiveDevDependencies(manifest, resolver.workspaceLayout, lockfile);
     const hoistedTrees = await hoistedTreeBuilder(resolver, linker, patterns);
-    const auditTree = this._mapHoistedTreesToAuditTree(manifest, hoistedTrees);
+    const auditTree = this._mapHoistedTreesToAuditTree(manifest, hoistedTrees, transitiveDevDeps);
     this.auditData = await this._fetchAudit(auditTree);
     return this.auditData.metadata.vulnerabilities;
   }
@@ -248,9 +305,14 @@ export default class Audit {
       return;
     }
 
+    const startLoggingAt: number = Math.max(0, this.severityLevels.indexOf(this.options.level));
+
     const reportAdvisory = (resolution: AuditResolution) => {
       const advisory = this.auditData.advisories[resolution.id.toString()];
-      this.reporter.auditAdvisory(resolution, advisory);
+
+      if (this.severityLevels.indexOf(advisory.severity) >= startLoggingAt) {
+        this.reporter.auditAdvisory(resolution, advisory);
+      }
     };
 
     if (Object.keys(this.auditData.advisories).length !== 0) {

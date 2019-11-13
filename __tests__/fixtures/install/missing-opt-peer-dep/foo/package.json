@@ -1,0 +1,12 @@
+{
+  "name": "foo",
+  "version": "1.0.0",
+  "peerDependencies": {
+    "bar": "*"
+  },
+  "peerDependenciesMeta": {
+    "bar": {
+      "optional": true
+    }
+  }
+}

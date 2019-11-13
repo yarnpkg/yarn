@@ -11,26 +11,36 @@ const home = isWin ? process.env.USERPROFILE : process.env.HOME;
 function getRcPaths(name: string, cwd: string): Array<string> {
   const configPaths = [];
 
-  function addConfigPath(...segments) {
+  function pushConfigPath(...segments) {
     configPaths.push(path.join(...segments));
+    if (segments[segments.length - 1] === `.${name}rc`) {
+      configPaths.push(path.join(...segments.slice(0, -1), `.${name}rc.yml`));
+    }
+  }
+
+  function unshiftConfigPath(...segments) {
+    if (segments[segments.length - 1] === `.${name}rc`) {
+      configPaths.unshift(path.join(...segments.slice(0, -1), `.${name}rc.yml`));
+    }
+    configPaths.unshift(path.join(...segments));
   }
 
   if (!isWin) {
-    addConfigPath(etc, name, 'config');
-    addConfigPath(etc, `${name}rc`);
+    pushConfigPath(etc, name, 'config');
+    pushConfigPath(etc, `${name}rc`);
   }
 
   if (home) {
-    addConfigPath(CONFIG_DIRECTORY);
-    addConfigPath(home, '.config', name, 'config');
-    addConfigPath(home, '.config', name);
-    addConfigPath(home, `.${name}`, 'config');
-    addConfigPath(home, `.${name}rc`);
+    pushConfigPath(CONFIG_DIRECTORY);
+    pushConfigPath(home, '.config', name, 'config');
+    pushConfigPath(home, '.config', name);
+    pushConfigPath(home, `.${name}`, 'config');
+    pushConfigPath(home, `.${name}rc`);
   }
 
   // add .yarnrc locations relative to the cwd
   while (true) {
-    configPaths.unshift(path.join(cwd, `.${name}rc`));
+    unshiftConfigPath(cwd, `.${name}rc`);
 
     const upperCwd = path.dirname(cwd);
     if (upperCwd === cwd) {
@@ -45,7 +55,7 @@ function getRcPaths(name: string, cwd: string): Array<string> {
   const envVariable = `${name}_config`.toUpperCase();
 
   if (process.env[envVariable]) {
-    addConfigPath(process.env[envVariable]);
+    pushConfigPath(process.env[envVariable]);
   }
 
   return configPaths;

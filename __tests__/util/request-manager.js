@@ -1,6 +1,7 @@
 /* @flow */
 /* eslint max-len: 0 */
 
+import {OneTimePasswordError} from '../../src/errors.js';
 import {Reporter} from '../../src/reporters/index.js';
 import Config from '../../src/config.js';
 import * as fs from '../../src/util/fs.js';
@@ -208,6 +209,48 @@ for (const statusCode of [403, 442]) {
     });
   });
 }
+
+test('RequestManager.execute one time password error on npm request', async () => {
+  jest.resetModules();
+  jest.mock('request', factory => options => {
+    options.callback(
+      '',
+      {statusCode: 401, headers: {'www-authenticate': 'otp'}},
+      {error: 'You must provide a one-time pass. Upgrade your client to npm@latest in order to use 2FA.'},
+    );
+    return {
+      on: () => {},
+    };
+  });
+
+  try {
+    const config = await Config.create({});
+    await config.requestManager.request({
+      url: 'https://registry.npmjs.org/yarn',
+    });
+  } catch (err) {
+    expect(err).toBeInstanceOf(OneTimePasswordError);
+  }
+});
+
+test('RequestManager.execute one time password error on npm login request', async () => {
+  jest.resetModules();
+  jest.mock('request', factory => options => {
+    options.callback('', {statusCode: 401, headers: {'www-authenticate': 'otp'}}, {ok: false});
+    return {
+      on: () => {},
+    };
+  });
+
+  try {
+    const config = await Config.create({});
+    await config.requestManager.request({
+      url: 'https://registry.npmjs.org/-/user/org.couchdb.user:user',
+    });
+  } catch (err) {
+    expect(err).toBeInstanceOf(OneTimePasswordError);
+  }
+});
 
 // Cloudflare will occasionally return an html response with a 500 status code on some calls
 for (const statusCode of [408, 500, 542]) {

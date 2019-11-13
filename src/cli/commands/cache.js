@@ -31,7 +31,7 @@ export async function getCachedPackagesDirs(config: Config, currentPath: string)
     const candidates = await fs.readdir(packageParentPath);
     invariant(
       candidates.length === 1,
-      `There should only be one folder in a package cache (got ${candidates.join(',')})`,
+      `There should only be one folder in a package cache (got ${candidates.join(',')} in ${packageParentPath})`,
     );
 
     for (const candidate of candidates) {
@@ -40,7 +40,7 @@ export async function getCachedPackagesDirs(config: Config, currentPath: string)
         const subCandidates = await fs.readdir(candidatePath);
         invariant(
           subCandidates.length === 1,
-          `There should only be one folder in a package cache (got ${subCandidates.join(',')})`,
+          `There should only be one folder in a package cache (got ${subCandidates.join(',')} in ${candidatePath})`,
         );
 
         for (const subCandidate of subCandidates) {

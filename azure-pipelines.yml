@@ -1,0 +1,64 @@
+jobs:
+
+- job: Windows
+  pool: 'Hosted VS2017'
+
+  variables:
+    os_name: Windows
+
+  strategy:
+    matrix:
+# Azure is currently timeouting a lot on Win / Node 8
+#      node_8_x:
+#        node_version: 8.x
+      node_10_x:
+        node_version: 10.x
+      node_12_x:
+        node_version: 12.x
+      node_13_x:
+        node_version: 13.x
+
+  steps:
+  - template: scripts/azure-run-tests.yml
+
+- job: Linux
+  pool:
+    vmImage: 'Ubuntu 16.04'
+
+  variables:
+    os_name: Linux
+
+  strategy:
+    matrix:
+      node_8_x:
+        node_version: 8.x
+      node_10_x:
+        node_version: 10.x
+      node_12_x:
+        node_version: 12.x
+      node_13_x:
+        node_version: 13.x
+
+  steps:
+  - template: scripts/azure-run-tests.yml
+
+- job: OSX
+  pool:
+    vmImage: 'macOS 10.13'
+
+  variables:
+    os_name: OSX
+
+  strategy:
+    matrix:
+      node_8_x:
+        node_version: 8.x
+      node_10_x:
+        node_version: 10.x
+      node_12_x:
+        node_version: 12.x
+      node_13_x:
+        node_version: 13.x
+
+  steps:
+  - template: scripts/azure-run-tests.yml

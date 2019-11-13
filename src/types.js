@@ -13,6 +13,20 @@ export type CLIFunction = (config: Config, reporter: Reporter, flags: Object, ar
 type _CLIFunctionReturn = boolean;
 export type CLIFunctionReturn = ?_CLIFunctionReturn | Promise<?_CLIFunctionReturn>;
 
+export type DependencyMeta = {};
+
+export type DependenciesMeta = {
+  [name: string]: DependencyMeta,
+};
+
+export type PeerDependencyMeta = {
+  optional?: boolean,
+};
+
+export type PeerDependenciesMeta = {
+  [name: string]: PeerDependencyMeta,
+};
+
 // dependency request pattern data structure that's used to request dependencies from a
 // PackageResolver
 export type DependencyRequestPattern = {
@@ -42,6 +56,7 @@ export type PackageRemote = {
   resolved?: ?string,
   hash: ?string,
   integrity?: ?string,
+  cacheIntegrity?: ?string,
   packageName?: string,
   registryRemote?: ?PackageRemote,
 };
@@ -131,6 +146,9 @@ export type Manifest = {
   devDependencies?: Dependencies,
   peerDependencies?: Dependencies,
   optionalDependencies?: Dependencies,
+
+  dependenciesMeta?: DependenciesMeta,
+  peerDependenciesMeta?: PeerDependenciesMeta,
 
   bundleDependencies?: Array<string>,
   bundledDependencies?: Array<string>,

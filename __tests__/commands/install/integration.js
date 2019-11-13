@@ -48,6 +48,11 @@ async function mockConstants(base: Config, mocks: Object, cb: (config: Config) =
 beforeEach(request.__resetAuthedRequests);
 afterEach(request.__resetAuthedRequests);
 
+test('install should not copy the .bin folders from the cache', () =>
+  runInstall({}, 'install-no-bin', async config => {
+    expect(await fs.exists(`${config.cwd}/node_modules/is-pnp/.bin`)).toEqual(false);
+  }));
+
 test('install should not hoist packages above their peer dependencies', () =>
   runInstall({}, 'install-should-not-hoist-through-peer-deps', async config => {
     expect(await fs.exists(`${config.cwd}/node_modules/a/node_modules/c`)).toEqual(true);
@@ -512,6 +517,10 @@ test('install renamed packages', () =>
 
     const json2 = await fs.readJson(path.join(dir, 'left-pad2', 'package.json'));
     expect(json2.version).toEqual('1.1.0');
+
+    const json3 = await fs.readJson(path.join(dir, 'unscoped-turf-helpers', 'package.json'));
+    expect(json3.version).toEqual('3.0.16');
+    expect(json3.name).toEqual('@turf/helpers');
   }));
 
 test('install from git cache', () =>
@@ -622,6 +631,11 @@ test('install should be idempotent', () =>
     },
     null,
   ));
+
+test('install should fail to authenticate integrity with incorrect hash and correct sha512', () =>
+  expect(runInstall({}, 'invalid-checksum-good-integrity')).rejects.toMatchObject({
+    message: expect.stringContaining("computed integrity doesn't match our records"),
+  }));
 
 test('install should authenticate integrity field with sha1 checksums', () =>
   runInstall({}, 'install-update-auth-sha1', async config => {
@@ -1114,3 +1128,139 @@ test('install will not warn for missing peerDep when both shallower and deeper',
     const warningMessage = messageParts.every(part => stdout.includes(part));
     expect(warningMessage).toBe(false);
   }));
+
+test('install will warn for missing peer dependencies', () =>
+  runInstall({}, 'missing-peer-dep', (config, reporter, install, getStdout) => {
+    const stdout = getStdout();
+    const messageParts = reporter.lang('unmetPeer', 'undefined').split('undefined');
+    const warningMessage = messageParts.every(part => stdout.includes(part));
+    expect(warningMessage).toBe(true);
+  }));
+
+test('install will not warn for missing optional peer dependencies', () =>
+  runInstall({}, 'missing-opt-peer-dep', (config, reporter, install, getStdout) => {
+    const stdout = getStdout();
+    const messageParts = reporter.lang('unmetPeer', 'undefined').split('undefined');
+    const warningMessage = messageParts.every(part => stdout.includes(part));
+    expect(warningMessage).toBe(false);
+  }));
+
+test('does not check node_modules for extraneous files when --modules-folder used', async () => {
+  // Scenario: https://github.com/yarnpkg/yarn/issues/5419
+  // When `--modules-foler` is passed, yarn should check that directory for extraneous files.
+  // Also, the default node_modules dir, if it exists, should not be cleaned out (marked as extraneous).
+  await runInstall({modulesFolder: './some_modules'}, 'extraneous-node-modules', async (config): Promise<void> => {
+    expect(await fs.exists(`${config.cwd}/some_modules/feed`)).toEqual(true);
+    // Extraneous files in node_modules should not have been cleaned.
+    expect(await fs.exists(`${config.cwd}/node_modules/extra.js`)).toEqual(true);
+    // Extraneous files in some_modules should have been cleaned.
+    expect(await fs.exists(`${config.cwd}/some_modules/extra.js`)).toEqual(false);
+  });
+});
+
+test('install skips the scripts if the yarnrc specifies skip-scripts true', () =>
+  runInstall({}, 'ignore-scripts-by-yarnrc', (config, reporter, install, getStdout) => {
+    const stdout = getStdout();
+
+    const ignoredScriptsMessage = reporter.lang('ignoredScripts');
+    expect(stdout).toMatch(ignoredScriptsMessage);
+  }));
+
+describe('Cache', () => {
+  test('install should cache package without integrity prefix if no integrity field present', () =>
+    runInstall({}, 'install-update-auth-no-integrity-field', async config => {
+      const pkgCacheDir = path.join(
+        config.cwd,
+        '.yarn-cache',
+        `v${constants.CACHE_VERSION}`,
+        'npm-safe-buffer-5.1.1-893312af69b2123def71f57889001671eeb2c853',
+      );
+
+      expect(await fs.exists(pkgCacheDir)).toEqual(true);
+    }));
+
+  test('install should cache package with integrity suffix if integrity field present', () =>
+    runInstall({}, 'install-update-auth-sha512', async config => {
+      const pkgCacheDir = path.join(
+        config.cwd,
+        '.yarn-cache',
+        `v${constants.CACHE_VERSION}`,
+        'npm-safe-buffer-5.1.1-893312af69b2123def71f57889001671eeb2c853-integrity',
+      );
+
+      expect(await fs.exists(pkgCacheDir)).toEqual(true);
+    }));
+
+  test('install should store cached sha1 + sha512 integrity when lockfile has sha1 integrity field', () =>
+    runInstall({}, 'install-update-auth-sha1-safebuffer', async config => {
+      const pkgCacheDir = path.join(
+        config.cwd,
+        '.yarn-cache',
+        `v${constants.CACHE_VERSION}`,
+        'npm-safe-buffer-5.1.1-893312af69b2123def71f57889001671eeb2c853-integrity',
+      );
+      const pkgCacheMetaData = JSON.parse(
+        await fs.readFile(path.join(pkgCacheDir, 'node_modules', 'safe-buffer', constants.METADATA_FILENAME)),
+      );
+      expect(pkgCacheMetaData.remote.cacheIntegrity).toBe(
+        // eslint-disable-next-line max-len
+        'sha512-kKvNJn6Mm93gAczWVJg7wH+wGYWNrDHdWvpUmHyEsgCtIwwo3bqPtV4tR5tuPaUhTOo/kvhVwd8XwwOllGYkbg== sha1-iTMSr2myEj3vcfV4iQAWce6yyFM=',
+      );
+    }));
+
+  test('install should store cached sha1 + sha512 integrity when lockfile has sha512 integrity field', () =>
+    runInstall({}, 'install-update-auth-sha512', async config => {
+      const pkgCacheDir = path.join(
+        config.cwd,
+        '.yarn-cache',
+        `v${constants.CACHE_VERSION}`,
+        'npm-safe-buffer-5.1.1-893312af69b2123def71f57889001671eeb2c853-integrity',
+      );
+      const pkgCacheMetaData = JSON.parse(
+        await fs.readFile(path.join(pkgCacheDir, 'node_modules', 'safe-buffer', constants.METADATA_FILENAME)),
+      );
+      expect(pkgCacheMetaData.remote.cacheIntegrity).toBe(
+        // eslint-disable-next-line max-len
+        'sha512-kKvNJn6Mm93gAczWVJg7wH+wGYWNrDHdWvpUmHyEsgCtIwwo3bqPtV4tR5tuPaUhTOo/kvhVwd8XwwOllGYkbg== sha1-iTMSr2myEj3vcfV4iQAWce6yyFM=',
+      );
+    }));
+
+  test('install should store cached sha1 + sha512 integrity when lockfile has no integrity field', () =>
+    runInstall({}, 'install-update-auth-no-integrity-field', async config => {
+      const pkgCacheDir = path.join(
+        config.cwd,
+        '.yarn-cache',
+        `v${constants.CACHE_VERSION}`,
+        'npm-safe-buffer-5.1.1-893312af69b2123def71f57889001671eeb2c853',
+      );
+      const pkgCacheMetaData = JSON.parse(
+        await fs.readFile(path.join(pkgCacheDir, 'node_modules', 'safe-buffer', constants.METADATA_FILENAME)),
+      );
+
+      expect(pkgCacheMetaData.remote.cacheIntegrity).toBe(
+        // eslint-disable-next-line max-len
+        'sha512-kKvNJn6Mm93gAczWVJg7wH+wGYWNrDHdWvpUmHyEsgCtIwwo3bqPtV4tR5tuPaUhTOo/kvhVwd8XwwOllGYkbg== sha1-iTMSr2myEj3vcfV4iQAWce6yyFM=',
+      );
+    }));
+
+  test('install should fail when cached package integrity does not match lockfile integrity field', () =>
+    expect(runInstall({}, 'install-update-auth-invalid-cache-integrity')).rejects.toThrow(
+      // eslint-disable-next-line max-len
+      'Incorrect integrity when fetching from the cache for "safe-buffer". Cache has "sha512-foo sha1-bar" and remote has "sha1-iTMSr2myEj3vcfV4iQAWce6yyFM="',
+    ));
+
+  test('install should fail when cached package hash does not match remote hash', () =>
+    expect(runInstall({}, 'install-update-auth-invalid-cache-hash')).rejects.toThrow(
+      // eslint-disable-next-line max-len
+      'Incorrect hash when fetching from the cache for "safe-buffer". Cache has "bad-hash" and remote has "893312af69b2123def71f57889001671eeb2c853"',
+    ));
+
+  test('install should not fail cache integrity validation when lockfile has sha1 integrity field', () =>
+    expect(runInstall({}, 'install-update-auth-sha1-with-cache')).resolves.toBeUndefined());
+
+  test('install should not fail cache integrity validation when lockfile has sha512 integrity field', () =>
+    expect(runInstall({}, 'install-update-auth-sha512-with-cache')).resolves.toBeUndefined());
+
+  test('install should not fail cache integrity validation when lockfile has no integrity field', () =>
+    expect(runInstall({}, 'install-update-auth-no-integrity-field-with-cache')).resolves.toBeUndefined());
+});

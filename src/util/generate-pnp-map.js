@@ -173,7 +173,7 @@ async function getPackageInformationStores(
   const normalizeDirectoryPath = (fsPath: string) => {
     let relativePath = normalizePath(path.relative(targetDirectory, resolveOfflineCacheFolder(fsPath)));
 
-    if (!relativePath.match(/^\.{0,2}\//)) {
+    if (!relativePath.match(/^\.{0,2}\//) && !path.isAbsolute(relativePath)) {
       relativePath = `./${relativePath}`;
     }
 

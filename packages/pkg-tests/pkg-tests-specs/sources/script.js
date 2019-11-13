@@ -12,22 +12,18 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
     test(
       `it should run scripts using the same Node than the one used by Yarn`,
       makeTemporaryEnv({scripts: {myScript: `node --version`}}, async ({path, run, source}) => {
-        await makeFakeBinary(`${path}/bin/node`);
+        await makeFakeBinary(`${path}/bin/node`, {exitCode: 1});
 
-        await expect(run(`run`, `myScript`)).resolves.toMatchObject({
-          stdout: `${process.version}\n`,
-        });
+        await expect(run(`run`, `myScript`)).resolves.toBeTruthy();
       }),
     );
 
     test(
       `it should run scripts using the same package manager than the one running the scripts`,
       makeTemporaryEnv({scripts: {myScript: `yarn --version`}}, async ({path, run, source}) => {
-        await makeFakeBinary(`${path}/bin/yarn`);
+        await makeFakeBinary(`${path}/bin/yarn`, {exitCode: 1});
 
-        await expect(run(`run`, `myScript`)).resolves.toMatchObject({
-          stdout: (await run(`--version`)).stdout,
-        });
+        await expect(run(`run`, `myScript`)).resolves.toBeTruthy();
       }),
     );
 
@@ -200,8 +196,24 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
       makeTemporaryEnv({dependencies: {[`no-deps-scripted`]: `1.0.0`}}, async ({path, run, source}) => {
         await run(`install`);
 
-        await expect(source(`require('no-deps-scripted/log.js')`)).resolves.toEqual([100, 200, 300]);
+        await expect(source(`require('no-deps-scripted/log.js')`)).resolves.toEqual([
+          'preinstall',
+          'install',
+          'postinstall',
+        ]);
       }),
+    );
+
+    test(
+      `it should allow dependencies with install scripts to run the binaries exposed by their own dependencies`,
+      makeTemporaryEnv(
+        {
+          dependencies: {[`one-dep-scripted`]: `1.0.0`},
+        },
+        async ({path, run, source}) => {
+          await run(`install`);
+        },
+      ),
     );
   });
 };

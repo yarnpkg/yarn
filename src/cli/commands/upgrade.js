@@ -12,7 +12,7 @@ import {Install} from './install.js';
 
 // used to detect whether a semver range is simple enough to preserve when doing a --latest upgrade.
 // when not matched, the upgraded version range will default to `^` the same as the `add` command would.
-const basicSemverOperatorRegex = new RegExp('^(\\^|~|>|<=|>=)?[^ |&,]+$');
+const basicSemverOperatorRegex = new RegExp('^(\\^|~|>=|<=)?[^ |&,]+$');
 
 // used to detect if a passed parameter is a scope or a package name.
 const validScopeRegex = /^@[a-zA-Z0-9-][a-zA-Z0-9_.-]*\/$/;
@@ -74,7 +74,7 @@ function setUserRequestedPackageVersions(
 }
 
 // this function attempts to determine the range operator on the semver range.
-// this will only handle the simple cases of a semver starting with '^', '~', '>', '>=', '<=', or an exact version.
+// this will only handle the simple cases of a semver starting with '^', '~', '>=', '<=', or an exact version.
 // "exotic" semver ranges will not be handled.
 function getRangeOperator(version): string {
   const result = basicSemverOperatorRegex.exec(version);
@@ -85,7 +85,7 @@ function getRangeOperator(version): string {
 // If an explicit operator was specified using --exact, --tilde, --caret, then that will take precedence.
 function buildPatternToUpgradeTo(dep, flags): string {
   if (dep.latest === 'exotic') {
-    return dep.url;
+    return `${dep.name}@${dep.url}`;
   }
 
   const toLatest = flags.latest;
@@ -158,7 +158,7 @@ export function setFlags(commander: Object) {
     '-C, --caret',
     'install most recent release with the same major version. Only used when --latest is specified.',
   );
-  commander.option('-A', '--audit', 'Run vulnerability audit on installed packages');
+  commander.option('-A, --audit', 'Run vulnerability audit on installed packages');
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {

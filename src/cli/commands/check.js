@@ -39,7 +39,7 @@ export async function verifyTreeCheck(
   }
   // check all dependencies recursively without relying on internal resolver
   const registryName = 'yarn';
-  const registry = config.registries[registryName];
+  const registryFolder = config.registryFolders[0];
   const cwd = config.workspaceRootFolder ? config.lockfileFolder : config.cwd;
   const rootManifest = await config.readManifest(cwd, registryName);
 
@@ -86,7 +86,7 @@ export async function verifyTreeCheck(
   const locationsVisited: Set<string> = new Set();
   while (dependenciesToCheckVersion.length) {
     const dep = dependenciesToCheckVersion.shift();
-    const manifestLoc = path.join(dep.parentCwd, registry.folder, dep.name);
+    const manifestLoc = path.resolve(dep.parentCwd, registryFolder, dep.name);
     if (locationsVisited.has(manifestLoc + `@${dep.version}`)) {
       continue;
     }
@@ -114,19 +114,19 @@ export async function verifyTreeCheck(
     const dependencies = pkg.dependencies;
     if (dependencies) {
       for (const subdep in dependencies) {
-        const subDepPath = path.join(manifestLoc, registry.folder, subdep);
+        const subDepPath = path.resolve(manifestLoc, registryFolder, subdep);
         let found = false;
         const relative = path.relative(cwd, subDepPath);
-        const locations = path.normalize(relative).split(registry.folder + path.sep).filter(dir => !!dir);
+        const locations = path.normalize(relative).split(registryFolder + path.sep).filter(dir => !!dir);
         locations.pop();
         while (locations.length >= 0) {
           let possiblePath;
           if (locations.length > 0) {
-            possiblePath = path.join(cwd, registry.folder, locations.join(path.sep + registry.folder + path.sep));
+            possiblePath = path.join(cwd, registryFolder, locations.join(path.sep + registryFolder + path.sep));
           } else {
             possiblePath = cwd;
           }
-          if (await fs.exists(path.join(possiblePath, registry.folder, subdep))) {
+          if (await fs.exists(path.resolve(possiblePath, registryFolder, subdep))) {
             dependenciesToCheckVersion.push({
               name: subdep,
               originalKey: `${dep.originalKey}#${subdep}`,
@@ -275,7 +275,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     const remoteType = pkg._reference.remote.type;
     const isLinkedDependency =
       remoteType === 'link' || remoteType === 'workspace' || (remoteType === 'file' && config.linkFileDependencies);
-    if (isLinkedDependency) {
+    const isResolution = pkg._reference.hint === 'resolution';
+    if (isLinkedDependency || isResolution) {
       continue;
     }
 

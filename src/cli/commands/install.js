@@ -1,5 +1,6 @@
 /* @flow */
 
+import objectPath from 'object-path';
 import type {InstallationMethod} from '../../util/yarn-version.js';
 import type {Reporter} from '../../reporters/index.js';
 import type {ReporterSelectOption} from '../../reporters/types.js';
@@ -56,7 +57,6 @@ type Flags = {
   har: boolean,
   ignorePlatform: boolean,
   ignoreEngines: boolean,
-  ignoreScripts: boolean,
   ignoreOptional: boolean,
   linkDuplicates: boolean,
   force: boolean,
@@ -114,6 +114,10 @@ function getUpdateCommand(installationMethod: InstallationMethod): ?string {
 
   if (installationMethod === 'apk') {
     return 'apk update && apk add -u yarn';
+  }
+
+  if (installationMethod === 'portage') {
+    return 'sudo emerge --sync && sudo emerge -au sys-apps/yarn';
   }
 
   return null;
@@ -282,8 +286,9 @@ export class Install {
 
       this.resolutionMap.init(this.resolutions);
       for (const packageName of Object.keys(this.resolutionMap.resolutionsByPackage)) {
+        const optional = objectPath.has(manifest.optionalDependencies, packageName) && this.flags.ignoreOptional;
         for (const {pattern} of this.resolutionMap.resolutionsByPackage[packageName]) {
-          resolutionDeps = [...resolutionDeps, {registry, pattern, optional: false, hint: 'resolution'}];
+          resolutionDeps = [...resolutionDeps, {registry, pattern, optional, hint: 'resolution'}];
         }
       }
 
@@ -555,6 +560,11 @@ export class Install {
       this.reporter.warn(this.reporter.lang('npmLockfileWarning'));
     }
 
+    if (this.config.plugnplayEnabled) {
+      this.reporter.info(this.reporter.lang('plugnplaySuggestV2L1'));
+      this.reporter.info(this.reporter.lang('plugnplaySuggestV2L2'));
+    }
+
     let flattenedTopLevelPatterns: Array<string> = [];
     const steps: Array<(curr: number, total: number) => Promise<{bailout: boolean} | void>> = [];
     const {
@@ -572,14 +582,14 @@ export class Install {
       this.scripts.setArtifacts(artifacts);
     }
 
-    if (!this.flags.ignoreEngines && typeof manifest.engines === 'object') {
+    if (compatibility.shouldCheck(manifest, this.flags)) {
       steps.push(async (curr: number, total: number) => {
         this.reporter.step(curr, total, this.reporter.lang('checkingManifest'), emoji.get('mag'));
-        await compatibility.checkOne({_reference: {}, ...manifest}, this.config, this.flags.ignoreEngines);
+        await this.checkCompatibility();
       });
     }
 
-    const audit = new Audit(this.config, this.reporter);
+    const audit = new Audit(this.config, this.reporter, {groups: constants.OWNED_DEPENDENCY_TYPES});
     let auditFoundProblems = false;
 
     steps.push((curr: number, total: number) =>
@@ -609,6 +619,7 @@ export class Install {
           const mergedManifest = Object.assign({}, ...Object.values(preparedManifests).map(m => m.object));
           const auditVulnerabilityCounts = await audit.performAudit(
             mergedManifest,
+            this.lockfile,
             this.resolver,
             this.linker,
             topLevelPatterns,
@@ -682,10 +693,10 @@ export class Install {
           curr,
           total,
           this.flags.force ? this.reporter.lang('rebuildingPackages') : this.reporter.lang('buildingFreshPackages'),
-          emoji.get('page_with_curl'),
+          emoji.get('hammer'),
         );
 
-        if (this.flags.ignoreScripts) {
+        if (this.config.ignoreScripts) {
           this.reporter.warn(this.reporter.lang('ignoredScripts'));
         } else {
           await this.scripts.init(flattenedTopLevelPatterns);
@@ -741,6 +752,11 @@ export class Install {
     this.maybeOutputUpdate();
     this.config.requestManager.clearCache();
     return flattenedTopLevelPatterns;
+  }
+
+  async checkCompatibility(): Promise<void> {
+    const {manifest} = await this.fetchRequestFromCwd();
+    await compatibility.checkOne(manifest, this.config, this.flags.ignoreEngines);
   }
 
   async persistChanges(): Promise<void> {

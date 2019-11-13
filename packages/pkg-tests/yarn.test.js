@@ -21,7 +21,7 @@ const pkgDriver = generatePkgDriver({
   async runDriver(
     path,
     [command, ...args],
-    {cwd, projectFolder, registryUrl, plugNPlay, plugnplayShebang, plugnplayBlacklist},
+    {cwd, projectFolder, registryUrl, plugNPlay, plugnplayShebang, plugnplayBlacklist, env},
   ) {
     let beforeArgs = [];
     let middleArgs = [];
@@ -49,6 +49,7 @@ const pkgDriver = generatePkgDriver({
             [`PATH`]: `${path}/bin${delimiter}${process.env.PATH}`,
           },
           plugNPlay ? {[`YARN_PLUGNPLAY_OVERRIDE`]: plugNPlay ? `1` : `0`} : {},
+          env,
         ),
         cwd: cwd || path,
       },
@@ -64,6 +65,10 @@ const pkgDriver = generatePkgDriver({
     return res;
   },
 });
+
+if (process.platform === `win32`) {
+  jest.setTimeout(10000);
+}
 
 beforeEach(async () => {
   await startPackageServer();

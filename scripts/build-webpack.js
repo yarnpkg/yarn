@@ -85,6 +85,15 @@ const compiler = webpack({
         test: /rx\.lite\.aggregates\.js/,
         use: 'imports-loader?define=>false'
       },
+      {
+        test: /hash-for-dep\/lib\/pkg.js/,
+        loader: 'string-replace-loader',
+        options: {
+          search: 'require[(]([^\'"])',
+          replace: '__non_webpack_require__($1',
+          flags: 'g'
+        }
+      }
     ],
   },
   plugins: [
@@ -121,7 +130,7 @@ const compilerLegacy = webpack({
     rules: [
       {
         test: /\.js$/,
-        exclude: /node_modules/,
+        exclude: /node_modules[\\\/](?!inquirer)/,
         use: [
           {
             loader:'babel-loader',

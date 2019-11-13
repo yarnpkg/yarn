@@ -364,3 +364,9 @@ exports.generatePkgDriver = function generatePkgDriver({runDriver}: {|runDriver:
 
   return withConfig({});
 };
+
+exports.testIf = function testIf(condition, ...args) {
+  if (condition()) {
+    test(...args);
+  }
+};
