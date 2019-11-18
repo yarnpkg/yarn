@@ -1,19 +1,7 @@
 /* @flow */
 
 jest.mock('../../src/util/git/git-spawn.js', () => ({
-  spawn: jest.fn(([command]) => {
-    switch (command) {
-      case 'ls-remote':
-        return `Identity added: /Users/example/.ssh/id_dsa (/Users/example/.ssh/id_dsa)
-ref: refs/heads/master  HEAD
-7a053e2ca07d19b2e2eebeeb0c27edaacfd67904        HEAD`;
-      case 'rev-list':
-        return Promise.resolve('7a053e2ca07d19b2e2eebeeb0c27edaacfd67904 Fix ...');
-      case 'show-ref':
-        return `7a053e2ca07d19b2e2eebeeb0c27edaacfd67904 refs/remotes/origin/HEAD`;
-    }
-    return Promise.resolve('');
-  }),
+  spawn: jest.fn(),
 }));
 
 import Config from '../../src/config.js';
@@ -189,44 +177,97 @@ test('secureGitUrl', async function(): Promise<void> {
   expect(gitURL.repository).toEqual('https://github.com/yarnpkg/yarn.git');
 });
 
-test('resolveDefaultBranch when local', async () => {
-  const spawnGitMock = (spawnGit: any).mock;
-  const config = await Config.create();
-  const git = new Git(
-    config,
-    {
-      protocol: 'file:',
-      hostname: undefined,
-      repository: 'example',
-    },
-    '',
-  );
-  expect(await git.resolveDefaultBranch()).toEqual({
-    sha: '7a053e2ca07d19b2e2eebeeb0c27edaacfd67904',
-    ref: undefined,
-  });
-  const lastCall = spawnGitMock.calls[spawnGitMock.calls.length - 1];
-  expect(lastCall[0]).toContain('show-ref');
-});
+describe('resolveDefaultBranch()', () => {
+  const DEFAULT_LS_REMOTE = `ref: refs/heads/master  HEAD
+7a053e2ca07d19b2e2eebeeb0c27edaacfd67904        HEAD`;
+  const DEFAULT_REV_LIST = '7a053e2ca07d19b2e2eebeeb0c27edaacfd67904 Fix ...';
+  const DEFAULT_SHOW_REF = '7a053e2ca07d19b2e2eebeeb0c27edaacfd67904 refs/remotes/origin/HEAD';
+  const spawnWrapper = message => ([command]) => {
+    switch (command) {
+      case 'ls-remote':
+        return Promise.resolve(message);
+      case 'rev-list':
+        return Promise.resolve(DEFAULT_REV_LIST);
+      case 'show-ref':
+        return Promise.resolve(DEFAULT_SHOW_REF);
+    }
+    return Promise.resolve('');
+  };
 
-test('resolveDefaultBranch when remote', async () => {
-  const spawnGitMock = (spawnGit: any).mock;
-  const config = await Config.create();
-  const git = new Git(
-    config,
+  const remoteWrapper = message => async () => {
+    const spawnGitMock = (spawnGit: any).mock;
+    const config = await Config.create();
+    const git = new Git(
+      config,
+      {
+        protocol: 'https:',
+        hostname: '//example.com',
+        repository: 'example',
+      },
+      '',
+    );
+    (spawnGit: any).mockImplementation(spawnWrapper(message));
+    expect(await git.resolveDefaultBranch()).toEqual({
+      sha: '7a053e2ca07d19b2e2eebeeb0c27edaacfd67904',
+      ref: 'refs/heads/master',
+    });
+    const lastCall = spawnGitMock.calls[spawnGitMock.calls.length - 1];
+    expect(lastCall[0]).toContain('ls-remote');
+  };
+
+  interface TestCase {
+    comment: string,
+    message: string,
+  }
+  const testCases: TestCase[] = [
     {
-      protocol: 'https:',
-      hostname: '//example.com',
-      repository: 'example',
+      comment: 'when remote',
+      message: '',
     },
-    '',
-  );
-  expect(await git.resolveDefaultBranch()).toEqual({
-    sha: '7a053e2ca07d19b2e2eebeeb0c27edaacfd67904',
-    ref: 'refs/heads/master',
+    {
+      comment: 'when remote with "Identity added" warning message',
+      message: 'Identity added: /Users/example/.ssh/id_dsa (/Users/example/.ssh/id_dsa)',
+    },
+    {
+      comment: 'when remote with "Failed to add the host" warning message',
+      message: 'Failed to add the host to the list of known hosts (/root/.ssh/known_hosts).',
+    },
+    {
+      comment: 'when remote with "Warning:" message',
+      message: `Warning: Permanently added 'gitlab.xxxxx.com' (RSA) to the list of known hosts.`,
+    },
+    {
+      comment: 'when remote with "fatal:" error message',
+      message: 'fatal: unable to get credential storage lock: File exists',
+    },
+  ];
+
+  test('when local', async () => {
+    const spawnGitMock = (spawnGit: any).mock;
+    const config = await Config.create();
+    const git = new Git(
+      config,
+      {
+        protocol: 'file:',
+        hostname: undefined,
+        repository: 'example',
+      },
+      '',
+    );
+    (spawnGit: any).mockImplementation(spawnWrapper(''));
+    expect(await git.resolveDefaultBranch()).toEqual({
+      sha: '7a053e2ca07d19b2e2eebeeb0c27edaacfd67904',
+      ref: undefined,
+    });
+    const lastCall = spawnGitMock.calls[spawnGitMock.calls.length - 1];
+    expect(lastCall[0]).toContain('show-ref');
   });
-  const lastCall = spawnGitMock.calls[spawnGitMock.calls.length - 1];
-  expect(lastCall[0]).toContain('ls-remote');
+
+  for (const testCase of testCases) {
+    const message = `${testCase.message}
+${DEFAULT_LS_REMOTE}`;
+    test(testCase.comment, remoteWrapper(message));
+  }
 });
 
 test('resolveCommit', async () => {
