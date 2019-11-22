@@ -4,18 +4,21 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Folders like `.cache` won't be pruned from the `node_modules` after each install.
+
+  [#7699](https://github.com/yarnpkg/yarn/pull/7699) - [**Maël Nison**](https://twitter.com/arcanis)
+
 - Correctly installs workspace child dependencies when workspace child not symlinked to root.
 
   [#7289](https://github.com/yarnpkg/yarn/pull/7289) - [**Daniel Tschinder**](https://github.com/danez)
 
-- Makes running scripts with Plug'n Play possible on node 13
+- Makes running scripts with Plug'n Play possible on node 13.
 
   [#7650](https://github.com/yarnpkg/yarn/pull/7650) - [**Sander Verweij**](https://github.com/sverweij)
 
 - Change run command to check cwd/node_modules/.bin for commands. Fixes run in workspaces.
 
   [#7151](https://github.com/yarnpkg/yarn/pull/7151) - [**Jeff Valore**](https://twitter.com/codingwithspike)
-
 
 ## 1.19.1
 
