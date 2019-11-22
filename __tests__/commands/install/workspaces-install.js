@@ -103,6 +103,25 @@ test.concurrent('install should install unhoistable dependencies in workspace no
   });
 });
 
+test.concurrent(
+  'install should install unhoistable dependencies in workspace node_modules even when no symlink exists',
+  (): Promise<void> => {
+    return runInstall({}, 'workspaces-install-conflict-without-symlink', async (config): Promise<void> => {
+      // node_modules/isarray@1.0.0
+      let packageFile = await fs.readFile(path.join(config.cwd, 'node_modules', 'isarray', 'package.json'));
+      expect(JSON.parse(packageFile).version).toEqual('1.0.0');
+
+      // node_modules/arrify@1.0.0
+      packageFile = await fs.readFile(path.join(config.cwd, 'node_modules', 'arrify', 'package.json'));
+      expect(JSON.parse(packageFile).version).toEqual('1.0.0');
+
+      // node_modules/arrify/isarray@2.0.0
+      packageFile = await fs.readFile(path.join(config.cwd, 'arrify', 'node_modules', 'isarray', 'package.json'));
+      expect(JSON.parse(packageFile).version).toEqual('2.0.0');
+    });
+  },
+);
+
 test.concurrent('install should link workspaces that refer each other', (): Promise<void> => {
   return runInstall({}, 'workspaces-install-link', async (config): Promise<void> => {
     // packages/workspace-1/node_modules/left-pad - missing because it is hoisted to the root
