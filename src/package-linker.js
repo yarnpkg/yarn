@@ -350,6 +350,10 @@ export default class PackageLinker {
               for (const subfile of await fs.readdir(filepath)) {
                 possibleExtraneous.add(path.join(filepath, subfile));
               }
+            } else if (file[0] === '.') {
+              if (!(await fs.lstat(filepath)).isDirectory()) {
+                possibleExtraneous.add(filepath);
+              }
             } else {
               possibleExtraneous.add(filepath);
             }
