@@ -1,0 +1,11 @@
+{
+  "name": "my-project",
+  "private": true,
+  "dependencies": {
+    "arrify": "1.0.0",
+    "isarray": "1.0.0"
+  },
+  "workspaces": [
+    "arrify"
+  ]
+}

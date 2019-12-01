@@ -3,7 +3,7 @@
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import buildSubCommands from './_build-sub-commands.js';
-import {getRcConfigForCwd} from '../../rc.js';
+import {getRcConfigForFolder} from '../../rc.js';
 import * as fs from '../../util/fs.js';
 import {stringify} from '../../lockfile';
 
@@ -145,7 +145,7 @@ const {run, setFlags, examples} = buildSubCommands('policies', {
     reporter.log(`Downloading ${chalk.green(bundleUrl)}...`);
 
     const bundle = await fetchBundle(config, bundleUrl);
-    const rc = getRcConfigForCwd(config.lockfileFolder, []);
+    const rc = getRcConfigForFolder(config.lockfileFolder);
 
     const yarnPath = path.resolve(config.lockfileFolder, `.yarn/releases/yarn-${bundleVersion}.js`);
     reporter.log(`Saving it into ${chalk.magenta(yarnPath)}...`);
