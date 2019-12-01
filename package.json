@@ -1,7 +1,7 @@
 {
   "name": "midgard-yarn",
   "installationMethod": "unknown",
-  "version": "1.20.0-0",
+  "version": "1.20.0",
   "license": "BSD-2-Clause",
   "preferGlobal": true,
   "description": "📦🐈 Fast, reliable, and secure dependency management.",
