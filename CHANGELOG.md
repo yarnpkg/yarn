@@ -4,6 +4,12 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Implements `yarn init --install berry`
+
+  [#7723](https://github.com/yarnpkg/yarn/pull/7723) - [**Maël Nison**](https://twitter.com/arcanis)
+
+## 1.19.2
+
 - Folders like `.cache` won't be pruned from the `node_modules` after each install.
 
   [#7699](https://github.com/yarnpkg/yarn/pull/7699) - [**Maël Nison**](https://twitter.com/arcanis)
