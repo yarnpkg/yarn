@@ -4,6 +4,9 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Change run command to prioritize cwd/node_modules/.bin. Fixes run/bin in workspaces when the same binary is hoisted and installed in a workspace package.
+  [#7748](https://github.com/yarnpkg/yarn/issues/7748) - [**priceld**](https://github.com/priceld)
+
 - Prints workspace names with `yarn workspaces` (silence with `-s`)
 
   [#7722](https://github.com/yarnpkg/yarn/pull/7722) - [**Orta**](https://twitter.com/orta)
