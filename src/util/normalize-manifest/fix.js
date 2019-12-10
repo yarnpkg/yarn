@@ -2,7 +2,7 @@
 
 import {MANIFEST_FIELDS} from '../../constants';
 import type {Reporter} from '../../reporters/index.js';
-import {isValidLicense} from './util.js';
+import {isValidBin, isValidLicense} from './util.js';
 import {normalizePerson, extractDescription} from './util.js';
 import {hostedGitFragmentToGitUrl} from '../../resolvers/index.js';
 import inferLicense from './infer-license.js';
@@ -11,6 +11,8 @@ import * as fs from '../fs.js';
 const semver = require('semver');
 const path = require('path');
 const url = require('url');
+
+const VALID_BIN_KEYS = /^[a-z0-9_-]+$/i;
 
 const LICENSE_RENAMES: {[key: string]: ?string} = {
   'MIT/X11': 'MIT',
@@ -157,6 +159,22 @@ export default (async function(
     // Remove scoped package name for consistency with NPM's bin field fixing behaviour
     const name = info.name.replace(/^@[^\/]+\//, '');
     info.bin = {[name]: info.bin};
+  } else {
+    delete info.bin;
+  }
+
+  // Validate that the bin entries reference only files within their package, and that
+  // their name is a valid file name
+  if (typeof info.bin === 'object' && info.bin !== null) {
+    const bin: Object = info.bin;
+    for (const key of Object.keys(bin)) {
+      const target = bin[key];
+      if (!VALID_BIN_KEYS.test(key) || !isValidBin(target)) {
+        delete bin[key];
+      } else {
+        bin[key] = path.normalize(target);
+      }
+    }
   }
 
   // bundleDependencies is an alias for bundledDependencies
