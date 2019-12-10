@@ -230,3 +230,31 @@ test('runs script with custom script-shell', (): Promise<void> =>
       customShell: '/usr/bin/dummy',
     });
   }));
+
+test('runs workspace bin before hoisted bin', (): Promise<void> =>
+  runRunInWorkspacePackage('packages/pkg1', ['duplicated-bin'], {}, 'workspace-bins', (config): ?Promise<void> => {
+    const expectedCwd = path.join(config.cwd, 'packages', 'pkg1');
+    const script = path.join(expectedCwd, 'node_modules', '.bin', 'duplicated-bin');
+
+    expect(execCommand).toBeCalledWith({
+      stage: 'duplicated-bin',
+      config,
+      cmd: script,
+      cwd: expectedCwd,
+      isInteractive: true,
+    });
+  }));
+
+test('runs hoisted bin if workspace bin is not found', (): Promise<void> =>
+  runRunInWorkspacePackage('packages/pkg1', ['hoisted-bin'], {}, 'workspace-bins', (config): ?Promise<void> => {
+    const expectedCwd = path.join(config.cwd, 'packages', 'pkg1');
+    const script = path.join(config.cwd, 'node_modules', '.bin', 'hoisted-bin');
+
+    expect(execCommand).toBeCalledWith({
+      stage: 'hoisted-bin',
+      config,
+      cmd: script,
+      cwd: expectedCwd,
+      isInteractive: true,
+    });
+  }));
