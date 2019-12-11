@@ -60,6 +60,24 @@ Array [
 ]
 `;
 
+exports[`dangerous bin name: dangerous bin name 1`] = `
+Array [
+  "foo: Invalid bin entry for \\"/tmp/foo\\" (in \\"foo\\").",
+  "foo: Invalid bin entry for \\"../tmp/foo\\" (in \\"foo\\").",
+  "foo: Invalid bin entry for \\"tmp/../../foo\\" (in \\"foo\\").",
+  "foo: No license field",
+]
+`;
+
+exports[`dangerous bin values: dangerous bin values 1`] = `
+Array [
+  "foo: Invalid bin entry for \\"foo\\" (in \\"foo\\").",
+  "foo: Invalid bin entry for \\"bar\\" (in \\"foo\\").",
+  "foo: Invalid bin entry for \\"baz\\" (in \\"foo\\").",
+  "foo: No license field",
+]
+`;
+
 exports[`dedupe all trivial dependencies: dedupe all trivial dependencies 1`] = `
 Array [
   "No license field",
@@ -92,6 +110,7 @@ Array [
 
 exports[`empty bin string: empty bin string 1`] = `
 Array [
+  "foo: Invalid bin field for \\"foo\\".",
   "foo: No license field",
 ]
 `;
