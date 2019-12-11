@@ -92,6 +92,7 @@ Array [
 
 exports[`empty bin string: empty bin string 1`] = `
 Array [
+  "foo: Invalid bin field for \\"foo\\".",
   "foo: No license field",
 ]
 `;
