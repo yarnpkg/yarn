@@ -5,7 +5,7 @@ import type {PersonObject} from '../../types.js';
 const path = require('path');
 const validateLicense = require('validate-npm-package-license');
 
-const PARENT_PATH = /^\.\.([\\\/]|$)/g;
+const PARENT_PATH = /^\.\.([\\\/]|$)/;
 
 export function isValidLicense(license: string): boolean {
   return !!license && validateLicense(license).validForNewPackages;
