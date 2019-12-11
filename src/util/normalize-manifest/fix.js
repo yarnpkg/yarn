@@ -159,8 +159,6 @@ export default (async function(
     // Remove scoped package name for consistency with NPM's bin field fixing behaviour
     const name = info.name.replace(/^@[^\/]+\//, '');
     info.bin = {[name]: info.bin};
-  } else {
-    delete info.bin;
   }
 
   // Validate that the bin entries reference only files within their package, and that
@@ -171,12 +169,12 @@ export default (async function(
       const target = bin[key];
       if (!VALID_BIN_KEYS.test(key) || !isValidBin(target)) {
         delete bin[key];
-        warn(reporter.lang('invalidBinEntry', info.name));
+        warn(reporter.lang('invalidBinEntry', info.name, key));
       } else {
         bin[key] = path.normalize(target);
       }
     }
-  } else {
+  } else if (typeof info.bin !== 'undefined') {
     delete info.bin;
     warn(reporter.lang('invalidBinField', info.name));
   }
