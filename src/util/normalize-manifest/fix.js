@@ -171,10 +171,14 @@ export default (async function(
       const target = bin[key];
       if (!VALID_BIN_KEYS.test(key) || !isValidBin(target)) {
         delete bin[key];
+        warn(reporter.lang('invalidBinEntry', info.name));
       } else {
         bin[key] = path.normalize(target);
       }
     }
+  } else {
+    delete info.bin;
+    warn(reporter.lang('invalidBinField', info.name));
   }
 
   // bundleDependencies is an alias for bundledDependencies
