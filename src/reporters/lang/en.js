@@ -281,7 +281,7 @@ const messages = {
   whyFinding: 'Finding dependency',
   whyCalculating: 'Calculating file sizes',
   whyUnknownMatch: "We couldn't find a match!",
-  whyInitGraph: 'Initialising dependency graph',
+  whyInitGraph: 'Initializing dependency graph',
   whyWhoKnows: "We don't know why this module exists",
   whyDiskSizeWithout: 'Disk size without dependencies: $0',
   whyDiskSizeUnique: 'Disk size with unique dependencies: $0',
