@@ -228,10 +228,11 @@ export async function makeEnv(
       }
     }
 
-    // Note that NODE_OPTIONS doesn't support any style of quoting its arguments at the moment
-    // For this reason, it won't work if the user has a space inside its $PATH
+    // As of node 12+, NODE_OPTIONS does support quoting its arguments
+    // If the user has a space in its $PATH, we quote the path and hope the user uses node 12+
+    // it will fail if not but it would have thrown either way without quoting...
     env.NODE_OPTIONS = env.NODE_OPTIONS || '';
-    env.NODE_OPTIONS = `--require ${pnpFile} ${env.NODE_OPTIONS}`;
+    env.NODE_OPTIONS = `--require ${quotePathIfNeeded(pnpFile)} ${env.NODE_OPTIONS}`;
   }
 
   pathParts.unshift(await getWrappersFolder(config));
@@ -240,6 +241,10 @@ export async function makeEnv(
   env[constants.ENV_PATH_KEY] = pathParts.join(path.delimiter);
 
   return env;
+}
+
+function quotePathIfNeeded(p: string): string {
+  return /\s/.test(p) ? JSON.stringify(p) : p;
 }
 
 export async function executeLifecycleScript({

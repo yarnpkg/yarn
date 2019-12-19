@@ -23,7 +23,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   let nodeOptions = process.env.NODE_OPTIONS || '';
   if (await fs.exists(pnpPath)) {
-    nodeOptions = `--require ${pnpPath} ${nodeOptions}`;
+    // As of node 12+, NODE_OPTIONS does support quoting its arguments
+    // If the user has a space in its $PATH, we quote the path and hope the user uses node 12+
+    // it will fail if not but it would have thrown either way without quoting...
+    nodeOptions = `--require ${quotePathIfNeeded(pnpPath)} ${nodeOptions}`;
   }
 
   try {
@@ -35,4 +38,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   } catch (err) {
     throw err;
   }
+}
+
+function quotePathIfNeeded(p: string): string {
+  return /\s/.test(p) ? JSON.stringify(p) : p;
 }
