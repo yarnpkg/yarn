@@ -49,13 +49,12 @@ test('workspaces info should list the workspaces', (): Promise<void> => {
 });
 
 test('workspaces run should spawn command for each workspace', (): Promise<void> => {
-  const originalArgs = ['run', 'script', 'arg1', '--flag1'];
-  return runWorkspaces({originalArgs}, ['run', 'script', 'arg1', '--flag1'], 'run-basic', config => {
-    expect(spawn).toHaveBeenCalledWith(NODE_BIN_PATH, [YARN_BIN_PATH, 'script', 'arg1', '--flag1'], {
+  return runWorkspaces({}, ['run', 'script', 'arg1', '--flag1'], 'run-basic', config => {
+    expect(spawn).toHaveBeenCalledWith(NODE_BIN_PATH, [YARN_BIN_PATH, 'run', 'script', 'arg1', '--flag1'], {
       stdio: 'inherit',
       cwd: path.join(fixturesLoc, 'run-basic', 'packages', 'workspace-child-1'),
     });
-    expect(spawn).toHaveBeenCalledWith(NODE_BIN_PATH, [YARN_BIN_PATH, 'script', 'arg1', '--flag1'], {
+    expect(spawn).toHaveBeenCalledWith(NODE_BIN_PATH, [YARN_BIN_PATH, 'run', 'script', 'arg1', '--flag1'], {
       stdio: 'inherit',
       cwd: path.join(fixturesLoc, 'run-basic', 'packages', 'workspace-child-2'),
     });
