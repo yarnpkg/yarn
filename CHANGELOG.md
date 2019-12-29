@@ -4,6 +4,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Passes arguments follwing `--` when running a workspace script (`yarn workspace pkg run command -- arg`)
+
+  [#7776](https://github.com/yarnpkg/yarn/pull/7776) - [**Jeff Valore**](https://twitter.com/rally25rs)
+
 - Prints workspace names with `yarn workspaces` (silence with `-s`)
 
   [#7722](https://github.com/yarnpkg/yarn/pull/7722) - [**Orta**](https://twitter.com/orta)
