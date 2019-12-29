@@ -203,7 +203,7 @@ export async function main({
   const PROXY_COMMANDS = {
     run: 1, // yarn run {command}
     create: 1, // yarn create {project}
-    node: 1, // yarn node {file}
+    node: 0, // yarn node
     workspaces: 1, // yarn workspaces {command}
     workspace: 2, // yarn workspace {package} {command}
   };
