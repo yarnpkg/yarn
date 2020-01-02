@@ -4,6 +4,66 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
 ## Master
 
+- Prints workspace names with `yarn workspaces` (silence with `-s`)
+
+  [#7722](https://github.com/yarnpkg/yarn/pull/7722) - [**Orta**](https://twitter.com/orta)
+
+- Implements `yarn init --install berry`
+
+  [#7723](https://github.com/yarnpkg/yarn/pull/7723) - [**Maël Nison**](https://twitter.com/arcanis)
+
+## 1.19.2
+
+- Folders like `.cache` won't be pruned from the `node_modules` after each install.
+
+  [#7699](https://github.com/yarnpkg/yarn/pull/7699) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Correctly installs workspace child dependencies when workspace child not symlinked to root.
+
+  [#7289](https://github.com/yarnpkg/yarn/pull/7289) - [**Daniel Tschinder**](https://github.com/danez)
+
+- Makes running scripts with Plug'n Play possible on node 13.
+
+  [#7650](https://github.com/yarnpkg/yarn/pull/7650) - [**Sander Verweij**](https://github.com/sverweij)
+
+- Change run command to check cwd/node_modules/.bin for commands. Fixes run in workspaces.
+
+  [#7151](https://github.com/yarnpkg/yarn/pull/7151) - [**Jeff Valore**](https://twitter.com/codingwithspike)
+
+## 1.19.1
+
+**Important:** This release contains a cache bump. It will cause the very first install following the upgrade to take slightly more time, especially if you don't use the [Offline Mirror](https://yarnpkg.com/blog/2016/11/24/offline-mirror/) feature. After that everything will be back to normal.
+
+- Computes the `--modules-folder` & friends paths based on the cwd.
+
+  [#7607](https://github.com/yarnpkg/yarn/pull/7607) - [**mbpreble**](https://github.com/mbpreble)
+
+- Stores the sha512 in the cache even when not provided by the server.
+
+  [#7591](https://github.com/yarnpkg/yarn/pull/7591) - [**Maël Nison**](https://twitter.com/arcanis) / [#7595](https://github.com/yarnpkg/yarn/pull/7595) - [**Michael**](https://github.com/Blasz)
+
+- Uses the right Node binary when using `yarn-path`.
+
+  [#7592](https://github.com/yarnpkg/yarn/pull/7592) - [**Maël Nison**](https://twitter.com/arcanis)
+
+## 1.19.0
+
+**Important:** This release contains a cache bump. It will cause the very first install following the upgrade to take slightly more time, especially if you don't use the [Offline Mirror](https://yarnpkg.com/blog/2016/11/24/offline-mirror/) feature. After that everything will be back to normal.
+
+- Fixes a potential vulnerability regarding how the build artifacts are stored
+
+  Reported by [**ChALkeR**](https://github.com/ChALkeR), fixed by [**Maël Nison**](https://twitter.com/arcanis)
+
+## 1.18.0
+
+- Suggests using the Yarn 2 development trunk on PnP-enabled projects
+
+  [#7512](https://github.com/yarnpkg/yarn/pull/7512) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Preserves linked packages when calling `yarn create`
+
+  [#7543](https://github.com/yarnpkg/yarn/pull/7543) - [**Nick McCurdy**](https://github.com/nickmccurdy)
+
 - Fixes the offline mirror filenames when using Verdaccio
 
   [#7499](https://github.com/yarnpkg/yarn/pull/7499) - [**xv2**](https://github.com/xv2)

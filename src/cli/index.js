@@ -509,21 +509,26 @@ export async function main({
 
   const cwd = command.shouldRunInCurrentCwd ? commander.cwd : findProjectRoot(commander.cwd);
 
+  const folderOptionKeys = ['linkFolder', 'globalFolder', 'preferredCacheFolder', 'cacheFolder', 'modulesFolder'];
+
+  // Resolve all folder options relative to cwd
+  const resolvedFolderOptions = {};
+  folderOptionKeys.forEach(folderOptionKey => {
+    const folderOption = commander[folderOptionKey];
+    const resolvedFolderOption = folderOption ? path.resolve(commander.cwd, folderOption) : folderOption;
+    resolvedFolderOptions[folderOptionKey] = resolvedFolderOption;
+  });
+
   await config
     .init({
       cwd,
       commandName,
-
+      ...resolvedFolderOptions,
       enablePnp: commander.pnp,
       disablePnp: commander.disablePnp,
       enableDefaultRc: commander.defaultRc,
       extraneousYarnrcFiles: commander.useYarnrc,
       binLinks: commander.binLinks,
-      modulesFolder: commander.modulesFolder,
-      linkFolder: commander.linkFolder,
-      globalFolder: commander.globalFolder,
-      preferredCacheFolder: commander.preferredCacheFolder,
-      cacheFolder: commander.cacheFolder,
       preferOffline: commander.preferOffline,
       captureHar: commander.har,
       ignorePlatform: commander.ignorePlatform,
@@ -617,7 +622,11 @@ async function start(): Promise<void> {
     let exitCode = 0;
 
     try {
-      exitCode = await spawnp(yarnPath, argv, opts);
+      if (yarnPath.endsWith(`.js`)) {
+        exitCode = await spawnp(process.execPath, [yarnPath, ...argv], opts);
+      } else {
+        exitCode = await spawnp(yarnPath, argv, opts);
+      }
     } catch (firstError) {
       try {
         exitCode = await forkp(yarnPath, argv, opts);

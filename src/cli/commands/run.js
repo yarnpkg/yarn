@@ -4,6 +4,7 @@ import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
 import {execCommand, makeEnv} from '../../util/execute-lifecycle-script.js';
 import {dynamicRequire} from '../../util/dynamic-require.js';
+import {callThroughHook} from '../../util/hooks.js';
 import {MessageError} from '../../errors.js';
 import {checkOne as checkCompatibility} from '../../package-compatibility.js';
 import * as fs from '../../util/fs.js';
@@ -30,6 +31,7 @@ export async function getBinEntries(config: Config): Promise<Map<string, string>
 
   // Setup the node_modules/.bin folders for analysis
   for (const registryFolder of config.registryFolders) {
+    binFolders.add(path.resolve(config.cwd, registryFolder, '.bin'));
     binFolders.add(path.resolve(config.lockfileFolder, registryFolder, '.bin'));
   }
 
@@ -91,9 +93,11 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
   }
 
-  async function runCommand(args): Promise<void> {
-    const action = args.shift();
+  function runCommand([action, ...args]): Promise<void> {
+    return callThroughHook('runScript', () => realRunCommand(action, args), {action, args});
+  }
 
+  async function realRunCommand(action, args): Promise<void> {
     // build up list of commands
     const cmds = [];
 

@@ -251,10 +251,6 @@ export default class PackageLinker {
       } else if (workspaceLayout && remote.type === 'workspace' && !isShallow) {
         src = remote.reference;
         type = 'symlink';
-        if (dest.indexOf(workspaceLayout.virtualManifestName) !== -1) {
-          // we don't need to install virtual manifest
-          continue;
-        }
         // to get real path for non hoisted dependencies
         symlinkPaths.set(dest, src);
       } else {
@@ -349,6 +345,10 @@ export default class PackageLinker {
 
               for (const subfile of await fs.readdir(filepath)) {
                 possibleExtraneous.add(path.join(filepath, subfile));
+              }
+            } else if (file[0] === '.' && file !== '.bin') {
+              if (!(await fs.lstat(filepath)).isDirectory()) {
+                possibleExtraneous.add(filepath);
               }
             } else {
               possibleExtraneous.add(filepath);
