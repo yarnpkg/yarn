@@ -69,6 +69,22 @@ test.concurrent("workspaces warn and get ignored if they don't have a name and a
   );
 });
 
+test.concurrent('should only warn for unmet peer dependency on workspace package', (): Promise<void> => {
+  return buildRun(
+    reporters.BufferReporter,
+    path.join(__dirname, '..', '..', 'fixtures', 'install'),
+    async (args, flags, config, reporter, lockfile): Promise<void> => {
+      const install = new Install(flags, config, reporter, lockfile);
+      await install.init();
+      const warnings = reporter.getBuffer().filter(({type}) => type === 'warning').map(({data}) => data);
+      expect(warnings).toEqual(['" > nomore-test-b@0.0.1" has unmet peer dependency "nomore-test-a@^0.0.1".']);
+    },
+    [],
+    {},
+    'workspaces-install-transient-peer-dep-satisfied',
+  );
+});
+
 test.concurrent('installs workspaces dependencies into root folder', (): Promise<void> => {
   return runInstall({}, 'workspaces-install-basic', async (config): Promise<void> => {
     const lockfile = await fs.readFile(path.join(config.cwd, 'yarn.lock'));

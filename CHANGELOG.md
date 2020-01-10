@@ -2,6 +2,12 @@
 <!-- -->
 Please add one entry in this file for each change in Yarn's behavior. Use the same format for all entries, including the third-person verb. Make sure you don't add more than one line of text to keep it clean. Thanks!
 
+## Master
+
+- Ensure peer dependencies of workspace projects are appropriately checked.
+
+	[#7812](https://github.com/yarnpkg/yarn/pull/7812) - [**Antoine Malliarakis**](https://github.com/antoine-malliarakis)
+
 ## 1.22.2
 
 - Sorts files when running `yarn pack` to produce identical layout on Windows and Unix systems

@@ -15,8 +15,8 @@ import {normalizePattern} from './util/normalize-pattern.js';
 import {entries} from './util/misc.js';
 import * as fs from './util/fs.js';
 import lockMutex from './util/mutex.js';
-import {satisfiesWithPrereleases} from './util/semver.js';
 import WorkspaceLayout from './workspace-layout.js';
+import PackagePeerResolver from './package-peer-resolver';
 
 const invariant = require('invariant');
 const cmdShim = require('@zkochan/cmd-shim');
@@ -593,85 +593,7 @@ export default class PackageLinker {
   }
 
   resolvePeerModules() {
-    for (const pkg of this.resolver.getManifests()) {
-      const peerDeps = pkg.peerDependencies;
-      const peerDepsMeta = pkg.peerDependenciesMeta;
-
-      if (!peerDeps) {
-        continue;
-      }
-
-      const ref = pkg._reference;
-      invariant(ref, 'Package reference is missing');
-
-      // TODO: We are taking the "shortest" ref tree but there may be multiple ref trees with the same length
-      const refTree = ref.requests.map(req => req.parentNames).sort((arr1, arr2) => arr1.length - arr2.length)[0];
-
-      const getLevelDistance = pkgRef => {
-        let minDistance = Infinity;
-        for (const req of pkgRef.requests) {
-          const distance = refTree.length - req.parentNames.length;
-
-          if (distance >= 0 && distance < minDistance && req.parentNames.every((name, idx) => name === refTree[idx])) {
-            minDistance = distance;
-          }
-        }
-
-        return minDistance;
-      };
-
-      for (const peerDepName in peerDeps) {
-        const range = peerDeps[peerDepName];
-        const meta = peerDepsMeta && peerDepsMeta[peerDepName];
-
-        const isOptional = !!(meta && meta.optional);
-
-        const peerPkgs = this.resolver.getAllInfoForPackageName(peerDepName);
-
-        let peerError = 'unmetPeer';
-        let resolvedLevelDistance = Infinity;
-        let resolvedPeerPkg;
-        for (const peerPkg of peerPkgs) {
-          const peerPkgRef = peerPkg._reference;
-          if (!(peerPkgRef && peerPkgRef.patterns)) {
-            continue;
-          }
-          const levelDistance = getLevelDistance(peerPkgRef);
-          if (isFinite(levelDistance) && levelDistance < resolvedLevelDistance) {
-            if (this._satisfiesPeerDependency(range, peerPkgRef.version)) {
-              resolvedLevelDistance = levelDistance;
-              resolvedPeerPkg = peerPkgRef;
-            } else {
-              peerError = 'incorrectPeer';
-            }
-          }
-        }
-
-        if (resolvedPeerPkg) {
-          ref.addDependencies(resolvedPeerPkg.patterns);
-          this.reporter.verbose(
-            this.reporter.lang(
-              'selectedPeer',
-              `${pkg.name}@${pkg.version}`,
-              `${peerDepName}@${resolvedPeerPkg.version}`,
-              resolvedPeerPkg.level,
-            ),
-          );
-        } else if (!isOptional) {
-          this.reporter.warn(
-            this.reporter.lang(
-              peerError,
-              `${refTree.join(' > ')} > ${pkg.name}@${pkg.version}`,
-              `${peerDepName}@${range}`,
-            ),
-          );
-        }
-      }
-    }
-  }
-
-  _satisfiesPeerDependency(range: string, version: string): boolean {
-    return range === '*' || satisfiesWithPrereleases(version, range, this.config.looseSemver);
+    new PackagePeerResolver(this.config, this.resolver).resolvePeerModules(this.resolver.getManifests());
   }
 
   async _warnForMissingBundledDependencies(pkg: Manifest): Promise<void> {
