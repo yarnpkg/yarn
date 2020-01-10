@@ -1,5 +1,8 @@
 {
-    "name": "foo",
-    "version": "",
-    "bin": {}
+  "name": "foo",
+  "version": "",
+  "bin": {
+    "build.cli": "main.js",
+    "build:cli": "main.js"
+  }
 }
