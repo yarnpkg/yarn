@@ -28,20 +28,45 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 
-function getPublishConfigOption(flags: Object, pkg: any, key: 'access' | 'registry'): string {
-  let option = flags[key];
-
-  if (!option && pkg && pkg.publishConfig && pkg.publishConfig[key]) {
-    option = pkg.publishConfig[key];
+function getPublishConfigAccess(pkg: any, flags: Object): ?string {
+  if (typeof flags.access === 'string') {
+    return flags.access;
   }
+  if (pkg && pkg.publishConfig && typeof pkg.publishConfig.access === 'string') {
+    return pkg.publishConfig.access;
+  }
+  return undefined;
+}
 
-  return option;
+function getPublishConfigRegistry(config: Config, pkg: any, flags: Object): string {
+  // CLI flag has the highest priority.
+  if (typeof flags.registry === 'string') {
+    return flags.registry;
+  }
+  // if `publishConfig` exists, it overrides the default registry settings.
+  if (pkg && pkg.publishConfig) {
+    const publishConfig = pkg.publishConfig;
+    const scope = config.registries.npm.getScope(pkg.name);
+    // if the package is scoped, scoped registry in `publishConfig` has priority 2.
+    if (scope) {
+      const scopedRegistry = publishConfig[`${scope}:registry`];
+      if (typeof scopedRegistry === 'string') {
+        return scopedRegistry;
+      }
+    }
+    // use `publishConfig.registry` even if the package is scoped, as long as it doesn't have scoped registry
+    const unscopedRegistry = publishConfig.registry;
+    if (typeof unscopedRegistry === 'string') {
+      return unscopedRegistry;
+    }
+  }
+  return '';
 }
 
 async function publish(config: Config, pkg: any, flags: Object, dir: string): Promise<void> {
-  // if no access level is provided, check package.json for `publishConfig.access`
+  // check package.json for `publishConfig.access`, override with `--access` flag
   // see: https://docs.npmjs.com/files/package.json#publishconfig
-  const access = getPublishConfigOption(flags, pkg, 'access');
+  const access = getPublishConfigAccess(pkg, flags);
 
   // validate access argument
   if (access && access !== 'public' && access !== 'restricted') {
@@ -117,7 +142,7 @@ async function publish(config: Config, pkg: any, flags: Object, dir: string): Pr
   // publish package
   try {
     await config.registries.npm.request(NpmRegistry.escapeName(pkg.name), {
-      registry: getPublishConfigOption(flags, pkg, 'registry'),
+      registry: getPublishConfigRegistry(config, pkg, flags),
       method: 'PUT',
       body: root,
     });
@@ -160,7 +185,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   //
   reporter.step(2, 4, reporter.lang('loggingIn'));
-  const revoke = await getToken(config, reporter, pkg.name, flags, getPublishConfigOption(flags, pkg, 'registry'));
+  const revoke = await getToken(config, reporter, pkg.name, flags, getPublishConfigRegistry(config, pkg, flags));
 
   //
   reporter.step(3, 4, reporter.lang('publishing'));

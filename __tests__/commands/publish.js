@@ -51,6 +51,19 @@ test.concurrent('publish should default access to undefined', () => {
   });
 });
 
+test.concurrent('publish should use publishConfig.access in package manifest', () => {
+  return runPublish([], {newVersion: '0.0.1'}, 'public', config => {
+    expect(config.registries.npm.request).toBeCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        body: expect.objectContaining({
+          access: 'public',
+        }),
+      }),
+    );
+  });
+});
+
 test.concurrent('publish should accept `--access restricted` argument', () => {
   return runPublish([], {newVersion: '0.0.1', access: 'restricted'}, 'minimal', config => {
     expect(config.registries.npm.request).toBeCalledWith(
@@ -66,19 +79,6 @@ test.concurrent('publish should accept `--access restricted` argument', () => {
 
 test.concurrent('publish should accept `--access public` argument', () => {
   return runPublish([], {newVersion: '0.0.1', access: 'public'}, 'minimal', config => {
-    expect(config.registries.npm.request).toBeCalledWith(
-      expect.any(String),
-      expect.objectContaining({
-        body: expect.objectContaining({
-          access: 'public',
-        }),
-      }),
-    );
-  });
-});
-
-test.concurrent('publish should use publishConfig.access in package manifest', () => {
-  return runPublish([], {newVersion: '0.0.1'}, 'public', config => {
     expect(config.registries.npm.request).toBeCalledWith(
       expect.any(String),
       expect.objectContaining({
@@ -148,10 +148,10 @@ test.concurrent('can specify a path without `--new-version`', () => {
   });
 });
 
-test.concurrent('publish should respect publishConfig.registry ', () => {
+test.concurrent('publish should respect publishConfig.registry', () => {
   const registry = 'https://registry.myorg.com/';
 
-  return runPublish([], {}, 'publish-config-registry', config => {
+  return runPublish([], {}, 'registry', config => {
     expect(config.registries.npm.request).toBeCalledWith(
       expect.any(String),
       expect.objectContaining({
@@ -162,10 +162,44 @@ test.concurrent('publish should respect publishConfig.registry ', () => {
   });
 });
 
-test.concurrent('publish should allow `--registry` to override publishConfig.registry', () => {
+test.concurrent(
+  'publish should allow publishConfig.registry to override "registry"/"@scope:registry" from config',
+  () => {
+    const registry = 'https://registry-publish.myorg.com/';
+
+    return runPublish([], {}, 'registry-rc', config => {
+      expect(config.registries.npm.request).toBeCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          registry,
+        }),
+      );
+      expect(config.registries.npm.getAuthByRegistry).toBeCalledWith(registry);
+    });
+  },
+);
+
+test.concurrent(
+  'publish should respect publishConfig["@scope:registry"] (overrides publishConfig.registry if both exist)',
+  () => {
+    const registry = 'https://registry-publish.myorg.com/';
+
+    return runPublish([], {}, 'scoped-registry', config => {
+      expect(config.registries.npm.request).toBeCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          registry,
+        }),
+      );
+      expect(config.registries.npm.getAuthByRegistry).toBeCalledWith(registry);
+    });
+  },
+);
+
+test.concurrent('publish should allow `--registry` to override publishConfig or config file', () => {
   const registry = 'https://registry2.myorg.com/';
 
-  return runPublish([], {registry}, 'publish-config-registry', config => {
+  return runPublish([], {registry}, 'scoped-registry', config => {
     expect(config.registries.npm.request).toBeCalledWith(
       expect.any(String),
       expect.objectContaining({
