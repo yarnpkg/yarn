@@ -209,3 +209,57 @@ test.concurrent('publish should allow `--registry` to override publishConfig or 
     expect(config.registries.npm.getAuthByRegistry).toBeCalledWith(registry);
   });
 });
+
+test.concurrent('publish should default tag to "latest"', () => {
+  const newVersion = '0.0.1';
+  const tag = 'latest';
+
+  return runPublish([], {newVersion}, 'minimal', config => {
+    expect(config.registries.npm.request).toBeCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        body: expect.objectContaining({
+          'dist-tags': {
+            [tag]: newVersion,
+          },
+        }),
+      }),
+    );
+  });
+});
+
+test.concurrent('publish should respect publishConfig.tag', () => {
+  const newVersion = '0.0.1';
+  const tag = 'next';
+
+  return runPublish([], {newVersion}, 'tag', config => {
+    expect(config.registries.npm.request).toBeCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        body: expect.objectContaining({
+          'dist-tags': {
+            [tag]: newVersion,
+          },
+        }),
+      }),
+    );
+  });
+});
+
+test.concurrent('publish should allow `--tag` to override publishConfig.tag', () => {
+  const newVersion = '0.0.1';
+  const tag = 'beta';
+
+  return runPublish([], {newVersion, tag}, 'tag', config => {
+    expect(config.registries.npm.request).toBeCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        body: expect.objectContaining({
+          'dist-tags': {
+            [tag]: newVersion,
+          },
+        }),
+      }),
+    );
+  });
+});

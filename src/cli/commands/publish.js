@@ -63,6 +63,16 @@ function getPublishConfigRegistry(config: Config, pkg: any, flags: Object): stri
   return '';
 }
 
+function getPublishConfigTag(pkg: any, flags: Object): string {
+  if (typeof flags.tag === 'string') {
+    return flags.tag;
+  }
+  if (pkg && pkg.publishConfig && typeof pkg.publishConfig.tag === 'string') {
+    return pkg.publishConfig.tag;
+  }
+  return 'latest';
+}
+
 async function publish(config: Config, pkg: any, flags: Object, dir: string): Promise<void> {
   // check package.json for `publishConfig.access`, override with `--access` flag
   // see: https://docs.npmjs.com/files/package.json#publishconfig
@@ -105,7 +115,7 @@ async function publish(config: Config, pkg: any, flags: Object, dir: string): Pr
     }
   }
 
-  const tag = flags.tag || 'latest';
+  const tag = getPublishConfigTag(pkg, flags);
   const tbName = `${pkg.name}-${pkg.version}.tgz`;
   const tbURI = `${pkg.name}/-/${tbName}`;
 

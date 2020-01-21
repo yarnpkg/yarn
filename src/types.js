@@ -173,6 +173,7 @@ export type Manifest = {
   publishConfig?: {
     access?: string,
     registry?: string,
+    tag?: string,
   },
 };
 
