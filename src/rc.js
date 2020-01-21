@@ -1,6 +1,6 @@
 /* @flow */
 
-import {readFileSync} from 'fs';
+import {existsSync, readFileSync} from 'fs';
 import {dirname, resolve} from 'path';
 
 import commander from 'commander';
@@ -35,11 +35,21 @@ export function getRcConfigForCwd(cwd: string, args: Array<string>): {[key: stri
     const value = args[index + 1];
 
     if (value && value.charAt(0) !== '-') {
-      Object.assign(config, loadRcFile(readFileSync(value).toString(), value));
+      Object.assign(config, loadRcFile(readFileSync(value, 'utf8'), value));
     }
   }
 
   return config;
+}
+
+export function getRcConfigForFolder(cwd: string): {[key: string]: string} {
+  const filePath = resolve(cwd, '.yarnrc');
+  if (!existsSync(filePath)) {
+    return {};
+  }
+
+  const fileText = readFileSync(filePath, 'utf8');
+  return loadRcFile(fileText, filePath);
 }
 
 function loadRcFile(fileText: string, filePath: string): {[key: string]: string} {

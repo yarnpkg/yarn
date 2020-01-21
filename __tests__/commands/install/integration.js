@@ -117,6 +117,16 @@ test('installing a package with a renamed file should not delete it', () =>
     expect(await fs.exists(`${config.cwd}/node_modules/pkg/state.js`)).toEqual(true);
   }));
 
+test("installing a tree shouldn't remove preexisting cache directories", () =>
+  runInstall({}, 'cache-folder-nm', async (config, reporter): Promise<void> => {
+    expect(await fs.exists(`${config.cwd}/node_modules/.cache/hello.txt`)).toEqual(true);
+
+    const reInstall = new Install({}, config, reporter, await Lockfile.fromDirectory(config.cwd));
+    await reInstall.init();
+
+    expect(await fs.exists(`${config.cwd}/node_modules/.cache/hello.txt`)).toEqual(true);
+  }));
+
 test("installing a new package should correctly update it, even if the files mtime didn't change", () =>
   runInstall({}, 'mtime-same', async (config, reporter): Promise<void> => {
     await misc.sleep(2000);
