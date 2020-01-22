@@ -355,6 +355,39 @@ test.concurrent('should run help for camelised command', async () => {
 // but actual flags on the command line are passed.
 test.concurrent('should not pass yarnrc flags to workspace command', async () => {
   const stdout = await execCommand('workspace', ['workspace-1', 'run', 'check', '--x'], 'run-workspace', true);
-  const params = stdout.find(x => x && x.indexOf('--x') >= 0);
+  const params = stdout.find(x => x && x.indexOf('ARGS:') === 0);
   expect(params).not.toMatch(/emoji/);
+});
+
+// regression test for #7776
+test.concurrent('should pass args to workspace command without need for "--"', async () => {
+  const stdout = await execCommand('workspace', ['workspace-1', 'run', 'check', '--x', 'y'], 'run-workspace', true);
+  const params = stdout.find(x => x && x.indexOf('ARGS:') === 0);
+  expect(params).toEqual('ARGS: --x y');
+});
+
+// regression test for #7776
+test.concurrent('should pass args after "--" to workspace command', async () => {
+  const stdout = await execCommand(
+    'workspace',
+    ['workspace-1', 'run', 'check', '--', 'x', '-y'],
+    'run-workspace',
+    true,
+  );
+  const params = stdout.find(x => x && x.indexOf('ARGS:') === 0);
+  expect(params).toEqual('ARGS: x -y');
+});
+
+// regression test for #7776
+test.concurrent('should pass args to workspaces command without need for "--"', async () => {
+  const stdout = await execCommand('workspaces', ['run', 'check', '--x', 'y'], 'run-workspace', true);
+  const params = stdout.find(x => x && x.indexOf('ARGS:') === 0);
+  expect(params).toEqual('ARGS: --x y');
+});
+
+// regression test for #7776
+test.concurrent('should pass args after "--" to workspaces command', async () => {
+  const stdout = await execCommand('workspaces', ['run', 'check', '--', 'x', '-y'], 'run-workspace', true);
+  const params = stdout.find(x => x && x.indexOf('ARGS:') === 0);
+  expect(params).toEqual('ARGS: x -y');
 });

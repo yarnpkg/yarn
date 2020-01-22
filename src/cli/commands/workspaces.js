@@ -76,12 +76,10 @@ export async function runScript(config: Config, reporter: Reporter, flags: Objec
   const workspaces = await config.resolveWorkspaces(workspaceRootFolder, manifest);
 
   try {
-    const [_, ...rest] = flags.originalArgs || [];
-
     for (const workspaceName of Object.keys(workspaces)) {
       const {loc} = workspaces[workspaceName];
       reporter.log(`${os.EOL}> ${workspaceName}`);
-      await child.spawn(NODE_BIN_PATH, [YARN_BIN_PATH, ...rest], {
+      await child.spawn(NODE_BIN_PATH, [YARN_BIN_PATH, 'run', ...args], {
         stdio: 'inherit',
         cwd: loc,
       });
