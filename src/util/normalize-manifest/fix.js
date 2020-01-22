@@ -12,7 +12,7 @@ const semver = require('semver');
 const path = require('path');
 const url = require('url');
 
-const VALID_BIN_KEYS = /^[a-z0-9_-]+$/i;
+const VALID_BIN_KEYS = /^(?!\.{0,2}$)[a-z0-9._-]+$/i;
 
 const LICENSE_RENAMES: {[key: string]: ?string} = {
   'MIT/X11': 'MIT',

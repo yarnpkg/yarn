@@ -62,9 +62,12 @@ Array [
 
 exports[`dangerous bin name: dangerous bin name 1`] = `
 Array [
+  "foo: Invalid bin entry for \\".\\" (in \\"foo\\").",
+  "foo: Invalid bin entry for \\"..\\" (in \\"foo\\").",
   "foo: Invalid bin entry for \\"/tmp/foo\\" (in \\"foo\\").",
   "foo: Invalid bin entry for \\"../tmp/foo\\" (in \\"foo\\").",
   "foo: Invalid bin entry for \\"tmp/../../foo\\" (in \\"foo\\").",
+  "foo: Invalid bin entry for \\"build:cli\\" (in \\"foo\\").",
   "foo: No license field",
 ]
 `;
