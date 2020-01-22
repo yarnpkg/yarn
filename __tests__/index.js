@@ -300,6 +300,10 @@ test.concurrent('should throws missing command for unknown command', async () =>
   await expectAnErrorMessage(execCommand('unknown', [], 'run-add', true), 'Command "unknown" not found');
 });
 
+test.concurrent('should suggest options for other commands when missing a command', async () => {
+  await expectAnErrorMessage(execCommand('foobarx', [], 'run-suggestion', true), 'Did you mean "foobar"?');
+});
+
 test.concurrent('should not display documentation link for unknown command', async () => {
   await expectAnInfoMessageAfterError(execCommand('unknown', [], 'run-add', true), '');
 });
