@@ -207,7 +207,7 @@ test('adds workspace root node_modules/.bin to path when in a workspace', (): Pr
     expect(envPaths).toContain(path.join(config.cwd, 'packages', 'pkg1', 'node_modules', '.bin'));
   }));
 
-test('adds cwd node_modules/.bin to path when in a workspace usig nohoist', (): Promise<void> =>
+test('adds cwd node_modules/.bin to path when in a workspace using nohoist', (): Promise<void> =>
   runRunInWorkspacePackage('packages/pkg1', ['env'], {}, 'nohoist-workspace', (config, reporter): ?Promise<void> => {
     const logEntry = reporter.getBuffer().find(entry => entry.type === 'log');
     const parsedLogData = JSON.parse(logEntry ? logEntry.data.toString() : '{}');
@@ -228,5 +228,33 @@ test('runs script with custom script-shell', (): Promise<void> =>
       cwd: config.cwd,
       isInteractive: true,
       customShell: '/usr/bin/dummy',
+    });
+  }));
+
+test('runs workspace bin before hoisted bin', (): Promise<void> =>
+  runRunInWorkspacePackage('packages/pkg1', ['duplicated-bin'], {}, 'workspace-bins', (config): ?Promise<void> => {
+    const expectedCwd = path.join(config.cwd, 'packages', 'pkg1');
+    const script = path.join(expectedCwd, 'node_modules', '.bin', 'duplicated-bin');
+
+    expect(execCommand).toBeCalledWith({
+      stage: 'duplicated-bin',
+      config,
+      cmd: script,
+      cwd: expectedCwd,
+      isInteractive: true,
+    });
+  }));
+
+test('runs hoisted bin if workspace bin is not found', (): Promise<void> =>
+  runRunInWorkspacePackage('packages/pkg1', ['hoisted-bin'], {}, 'workspace-bins', (config): ?Promise<void> => {
+    const expectedCwd = path.join(config.cwd, 'packages', 'pkg1');
+    const script = path.join(config.cwd, 'node_modules', '.bin', 'hoisted-bin');
+
+    expect(execCommand).toBeCalledWith({
+      stage: 'hoisted-bin',
+      config,
+      cmd: script,
+      cwd: expectedCwd,
+      isInteractive: true,
     });
   }));
