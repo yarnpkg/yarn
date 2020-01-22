@@ -2,6 +2,8 @@
   "name": "foo",
   "version": "",
   "bin": {
+    ".": "main.js",
+    "..": "main.js",
     "/tmp/foo": "main.js",
     "../tmp/foo": "main.js",
     "tmp/../../foo": "main.js",
