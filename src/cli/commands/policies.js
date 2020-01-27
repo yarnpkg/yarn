@@ -122,9 +122,16 @@ const {run, setFlags, examples} = buildSubCommands('policies', {
       bundleUrl = 'https://github.com/yarnpkg/berry/raw/master/packages/berry-cli/bin/berry.js';
       bundleVersion = 'berry';
     } else {
-      const releases = await fetchReleases(config, {
-        includePrereleases: allowRc,
-      });
+      let releases = [];
+
+      try {
+        releases = await fetchReleases(config, {
+          includePrereleases: allowRc,
+        });
+      } catch (e) {
+        reporter.error(e.message);
+        return;
+      }
 
       const release = releases.find(release => {
         // $FlowFixMe

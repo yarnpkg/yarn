@@ -358,6 +358,7 @@ const messages = {
   errorExtractingTarball: 'Extracting tar content of $1 failed, the file appears to be corrupt: $0',
   updateInstalling: 'Installing $0...',
   hostedGitResolveError: 'Error connecting to repository. Please, check the url.',
+  unauthorizedResponse: 'Received a 401 from $0. $1',
 
   unknownFetcherFor: 'Unknown fetcher for $0',
 

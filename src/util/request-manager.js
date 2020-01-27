@@ -373,6 +373,11 @@ export default class RequestManager {
       rejectNext(err);
     };
 
+    const rejectWithoutUrl = function(err) {
+      err.message = err.message;
+      rejectNext(err);
+    }
+
     const queueForRetry = reason => {
       const attempts = params.retryAttempts || 0;
       if (attempts >= this.maxRetryAttempts - 1) {
@@ -426,6 +431,13 @@ export default class RequestManager {
           } else {
             return;
           }
+        }
+
+        const server = res.caseless.get('server');
+
+        if (res.statusCode === 401 && server === "GitHub.com") {
+          const message = `${res.body.message}. If using GITHUB_TOKEN in your env, check that it is valid.`
+          rejectWithoutUrl(new Error(this.reporter.lang('unauthorizedResponse', server, message)))
         }
 
         if (res.statusCode === 401 && res.headers['www-authenticate']) {
