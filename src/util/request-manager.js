@@ -433,11 +433,9 @@ export default class RequestManager {
           }
         }
 
-        const server = res.caseless.get('server');
-
-        if (res.statusCode === 401 && server === 'GitHub.com') {
+        if (res.statusCode === 401 && res.caseless && res.caseless.get('server') === 'GitHub.com') {
           const message = `${res.body.message}. If using GITHUB_TOKEN in your env, check that it is valid.`;
-          rejectWithoutUrl(new Error(this.reporter.lang('unauthorizedResponse', server, message)));
+          rejectWithoutUrl(new Error(this.reporter.lang('unauthorizedResponse', res.caseless.get('server'), message)));
         }
 
         if (res.statusCode === 401 && res.headers['www-authenticate']) {
