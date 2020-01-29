@@ -48,7 +48,9 @@ async function linkAt(config, ...relativePath): Promise<string> {
     return linkPath;
   } else {
     const contents = await fs.readFile(joinedPath);
-    return /node" +"\$basedir\/([^"]*\.js)"/.exec(contents)[1];
+    const matchResult = /node" +"\$basedir\/([^"]*\.js)"/.exec(contents);
+
+    return matchResult !== null && matchResult.length >= 1 ? matchResult[1] : '';
   }
 }
 

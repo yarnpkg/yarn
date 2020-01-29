@@ -119,7 +119,9 @@ function* tokenise(input: string): Iterator<Token> {
         }
       }
     } else if (/^[0-9]/.test(input)) {
-      const val = /^[0-9]+/.exec(input)[0];
+      const matchResult = /^[0-9]+/.exec(input);
+      const val = matchResult === null ? '' : matchResult[0];
+
       chop = val.length;
 
       yield buildToken(TOKEN_TYPES.number, +val);
