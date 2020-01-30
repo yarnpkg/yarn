@@ -118,6 +118,7 @@ export type Manifest = {
   dist?: {
     tarball: string,
     shasum: string,
+    integrity?: string,
   },
 
   directories?: {

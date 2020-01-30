@@ -70,6 +70,12 @@ export type ConfigOptions = {
   focus?: boolean,
 
   otp?: string,
+
+  cafile?: string,
+  ca?: string,
+  cert?: string,
+  key?: string,
+  preferredCacheFolder?: string,
 };
 
 type PackageMetadata = {
