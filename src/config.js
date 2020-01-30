@@ -17,7 +17,6 @@ import {registries, registryNames} from './registries/index.js';
 import {NoopReporter} from './reporters/index.js';
 import map from './util/map.js';
 
-const crypto = require('crypto');
 const detectIndent = require('detect-indent');
 const invariant = require('invariant');
 const path = require('path');
