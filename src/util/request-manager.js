@@ -382,7 +382,7 @@ export default class RequestManager {
         return false;
       }
       params.retryAttempts = attempts + 1;
-      
+
       opts.retryReason = reason;
       this.queueForRetry(opts);
       return true;
