@@ -395,6 +395,7 @@ export async function main({
           // If the process hasn't exited in the next 5s, it has stalled and we abort
           const timeout = setTimeout(() => {
             console.error('Process stalled');
+            // $FlowFixMe: _getActiveHandles does exist on process
             if (process._getActiveHandles) {
               console.error('Active handles:');
               // $FlowFixMe: getActiveHandles is undocumented, but it exists
