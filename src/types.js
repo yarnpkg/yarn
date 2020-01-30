@@ -75,6 +75,7 @@ export type WorkspacesConfig = {
 export type Manifest = {
   _registry?: ?RegistryNames,
   _loc?: ?string,
+  _integrity?: ?string,
 
   name: string,
   version: string,
@@ -170,6 +171,12 @@ export type Manifest = {
   fresh?: boolean,
 
   prebuiltVariants?: {[filename: string]: string},
+
+  publishConfig?: PublishConfig,
+};
+
+export type PublishConfig = {
+  registry?: string,
 };
 
 //
