@@ -30,6 +30,7 @@ export type IntegrityCheckResult = {
   integrityMatches?: boolean,
   integrityError?: IntegrityError,
   missingPatterns: Array<string>,
+  hardRefreshRequired?: boolean,
 };
 
 type IntegrityHashLocation = {
