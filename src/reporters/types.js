@@ -17,6 +17,7 @@ export type Tree = {
   hint?: ?string,
   hidden?: boolean,
   color?: ?string,
+  shadow?: ?String,
 };
 
 export type Trees = Array<Tree>;
