@@ -209,7 +209,7 @@ class ImportResolver extends BaseResolver {
   }
 }
 
-class ImportPackageRequest extends PackageRequest {
+export class ImportPackageRequest extends PackageRequest {
   constructor(req: DependencyRequestPattern, dependencyTree: ?LogicalDependencyTree, resolver: PackageResolver) {
     super(req, resolver);
     this.import = this.parentRequest instanceof ImportPackageRequest ? this.parentRequest.import : true;

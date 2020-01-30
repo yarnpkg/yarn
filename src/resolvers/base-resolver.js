@@ -6,6 +6,7 @@ import type {Manifest} from '../types.js';
 import type {RegistryNames} from '../registries/index.js';
 import type {Reporter} from '../reporters/index.js';
 import type Config from '../config.js';
+import {ImportPackageRequest} from '../cli/commands/import';
 
 export default class BaseResolver {
   constructor(request: PackageRequest, fragment: string) {
@@ -22,7 +23,7 @@ export default class BaseResolver {
   resolver: PackageResolver;
   reporter: Reporter;
   fragment: string;
-  request: PackageRequest;
+  request: PackageRequest | ImportPackageRequest;
   pattern: string;
   config: Config;
   registry: RegistryNames;
