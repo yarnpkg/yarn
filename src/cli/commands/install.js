@@ -81,6 +81,8 @@ type Flags = {
 
   // add, remove, upgrade
   workspaceRootIsCwd: boolean,
+
+  offline?: Boolean,
 };
 
 /**
@@ -610,6 +612,7 @@ export class Install {
       steps.push((curr: number, total: number) =>
         callThroughHook('auditStep', async () => {
           this.reporter.step(curr, total, this.reporter.lang('auditRunning'), emoji.get('mag'));
+
           if (this.flags.offline) {
             this.reporter.warn(this.reporter.lang('auditOffline'));
             return {bailout: false};
