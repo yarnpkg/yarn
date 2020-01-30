@@ -8,7 +8,7 @@ export const registries = {
   yarn: YarnRegistry,
 };
 
-export const registryNames = Object.keys(registries);
+export const registryNames: Array<$Keys<typeof registries>> = Object.keys(registries);
 
 export type RegistryNames = $Keys<typeof registries>;
 export type ConfigRegistries = {
