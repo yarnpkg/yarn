@@ -19,6 +19,7 @@ export function setFlags(commander: Object) {
   commander.option('-y, --yes', 'use default options');
   commander.option('-p, --private', 'use default options and private true');
   commander.option('-i, --install <value>', 'install a specific Yarn release');
+  commander.option('-2', 'generates the project using Yarn 2');
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
@@ -28,12 +29,14 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 export const shouldRunInCurrentCwd = true;
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-  if (flags.install) {
+  const installVersion = flags[`2`] ? `berry` : flags.install;
+
+  if (installVersion) {
     const lockfilePath = path.resolve(config.cwd, 'yarn.lock');
     if (!await fs.exists(lockfilePath)) {
       await fs.writeFile(lockfilePath, '');
     }
-    await child.spawn(NODE_BIN_PATH, [process.argv[1], 'policies', 'set-version', flags.install], {
+    await child.spawn(NODE_BIN_PATH, [process.argv[1], 'policies', 'set-version', installVersion], {
       stdio: 'inherit',
       cwd: config.cwd,
     });
