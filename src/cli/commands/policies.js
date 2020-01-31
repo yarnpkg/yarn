@@ -155,7 +155,7 @@ const {run, setFlags, examples} = buildSubCommands('policies', {
 
     const rcPath = `${config.lockfileFolder}/.yarnrc`;
     reporter.log(`Updating ${chalk.magenta(rcPath)}...`);
-    rc['yarn-path'] = path.relative(config.lockfileFolder, yarnPath);
+    rc['yarn-path'] = path.relative(config.lockfileFolder, yarnPath).split(path.sep).join('/');
     await fs.writeFilePreservingEol(rcPath, `${stringify(rc)}\n`);
 
     reporter.log(`Done!`);
