@@ -12,9 +12,29 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#7722](https://github.com/yarnpkg/yarn/pull/7722) - [**Orta**](https://twitter.com/orta)
 
-- Implements `yarn init --install berry`
+- Implements `yarn init --install <version>`
 
   [#7723](https://github.com/yarnpkg/yarn/pull/7723) - [**Maël Nison**](https://twitter.com/arcanis)
+  
+- Implements `yarn init -2`
+
+  [#7862](https://github.com/yarnpkg/yarn/pull/7862) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Implements `yarn set version <version>` as an alias for `policies set-version`
+
+  [#7862](https://github.com/yarnpkg/yarn/pull/7862) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Fixes an issue where the archive paths were incorrectly sanitized
+
+  [#7831](https://github.com/yarnpkg/yarn/pull/7831) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Allows some dots in binary names again
+
+  [#7811](https://github.com/yarnpkg/yarn/pull/7811) - [**Valery Bugakov**](https://github.com/valerybugakov)
+  
+- Better error handling on `yarn set version`
+
+  [#7848](https://github.com/yarnpkg/yarn/pull/7848) - [**Nick Olinger**](https://github.com/olingern)
 
 ## 1.19.2
 
