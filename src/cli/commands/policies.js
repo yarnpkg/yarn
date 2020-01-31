@@ -124,9 +124,16 @@ const {run, setFlags, examples} = buildSubCommands('policies', {
       bundleVersion = 'berry';
       isV2 = true;
     } else {
-      const releases = await fetchReleases(config, {
-        includePrereleases: allowRc,
-      });
+      let releases = [];
+
+      try {
+        releases = await fetchReleases(config, {
+          includePrereleases: allowRc,
+        });
+      } catch (e) {
+        reporter.error(e.message);
+        return;
+      }
 
       const release = releases.find(release => {
         // $FlowFixMe
