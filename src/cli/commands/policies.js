@@ -114,6 +114,7 @@ const {run, setFlags, examples} = buildSubCommands('policies', {
 
     let bundleUrl;
     let bundleVersion;
+    let isV2 = false;
 
     if (range === 'nightly' || range === 'nightlies') {
       bundleUrl = 'https://nightly.yarnpkg.com/latest.js';
@@ -121,6 +122,7 @@ const {run, setFlags, examples} = buildSubCommands('policies', {
     } else if (range === 'berry' || range === 'v2' || range === '2') {
       bundleUrl = 'https://github.com/yarnpkg/berry/raw/master/packages/berry-cli/bin/berry.js';
       bundleVersion = 'berry';
+      isV2 = true;
     } else {
       const releases = await fetchReleases(config, {
         includePrereleases: allowRc,
@@ -145,7 +147,6 @@ const {run, setFlags, examples} = buildSubCommands('policies', {
     reporter.log(`Downloading ${chalk.green(bundleUrl)}...`);
 
     const bundle = await fetchBundle(config, bundleUrl);
-    const rc = getRcConfigForFolder(config.lockfileFolder);
 
     const yarnPath = path.resolve(config.lockfileFolder, `.yarn/releases/yarn-${bundleVersion}.js`);
     reporter.log(`Saving it into ${chalk.magenta(yarnPath)}...`);
@@ -153,10 +154,22 @@ const {run, setFlags, examples} = buildSubCommands('policies', {
     await fs.writeFile(yarnPath, bundle);
     await fs.chmod(yarnPath, 0o755);
 
-    const rcPath = `${config.lockfileFolder}/.yarnrc`;
-    reporter.log(`Updating ${chalk.magenta(rcPath)}...`);
-    rc['yarn-path'] = path.relative(config.lockfileFolder, yarnPath);
-    await fs.writeFilePreservingEol(rcPath, `${stringify(rc)}\n`);
+    const targetPath = path.relative(config.lockfileFolder, yarnPath).replace(/\\/g, '/');
+
+    if (isV2) {
+      const rcPath = `${config.lockfileFolder}/.yarnrc.yml`;
+      reporter.log(`Updating ${chalk.magenta(rcPath)}...`);
+
+      await fs.writeFilePreservingEol(rcPath, `yarnPath: ${JSON.stringify(yarnPath)}\n`);
+    } else {
+      const rcPath = `${config.lockfileFolder}/.yarnrc`;
+      reporter.log(`Updating ${chalk.magenta(rcPath)}...`);
+
+      const rc = getRcConfigForFolder(config.lockfileFolder);
+      rc['yarn-path'] = targetPath;
+
+      await fs.writeFilePreservingEol(rcPath, `${stringify(rc)}\n`);
+    }
 
     reporter.log(`Done!`);
   },
