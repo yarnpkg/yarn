@@ -12,4 +12,7 @@ export default function handleSignals() {
   process.on('SIGTERM', () => {
     forwardSignalAndExit('SIGTERM');
   });
+  process.on('SIGKILL', () => {
+    forwardSignalAndExit('SIGKILL');
+  });
 }
