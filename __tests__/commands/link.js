@@ -3,12 +3,32 @@
 import {runLink} from './_helpers.js';
 import {ConsoleReporter} from '../../src/reporters/index.js';
 import mkdir from './../_temp.js';
+import {promisify} from '../../src/util/promise.js';
 import * as fs from '../../src/util/fs.js';
 
 const path = require('path');
+const stdFs = require('fs');
+
+const fsSymlink: (target: string, path: string, type?: 'dir' | 'file' | 'junction') => Promise<void> = promisify(
+  stdFs.symlink,
+);
 
 test.concurrent('creates folder in linkFolder', async (): Promise<void> => {
   const linkFolder = await mkdir('link-folder');
+  await runLink([], {linkFolder}, 'package-with-name', async (config, reporter): Promise<void> => {
+    const existed = await fs.exists(path.join(linkFolder, 'a-package'));
+    expect(existed).toEqual(true);
+  });
+});
+
+test.concurrent("doesn't create a broken link if link folder has a deeper real path", async (): Promise<void> => {
+  const scratch = await mkdir('scratch');
+
+  // make a links directory that's actually a symlink itself
+  await fs.mkdirp(path.join(scratch, 'parent', 'link-folder'));
+  const linkFolder = path.join(scratch, 'link-folder');
+  await fsSymlink(path.join('parent', 'link-folder'), linkFolder);
+
   await runLink([], {linkFolder}, 'package-with-name', async (config, reporter): Promise<void> => {
     const existed = await fs.exists(path.join(linkFolder, 'a-package'));
     expect(existed).toEqual(true);
