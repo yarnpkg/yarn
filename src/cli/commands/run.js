@@ -31,6 +31,7 @@ export async function getBinEntries(config: Config): Promise<Map<string, string>
 
   // Setup the node_modules/.bin folders for analysis
   for (const registryFolder of config.registryFolders) {
+    binFolders.add(path.resolve(config.cwd, registryFolder, '.bin'));
     binFolders.add(path.resolve(config.lockfileFolder, registryFolder, '.bin'));
   }
 
@@ -148,7 +149,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     } else {
       let suggestion;
 
-      for (const commandName in scripts) {
+      for (const commandName of scripts.keys()) {
         const steps = leven(commandName, action);
         if (steps < 2) {
           suggestion = commandName;

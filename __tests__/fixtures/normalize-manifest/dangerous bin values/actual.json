@@ -1,0 +1,9 @@
+{
+    "name": "foo",
+    "version": "",
+    "bin": {
+        "foo": "../../../../../foo",
+        "bar": "/hello/world",
+        "baz": "./foo/bar/../../../../../../foo"
+    }
+}

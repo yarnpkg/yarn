@@ -38,12 +38,8 @@ async function runWorkspace(
   }
 }
 
-// The unit tests don't use commander.js for argument parsing.
-// `originalArgs` is normally passed by index.js so we just simulate it in the tests.
-
 test('workspace run command', (): Promise<void> => {
-  const originalArgs = ['workspace-1', 'run', 'script'];
-  return runWorkspace({originalArgs}, ['workspace-1', 'run', 'script'], 'run-basic', config => {
+  return runWorkspace({}, ['workspace-1', 'run', 'script'], 'run-basic', config => {
     expect(spawn).toHaveBeenCalledWith(NODE_BIN_PATH, [YARN_BIN_PATH, 'run', 'script'], {
       stdio: 'inherit',
       cwd: path.join(fixturesLoc, 'run-basic', 'packages', 'workspace-child-1'),
@@ -52,8 +48,7 @@ test('workspace run command', (): Promise<void> => {
 });
 
 test('workspace run command forwards raw arguments', (): Promise<void> => {
-  const originalArgs = ['workspace-1', 'run', 'script', 'arg1', '--flag1'];
-  return runWorkspace({originalArgs}, ['workspace-1', 'run', 'script'], 'run-basic', config => {
+  return runWorkspace({}, ['workspace-1', 'run', 'script', 'arg1', '--flag1'], 'run-basic', config => {
     expect(spawn).toHaveBeenCalledWith(NODE_BIN_PATH, [YARN_BIN_PATH, 'run', 'script', 'arg1', '--flag1'], {
       stdio: 'inherit',
       cwd: path.join(fixturesLoc, 'run-basic', 'packages', 'workspace-child-1'),

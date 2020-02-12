@@ -26,7 +26,8 @@ const messages = {
   couldntClearPackageFromCache: "Couldn't clear package $0 from cache",
   clearedPackageFromCache: 'Cleared package $0 from cache',
   packWroteTarball: 'Wrote tarball to $0.',
-
+  invalidBinField: 'Invalid bin field for $0.',
+  invalidBinEntry: 'Invalid bin entry for $1 (in $0).',
   helpExamples: '  Examples:\n$0\n',
   helpCommands: '  Commands:\n$0\n',
   helpCommandsMore: '  Run `$0` for more information on specific commands.',
@@ -357,6 +358,7 @@ const messages = {
   errorExtractingTarball: 'Extracting tar content of $1 failed, the file appears to be corrupt: $0',
   updateInstalling: 'Installing $0...',
   hostedGitResolveError: 'Error connecting to repository. Please, check the url.',
+  unauthorizedResponse: 'Received a 401 from $0. $1',
 
   unknownFetcherFor: 'Unknown fetcher for $0',
 
