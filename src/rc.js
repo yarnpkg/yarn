@@ -53,9 +53,9 @@ export function getRcConfigForFolder(cwd: string): {[key: string]: string} {
 }
 
 function loadRcFile(fileText: string, filePath: string): {[key: string]: string} {
-  let {object: values} = parse(fileText, 'yarnrc');
+  let {object: values} = parse(fileText, filePath);
 
-  if (filePath.match(/\.yml$/)) {
+  if (filePath.match(/\.yml$/) && typeof values.yarnPath === 'string') {
     values = {'yarn-path': values.yarnPath};
   }
 
