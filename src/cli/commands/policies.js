@@ -167,7 +167,7 @@ const {run, setFlags, examples} = buildSubCommands('policies', {
       const rcPath = `${config.lockfileFolder}/.yarnrc.yml`;
       reporter.log(`Updating ${chalk.magenta(rcPath)}...`);
 
-      await fs.writeFilePreservingEol(rcPath, `yarnPath: ${JSON.stringify(yarnPath)}\n`);
+      await fs.writeFilePreservingEol(rcPath, `yarnPath: ${JSON.stringify(targetPath)}\n`);
     } else {
       const rcPath = `${config.lockfileFolder}/.yarnrc`;
       reporter.log(`Updating ${chalk.magenta(rcPath)}...`);

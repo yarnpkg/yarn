@@ -384,16 +384,13 @@ function hasMergeConflicts(str: string): boolean {
 function parse(str: string, fileLoc: string): Object {
   const parser = new Parser(str, fileLoc);
   parser.next();
-  try {
+
+  if (!fileLoc.endsWith(`.yml`)) {
     return parser.parse();
-  } catch (error1) {
-    try {
-      return safeLoad(str, {
-        schema: FAILSAFE_SCHEMA,
-      });
-    } catch (error2) {
-      throw error1;
-    }
+  } else {
+    return safeLoad(str, {
+      schema: FAILSAFE_SCHEMA,
+    });
   }
 }
 

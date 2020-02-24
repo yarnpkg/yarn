@@ -68,7 +68,11 @@ function parseRcPaths(paths: Array<string>, parser: Function): Object {
       try {
         return parser(readFileSync(path).toString(), path);
       } catch (error) {
-        return {};
+        if (error.code === 'ENOENT' || error.code === 'EISDIR') {
+          return {};
+        } else {
+          throw error;
+        }
       }
     }),
   );
