@@ -40,7 +40,7 @@ async function makePortableProxyScriptUnix(
   if (process.platform === 'win32') {
     await fs.writeFile(
       filePath + '.cmd',
-      `@chcp 65001\r\n@${environment}"${sourcePath}" ${prependedArguments} ${appendedArguments} %*\r\n`,
+      `@chcp 65001>NUL\r\n@${environment}"${sourcePath}" ${prependedArguments} ${appendedArguments} %*\r\n`,
     );
   } else {
     await fs.writeFile(
