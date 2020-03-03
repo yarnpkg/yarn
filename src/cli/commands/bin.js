@@ -28,6 +28,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       reporter.log(binPath, {force: true});
     } else {
       reporter.error(reporter.lang('packageBinaryNotFound', binName));
+      process.exitCode = 1;
     }
   }
 }
