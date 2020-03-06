@@ -2,31 +2,21 @@
 
 Please add one entry in this file for each change in Yarn's behavior. Use the same format for all entries, including the third-person verb. Make sure you don't add more than one line of text to keep it clean. Thanks!
 
-## Master
+## 1.22.1
 
-- Passes arguments following `--` when running a workspace script (`yarn workspace pkg run command -- arg`)
+- Prevents `yarn-path` from exiting before its child exited
 
-  [#7776](https://github.com/yarnpkg/yarn/pull/7776) - [**Jeff Valore**](https://twitter.com/rally25rs)
+  [#7957](https://github.com/yarnpkg/yarn/pull/7957) - [**Maël Nison**](https://twitter.com/arcanis)
 
-- Prints workspace names with `yarn workspaces` (silence with `-s`)
+- Generates relative paths when calling `yarn set version`
 
-  [#7722](https://github.com/yarnpkg/yarn/pull/7722) - [**Orta**](https://twitter.com/orta)
+  [#7931](https://github.com/yarnpkg/yarn/pull/7931) - [**Maël Nison**](https://twitter.com/arcanis)
 
-- Implements `yarn init --install <version>`
+- Throws an exception when the `.yarnrc.yml` file is invalid yaml
 
-  [#7723](https://github.com/yarnpkg/yarn/pull/7723) - [**Maël Nison**](https://twitter.com/arcanis)
-  
-- Implements `yarn init -2`
+  [#7931](https://github.com/yarnpkg/yarn/pull/7931) - [**Maël Nison**](https://twitter.com/arcanis)
 
-  [#7862](https://github.com/yarnpkg/yarn/pull/7862) - [**Maël Nison**](https://twitter.com/arcanis)
-
-- Implements `yarn set version <version>` as an alias for `policies set-version`
-
-  [#7862](https://github.com/yarnpkg/yarn/pull/7862) - [**Maël Nison**](https://twitter.com/arcanis)
-
-- Fixes an issue where the archive paths were incorrectly sanitized
-
-  [#7831](https://github.com/yarnpkg/yarn/pull/7831) - [**Maël Nison**](https://twitter.com/arcanis)
+## 1.22.0
 
 - Allows some dots in binary names again
 
@@ -36,6 +26,32 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#7848](https://github.com/yarnpkg/yarn/pull/7848) - [**Nick Olinger**](https://github.com/olingern)
 
+- Passes arguments following `--` when running a workspace script (`yarn workspace pkg run command -- arg`)
+
+  [#7776](https://github.com/yarnpkg/yarn/pull/7776) - [**Jeff Valore**](https://twitter.com/rally25rs)
+  
+- Fixes an issue where the archive paths were incorrectly sanitized
+
+  [#7831](https://github.com/yarnpkg/yarn/pull/7831) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Implements `yarn init -2`
+
+  [#7862](https://github.com/yarnpkg/yarn/pull/7862) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Implements `yarn set version <version>` as an alias for `policies set-version`
+
+  [#7862](https://github.com/yarnpkg/yarn/pull/7862) - [**Maël Nison**](https://twitter.com/arcanis)
+
+## 1.20 / 1.21
+
+- Prints workspace names with `yarn workspaces` (silence with `-s`)
+
+  [#7722](https://github.com/yarnpkg/yarn/pull/7722) - [**Orta**](https://twitter.com/orta)
+
+- Implements `yarn init --install <version>`
+
+  [#7723](https://github.com/yarnpkg/yarn/pull/7723) - [**Maël Nison**](https://twitter.com/arcanis)
+  
 ## 1.19.2
 
 - Folders like `.cache` won't be pruned from the `node_modules` after each install.
