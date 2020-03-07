@@ -271,14 +271,14 @@ workflows:
           filters: *default_filters
           requires:
             - install
-      - test-pkg-tests-linux-node13:
-          filters: *default_filters
-          requires:
-            - install
-      - test-pkg-tests-linux-node12:
-          filters: *default_filters
-          requires:
-            - install
+#      - test-pkg-tests-linux-node13:
+#          filters: *default_filters
+#          requires:
+#            - install
+#      - test-pkg-tests-linux-node12:
+#          filters: *default_filters
+#          requires:
+#            - install
       - test-pkg-tests-linux-node10:
           filters: *default_filters
           requires:
@@ -337,6 +337,8 @@ workflows:
             - test-pkg-tests-linux-node12
             - test-pkg-tests-linux-node10
             - test-pkg-tests-linux-node8
+#            - test-linux-node13
+#            - test-linux-node12
             - test-linux-node10
             - test-linux-node8
             - test-linux-node6
