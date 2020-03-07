@@ -1,6 +1,6 @@
 /* @flow */
 
-// This module serves as a wrapper for file operations that are inconsistant across node and OS versions.
+// This module serves as a wrapper for file operations that are inconsistent across node and OS versions.
 
 import fs from 'fs';
 import {promisify} from './promise.js';

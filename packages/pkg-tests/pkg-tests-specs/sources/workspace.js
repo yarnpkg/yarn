@@ -7,7 +7,7 @@ const {fs: {writeFile, writeJson}} = require('pkg-tests-core');
 module.exports = (makeTemporaryEnv: PackageDriver) => {
   describe(`Workspaces tests`, () => {
     test(
-      `it should implicitely make workspaces require-able from the top-level`,
+      `it should implicitly make workspaces require-able from the top-level`,
       makeTemporaryEnv(
         {
           private: true,

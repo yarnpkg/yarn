@@ -558,25 +558,25 @@ export default class PackageHoister {
       }>,
     > = new Map();
 
-    const occurences: {
+    const occurrences: {
       [packageName: string]: {
         [version: string]: {
           pattern: string,
-          occurences: Set<Manifest>,
+          occurrences: Set<Manifest>,
         },
       },
     } = {};
 
-    // visitor to be used inside add() to mark occurences of packages
+    // visitor to be used inside add() to mark occurrences of packages
     const visitAdd = (pkg: Manifest, ancestry: Array<Manifest>, pattern: string) => {
-      const versions = (occurences[pkg.name] = occurences[pkg.name] || {});
+      const versions = (occurrences[pkg.name] = occurrences[pkg.name] || {});
       const version = (versions[pkg.version] = versions[pkg.version] || {
-        occurences: new Set(),
+        occurrences: new Set(),
         pattern,
       });
 
       if (ancestry.length) {
-        version.occurences.add(ancestry[ancestry.length - 1]);
+        version.occurrences.add(ancestry[ancestry.length - 1]);
       }
     };
 
@@ -633,9 +633,9 @@ export default class PackageHoister {
       add(pattern, [], []);
     }
 
-    for (const packageName of Object.keys(occurences).sort()) {
-      const versionOccurences = occurences[packageName];
-      const versions = Object.keys(versionOccurences);
+    for (const packageName of Object.keys(occurrences).sort()) {
+      const versionOccurrences = occurrences[packageName];
+      const versions = Object.keys(versionOccurrences);
 
       if (versions.length === 1) {
         // only one package type so we'll hoist this to the top anyway
@@ -654,9 +654,9 @@ export default class PackageHoister {
 
       let mostOccurenceCount;
       let mostOccurencePattern;
-      for (const version of Object.keys(versionOccurences).sort()) {
-        const {occurences, pattern} = versionOccurences[version];
-        const occurenceCount = occurences.size;
+      for (const version of Object.keys(versionOccurrences).sort()) {
+        const {occurrences, pattern} = versionOccurrences[version];
+        const occurenceCount = occurrences.size;
 
         if (!mostOccurenceCount || occurenceCount > mostOccurenceCount) {
           mostOccurenceCount = occurenceCount;

@@ -22,7 +22,7 @@ function leftPad(str, len, ch) {
   while (true) {
     // add `ch` to `pad` if `len` is odd
     if (len & 1) pad += ch;
-    // devide `len` by 2, ditch the fraction
+    // divide `len` by 2, ditch the fraction
     len >>= 1;
     // "double" the `ch` so this operation count grows logarithmically on `len`
     // each time `ch` is "doubled", the `len` would need to be "doubled" too

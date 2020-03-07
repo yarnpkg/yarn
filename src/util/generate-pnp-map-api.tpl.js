@@ -4,7 +4,7 @@
 /* global packageInformationStores, $$BLACKLIST, $$SETUP_STATIC_TABLES */
 
 // Used for the resolveUnqualified part of the resolution (ie resolving folder/index.js & file extensions)
-// Deconstructed so that they aren't affected by any fs monkeypatching occuring later during the execution
+// Deconstructed so that they aren't affected by any fs monkeypatching occurring later during the execution
 const {statSync, lstatSync, readlinkSync, readFileSync, existsSync, realpathSync} = require('fs');
 
 const Module = require('module');
@@ -344,7 +344,7 @@ exports.resolveToUnqualified = function resolveToUnqualified(request, issuer, {c
     if (result === false) {
       throw makeError(
         `BUILTIN_NODE_RESOLUTION_FAIL`,
-        `The builtin node resolution algorithm was unable to resolve the module referenced by "${request}" and requested from "${issuer}" (it didn't go through the pnp resolver because the issuer was explicitely ignored by the regexp "$$BLACKLIST")`,
+        `The builtin node resolution algorithm was unable to resolve the module referenced by "${request}" and requested from "${issuer}" (it didn't go through the pnp resolver because the issuer was explicitly ignored by the regexp "$$BLACKLIST")`,
         {
           request,
           issuer,
