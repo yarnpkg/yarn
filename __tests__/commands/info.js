@@ -51,7 +51,7 @@ beforeEach(() => {
   jest.unmock('request');
 });
 
-test.concurrent('without arguments and in directory containing a valid package file', (): Promise<void> => {
+test.skip('without arguments and in directory containing a valid package file', (): Promise<void> => {
   return runInfo([], {}, 'local', (config, output): ?Promise<void> => {
     const actualKeys = Object.keys(output);
     expectedKeys.forEach(key => expect(actualKeys).toContain(key));
@@ -60,7 +60,7 @@ test.concurrent('without arguments and in directory containing a valid package f
   });
 });
 
-test.concurrent('with first argument "." and in directory containing a valid package file', (): Promise<void> => {
+test.skip('with first argument "." and in directory containing a valid package file', (): Promise<void> => {
   return runInfo(['.'], {}, 'local', (config, output): ?Promise<void> => {
     const actualKeys = Object.keys(output);
     expectedKeys.forEach(key => expect(actualKeys).toContain(key));
@@ -69,7 +69,7 @@ test.concurrent('with first argument "." and in directory containing a valid pac
   });
 });
 
-test.concurrent('with one argument shows info about the package with specified name', (): Promise<void> => {
+test.skip('with one argument shows info about the package with specified name', (): Promise<void> => {
   return runInfo(['yarn'], {}, 'local', (config, output): ?Promise<void> => {
     const actualKeys = Object.keys(output);
     expectedKeys.forEach(key => expect(actualKeys).toContain(key));
@@ -78,20 +78,20 @@ test.concurrent('with one argument shows info about the package with specified n
   });
 });
 
-test.concurrent('with one argument does not contain readme field', (): Promise<void> => {
+test.skip('with one argument does not contain readme field', (): Promise<void> => {
   return runInfo(['left-pad'], {}, '', (config, output): ?Promise<void> => {
     expect(output.readme).toBe(undefined);
   });
 });
 
-test.concurrent('with two arguments and second argument "readme" shows readme string', (): Promise<void> => {
+test.skip('with two arguments and second argument "readme" shows readme string', (): Promise<void> => {
   return runInfo(['left-pad', 'readme'], {}, '', (config, output): ?Promise<void> => {
     expect(typeof output).toBe('string');
     expect(output).toMatch(/left-pad/);
   });
 });
 
-test.concurrent('with two arguments and second argument "version" shows `latest` version', (): Promise<void> => {
+test.skip('with two arguments and second argument "version" shows `latest` version', (): Promise<void> => {
   // Scenario:
   // If a registry contains versions [1.0.0, 1.0.1, 1.0.2] and latest:1.0.1
   // If `yarn info` is run, it should choose `1.0.1` because it is "latest", not `1.0.2` even though it is newer.
@@ -105,7 +105,7 @@ test.concurrent('with two arguments and second argument "version" shows `latest`
   });
 });
 
-test.concurrent('with two arguments and second argument as a simple field', (): Promise<void> => {
+test.skip('with two arguments and second argument as a simple field', (): Promise<void> => {
   return runInfo(['yarn', 'repository'], {}, '', (config, output): ?Promise<void> => {
     expect(output).toEqual({
       type: 'git',
@@ -114,32 +114,32 @@ test.concurrent('with two arguments and second argument as a simple field', (): 
   });
 });
 
-test.concurrent('with two arguments and second argument as "."-separated field path', (): Promise<void> => {
+test.skip('with two arguments and second argument as "."-separated field path', (): Promise<void> => {
   return runInfo(['yarn', 'repository.type'], {}, '', (config, output): ?Promise<void> => {
     expect(output).toEqual('git');
   });
 });
 
-test.concurrent('with two arguments and second argument as a non-existing field', (): Promise<void> => {
+test.skip('with two arguments and second argument as a non-existing field', (): Promise<void> => {
   return runInfo(['yarn', 'unknown'], {}, '', (config, output): ?Promise<void> => {
     expect(output).toBe(undefined);
   });
 });
 
-test.concurrent('with two arguments and second argument path containing non-existing field', (): Promise<void> => {
+test.skip('with two arguments and second argument path containing non-existing field', (): Promise<void> => {
   return runInfo(['yarn', 'repository.unknown.type'], {}, '', (config, output): ?Promise<void> => {
     expect(output).toBe(undefined);
   });
 });
 
-test.concurrent('reports error on invalid package names', (): Promise<void> => {
+test.skip('reports error on invalid package names', (): Promise<void> => {
   const reporter = new reporters.ConsoleReporter({});
   return runInfo(['YARN.invalid.package.name.YARN'], {}, '', (config, output): ?Promise<void> => {
     expect(output).toContain(reporter.lang('infoFail', 2));
   });
 });
 
-test.concurrent('reports error with too many arguments', (): Promise<void> => {
+test.skip('reports error with too many arguments', (): Promise<void> => {
   const reporter = new reporters.ConsoleReporter({});
   return runInfo(['yarn', 'version', 'extra.invalid.arg'], {}, '', (config, output): ?Promise<void> => {
     expect(output).toContain(reporter.lang('tooManyArguments', 2));

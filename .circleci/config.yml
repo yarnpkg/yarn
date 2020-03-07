@@ -140,16 +140,16 @@ jobs:
   test-pkg-tests-linux-node8:
     <<: *docker_defaults
     <<: *pkg_tests
-  test-linux-node13:
-    <<: *docker_defaults
-    docker:
-      - image: node:13
-    <<: *test_steps
-  test-linux-node12:
-    <<: *docker_defaults
-    docker:
-      - image: node:12
-    <<: *test_steps
+#  test-linux-node13:
+#    <<: *docker_defaults
+#    docker:
+#      - image: node:13
+#    <<: *test_steps
+#  test-linux-node12:
+#    <<: *docker_defaults
+#    docker:
+#      - image: node:12
+#    <<: *test_steps
   test-linux-node10:
     <<: *docker_defaults
     docker:
@@ -337,8 +337,6 @@ workflows:
             - test-pkg-tests-linux-node12
             - test-pkg-tests-linux-node10
             - test-pkg-tests-linux-node8
-            - test-linux-node13
-            - test-linux-node12
             - test-linux-node10
             - test-linux-node8
             - test-linux-node6
