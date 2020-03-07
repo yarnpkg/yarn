@@ -398,9 +398,14 @@ function parse(str: string, fileLoc: string): Object {
       }
     }
   } else {
-    return safeLoad(str, {
+    const result = safeLoad(str, {
       schema: FAILSAFE_SCHEMA,
     });
+    if (typeof result === 'object') {
+      return result;
+    } else {
+      return {};
+    }
   }
 }
 
