@@ -2,7 +2,7 @@
 
 const os = require('os');
 
-const IGNORE_INTERFACES = ['lo0', 'awdl0', 'bridge0'];
+const IGNORE_INTERFACES = ['lo', 'lo0', 'awdl0', 'bridge0'];
 const LOCAL_IPS = ['127.0.0.1', '::1'];
 
 export function isOffline(): boolean {
