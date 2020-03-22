@@ -97,10 +97,12 @@ export async function unlinkIgnoredFiles(dest: string): Promise<void> {
   const ignoringPatternFileExist = await fs.exists(ignoreFilePath);
 
   if (ignoringPatternFileExist) {
-    const ignoringPatternFile = await fs.readFile(ignoreFilePath);
-    const filesWillBeUnliked = ignoringPatternFile.toString().split('\n').filter(Boolean);
-    await fs.del(filesWillBeUnliked.map(file => path.join(dest, file)), {force: true});
-    //await Promise.all(filesWillBeUnliked.map(file => fs.unlink(path.resolve(dest, file))));
+    const ignoringPatternFileAsRaw = await fs.readFile(ignoreFilePath);
+    const filesWillBeUnlikedAsArray = ignoringPatternFileAsRaw
+      .toString()
+      .split(/\r?\n/)
+      .filter(line => line.trim() !== '' && line.charAt(0) !== '#');
+    await fs.del(filesWillBeUnlikedAsArray.map(file => path.join(dest, file)), {force: true});
   }
 }
 
