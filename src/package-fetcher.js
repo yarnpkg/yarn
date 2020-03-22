@@ -9,6 +9,9 @@ import * as fetchers from './fetchers/index.js';
 import * as fs from './util/fs.js';
 import * as promise from './util/promise.js';
 
+import {NPM_IGNORE_FILENAME} from '../src/constants.js';
+
+const path = require('path');
 const ssri = require('ssri');
 
 async function fetchCache(
@@ -73,10 +76,12 @@ export async function fetchOneRemote(
   await fs.unlink(dest);
 
   try {
-    return await fetcher.fetch({
+    const fetchingProccess = await fetcher.fetch({
       name,
       version,
     });
+    await unlinkIgnoredFiles(dest);
+    return fetchingProccess;
   } catch (err) {
     try {
       await fs.unlink(dest);
@@ -84,6 +89,18 @@ export async function fetchOneRemote(
       // what do?
     }
     throw err;
+  }
+}
+
+export async function unlinkIgnoredFiles(dest: string): Promise<void> {
+  const ignoreFilePath = path.join(dest, NPM_IGNORE_FILENAME);
+  const ignoringPatternFileExist = await fs.exists(ignoreFilePath);
+
+  if (ignoringPatternFileExist) {
+    const ignoringPatternFile = await fs.readFile(ignoreFilePath);
+    const filesWillBeUnliked = ignoringPatternFile.toString().split('\n').filter(Boolean);
+    await fs.del(filesWillBeUnliked.map(file => path.join(dest, file)), {force: true});
+    //await Promise.all(filesWillBeUnliked.map(file => fs.unlink(path.resolve(dest, file))));
   }
 }
 
