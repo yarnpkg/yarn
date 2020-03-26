@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "foo": "file:../basic"
+  },
+  "resolutions": {
+    "glob": "7.0.0"
+  }
+}

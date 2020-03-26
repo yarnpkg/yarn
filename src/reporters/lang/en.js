@@ -300,6 +300,7 @@ const messages = {
   whySpecified: `Specified in $0`,
 
   whyMatch: `\r=> Found $0`,
+  whyVersionEnforcedByResolution: `Version $0 is used because you have enforced it via a custom resolution in your config`,
 
   uninstalledPackages: 'Uninstalled packages.',
   uninstallRegenerate: 'Regenerating lockfile and installing missing dependencies',

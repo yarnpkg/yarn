@@ -96,6 +96,29 @@ test.concurrent('should determine that the module installed because it is in dev
   });
 });
 
+test.concurrent(
+  // eslint-disable-next-line max-len
+  'should inform the user that a specific version is used because they have enforced it via a custom resolution in their config',
+  (): Promise<void> => {
+    return runWhy({}, ['glob'], 'resolution', (config, reporter) => {
+      const report = reporter.getBuffer();
+      expect(report[report.length - 3].data).toEqual(reporter.lang('whyVersionEnforcedByResolution', '7.0.0'));
+    });
+  },
+);
+
+test.concurrent(
+  'should not output the version resolution info if the module isn’t affected by a custom resolution config',
+  (): Promise<void> => {
+    return runWhy({}, ['glob'], 'basic', (config, reporter) => {
+      const report = reporter.getBuffer();
+      expect(report.map(r => r.data)).not.toContain(
+        'is used because you have enforced it via a custom resolution in your config',
+      );
+    });
+  },
+);
+
 test.concurrent('should determine that the module installed because mime-types depend on it', (): Promise<void> => {
   return runWhy({}, ['mime-db'], 'basic', (config, reporter) => {
     const report = reporter.getBuffer();

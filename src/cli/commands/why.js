@@ -219,7 +219,12 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
     // prepare output: populate reporter
     reporter.info(reporter.lang('whyMatch', `${matchInfo.key}@${matchInfo.pkg.version}`));
-    //
+
+    // info: specific version is enforced via a custom resolution
+    if (matchRef.hint === 'resolution') {
+      reporter.info(reporter.lang('whyVersionEnforcedByResolution', matchInfo.pkg.version));
+    }
+
     // reason: hoisted/nohoist
     if (matchInfo.isNohoist) {
       reasons.push({
