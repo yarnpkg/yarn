@@ -170,21 +170,24 @@ export default class GitFetcher extends BaseFetcher {
       ),
       Lockfile.fromDirectory(prepareDirectory, this.reporter),
     ]);
-    await install(prepareConfig, this.reporter, {}, prepareLockFile);
 
-    const tarballMirrorPath = this.getTarballMirrorPath();
-    const tarballCachePath = this.getTarballCachePath();
+    this.deferredTasks.submit(async () => {
+      await install(prepareConfig, this.reporter, {}, prepareLockFile);
 
-    if (tarballMirrorPath) {
-      await this._packToTarball(prepareConfig, tarballMirrorPath);
-    }
-    if (tarballCachePath) {
-      await this._packToTarball(prepareConfig, tarballCachePath);
-    }
+      const tarballMirrorPath = this.getTarballMirrorPath();
+      const tarballCachePath = this.getTarballCachePath();
 
-    await this._packToDirectory(prepareConfig, this.dest);
+      if (tarballMirrorPath) {
+        await this._packToTarball(prepareConfig, tarballMirrorPath);
+      }
+      if (tarballCachePath) {
+        await this._packToTarball(prepareConfig, tarballCachePath);
+      }
 
-    await fsUtil.unlink(prepareDirectory);
+      await this._packToDirectory(prepareConfig, this.dest);
+
+      await fsUtil.unlink(prepareDirectory);
+    });
   }
 
   async _packToTarball(config: Config, path: string): Promise<void> {

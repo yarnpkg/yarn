@@ -8,6 +8,7 @@ import {MessageError, SecurityError} from './errors.js';
 import * as fetchers from './fetchers/index.js';
 import * as fs from './util/fs.js';
 import * as promise from './util/promise.js';
+import {DeferredTasks} from './util/defer';
 
 const ssri = require('ssri');
 
@@ -52,6 +53,7 @@ export async function fetchOneRemote(
   version: string,
   dest: string,
   config: Config,
+  deferredTasks: DeferredTasks,
 ): Promise<FetchedMetadata> {
   // Mock metadata for symlinked dependencies
   if (remote.type === 'link') {
@@ -64,7 +66,7 @@ export async function fetchOneRemote(
     throw new MessageError(config.reporter.lang('unknownFetcherFor', remote.type));
   }
 
-  const fetcher = new Fetcher(dest, remote, config);
+  const fetcher = new Fetcher(dest, remote, config, deferredTasks);
   if (await config.isValidModuleDest(dest)) {
     return fetchCache(dest, fetcher, config, remote);
   }
@@ -87,15 +89,19 @@ export async function fetchOneRemote(
   }
 }
 
-function fetchOne(ref: PackageReference, config: Config): Promise<FetchedMetadata> {
+function fetchOne(ref: PackageReference, config: Config, deferredTasks: DeferredTasks): Promise<FetchedMetadata> {
   const dest = config.generateModuleCachePath(ref);
 
-  return fetchOneRemote(ref.remote, ref.name, ref.version, dest, config);
+  return fetchOneRemote(ref.remote, ref.name, ref.version, dest, config, deferredTasks);
 }
 
-async function maybeFetchOne(ref: PackageReference, config: Config): Promise<?FetchedMetadata> {
+async function maybeFetchOne(
+  ref: PackageReference,
+  config: Config,
+  deferredTasks: DeferredTasks,
+): Promise<?FetchedMetadata> {
   try {
-    return await fetchOne(ref, config);
+    return await fetchOne(ref, config, deferredTasks);
   } catch (err) {
     if (ref.optional) {
       config.reporter.error(err.message);
@@ -106,7 +112,7 @@ async function maybeFetchOne(ref: PackageReference, config: Config): Promise<?Fe
   }
 }
 
-export function fetch(pkgs: Array<Manifest>, config: Config): Promise<Array<Manifest>> {
+export function fetch(pkgs: Array<Manifest>, config: Config, deferredTasks: DeferredTasks): Promise<Array<Manifest>> {
   const pkgsPerDest: Map<string, PackageReference> = new Map();
   pkgs = pkgs.filter(pkg => {
     const ref = pkg._reference;
@@ -134,7 +140,7 @@ export function fetch(pkgs: Array<Manifest>, config: Config): Promise<Array<Mani
         return pkg;
       }
 
-      const res = await maybeFetchOne(ref, config);
+      const res = await maybeFetchOne(ref, config, deferredTasks);
       let newPkg;
 
       if (res) {

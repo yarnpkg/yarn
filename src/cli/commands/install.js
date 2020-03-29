@@ -32,6 +32,7 @@ import WorkspaceLayout from '../../workspace-layout.js';
 import ResolutionMap from '../../resolution-map.js';
 import guessName from '../../util/guess-name';
 import Audit from './audit';
+import {DeferredTasks} from '../../util/defer';
 
 const deepEqual = require('deep-equal');
 const emoji = require('node-emoji');
@@ -202,6 +203,7 @@ export class Install {
     this.resolver = new PackageResolver(config, lockfile, this.resolutionMap);
     this.integrityChecker = new InstallationIntegrityChecker(config);
     this.linker = new PackageLinker(config, this.resolver);
+    this.fetcherDeferredTasks = new DeferredTasks();
     this.scripts = new PackageInstallScripts(config, this.resolver, this.flags.force);
   }
 
@@ -213,6 +215,7 @@ export class Install {
   config: Config;
   reporter: Reporter;
   resolver: PackageResolver;
+  fetcherDeferredTasks: DeferredTasks;
   scripts: PackageInstallScripts;
   linker: PackageLinker;
   rootPatternsToOrigin: {[pattern: string]: string};
@@ -537,7 +540,7 @@ export class Install {
 
     await this.resolver.init(depRequests, {});
 
-    const manifests = await fetcher.fetch(this.resolver.getManifests(), this.config);
+    const manifests = await fetcher.fetch(this.resolver.getManifests(), this.config, this.fetcherDeferredTasks);
     this.resolver.updateManifests(manifests);
 
     return this.flatten(rawPatterns);
@@ -639,7 +642,13 @@ export class Install {
       callThroughHook('fetchStep', async () => {
         this.markIgnored(ignorePatterns);
         this.reporter.step(curr, total, this.reporter.lang('fetchingPackages'), emoji.get('truck'));
-        const manifests: Array<Manifest> = await fetcher.fetch(this.resolver.getManifests(), this.config);
+        const manifests: Array<Manifest> = await fetcher.fetch(
+          this.resolver.getManifests(),
+          this.config,
+          this.fetcherDeferredTasks,
+        );
+        // Calls `install` on cloned git repositories.
+        await this.fetcherDeferredTasks.runAll();
         this.resolver.updateManifests(manifests);
         await compatibility.check(this.resolver.getManifests(), this.config, this.flags.ignoreEngines);
       }),
@@ -1032,7 +1041,11 @@ export class Install {
     this.markIgnored(ignorePatterns);
 
     // fetch packages, should hit cache most of the time
-    const manifests: Array<Manifest> = await fetcher.fetch(this.resolver.getManifests(), this.config);
+    const manifests: Array<Manifest> = await fetcher.fetch(
+      this.resolver.getManifests(),
+      this.config,
+      this.fetcherDeferredTasks,
+    );
     this.resolver.updateManifests(manifests);
     await compatibility.check(this.resolver.getManifests(), this.config, this.flags.ignoreEngines);
 

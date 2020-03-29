@@ -387,7 +387,11 @@ export class Import extends Install {
       this.resolver.rootName = manifest.name;
     }
     await this.resolver.init(requests, {isFlat: this.flags.flat, isFrozen: this.flags.frozenLockfile});
-    const manifests: Array<Manifest> = await fetcher.fetch(this.resolver.getManifests(), this.config);
+    const manifests: Array<Manifest> = await fetcher.fetch(
+      this.resolver.getManifests(),
+      this.config,
+      this.fetcherDeferredTasks,
+    );
     this.resolver.updateManifests(manifests);
     await compatibility.check(this.resolver.getManifests(), this.config, this.flags.ignoreEngines);
     await this.linker.resolvePeerModules();
