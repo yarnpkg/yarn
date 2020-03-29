@@ -11,6 +11,7 @@ import {install} from '../cli/commands/install.js';
 import Lockfile from '../lockfile';
 import Config from '../config.js';
 import {packTarball} from '../cli/commands/pack.js';
+import type {DeferredTask} from '../util/defer';
 
 const tarFs = require('tar-fs');
 const url = require('url');
@@ -171,7 +172,7 @@ export default class GitFetcher extends BaseFetcher {
       Lockfile.fromDirectory(prepareDirectory, this.reporter),
     ]);
 
-    this.deferredTasks.submit(async () => {
+    const task: DeferredTask = async () => {
       await install(prepareConfig, this.reporter, {}, prepareLockFile);
 
       const tarballMirrorPath = this.getTarballMirrorPath();
@@ -187,7 +188,13 @@ export default class GitFetcher extends BaseFetcher {
       await this._packToDirectory(prepareConfig, this.dest);
 
       await fsUtil.unlink(prepareDirectory);
-    });
+    };
+
+    if (this.deferredTasks) {
+      this.deferredTasks.submit(task);
+    } else {
+      await task();
+    }
   }
 
   async _packToTarball(config: Config, path: string): Promise<void> {

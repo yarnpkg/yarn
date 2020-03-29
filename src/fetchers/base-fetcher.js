@@ -15,7 +15,7 @@ const cmdShim = require('@zkochan/cmd-shim');
 const path = require('path');
 
 export default class BaseFetcher {
-  constructor(dest: string, remote: PackageRemote, config: Config, deferredTasks: DeferredTasks) {
+  constructor(dest: string, remote: PackageRemote, config: Config, deferredTasks?: DeferredTasks) {
     this.reporter = config.reporter;
     this.packageName = remote.packageName;
     this.reference = remote.reference;
@@ -35,7 +35,7 @@ export default class BaseFetcher {
   config: Config;
   hash: ?string;
   dest: string;
-  deferredTasks: DeferredTasks;
+  deferredTasks: ?DeferredTasks;
 
   setupMirrorFromCache(): Promise<?string> {
     // fetcher subclasses may use this to perform actions such as copying over a cached tarball to the offline
