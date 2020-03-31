@@ -2,6 +2,12 @@
 
 Please add one entry in this file for each change in Yarn's behavior. Use the same format for all entries, including the third-person verb. Make sure you don't add more than one line of text to keep it clean. Thanks!
 
+## Master
+
+- Include more CI configs in default .yarnclean
+
+  [#8030](https://github.com/yarnpkg/yarn/pull/8030) - [**Peter Dave Hello**](https://github.com/PeterDaveHello)
+
 ## 1.22.1
 
 - Prevents `yarn-path` from exiting before its child exited
