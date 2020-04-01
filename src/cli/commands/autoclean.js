@@ -42,6 +42,8 @@ Gruntfile.js
 
 # configs
 appveyor.yml
+azure-pipelines.yml
+bitbucket-pipelines.yml
 circle.yml
 codeship-services.yml
 codeship-steps.yml
@@ -55,6 +57,10 @@ wercker.yml
 .flowconfig
 .documentup.json
 .yarn-metadata.json
+.circleci
+.drone.yml
+.github
+.gitlab-ci.yml
 .travis.yml
 
 # misc
