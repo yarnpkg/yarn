@@ -4,14 +4,16 @@ import type {PackageRemote, FetchedMetadata, Manifest} from '../types.js';
 import type Config from '../config.js';
 import type {RegistryNames} from '../registries/index.js';
 import {fetchOneRemote} from '../package-fetcher.js';
+import {DeferredTasks} from '../util/defer';
 
 export default class WorkspaceFetcher {
-  constructor(dest: string, remote: PackageRemote, config: Config) {
+  constructor(dest: string, remote: PackageRemote, config: Config, deferredTasks: DeferredTasks) {
     this.config = config;
     this.dest = dest;
     this.registry = remote.registry;
     this.workspaceDir = remote.reference;
     this.registryRemote = remote.registryRemote;
+    this.deferredTasks = deferredTasks;
   }
 
   config: Config;
@@ -19,6 +21,7 @@ export default class WorkspaceFetcher {
   registry: RegistryNames;
   workspaceDir: string;
   registryRemote: ?PackageRemote;
+  deferredTasks: DeferredTasks;
 
   setupMirrorFromCache(): Promise<?string> {
     return Promise.resolve();
@@ -44,6 +47,6 @@ export default class WorkspaceFetcher {
   }
 
   fetchRemoteWorkspace(remote: PackageRemote, manifest: Manifest): Promise<FetchedMetadata> {
-    return fetchOneRemote(remote, manifest.name, manifest.version, this.dest, this.config);
+    return fetchOneRemote(remote, manifest.name, manifest.version, this.dest, this.config, this.deferredTasks);
   }
 }

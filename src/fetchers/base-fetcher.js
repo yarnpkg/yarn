@@ -9,12 +9,13 @@ import normalizeManifest from '../util/normalize-manifest/index.js';
 import * as constants from '../constants.js';
 import * as fs from '../util/fs.js';
 import lockMutex from '../util/mutex.js';
+import {DeferredTasks} from '../util/defer';
 
 const cmdShim = require('@zkochan/cmd-shim');
 const path = require('path');
 
 export default class BaseFetcher {
-  constructor(dest: string, remote: PackageRemote, config: Config) {
+  constructor(dest: string, remote: PackageRemote, config: Config, deferredTasks?: DeferredTasks) {
     this.reporter = config.reporter;
     this.packageName = remote.packageName;
     this.reference = remote.reference;
@@ -23,6 +24,7 @@ export default class BaseFetcher {
     this.remote = remote;
     this.config = config;
     this.dest = dest;
+    this.deferredTasks = deferredTasks;
   }
 
   reporter: Reporter;
@@ -33,6 +35,7 @@ export default class BaseFetcher {
   config: Config;
   hash: ?string;
   dest: string;
+  deferredTasks: ?DeferredTasks;
 
   setupMirrorFromCache(): Promise<?string> {
     // fetcher subclasses may use this to perform actions such as copying over a cached tarball to the offline

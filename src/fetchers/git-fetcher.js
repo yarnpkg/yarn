@@ -11,6 +11,7 @@ import {install} from '../cli/commands/install.js';
 import Lockfile from '../lockfile';
 import Config from '../config.js';
 import {packTarball} from '../cli/commands/pack.js';
+import type {DeferredTask} from '../util/defer';
 
 const tarFs = require('tar-fs');
 const url = require('url');
@@ -170,21 +171,30 @@ export default class GitFetcher extends BaseFetcher {
       ),
       Lockfile.fromDirectory(prepareDirectory, this.reporter),
     ]);
-    await install(prepareConfig, this.reporter, {}, prepareLockFile);
 
-    const tarballMirrorPath = this.getTarballMirrorPath();
-    const tarballCachePath = this.getTarballCachePath();
+    const task: DeferredTask = async () => {
+      await install(prepareConfig, this.reporter, {}, prepareLockFile);
 
-    if (tarballMirrorPath) {
-      await this._packToTarball(prepareConfig, tarballMirrorPath);
+      const tarballMirrorPath = this.getTarballMirrorPath();
+      const tarballCachePath = this.getTarballCachePath();
+
+      if (tarballMirrorPath) {
+        await this._packToTarball(prepareConfig, tarballMirrorPath);
+      }
+      if (tarballCachePath) {
+        await this._packToTarball(prepareConfig, tarballCachePath);
+      }
+
+      await this._packToDirectory(prepareConfig, this.dest);
+
+      await fsUtil.unlink(prepareDirectory);
+    };
+
+    if (this.deferredTasks) {
+      this.deferredTasks.submit(task);
+    } else {
+      await task();
     }
-    if (tarballCachePath) {
-      await this._packToTarball(prepareConfig, tarballCachePath);
-    }
-
-    await this._packToDirectory(prepareConfig, this.dest);
-
-    await fsUtil.unlink(prepareDirectory);
   }
 
   async _packToTarball(config: Config, path: string): Promise<void> {
