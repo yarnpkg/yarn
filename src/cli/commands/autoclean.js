@@ -138,7 +138,7 @@ async function runAutoClean(config: Config, reporter: Reporter): Promise<void> {
   reporter.step(1, 1, reporter.lang('cleaning'));
   const {removedFiles, removedSize} = await clean(config, reporter);
   reporter.info(reporter.lang('cleanRemovedFiles', removedFiles));
-  reporter.info(reporter.lang('cleanSavedSize', Number((removedSize / 1024 / 1024).toFixed(2))));
+  reporter.info(reporter.lang('cleanSavedSize', Number((removedSize / 1000 / 1000).toFixed(2))));
 }
 
 async function checkForCleanFile(cwd: string): Promise<boolean> {
