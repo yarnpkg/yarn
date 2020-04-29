@@ -235,7 +235,7 @@ export default class BaseReporter {
   auditManualReview() {}
 
   // security audit advisory
-  auditAdvisory(resolution: AuditResolution, auditAdvisory: AuditAdvisory) {}
+  auditAdvisories(advisories: {[string]: AuditAdvisory}) {}
 
   // summary for security audit report
   auditSummary(auditMetadata: AuditMetadata) {}

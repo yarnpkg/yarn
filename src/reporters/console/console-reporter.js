@@ -11,7 +11,7 @@ import type {
   PromptOptions,
 } from '../types.js';
 import type {FormatKeys} from '../format.js';
-import type {AuditMetadata, AuditActionRecommendation, AuditAdvisory, AuditResolution} from '../../cli/commands/audit';
+import type {AuditMetadata, AuditActionRecommendation, AuditAdvisory} from '../../cli/commands/audit';
 
 import BaseReporter from '../base-reporter.js';
 import Progress from './progress-bar.js';
@@ -547,12 +547,12 @@ export default class ConsoleReporter extends BaseReporter {
     this._log(table.toString());
   }
 
-  auditAdvisory(resolution: AuditResolution, auditAdvisory: AuditAdvisory) {
+  auditAdvisories(advisories: {[string]: AuditAdvisory}) {
     function colorSeverity(severity: string, message: ?string): string {
       return auditSeverityColors[severity](message || severity);
     }
 
-    function makeAdvisoryTableRow(patchedIn: ?string): Array<Object> {
+    function makeAdvisoryTableRow(path: string, auditAdvisory: AuditAdvisory, patchedIn: ?string): Array<Object> {
       const patchRows = [];
 
       if (patchedIn) {
@@ -563,8 +563,8 @@ export default class ConsoleReporter extends BaseReporter {
         {[chalk.bold(colorSeverity(auditAdvisory.severity))]: chalk.bold(auditAdvisory.title)},
         {Package: auditAdvisory.module_name},
         ...patchRows,
-        {'Dependency of': `${resolution.path.split('>')[0]} ${resolution.dev ? '[dev]' : ''}`},
-        {Path: resolution.path.split('>').join(' > ')},
+        {'Dependency of': `${path.split('>')[0]} ${auditAdvisory.dev ? '[dev]' : ''}`},
+        {Path: path.split('>').join(' > ')},
         {'More info': `https://www.npmjs.com/advisories/${auditAdvisory.id}`},
       ];
     }
@@ -573,12 +573,17 @@ export default class ConsoleReporter extends BaseReporter {
       colWidths: AUDIT_COL_WIDTHS,
       wordWrap: true,
     };
-    const table = new Table(tableOptions);
-    const patchedIn =
-      auditAdvisory.patched_versions.replace(' ', '') === '<0.0.0'
-        ? 'No patch available'
-        : auditAdvisory.patched_versions;
-    table.push(...makeAdvisoryTableRow(patchedIn));
-    this._log(table.toString());
+    Object.keys(advisories).forEach(advisoryKey => {
+      const auditAdvisory = advisories[advisoryKey];
+      const patchedIn =
+        auditAdvisory.patched_versions.replace(' ', '') === '<0.0.0'
+          ? 'No patch available'
+          : auditAdvisory.patched_versions;
+      for (const path of auditAdvisory.findings[0].paths) {
+        const table = new Table(tableOptions);
+        table.push(...makeAdvisoryTableRow(path, auditAdvisory, patchedIn));
+        this._log(table.toString());
+      }
+    });
   }
 }

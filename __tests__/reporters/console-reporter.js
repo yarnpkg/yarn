@@ -326,3 +326,50 @@ test('ConsoleReporter.auditSummary', async () => {
     }),
   ).toMatchSnapshot();
 });
+
+test('ConsoleReporter.auditAdvisories', async () => {
+  expect(
+    await getConsoleBuff(r => {
+      r.auditAdvisories({
+        '118': {
+          findings: [
+            {
+              bundled: false,
+              optional: false,
+              dev: false,
+              paths: [
+                'gulp>vinyl-fs>glob-stream>minimatch',
+                'jest>jest-cli>jest-config>jest-environment-jsdom>jest-util>jest-message-util>micromatch>braces',
+                'jest>jest-cli>jest-environment-jsdom>jest-util>jest-message-util>micromatch>braces',
+              ],
+              version: '',
+            },
+          ],
+          id: 118,
+          created: '2016-05-25T16:37:20.000Z',
+          updated: '2018-03-01T21:58:01.072Z',
+          deleted: null,
+          title: 'Regular Expression Denial of Service',
+          found_by: {name: 'Nick Starke'},
+          reported_by: {name: 'Nick Starke'},
+          module_name: 'minimatch',
+          cves: ['CVE-2016-10540'],
+          vulnerable_versions: '<=3.0.1',
+          patched_versions: '>=3.0.2',
+          overview: '',
+          recommendation: 'Update to version 3.0.2 or later.',
+          references: '',
+          access: 'public',
+          severity: 'high',
+          cwe: 'CWE-400',
+          metadata: {
+            module_type: 'Multi.Library',
+            exploitability: 4,
+            affected_components: '',
+          },
+          url: 'https://nodesecurity.io/advisories/118',
+        },
+      });
+    }),
+  ).toMatchSnapshot();
+});

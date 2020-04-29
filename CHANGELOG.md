@@ -2,6 +2,11 @@
 
 Please add one entry in this file for each change in Yarn's behavior. Use the same format for all entries, including the third-person verb. Make sure you don't add more than one line of text to keep it clean. Thanks!
 
+## Master
+- Print advisories object to reduce redundancy in json output
+  
+  [7404](https://github.com/yarnpkg/yarn/issues/7404)
+
 ## 1.22.1
 
 - Prevents `yarn-path` from exiting before its child exited

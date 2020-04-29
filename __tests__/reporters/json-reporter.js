@@ -130,18 +130,11 @@ test('JSONReporter.auditAction', async () => {
   ).toMatchSnapshot();
 });
 
-test('JSONReporter.auditAdvisory', async () => {
+test('JSONReporter.auditAdvisories', async () => {
   expect(
     await getJSONBuff(r => {
-      r.auditAdvisory(
-        {
-          id: 118,
-          path: 'gulp>vinyl-fs>glob-stream>minimatch',
-          dev: false,
-          optional: false,
-          bundled: false,
-        },
-        {
+      r.auditAdvisories({
+        '118': {
           findings: [
             {
               bundled: false,
@@ -175,7 +168,7 @@ test('JSONReporter.auditAdvisory', async () => {
           },
           url: 'https://nodesecurity.io/advisories/118',
         },
-      );
+      });
     }),
   ).toMatchSnapshot();
 });
