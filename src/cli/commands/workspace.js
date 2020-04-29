@@ -21,11 +21,11 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     throw new MessageError(reporter.lang('workspaceRootNotFound', config.cwd));
   }
 
-  if (flags.originalArgs < 1) {
+  if (args.length < 1) {
     throw new MessageError(reporter.lang('workspaceMissingWorkspace'));
   }
 
-  if (flags.originalArgs < 2) {
+  if (args.length < 2) {
     throw new MessageError(reporter.lang('workspaceMissingCommand'));
   }
 
@@ -33,7 +33,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   invariant(manifest && manifest.workspaces, 'We must find a manifest with a "workspaces" property');
 
   const workspaces = await config.resolveWorkspaces(workspaceRootFolder, manifest);
-  const [workspaceName, ...rest] = flags.originalArgs || [];
+  const [workspaceName, ...rest] = args || [];
 
   if (!Object.prototype.hasOwnProperty.call(workspaces, workspaceName)) {
     throw new MessageError(reporter.lang('workspaceUnknownWorkspace', workspaceName));

@@ -8,6 +8,7 @@ import GitHubResolver from '../../resolvers/exotics/github-resolver.js';
 import * as child from '../../util/child.js';
 import * as fs from '../../util/fs.js';
 import * as validate from '../../util/normalize-manifest/validate.js';
+import {NODE_BIN_PATH} from '../../constants';
 
 const objectPath = require('object-path');
 const path = require('path');
@@ -17,6 +18,8 @@ export function setFlags(commander: Object) {
   commander.description('Interactively creates or updates a package.json file.');
   commander.option('-y, --yes', 'use default options');
   commander.option('-p, --private', 'use default options and private true');
+  commander.option('-i, --install <value>', 'install a specific Yarn release');
+  commander.option('-2', 'generates the project using Yarn 2');
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
@@ -26,6 +29,28 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
 export const shouldRunInCurrentCwd = true;
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
+  const installVersion = flags[`2`] ? `berry` : flags.install;
+
+  if (installVersion) {
+    const lockfilePath = path.resolve(config.cwd, 'yarn.lock');
+    if (!await fs.exists(lockfilePath)) {
+      await fs.writeFile(lockfilePath, '');
+    }
+    await child.spawn(NODE_BIN_PATH, [process.argv[1], 'policies', 'set-version', installVersion], {
+      stdio: 'inherit',
+      cwd: config.cwd,
+    });
+    await child.spawn(
+      NODE_BIN_PATH,
+      [process.argv[1], 'init', ...(flags.yes ? ['-y'] : []), ...(flags.private ? ['-p'] : [])],
+      {
+        stdio: 'inherit',
+        cwd: config.cwd,
+      },
+    );
+    return;
+  }
+
   const manifests = await config.getRootManifests();
 
   let repository = {};

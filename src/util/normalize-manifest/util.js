@@ -2,10 +2,17 @@
 
 import type {PersonObject} from '../../types.js';
 
+const path = require('path');
 const validateLicense = require('validate-npm-package-license');
+
+const PARENT_PATH = /^\.\.([\\\/]|$)/;
 
 export function isValidLicense(license: string): boolean {
   return !!license && validateLicense(license).validForNewPackages;
+}
+
+export function isValidBin(bin: string): boolean {
+  return !path.isAbsolute(bin) && !PARENT_PATH.test(path.normalize(bin));
 }
 
 export function stringifyPerson(person: mixed): any {

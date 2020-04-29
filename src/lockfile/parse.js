@@ -384,15 +384,27 @@ function hasMergeConflicts(str: string): boolean {
 function parse(str: string, fileLoc: string): Object {
   const parser = new Parser(str, fileLoc);
   parser.next();
-  try {
-    return parser.parse();
-  } catch (error1) {
+
+  if (!fileLoc.endsWith(`.yml`)) {
     try {
-      return safeLoad(str, {
-        schema: FAILSAFE_SCHEMA,
-      });
-    } catch (error2) {
-      throw error1;
+      return parser.parse();
+    } catch (error1) {
+      try {
+        return safeLoad(str, {
+          schema: FAILSAFE_SCHEMA,
+        });
+      } catch (error2) {
+        throw error1;
+      }
+    }
+  } else {
+    const result = safeLoad(str, {
+      schema: FAILSAFE_SCHEMA,
+    });
+    if (typeof result === 'object') {
+      return result;
+    } else {
+      return {};
     }
   }
 }

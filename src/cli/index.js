@@ -187,7 +187,11 @@ export async function main({
     commandName = 'install';
     isKnownCommand = true;
   }
-
+  if (commandName === ('set': string) && args[0] === 'version') {
+    commandName = ('policies': string);
+    args.splice(0, 1, 'set-version');
+    isKnownCommand = true;
+  }
   if (!isKnownCommand) {
     // if command is not recognized, then set default to `run`
     args.unshift(commandName);
@@ -198,15 +202,20 @@ export async function main({
   let warnAboutRunDashDash = false;
   // we are using "yarn <script> -abc", "yarn run <script> -abc", or "yarn node -abc", we want -abc
   // to be script options, not yarn options
-  const PROXY_COMMANDS = new Set([`run`, `create`, `node`]);
-  if (PROXY_COMMANDS.has(commandName)) {
+
+  // PROXY_COMMANDS is a map of command name to the number of preservedArgs
+  const PROXY_COMMANDS = {
+    run: 1, // yarn run {command}
+    create: 1, // yarn create {project}
+    node: 0, // yarn node
+    workspaces: 1, // yarn workspaces {command}
+    workspace: 2, // yarn workspace {package} {command}
+  };
+  if (PROXY_COMMANDS.hasOwnProperty(commandName)) {
     if (endArgs.length === 0) {
-      let preservedArgs = 0;
-      // the "run" and "create" command take one argument that we want to parse as usual (the
-      // script/package name), hence the splice(1)
-      if (command === commands.run || command === commands.create) {
-        preservedArgs += 1;
-      }
+      // $FlowFixMe doesn't like that PROXY_COMMANDS doesn't have keys for all commands.
+      let preservedArgs = PROXY_COMMANDS[commandName];
+
       // If the --into option immediately follows the command (or the script name in the "run/create"
       // case), we parse them as regular options so that we can cd into them
       if (args[preservedArgs] === `--into`) {
@@ -218,7 +227,6 @@ export async function main({
     }
   }
 
-  commander.originalArgs = args;
   args = [...preCommandArgs, ...args];
 
   command.setFlags(commander);
@@ -509,21 +517,26 @@ export async function main({
 
   const cwd = command.shouldRunInCurrentCwd ? commander.cwd : findProjectRoot(commander.cwd);
 
+  const folderOptionKeys = ['linkFolder', 'globalFolder', 'preferredCacheFolder', 'cacheFolder', 'modulesFolder'];
+
+  // Resolve all folder options relative to cwd
+  const resolvedFolderOptions = {};
+  folderOptionKeys.forEach(folderOptionKey => {
+    const folderOption = commander[folderOptionKey];
+    const resolvedFolderOption = folderOption ? path.resolve(commander.cwd, folderOption) : folderOption;
+    resolvedFolderOptions[folderOptionKey] = resolvedFolderOption;
+  });
+
   await config
     .init({
       cwd,
       commandName,
-
+      ...resolvedFolderOptions,
       enablePnp: commander.pnp,
       disablePnp: commander.disablePnp,
       enableDefaultRc: commander.defaultRc,
       extraneousYarnrcFiles: commander.useYarnrc,
       binLinks: commander.binLinks,
-      modulesFolder: commander.modulesFolder,
-      linkFolder: commander.linkFolder,
-      globalFolder: commander.globalFolder,
-      preferredCacheFolder: commander.preferredCacheFolder,
-      cacheFolder: commander.cacheFolder,
       preferOffline: commander.preferOffline,
       captureHar: commander.har,
       ignorePlatform: commander.ignorePlatform,
@@ -616,8 +629,17 @@ async function start(): Promise<void> {
     const opts = {stdio: 'inherit', env: Object.assign({}, process.env, {YARN_IGNORE_PATH: 1})};
     let exitCode = 0;
 
+    process.on(`SIGINT`, () => {
+      // We don't want SIGINT to kill our process; we want it to kill the
+      // innermost process, whose end will cause our own to exit.
+    });
+
     try {
-      exitCode = await spawnp(yarnPath, argv, opts);
+      if (yarnPath.endsWith(`.js`)) {
+        exitCode = await spawnp(process.execPath, [yarnPath, ...argv], opts);
+      } else {
+        exitCode = await spawnp(yarnPath, argv, opts);
+      }
     } catch (firstError) {
       try {
         exitCode = await forkp(yarnPath, argv, opts);

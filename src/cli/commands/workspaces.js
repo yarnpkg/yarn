@@ -10,6 +10,7 @@ import {NODE_BIN_PATH, YARN_BIN_PATH} from '../../constants';
 
 const invariant = require('invariant');
 const path = require('path');
+const os = require('os');
 const semver = require('semver');
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
@@ -75,12 +76,10 @@ export async function runScript(config: Config, reporter: Reporter, flags: Objec
   const workspaces = await config.resolveWorkspaces(workspaceRootFolder, manifest);
 
   try {
-    const [_, ...rest] = flags.originalArgs || [];
-
     for (const workspaceName of Object.keys(workspaces)) {
       const {loc} = workspaces[workspaceName];
-
-      await child.spawn(NODE_BIN_PATH, [YARN_BIN_PATH, ...rest], {
+      reporter.log(`${os.EOL}> ${workspaceName}`);
+      await child.spawn(NODE_BIN_PATH, [YARN_BIN_PATH, 'run', ...args], {
         stdio: 'inherit',
         cwd: loc,
       });

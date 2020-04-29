@@ -5,6 +5,7 @@ import {MessageError} from '../../errors.js';
 import type {Reporter} from '../../reporters/index.js';
 import * as child from '../../util/child.js';
 import {makeEnv} from '../../util/execute-lifecycle-script';
+import * as fs from '../../util/fs.js';
 import {run as runGlobal, getBinFolder} from './global.js';
 
 const path = require('path');
@@ -58,7 +59,13 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   }
 
   const {fullName: packageName, name: commandName} = coerceCreatePackageName(builderName);
-  await runGlobal(config, reporter, {}, ['add', packageName]);
+
+  const linkLoc = path.join(config.linkFolder, commandName);
+  if (await fs.exists(linkLoc)) {
+    reporter.info(reporter.lang('linkUsing', packageName));
+  } else {
+    await runGlobal(config, reporter, {}, ['add', packageName]);
+  }
 
   const binFolder = await getBinFolder(config, {});
   const command = path.resolve(binFolder, commandName);

@@ -5,6 +5,6 @@
     "prescript": "echo workspace-1 prescript",
     "script": "echo workspace-1 script",
     "postscript": "echo workspace-1 postscript",
-    "check": "echo $1"
+    "check": "echo ARGS:"
   }
 }

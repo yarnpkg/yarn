@@ -26,7 +26,8 @@ const messages = {
   couldntClearPackageFromCache: "Couldn't clear package $0 from cache",
   clearedPackageFromCache: 'Cleared package $0 from cache',
   packWroteTarball: 'Wrote tarball to $0.',
-
+  invalidBinField: 'Invalid bin field for $0.',
+  invalidBinEntry: 'Invalid bin entry for $1 (in $0).',
   helpExamples: '  Examples:\n$0\n',
   helpCommands: '  Commands:\n$0\n',
   helpCommandsMore: '  Run `$0` for more information on specific commands.',
@@ -346,6 +347,10 @@ const messages = {
   requestError: 'Request $0 returned a $1',
   requestFailed: 'Request failed $0',
   tarballNotInNetworkOrCache: '$0: Tarball is not in network and can not be located in cache ($1)',
+  fetchBadIntegrityCache:
+    'Incorrect integrity when fetching from the cache for $0. Cache has $1 and remote has $2. Run `yarn cache clean` to fix the problem',
+  fetchBadHashCache:
+    'Incorrect hash when fetching from the cache for $0. Cache has $1 and remote has $2. Run `yarn cache clean` to fix the problem',
   fetchBadHashWithPath: "Integrity check failed for $0 (computed integrity doesn't match our records, got $2)",
   fetchBadIntegrityAlgorithm: 'Integrity checked failed for $0 (none of the specified algorithms are supported)',
   fetchErrorCorrupt:
@@ -353,6 +358,7 @@ const messages = {
   errorExtractingTarball: 'Extracting tar content of $1 failed, the file appears to be corrupt: $0',
   updateInstalling: 'Installing $0...',
   hostedGitResolveError: 'Error connecting to repository. Please, check the url.',
+  unauthorizedResponse: 'Received a 401 from $0. $1',
 
   unknownFetcherFor: 'Unknown fetcher for $0',
 
@@ -361,6 +367,9 @@ const messages = {
 
   unplugDisabled: "Packages can only be unplugged when Plug'n'Play is enabled.",
 
+  plugnplaySuggestV2L1: "Plug'n'Play support has been greatly improved on the Yarn v2 development branch.",
+  plugnplaySuggestV2L2:
+    'Please give it a try and tell us what you think! - https://next.yarnpkg.com/getting-started/install',
   plugnplayWindowsSupport: "Plug'n'Play on Windows doesn't support the cache and project to be kept on separate drives",
 
   packageInstalledWithBinaries: 'Installed $0 with binaries:',

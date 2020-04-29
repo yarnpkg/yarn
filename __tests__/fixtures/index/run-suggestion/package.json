@@ -1,0 +1,8 @@
+{
+  "name": "test_suggestion",
+  "version": "1.0.0",
+  "license": "UNLICENSED",
+  "scripts": {
+    "foobar": "foobar"
+  }
+}

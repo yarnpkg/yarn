@@ -7,9 +7,115 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
   
   [7404](https://github.com/yarnpkg/yarn/issues/7404)
 
-- Update fixture certificates to prevent false negatives during testing
+## 1.22.1
 
-  [#7457](https://github.com/yarnpkg/yarn/pull/7457) - [**Thomas Jouannic**](https://github.com/eilgin)
+- Prevents `yarn-path` from exiting before its child exited
+
+  [#7957](https://github.com/yarnpkg/yarn/pull/7957) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Generates relative paths when calling `yarn set version`
+
+  [#7931](https://github.com/yarnpkg/yarn/pull/7931) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Throws an exception when the `.yarnrc.yml` file is invalid yaml
+
+  [#7931](https://github.com/yarnpkg/yarn/pull/7931) - [**Maël Nison**](https://twitter.com/arcanis)
+
+## 1.22.0
+
+- Allows some dots in binary names again
+
+  [#7811](https://github.com/yarnpkg/yarn/pull/7811) - [**Valery Bugakov**](https://github.com/valerybugakov)
+  
+- Better error handling on `yarn set version`
+
+  [#7848](https://github.com/yarnpkg/yarn/pull/7848) - [**Nick Olinger**](https://github.com/olingern)
+
+- Passes arguments following `--` when running a workspace script (`yarn workspace pkg run command -- arg`)
+
+  [#7776](https://github.com/yarnpkg/yarn/pull/7776) - [**Jeff Valore**](https://twitter.com/rally25rs)
+  
+- Fixes an issue where the archive paths were incorrectly sanitized
+
+  [#7831](https://github.com/yarnpkg/yarn/pull/7831) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Implements `yarn init -2`
+
+  [#7862](https://github.com/yarnpkg/yarn/pull/7862) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Implements `yarn set version <version>` as an alias for `policies set-version`
+
+  [#7862](https://github.com/yarnpkg/yarn/pull/7862) - [**Maël Nison**](https://twitter.com/arcanis)
+
+## 1.20 / 1.21
+
+- Prints workspace names with `yarn workspaces` (silence with `-s`)
+
+  [#7722](https://github.com/yarnpkg/yarn/pull/7722) - [**Orta**](https://twitter.com/orta)
+
+- Implements `yarn init --install <version>`
+
+  [#7723](https://github.com/yarnpkg/yarn/pull/7723) - [**Maël Nison**](https://twitter.com/arcanis)
+  
+## 1.19.2
+
+- Folders like `.cache` won't be pruned from the `node_modules` after each install.
+
+  [#7699](https://github.com/yarnpkg/yarn/pull/7699) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Correctly installs workspace child dependencies when workspace child not symlinked to root.
+
+  [#7289](https://github.com/yarnpkg/yarn/pull/7289) - [**Daniel Tschinder**](https://github.com/danez)
+
+- Makes running scripts with Plug'n Play possible on node 13.
+
+  [#7650](https://github.com/yarnpkg/yarn/pull/7650) - [**Sander Verweij**](https://github.com/sverweij)
+
+- Change run command to check cwd/node_modules/.bin for commands. Fixes run in workspaces.
+
+  [#7151](https://github.com/yarnpkg/yarn/pull/7151) - [**Jeff Valore**](https://twitter.com/codingwithspike)
+
+## 1.19.1
+
+**Important:** This release contains a cache bump. It will cause the very first install following the upgrade to take slightly more time, especially if you don't use the [Offline Mirror](https://yarnpkg.com/blog/2016/11/24/offline-mirror/) feature. After that everything will be back to normal.
+
+- Computes the `--modules-folder` & friends paths based on the cwd.
+
+  [#7607](https://github.com/yarnpkg/yarn/pull/7607) - [**mbpreble**](https://github.com/mbpreble)
+
+- Stores the sha512 in the cache even when not provided by the server.
+
+  [#7591](https://github.com/yarnpkg/yarn/pull/7591) - [**Maël Nison**](https://twitter.com/arcanis) / [#7595](https://github.com/yarnpkg/yarn/pull/7595) - [**Michael**](https://github.com/Blasz)
+
+- Uses the right Node binary when using `yarn-path`.
+
+  [#7592](https://github.com/yarnpkg/yarn/pull/7592) - [**Maël Nison**](https://twitter.com/arcanis)
+
+## 1.19.0
+
+**Important:** This release contains a cache bump. It will cause the very first install following the upgrade to take slightly more time, especially if you don't use the [Offline Mirror](https://yarnpkg.com/blog/2016/11/24/offline-mirror/) feature. After that everything will be back to normal.
+
+- Fixes a potential vulnerability regarding how the build artifacts are stored
+
+  Reported by [**ChALkeR**](https://github.com/ChALkeR), fixed by [**Maël Nison**](https://twitter.com/arcanis)
+
+## 1.18.0
+
+- Suggests using the Yarn 2 development trunk on PnP-enabled projects
+
+  [#7512](https://github.com/yarnpkg/yarn/pull/7512) - [**Maël Nison**](https://twitter.com/arcanis)
+
+- Preserves linked packages when calling `yarn create`
+
+  [#7543](https://github.com/yarnpkg/yarn/pull/7543) - [**Nick McCurdy**](https://github.com/nickmccurdy)
+
+- Fixes the offline mirror filenames when using Verdaccio
+
+  [#7499](https://github.com/yarnpkg/yarn/pull/7499) - [**xv2**](https://github.com/xv2)
+
+- Fixes using `link:.` to refer to the package folder
+
+  [#7512](https://github.com/yarnpkg/yarn/pull/7512) - [**Maël Nison**](https://twitter.com/arcanis)
 
 - Runs the `prepare` lifecycle of git dependencies even if `NODE_ENV` is set to `production`.
 
@@ -18,7 +124,7 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 - Fixes the `postversion` lifecycle method not being called when using `--no-git-tag-version`.
 
   [#7154](https://github.com/yarnpkg/yarn/pull/7154) - [**Hampus Tågerud**](https://github.com/hampustagerud)
-  
+
 - Ignores potentially large vscode keys in package.json to avoid E2BIG errors.
 
   [#7419](https://github.com/yarnpkg/yarn/pull/7419) - [**Eric Amodio**](https://twitter.com/eamodio)
@@ -70,7 +176,7 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 - Exposes the script environment variables to `yarn create` spawned processes.
 
   [#7127](https://github.com/yarnpkg/yarn/pull/7127) - [**Eli Perelman**](https://github.com/eliperelman)
-  
+
 - Prevents EPIPE errors from being printed.
 
   [#7194](https://github.com/yarnpkg/yarn/pull/7194) - [**Abhishek Reddy**](https://github.com/arbscht)
