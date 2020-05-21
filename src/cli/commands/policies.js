@@ -155,7 +155,7 @@ const {run, setFlags, examples} = buildSubCommands('policies', {
 
     const bundle = await fetchBundle(config, bundleUrl);
 
-    const yarnPath = path.resolve(config.lockfileFolder, `.yarn/releases/yarn-${bundleVersion}.js`);
+    const yarnPath = path.resolve(config.lockfileFolder, `.yarn/releases/yarn-${bundleVersion}.cjs`);
     reporter.log(`Saving it into ${chalk.magenta(yarnPath)}...`);
     await fs.mkdirp(path.dirname(yarnPath));
     await fs.writeFile(yarnPath, bundle);

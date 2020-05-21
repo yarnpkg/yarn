@@ -12,6 +12,10 @@ Please add one entry in this file for each change in Yarn's behavior. Use the sa
 
   [#8142](https://github.com/yarnpkg/yarn/pull/8142) - [**Merceyz**](https://github.com/merceyz)
 
+- Generates local yarn verions as `.cjs` files when calling `yarn set version`
+
+  [#8145](https://github.com/yarnpkg/yarn/pull/8145) - [**bgotink**](https://github.com/bgotink)
+
 ## 1.22.1
 
 - Prevents `yarn-path` from exiting before its child exited
