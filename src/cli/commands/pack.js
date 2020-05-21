@@ -36,6 +36,7 @@ const DEFAULT_IGNORE = ignoreLinesToRegex([
   'yarn-error.log',
   '.npmrc',
   '.yarnrc',
+  '.yarnrc.yml',
   '.npmignore',
   '.gitignore',
   '.DS_Store',
@@ -146,6 +147,7 @@ export function packWithIgnoreAndHeaders(
 ): Promise<stream$Duplex> {
   return tar.pack(cwd, {
     ignore: ignoreFunction,
+    sort: true,
     map: header => {
       const suffix = header.name === '.' ? '' : `/${header.name}`;
       header.name = `package${suffix}`;
