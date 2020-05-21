@@ -1,5 +1,5 @@
 # Changelog
-
+<!-- -->
 Please add one entry in this file for each change in Yarn's behavior. Use the same format for all entries, including the third-person verb. Make sure you don't add more than one line of text to keep it clean. Thanks!
 
 ## 1.22.2
