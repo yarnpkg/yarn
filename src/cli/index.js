@@ -635,7 +635,7 @@ async function start(): Promise<void> {
     });
 
     try {
-      if (yarnPath.endsWith(`.js`)) {
+      if (/\.[cm]?js$/.test(yarnPath)) {
         exitCode = await spawnp(process.execPath, [yarnPath, ...argv], opts);
       } else {
         exitCode = await spawnp(yarnPath, argv, opts);
