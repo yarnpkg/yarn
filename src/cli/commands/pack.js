@@ -147,6 +147,7 @@ export function packWithIgnoreAndHeaders(
 ): Promise<stream$Duplex> {
   return tar.pack(cwd, {
     ignore: ignoreFunction,
+    sort: true,
     map: header => {
       const suffix = header.name === '.' ? '' : `/${header.name}`;
       header.name = `package${suffix}`;
