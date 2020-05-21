@@ -36,6 +36,7 @@ const DEFAULT_IGNORE = ignoreLinesToRegex([
   'yarn-error.log',
   '.npmrc',
   '.yarnrc',
+  '.yarnrc.yml',
   '.npmignore',
   '.gitignore',
   '.DS_Store',
