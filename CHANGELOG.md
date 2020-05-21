@@ -2,6 +2,16 @@
 
 Please add one entry in this file for each change in Yarn's behavior. Use the same format for all entries, including the third-person verb. Make sure you don't add more than one line of text to keep it clean. Thanks!
 
+## 1.22.2
+
+- Sorts files when running `yarn pack` to produce identical layout on Windows and Unix systems
+
+  [#8142](https://github.com/yarnpkg/yarn/pull/8142) - [**Merceyz**](https://github.com/merceyz)
+
+- Ignores `.yarnrc.yml` by default when running `yarn pack`
+
+  [#8142](https://github.com/yarnpkg/yarn/pull/8142) - [**Merceyz**](https://github.com/merceyz)
+
 ## 1.22.1
 
 - Prevents `yarn-path` from exiting before its child exited
