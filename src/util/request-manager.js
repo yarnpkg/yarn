@@ -16,6 +16,20 @@ import map from '../util/map.js';
 
 import typeof * as RequestModuleT from 'request';
 
+import { Transform } from "stream";
+
+/*
+ * PassThrough stream in the pipelines to add
+ * A large buffer that can handle a large amount of backpressure that arises
+ * when the cpu cannot keep up with the inflow from the network.
+ */
+class BufferStream extends Transform {
+  constructor() {
+    super({transform: (chunk, encoding, callback) => { callback(null, chunk) }, highWaterMark: 16384 * 100000})
+
+  }
+}
+
 // Initialize DNS cache so we don't look up the same
 // domains like registry.yarnpkg.com over and over again
 // for each request.
@@ -210,6 +224,9 @@ export default class RequestManager {
     const request = require('request');
 
     const decoratedRequest = params => {
+      // Use a buffer stream to make sure the data does not overflow the various streams.
+      const bufferStream = new BufferStream();
+
       // Variables keeping the state of the race.
       let req2 = undefined;
       let streams = [];
@@ -257,7 +274,8 @@ export default class RequestManager {
           // If the callback has not aborted the request
           if(!aborted) {
             // We pipe the streams, and resume to let the data flow
-            streams.forEach(s => req2.pipe(s));
+            req2.pipe(bufferStream);
+            streams.forEach(s => bufferStream.pipe(s));
             req2.resume();
           }
           req1 && req1.abort();
@@ -295,7 +313,8 @@ export default class RequestManager {
         // If the callback has not aborted the request
         if(!aborted) {
           // We pipe the streams, and resume to let the data flow
-          streams.forEach(s => req1.pipe(s));
+          req1.pipe(transformStream);
+          streams.forEach(s => bufferStream.pipe(s));
           req1.resume();
         }
         req2 && req2.abort();
