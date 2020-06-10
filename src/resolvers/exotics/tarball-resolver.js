@@ -23,6 +23,7 @@ export default class TarballResolver extends ExoticResolver {
 
   url: string;
   hash: string;
+  static resolutionsInProgress: Map<String, Promise<any>> = new Map();
 
   static isVersion(pattern: string): boolean {
     // we can sometimes match git urls which we don't want
@@ -45,7 +46,21 @@ export default class TarballResolver extends ExoticResolver {
     return false;
   }
 
-  async resolve(): Promise<Manifest> {
+  resolve(): Promise<Manifest> {
+    const resolutionsInProgress = TarballResolver.resolutionsInProgress;
+    const cached = resolutionsInProgress.get(this.url);
+    if (cached) {
+      return cached;
+    }
+
+    const fetchPromise = this.doResolve();
+    resolutionsInProgress.set(this.url, fetchPromise);
+    fetchPromise.then(() => resolutionsInProgress.delete(this.url));
+
+    return fetchPromise;
+  }
+
+  async doResolve(): Promise<Manifest> {
     const shrunk = this.request.getLocked('tarball');
     if (shrunk) {
       return shrunk;

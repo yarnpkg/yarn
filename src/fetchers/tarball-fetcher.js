@@ -267,6 +267,7 @@ export default class TarballFetcher extends BaseFetcher {
             const {hashValidateStream, integrityValidateStream, extractorStream} = this.createExtractor(
               resolve,
               reject,
+              tarballCachePath,
             );
 
             req.pipe(hashValidateStream);
