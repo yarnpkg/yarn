@@ -106,7 +106,7 @@
   "engines": {
     "node": ">=4.0.0"
   },
-  "repository": "yarnpkg/yarn",
+  "repository": "VincentBailly/yarn",
   "bin": {
     "midgard-yarn": "./bin/yarn.js",
     "midgard-yarnpkg": "./bin/yarn.js"
