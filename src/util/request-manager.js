@@ -664,7 +664,13 @@ export default class RequestManager {
 
         req.abort();
       });
-      process(req, resolve, reject);
+
+      // We retry when we fail to process the content
+      const rej = (err) => {
+        queueForRetry("extraction failed, package content seems to be corrupt") || reject(err);
+      }
+
+      process(req, resolve, rej);
     }
   }
 
