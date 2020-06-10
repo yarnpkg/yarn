@@ -313,7 +313,7 @@ export default class RequestManager {
         // If the callback has not aborted the request
         if(!aborted) {
           // We pipe the streams, and resume to let the data flow
-          req1.pipe(transformStream);
+          req1.pipe(bufferStream);
           streams.forEach(s => bufferStream.pipe(s));
           req1.resume();
         }
