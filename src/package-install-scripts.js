@@ -209,32 +209,12 @@ export default class PackageInstallScripts {
     await this.install(cmds, pkg, spinner);
   }
 
-  // detect if there is a circularDependency in the dependency tree
-  detectCircularDependencies(root: Manifest, seenManifests: Set<Manifest>, pkg: Manifest): boolean {
-    const ref = pkg._reference;
-    invariant(ref, 'expected reference');
-
-    const deps = ref.dependencies;
-    for (const dep of deps) {
-      const pkgDep = this.resolver.getStrictResolvedPattern(dep);
-      if (seenManifests.has(pkgDep)) {
-        // there is a cycle but not with the root
-        continue;
-      }
-      seenManifests.add(pkgDep);
-      // found a dependency pointing to root
-      if (pkgDep == root) {
-        return true;
-      }
-      if (this.detectCircularDependencies(root, seenManifests, pkgDep)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   // find the next package to be installed
-  findInstallablePackage(workQueue: Set<Manifest>, installed: Set<Manifest>): ?Manifest {
+  findInstallablePackage(
+    workQueue: Set<Manifest>,
+    installed: Set<Manifest>,
+    connectionsToRemove: Set<string>,
+  ): ?Manifest {
     for (const pkg of workQueue) {
       const ref = pkg._reference;
       invariant(ref, 'expected reference');
@@ -243,6 +223,12 @@ export default class PackageInstallScripts {
       let dependenciesFulfilled = true;
       for (const dep of deps) {
         const pkgDep = this.resolver.getStrictResolvedPattern(dep);
+
+        // We ignore dependencies that have been picked to break circular dependencies.
+        if (connectionsToRemove.has(`${this.createPackageId(pkg)} -> ${this.createPackageId(pkgDep)}`)) {
+          continue;
+        }
+
         if (!installed.has(pkgDep)) {
           dependenciesFulfilled = false;
           break;
@@ -253,12 +239,8 @@ export default class PackageInstallScripts {
       if (dependenciesFulfilled) {
         return pkg;
       }
-
-      // detect circular dependency, mark this pkg as installable to break the circle
-      if (this.detectCircularDependencies(pkg, new Set(), pkg)) {
-        return pkg;
-      }
     }
+
     return null;
   }
 
@@ -267,10 +249,11 @@ export default class PackageInstallScripts {
     workQueue: Set<Manifest>,
     installed: Set<Manifest>,
     waitQueue: Set<() => void>,
+    connectionsToRemove: Set<string>,
   ): Promise<void> {
     while (workQueue.size > 0) {
       // find a installable package
-      const pkg = this.findInstallablePackage(workQueue, installed);
+      const pkg = this.findInstallablePackage(workQueue, installed, connectionsToRemove);
 
       // can't find a package to install, register into waitQueue
       if (pkg == null) {
@@ -292,7 +275,75 @@ export default class PackageInstallScripts {
     }
   }
 
+  createPackageId(manifest: Manifest): string {
+    return `${manifest.name} @ ${manifest.version}`;
+  }
+
+  addDependenciesToGraph(patterns: Array<string>, graph: Map<string, Set<string>>) {
+    patterns.forEach((pattern: string) => {
+      const pkg = this.resolver.getStrictResolvedPattern(pattern);
+      const packageId = this.createPackageId(pkg);
+
+      if (graph.has(packageId)) {
+        return;
+      }
+
+      const dependencies = !pkg._reference ? [] : pkg._reference.dependencies;
+      const resolvedDependencies = dependencies.map(d => {
+        const resolvedDependency = this.resolver.getStrictResolvedPattern(d);
+        return this.createPackageId(resolvedDependency);
+      });
+      graph.set(packageId, new Set(resolvedDependencies));
+      this.addDependenciesToGraph(dependencies, graph);
+    });
+  }
+
+  detectCycles(
+    mother: string,
+    graph: Map<string, Set<string>>,
+    ancestors: Set<string>,
+    connectionsToRemove: Set<string>,
+    visited: Set<string>,
+  ) {
+    if (visited.has(mother)) {
+      return;
+    }
+
+    ancestors.add(mother);
+
+    const children = graph.get(mother) || new Set();
+
+    children.forEach((child: string) => {
+      if (ancestors.has(child)) {
+        connectionsToRemove.add(`${mother} -> ${child}`);
+        children.delete(child);
+        return;
+      }
+
+      this.detectCycles(child, graph, ancestors, connectionsToRemove, visited);
+    });
+
+    ancestors.delete(mother);
+    visited.add(mother);
+  }
+
+  getConnectionsToRemoveToGetAcyclicGraph(seedPatterns: Array<string>): Set<string> {
+    const dependencyGraph = new Map();
+    this.addDependenciesToGraph(seedPatterns, dependencyGraph);
+    const connectionsToRemove = new Set();
+
+    const rootDependencies = seedPatterns.map(d => {
+      const resolvedDependency = this.resolver.getStrictResolvedPattern(d);
+      return `${resolvedDependency.name} @ ${resolvedDependency.version}`;
+    });
+    dependencyGraph.set('root', new Set(rootDependencies));
+    this.detectCycles('root', dependencyGraph, new Set(), connectionsToRemove, new Set());
+    return connectionsToRemove;
+  }
+
   async init(seedPatterns: Array<string>): Promise<void> {
+    const connectionsToRemove = this.getConnectionsToRemoveToGetAcyclicGraph(seedPatterns);
+
     const workQueue = new Set();
     const installed = new Set();
     const pkgs = this.resolver.getTopologicalManifests(seedPatterns);
@@ -318,7 +369,9 @@ export default class PackageInstallScripts {
     // waitQueue acts like a semaphore to allow workers to register to be notified
     // when there are more work added to the work queue
     const waitQueue = new Set();
-    await Promise.all(set.spinners.map(spinner => this.worker(spinner, workQueue, installed, waitQueue)));
+    await Promise.all(
+      set.spinners.map(spinner => this.worker(spinner, workQueue, installed, waitQueue, connectionsToRemove)),
+    );
     // generate built package as prebuilt one for offline mirror
     const offlineMirrorPath = this.config.getOfflineMirrorPath();
     if (this.config.packBuiltPackages && offlineMirrorPath) {
