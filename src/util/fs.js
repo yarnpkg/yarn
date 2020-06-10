@@ -513,16 +513,19 @@ export function copy(src: string, dest: string, reporter: Reporter): Promise<voi
   return copyBulk([{src, dest}], reporter);
 }
 
-const workers = [];
 let next = 0;
-const { Worker } = require("worker_threads");
-for (let i = 0; i < 4; i++) {
-  const worker = new Worker(require("path").join(__dirname, "..", "worker.js"))
-  worker.setMaxListeners(1);
-  workers.push(worker)
+const workers = [];
+
+export function spawnWorkers() {
+  const { Worker } = require("worker_threads");
+  for (let i = 0; i < 4; i++) {
+    const worker = new Worker(require("path").join(__dirname, "..", "worker.js"))
+    worker.setMaxListeners(1);
+    workers.push(worker)
+  }
 }
 
-export function killWorkers() {
+function killWorkers() {
   workers.forEach(w => w.terminate());
 }
 
@@ -544,6 +547,8 @@ export async function copyBulk(
     ignoreBasenames: (_events && _events.ignoreBasenames) || [],
     artifactFiles: (_events && _events.artifactFiles) || [],
   };
+
+  spawnWorkers();
 
   const actions: CopyActions = await buildActionsForCopy(queue, events, events.possibleExtraneous, reporter);
   events.onStart(actions.file.length + actions.symlink.length + actions.link.length);
