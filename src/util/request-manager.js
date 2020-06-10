@@ -660,7 +660,7 @@ export default class RequestManager {
         }
 
         const description = `${res.statusCode} ${http.STATUS_CODES[res.statusCode]}`;
-        reject(new ResponseError(this.reporter.lang('requestFailed', description), res.statusCode));
+        queueForRetry(`request failed with ${res.statusCode}`) || reject(new ResponseError(this.reporter.lang('requestFailed', description), res.statusCode));
 
         req.abort();
       });
