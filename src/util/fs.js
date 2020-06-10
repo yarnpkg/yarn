@@ -513,6 +513,19 @@ export function copy(src: string, dest: string, reporter: Reporter): Promise<voi
   return copyBulk([{src, dest}], reporter);
 }
 
+const workers = [];
+let next = 0;
+const { Worker } = require("worker_threads");
+for (let i = 0; i < 4; i++) {
+  const worker = new Worker(require("path").join(__dirname, "..", "worker.js"))
+  worker.setMaxListeners(1);
+  workers.push(worker)
+}
+
+export function killWorkers() {
+  workers.forEach(w => w.terminate());
+}
+
 export async function copyBulk(
   queue: CopyQueue,
   reporter: Reporter,
@@ -537,24 +550,37 @@ export async function copyBulk(
 
   const fileActions: Array<CopyFileAction> = actions.file;
 
-  const currentlyWriting: Map<string, Promise<void>> = new Map();
-
-  await promise.queue(
-    fileActions,
-    async (data: CopyFileAction): Promise<void> => {
-      let writePromise;
-      while ((writePromise = currentlyWriting.get(data.dest))) {
-        await writePromise;
+  await new Promise((resolve, reject) => {
+    const split = fileActions.reduce((acc, curr) => {
+      if (acc[acc.length - 1].length < 50) {
+        acc[acc.length - 1].push(curr);
+      } else {
+        acc.push([curr]);
       }
+      return acc
+    }, [[]]);
 
-      reporter.verbose(reporter.lang('verboseFileCopy', data.src, data.dest));
-      const copier = copyFile(data, () => currentlyWriting.delete(data.dest));
-      currentlyWriting.set(data.dest, copier);
-      events.onProgress(data.dest);
-      return copier;
-    },
-    CONCURRENT_QUEUE_ITEMS,
-  );
+    let running = 0;
+    split.forEach(ac => {
+      const worker = workers[next % workers.length];
+      const { port1, port2 } = new (require("worker_threads").MessageChannel)();
+      next += 1;
+      const onError = (err) => {
+        reject(err.err);
+      };
+      const onMessage = () => {
+        events.onProgress(ac.dest);
+        running -= 1;
+        running === 0 && resolve();
+      }
+      port1.on("error", onError);
+      port1.on("message", onMessage);
+      running += 1;
+      worker.postMessage({actions: ac.map(a => ({ src:a.src, dest: a.dest})), port: port2 }, [ port2 ]);
+    });
+  });
+
+  killWorkers();
 
   // we need to copy symlinks last as they could reference files we were copying
   const symlinkActions: Array<CopySymlinkAction> = actions.symlink;
