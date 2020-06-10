@@ -56,6 +56,7 @@ function getPreferredCacheDirectories(): Array<string> {
 
   return preferredCacheDirectories;
 }
+export const RACING_REQUEST_DELAY = process.env['YARN_RACING_REQUEST_DELAY'] || 500;
 
 export const PREFERRED_MODULE_CACHE_DIRECTORIES = getPreferredCacheDirectories();
 export const CONFIG_DIRECTORY = getConfigDir();

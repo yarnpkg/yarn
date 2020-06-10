@@ -199,6 +199,134 @@ export default class RequestManager {
     }
   }
 
+  /*
+   * This is a fake implementation of the request which is meant to behave just like
+   * request from the consumer perspective. The difference is that this fake implements
+   * some racing logic; when a request is still pending after a given amount of time, a
+   * second identical request will be fired and the two requests will race.
+   * This is a workaround for issues with the npm feed being very slow on random requests.
+   */
+  requestWithRacingRetry() {
+    const request = require('request');
+
+    const decoratedRequest = params => {
+      // Variables keeping the state of the race.
+      let req2 = undefined;
+      let streams = [];
+      const callbacks = {};
+      let done = false;
+      let aborted = false;
+
+      let req1 = request(params);
+      // We pause the stream so no response data flows out until we call .resume().
+      req1.pause();
+
+      // We arm the timeout for the racing request.
+      setTimeout(() => {
+        // The first request is already finished.
+        if (done) {
+          return;
+        }
+        req2 = request(params);
+        // We pause the stream so no response data flows out until we call .resume().
+        req2.pause();
+        req2.on('error', (...args) => {
+          // If request 1 has succeeded
+          if (done) {
+            return;
+          }
+
+          // If request 1 has failed
+          if (!req1) {
+            callbacks['error'] && callbacks['error'](...args);
+
+            done = true;
+          }
+          req2 = undefined;
+        });
+
+        req2.on('response', (...args) => {
+          // If request 1 has succeeded
+          if (done) {
+            return;
+          }
+
+          done = true;
+          callbacks['response'] && callbacks['response'](...args);
+
+          // If the callback has not aborted the request
+          if(!aborted) {
+            // We pipe the streams, and resume to let the data flow
+            streams.forEach(s => req2.pipe(s));
+            req2.resume();
+          }
+          req1 && req1.abort();
+          req1 = undefined;
+          req1 = undefined;
+        });
+      }, constants.RACING_REQUEST_DELAY);
+
+      req1.on('error', (...args) => {
+        // If request 2 has succeeded
+        if (done) {
+          return;
+        }
+
+        // If request 2 has failed or is not started
+        if (!req2) {
+          callbacks['error'] && callbacks['error'](...args);
+
+          done = true;
+        }
+
+        req2 = undefined;
+      });
+
+      req1.on('response', (...args) => {
+        // If request 2 has succeeded
+        if (done) {
+          return;
+        }
+
+        done = true;
+
+        callbacks['response'] && callbacks['response'](...args);
+
+        // If the callback has not aborted the request
+        if(!aborted) {
+          // We pipe the streams, and resume to let the data flow
+          streams.forEach(s => req1.pipe(s));
+          req1.resume();
+        }
+        req2 && req2.abort();
+        req2 = undefined;
+        req1 = undefined;
+
+      });
+
+      // We return a fake request which implements the API that yarn uses
+      return {
+        on: (event, callback) => {
+          callbacks[event] = callback;
+        },
+
+        abort: () => {
+          aborted = true;
+          req1.abort();
+          req2 && req2.abort();
+          done = true;
+        },
+
+        pipe: s => {
+          streams.push(s);
+          return s;
+        },
+      };
+    };
+
+    return decoratedRequest;
+  }
+
   /**
    * Lazy load `request` since it is exceptionally expensive to load and is
    * often not needed at all.
@@ -206,7 +334,7 @@ export default class RequestManager {
 
   _getRequestModule(): RequestModuleT {
     if (!this._requestModule) {
-      const request = require('request');
+      const request = this.requestWithRacingRetry();
       if (this.captureHar) {
         this._requestCaptureHar = new RequestCaptureHar(request);
         this._requestModule = this._requestCaptureHar.request.bind(this._requestCaptureHar);
