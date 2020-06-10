@@ -505,11 +505,6 @@ export default class RequestManager {
 
     req.on('error', onError);
 
-    const queue = params.queue;
-    if (queue) {
-      req.on('data', queue.stillActive.bind(queue));
-    }
-
     const process = params.process;
     if (process) {
       req.on('response', res => {
