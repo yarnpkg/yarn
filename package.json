@@ -1,5 +1,5 @@
 {
-  "name": "yarn",
+  "name": "midgard-yarn",
   "installationMethod": "unknown",
   "version": "1.16.0-0",
   "license": "BSD-2-Clause",
@@ -108,8 +108,8 @@
   },
   "repository": "yarnpkg/yarn",
   "bin": {
-    "yarn": "./bin/yarn.js",
-    "yarnpkg": "./bin/yarn.js"
+    "midgard-yarn": "./bin/yarn.js",
+    "midgard-yarnpkg": "./bin/yarn.js"
   },
   "scripts": {
     "build": "gulp build",
