@@ -48,14 +48,15 @@ export default class TarballResolver extends ExoticResolver {
 
   resolve(): Promise<Manifest> {
     const resolutionsInProgress = TarballResolver.resolutionsInProgress;
-    const cached = resolutionsInProgress.get(this.url);
+    const stableCacheRef = `${this.url}`;
+    const cached = resolutionsInProgress.get(stableCacheRef);
     if (cached) {
       return cached;
     }
 
     const fetchPromise = this.doResolve();
-    resolutionsInProgress.set(this.url, fetchPromise);
-    fetchPromise.then(() => resolutionsInProgress.delete(this.url));
+    resolutionsInProgress.set(stableCacheRef, fetchPromise);
+    fetchPromise.then(() => resolutionsInProgress.delete(stableCacheRef));
 
     return fetchPromise;
   }
