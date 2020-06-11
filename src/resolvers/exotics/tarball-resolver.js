@@ -23,7 +23,7 @@ export default class TarballResolver extends ExoticResolver {
 
   url: string;
   hash: string;
-  static resolutionsInProgress: Map<String, Promise<any>> = new Map();
+  static resolutionsInProgress: Map<string, Promise<any>> = new Map();
 
   static isVersion(pattern: string): boolean {
     // we can sometimes match git urls which we don't want
