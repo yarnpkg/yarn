@@ -513,19 +513,18 @@ export function copy(src: string, dest: string, reporter: Reporter): Promise<voi
   return copyBulk([{src, dest}], reporter);
 }
 
-let next = 0;
-const workers = [];
-
 export function spawnWorkers() {
   const { Worker } = require("worker_threads");
+  const workers = [];
   for (let i = 0; i < 4; i++) {
     const worker = new Worker(require("path").join(__dirname, "..", "worker.js"))
     worker.setMaxListeners(1);
     workers.push(worker)
   }
+  return workers;
 }
 
-function killWorkers() {
+function killWorkers(workers) {
   workers.forEach(w => w.terminate());
 }
 
@@ -548,7 +547,8 @@ export async function copyBulk(
     artifactFiles: (_events && _events.artifactFiles) || [],
   };
 
-  spawnWorkers();
+  let next = 0;
+  const workers = spawnWorkers();
 
   const actions: CopyActions = await buildActionsForCopy(queue, events, events.possibleExtraneous, reporter);
   events.onStart(actions.file.length + actions.symlink.length + actions.link.length);
@@ -585,7 +585,7 @@ export async function copyBulk(
     });
   });
 
-  killWorkers();
+  killWorkers(workers);
 
   // we need to copy symlinks last as they could reference files we were copying
   const symlinkActions: Array<CopySymlinkAction> = actions.symlink;
