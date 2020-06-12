@@ -297,7 +297,7 @@ export default class RequestManager {
           done = true;
         }
 
-        req2 = undefined;
+        req1 = undefined;
       });
 
       req1.on('response', (...args) => {
