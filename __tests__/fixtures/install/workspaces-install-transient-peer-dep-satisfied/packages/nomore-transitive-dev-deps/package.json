@@ -1,0 +1,11 @@
+{
+  "name": "nomore-transitive-dev-deps",
+  "version": "0.0.1",
+  "dependencies": {},
+  "devDependencies": {
+		"nomore-test-a": "0.0.1"
+	},
+	"peerDependencies": {
+		"nomore-test-b": "0.0.1"
+	}
+}

@@ -1,0 +1,9 @@
+{
+  "name": "nomore-test-b",
+  "version": "0.0.1",
+  "dependencies": {},
+	"devDependencies": {},
+	"peerDependencies": {
+		"nomore-test-a": "^0.0.1"
+	}
+}

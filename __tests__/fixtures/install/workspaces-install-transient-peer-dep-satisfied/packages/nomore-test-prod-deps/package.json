@@ -1,0 +1,12 @@
+{
+  "name": "nomore-test-prod-deps",
+  "version": "0.0.1",
+  "dependencies": {
+		"nomore-test-a": "0.0.1"
+	},
+  "devDependencies": {
+	},
+	"peerDependencies": {
+		"nomore-test-a": "^0.0.1"
+	}
+}

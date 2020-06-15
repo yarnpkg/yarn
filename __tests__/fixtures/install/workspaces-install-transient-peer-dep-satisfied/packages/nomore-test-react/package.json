@@ -1,0 +1,9 @@
+{
+  "name": "nomore-test-react",
+  "version": "0.0.1",
+  "dependencies": {},
+	"devDependencies": {},
+	"peerDependencies": {
+		"react": "^16.12.0"
+	}
+}

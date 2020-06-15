@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "devDependencies": {
+    "nomore-test-b": "0.0.1"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
+}
