@@ -390,35 +390,7 @@ export default class RequestManager {
     );
 
     const promise = new Promise((resolve, reject) => {
-
-      /*
-       * This is a workaround for a bug that we have not been able to track down.
-       *
-       * Sometimes yarn would quit in the middle of fetching the packages
-       * with an exit code of 0. This typically happens when node has no more external resources or timeouts
-       * to wait for. This is an issue because yarn reports a success but the dependencies are
-       * not installed.
-       *
-       * A timeout prevents node from successfully exiting when this bug hits.
-       * When a promise takes more than 10min to resolve, we are likely hitting this bug, we then hard fail
-       * to properly report the failure.
-       */
-      const t = setTimeout(() => {
-        throw new Error(`Fetching/extracting of package ${params.url} seems to be hanging.`);
-
-      }, 10 * 60 * 1000);
-
-
-      const rej = (...args) => {
-        reject(...args);
-        clearTimeout(t);
-      }
-      const res = (...args) => {
-        resolve(...args);
-        clearTimeout(t);
-      }
-
-      this.queue.push({params, reject: rej, resolve: res});
+      this.queue.push({params, reject, resolve});
       this.shiftQueue();
     });
 
