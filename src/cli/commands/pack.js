@@ -6,6 +6,10 @@ import type {IgnoreFilter} from '../../util/filter.js';
 import * as fs from '../../util/fs.js';
 import {sortFilter, ignoreLinesToRegex, filterOverridenGitignores} from '../../util/filter.js';
 import {MessageError} from '../../errors.js';
+import promisify from 'util.promisify';
+import pipelineShim from 'stream.pipeline-shim';
+
+const pipeline = promisify(pipelineShim);
 
 const zlib = require('zlib');
 const path = require('path');
@@ -193,11 +197,7 @@ export async function run(
 
   const stream = await pack(config);
 
-  await new Promise((resolve, reject) => {
-    stream.pipe(fs2.createWriteStream(filename));
-    stream.on('error', reject);
-    stream.on('close', resolve);
-  });
+  await pipeline(stream, fs2.createWriteStream(filename));
 
   await config.executeLifecycleScript('postpack');
 
