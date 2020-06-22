@@ -139,7 +139,7 @@ export async function main({
   // if -v is the first command, then always exit after returning the version
   if (args[0] === '-v') {
     console.log(version.trim());
-    process.exit(0)
+    process.exitCode = 0;
     return;
   }
 
@@ -256,8 +256,8 @@ export async function main({
   });
 
   const exit = exitCode => {
+    process.exitCode = exitCode || 0;
     reporter.close();
-    process.exit(exitCode || 0);
   };
 
   reporter.initPeakMemoryCounter();
