@@ -570,6 +570,10 @@ export async function copyBulk(
       )
       .filter(ac => ac && ac.length);
 
+    if (!split.length) {
+      resolve();
+    }
+
     let running = 0;
     split.forEach(ac => {
       const worker = workers[next % workers.length];
