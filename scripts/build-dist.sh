@@ -33,7 +33,6 @@ fi
 [[ "$version" == "$(node artifacts/yarn-legacy-$version.js --version)" ]] || exit 1
 
 cp package.json dist/
-cp worker.js dist/worker.js
 cp README.md dist/
 cp LICENSE dist/
 # Only use the legacy version for NPM builds so we are compatible
