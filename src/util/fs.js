@@ -513,13 +513,13 @@ export function copy(src: string, dest: string, reporter: Reporter): Promise<voi
   return copyBulk([{src, dest}], reporter);
 }
 
-export function spawnWorkers() {
-  const { Worker } = require("worker_threads");
+export function spawnWorkers(): Worker[] {
+  const {Worker} = require('worker_threads');
   const workers = [];
   for (let i = 0; i < 4; i++) {
-    const worker = new Worker(require("path").join(__dirname, "..", "worker.js"))
+    const worker = new Worker(require('path').join(__dirname, '..', 'worker.js'));
     worker.setMaxListeners(1);
-    workers.push(worker)
+    workers.push(worker);
   }
   return workers;
 }
@@ -556,32 +556,37 @@ export async function copyBulk(
   const fileActions: Array<CopyFileAction> = actions.file;
 
   await new Promise((resolve, reject) => {
-    const split = fileActions.reduce((acc, curr) => {
-      if (acc[acc.length - 1].length < 50) {
-        acc[acc.length - 1].push(curr);
-      } else {
-        acc.push([curr]);
-      }
-      return acc
-    }, [[]]);
+    const split = fileActions
+      .reduce(
+        (acc, curr) => {
+          if (acc[acc.length - 1].length < 50) {
+            acc[acc.length - 1].push(curr);
+          } else {
+            acc.push([curr]);
+          }
+          return acc;
+        },
+        [[]],
+      )
+      .filter(ac => ac && ac.length);
 
     let running = 0;
     split.forEach(ac => {
       const worker = workers[next % workers.length];
-      const { port1, port2 } = new (require("worker_threads").MessageChannel)();
+      const {port1, port2} = new (require('worker_threads')).MessageChannel();
       next += 1;
-      const onError = (err) => {
+      const onError = err => {
         reject(err.err);
       };
       const onMessage = () => {
         events.onProgress(ac.dest);
         running -= 1;
         running === 0 && resolve();
-      }
-      port1.on("error", onError);
-      port1.on("message", onMessage);
+      };
+      port1.on('error', onError);
+      port1.on('message', onMessage);
       running += 1;
-      worker.postMessage({actions: ac.map(a => ({ src:a.src, dest: a.dest})), port: port2 }, [ port2 ]);
+      worker.postMessage({actions: ac.map(a => ({src: a.src, dest: a.dest})), port: port2}, [port2]);
     });
   });
 
