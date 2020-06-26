@@ -7,6 +7,7 @@ parentPort.on('message', o => {
     let running = o.actions.length;
     // Safety short circuit in case we somehow start a worker with nothing.
     running === 0 && o.port.postMessage('');
+
     o.actions.forEach(a => {
       fs.copyFile(a.src, a.dest, 0, err => {
         if (err) {

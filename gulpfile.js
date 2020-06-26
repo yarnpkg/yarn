@@ -17,7 +17,7 @@ const ver = process.versions.node;
 const majorVer = parseInt(ver.split('.')[0], 10);
 
 const build = (lib, opts) =>
-  gulp.src('src/**/*.js')
+  gulp.src(['src/**/*.js', 'worker.js'])
       .pipe(plumber({
         errorHandler(err) {
           log.error(err.stack);
@@ -37,5 +37,5 @@ gulp.task('default', gulp.task('build'));
 
 gulp.task(
   'watch',
-  gulp.series('build', () => gulp.watch('src/**/*', gulp.task('build')))
+  gulp.series('build', () => gulp.watch(['src/**/*.js', 'worker.js'], gulp.task('build')))
 );
