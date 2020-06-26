@@ -37,5 +37,5 @@ gulp.task('default', gulp.task('build'));
 
 gulp.task(
   'watch',
-  gulp.series('build', () => gulp.watch(['src/**/*.js', 'worker.js'], gulp.task('build')))
+  gulp.series('build', () => gulp.watch(['src/**/*', 'worker.js'], gulp.task('build')))
 );
