@@ -516,7 +516,8 @@ export function copy(src: string, dest: string, reporter: Reporter): Promise<voi
 export function spawnWorkers(): Worker[] {
   const {Worker} = require('worker_threads');
   const workers = [];
-  for (let i = 0; i < 4; i++) {
+  const numberOfCores = os.cpus().length;
+  for (let i = 0; i < math.ceil(numberOfCores / 2); i++) {
     const worker = new Worker(require('path').join(__dirname, '..', 'worker.js'));
     worker.setMaxListeners(1);
     workers.push(worker);
