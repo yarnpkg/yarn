@@ -516,6 +516,15 @@ export default class ConsoleReporter extends BaseReporter {
     }
   }
 
+  auditMute(mutedAdvisories: AuditAdvisory[]) {
+    const message = this.lang(
+      'auditMute',
+      this.rawText(chalk.yellow(mutedAdvisories.length.toString())),
+      this.rawText(mutedAdvisories.map(advisory => advisory.id).join(', ')),
+    );
+    this._log(message);
+  }
+
   auditAction(recommendation: AuditActionRecommendation) {
     const label = recommendation.action.resolves.length === 1 ? 'vulnerability' : 'vulnerabilities';
     this._log(

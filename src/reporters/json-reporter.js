@@ -173,4 +173,8 @@ export default class JSONReporter extends BaseReporter {
   auditSummary(auditMetadata: AuditMetadata) {
     this._dump('auditSummary', auditMetadata);
   }
+
+  auditMute(mutedAdvisories: AuditAdvisory[]) {
+    this._dump(mutedAdvisories);
+  }
 }
