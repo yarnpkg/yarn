@@ -167,7 +167,17 @@ export default class JSONReporter extends BaseReporter {
   }
 
   auditAdvisory(resolution: AuditResolution, auditAdvisory: AuditAdvisory) {
-    this._dump('auditAdvisory', {resolution, advisory: auditAdvisory});
+    const advisory = Object.assign({}, auditAdvisory);
+    advisory.findings = advisory.findings.reduce((acc, finding) => {
+      if (finding.paths.includes(resolution.path)) {
+        acc.push({
+          version: finding.version,
+          paths: [resolution.path],
+        });
+      }
+      return acc;
+    }, []);
+    this._dump('auditAdvisory', {resolution, advisory});
   }
 
   auditSummary(auditMetadata: AuditMetadata) {
