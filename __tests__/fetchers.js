@@ -39,11 +39,11 @@ test('BaseFetcher.fetch', async () => {
 });
 
 test('CopyFetcher.fetch', async () => {
-  const a = await mkdir('copy-fetcher-a');
+  const a = await mkdir('copy-fetcher-a-');
   await fs.writeFile(path.join(a, 'package.json'), '{}');
   await fs.writeFile(path.join(a, 'foo'), 'bar');
 
-  const b = await mkdir('copy-fetcher-b');
+  const b = await mkdir('copy-fetcher-b-');
   const fetcher = new CopyFetcher(
     b,
     {
@@ -59,6 +59,32 @@ test('CopyFetcher.fetch', async () => {
   expect(content).toBe('{}');
   const contentFoo = await fs.readFile(path.join(b, 'foo'));
   expect(contentFoo).toBe('bar');
+});
+
+test('CopyFetcher.fetch[files]', async () => {
+  const a = await mkdir('copy-fetcher-a-');
+  await fs.writeFile(path.join(a, 'package.json'), '{"files":["include"]}');
+  await fs.writeFile(path.join(a, 'include'), 'bar');
+  await fs.writeFile(path.join(a, 'exclude'), 'baz');
+
+  const b = await mkdir('copy-fetcher-b-');
+  const fetcher = await new CopyFetcher(
+    b,
+    {
+      type: 'copy',
+      reference: a,
+      registry: 'npm',
+      hash: null,
+    },
+    await Config.create(),
+  );
+  await fetcher.fetch();
+  const content = await fs.readFile(path.join(b, 'package.json'));
+  expect(content).toBe('{"files":["include"]}');
+  const contentFoo = await fs.readFile(path.join(b, 'include'));
+  expect(contentFoo).toBe('bar');
+  const excludeExists = await fs.exists(path.join(b, 'exclude'));
+  expect(excludeExists).toBe(false);
 });
 
 test('GitFetcher.fetch', async () => {
