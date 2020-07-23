@@ -558,23 +558,23 @@ export async function copyBulk(
 
   await new Promise((resolve, reject) => {
     const split = fileActions
-    .reduce(
-      (acc, curr) => {
-        if (acc[acc.length - 1].length < 50) {
-          acc[acc.length - 1].push(curr);
-        } else {
-          acc.push([curr]);
-        }
-        return acc;
-      },
-      [[]],
-    )
-    .filter(ac => ac && ac.length);
+      .reduce(
+        (acc, curr) => {
+          if (acc[acc.length - 1].length < 50) {
+            acc[acc.length - 1].push(curr);
+          } else {
+            acc.push([curr]);
+          }
+          return acc;
+        },
+        [[]],
+      )
+      .filter(ac => ac && ac.length);
 
     if (!split.length) {
       resolve();
     }
-    
+
     let running = 0;
     split.forEach(ac => {
       const worker = workers[next % workers.length];
