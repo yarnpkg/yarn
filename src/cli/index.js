@@ -311,7 +311,7 @@ export async function main({
   const runEventuallyWithFile = (mutexFilename: ?string, isFirstTime?: boolean): Promise<void> => {
     return new Promise(resolve => {
       const lockFilename = mutexFilename || path.join(config.cwd, constants.SINGLE_INSTANCE_FILENAME);
-      lockfile.lock(lockFilename, {realpath: false}, (err: mixed, release: (() => void) => void) => {
+      lockfile.lock(lockFilename, {stale: 5 * 60 * 1000, realpath: false}, (err: mixed, release: (() => void) => void) => {
         if (err) {
           if (isFirstTime) {
             reporter.warn(reporter.lang('waitingInstance'));
