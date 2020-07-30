@@ -21,6 +21,7 @@ export type LifecycleReturn = Promise<{
 export const IGNORE_MANIFEST_KEYS: Set<string> = new Set([
   'readme',
   'notice',
+  'noticeText',
   'licenseText',
   'activationEvents',
   'contributes',
