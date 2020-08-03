@@ -121,16 +121,17 @@ export default class GitFetcher extends BaseFetcher {
     });
   }
 
-  async hasPrepareScript(git: Git): Promise<boolean> {
+  async loadScriptsInfo(git: Git): Promise<{hasPrepareScript: boolean, hasPrepackScript: boolean}> {
     const manifestFile = await git.getFile('package.json');
 
-    if (manifestFile) {
-      const scripts = JSON.parse(manifestFile).scripts;
-      const hasPrepareScript = Boolean(scripts && scripts.prepare);
-      return hasPrepareScript;
+    if (!manifestFile) {
+      return {hasPrepareScript: false, hasPrepackScript: false};
     }
 
-    return false;
+    const scripts = JSON.parse(manifestFile).scripts || {};
+    const hasPrepareScript = Boolean(scripts.prepare);
+    const hasPrepackScript = Boolean(scripts.prepack);
+    return {hasPrepareScript, hasPrepackScript};
   }
 
   async fetchFromExternal(): Promise<FetchedOverride> {
@@ -141,8 +142,10 @@ export default class GitFetcher extends BaseFetcher {
     const git = new Git(this.config, gitUrl, hash);
     await git.init();
 
-    if (await this.hasPrepareScript(git)) {
-      await this.fetchFromInstallAndPack(git);
+    const {hasPrepareScript, hasPrepackScript} = await this.loadScriptsInfo(git);
+
+    if (hasPrepareScript || hasPrepackScript) {
+      await this.fetchFromInstallAndPack(git, hasPrepackScript);
     } else {
       await this.fetchFromGitArchive(git);
     }
@@ -152,7 +155,7 @@ export default class GitFetcher extends BaseFetcher {
     };
   }
 
-  async fetchFromInstallAndPack(git: Git): Promise<void> {
+  async fetchFromInstallAndPack(git: Git, runPrepack: boolean): Promise<void> {
     const prepareDirectory = this.config.getTemp(`${crypto.hash(git.gitUrl.repository)}.${git.hash}.prepare`);
     await fsUtil.unlink(prepareDirectory);
 
@@ -171,6 +174,10 @@ export default class GitFetcher extends BaseFetcher {
       Lockfile.fromDirectory(prepareDirectory, this.reporter),
     ]);
     await install(prepareConfig, this.reporter, {}, prepareLockFile);
+
+    if (runPrepack) {
+      await prepareConfig.executeLifecycleScript('prepack');
+    }
 
     const tarballMirrorPath = this.getTarballMirrorPath();
     const tarballCachePath = this.getTarballCachePath();
