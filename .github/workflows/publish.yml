@@ -1,0 +1,35 @@
+name: Publish to npm feed
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish'
+        required: true
+      tag:
+        description: 'npm tag'
+        required: true
+        default: 'beta'
+        
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    # Checks-out the repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
+    # Setup .npmrc file to publish to npm
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '12.x'
+        registry-url: 'https://registry.npmjs.org'
+    - name: yarn install
+      run: yarn
+    - name: setup version
+      run: |
+        sed -i 's/"version": ".*"/"version": "${{ github.event.inputs.version }}"/' package.json
+    - name: build
+      run: yarn build-dist
+    - name: publish
+      run: cd dist ; npm publish --tag ${{ github.event.inputs.tag}}
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
