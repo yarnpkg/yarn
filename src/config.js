@@ -70,6 +70,7 @@ export type ConfigOptions = {
   focus?: boolean,
 
   otp?: string,
+  packageDateLimit?: ?string,
 };
 
 type PackageMetadata = {
@@ -205,6 +206,7 @@ export default class Config {
   autoAddIntegrity: boolean;
 
   otp: ?string;
+  packageDateLimit: ?string;
 
   /**
    * Execute a promise produced by factory if it doesn't exist in our cache with
@@ -343,6 +345,8 @@ export default class Config {
       networkConcurrency: this.networkConcurrency,
       networkTimeout: this.networkTimeout,
     });
+
+    this.packageDateLimit = opts.packageDateLimit || String(this.getOption('package-date-limit') || '') || null;
 
     this.globalFolder = opts.globalFolder || String(this.getOption('global-folder', true));
     if (this.globalFolder === 'undefined') {
