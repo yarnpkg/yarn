@@ -82,6 +82,9 @@ export async function packTarball(
 
   // `files` field
   if (onlyFiles) {
+    // <https://github.com/yarnpkg/yarn/issues/8311>
+    if (!(onlyFiles instanceof Array)) throw new MessageError('"files" property in package.json must be an Array');
+    
     let lines = [
       '*', // ignore all files except those that are explicitly included with a negation filter
     ];
