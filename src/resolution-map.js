@@ -46,6 +46,10 @@ export default class ResolutionMap {
     for (const globPattern in resolutions) {
       const info = this.parsePatternInfo(globPattern, resolutions[globPattern]);
 
+      if (!/[\/\*]/.test(globPattern)) {
+        this.reporter.warn(`A resolution appears to attempt to change a top level dependency`);
+      }
+
       if (info) {
         const resolution = this.resolutionsByPackage[info.name] || [];
         this.resolutionsByPackage[info.name] = [...resolution, info];
