@@ -53,11 +53,18 @@ export default class NpmResolver extends RegistryResolver {
     // That date string must match JSON format, e.g. 2020-08-14T04:47:38.210Z
     if (config.packageDateLimit && body.time) {
       const releaseDates = body.time;
-      const highestVersion = (semver: Object)
-        .rsort(Object.keys(body.versions))
-        .find(v => releaseDates[v] && releaseDates[v] < config.packageDateLimit && semver.satisfies(v, range));
-      if (highestVersion) {
-        return body.versions[highestVersion];
+      let closestVersion = null;
+      (semver: Object).rsort(Object.keys(body.versions)).some(v => {
+        if (releaseDates[v] && semver.satisfies(v, range)) {
+          closestVersion = v;
+          if (releaseDates[v] < config.packageDateLimit) {
+            return true;
+          }
+        }
+        return false;
+      });
+      if (closestVersion) {
+        return body.versions[closestVersion];
       }
     }
 
