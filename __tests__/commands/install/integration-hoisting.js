@@ -1,6 +1,7 @@
 /* @flow */
 
 import {getPackageVersion, isPackagePresent, runInstall} from '../_helpers.js';
+import {run as add} from '../../../src/cli/commands/add.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
 
@@ -52,3 +53,38 @@ test.concurrent(
     });
   },
 );
+
+test.concurrent('install hoister should remove newly hoisted dependencies from non-hoisted locations', (): Promise<
+  void,
+> => {
+  // Arrange (fixture):
+  //   /@some-scope/shared-dependency-x@1.0.0
+  //   /@some-scope/shared-dependency-y@1.0.0
+  //   /dependency-a@1.0.0
+  //   /dependency-b@1.0.0
+  //       /@some-scope/shared-dependency-x@1.5.0
+  //       /@some-scope/shared-dependency-y@2.0.0
+  // Act: Update dep versions using add
+  // Assert: newly hoisted dependencies are deleted from node_modules sub-trees
+  return runInstall({}, 'install-should-remove-hoisted-scoped-dependencies', async (config, reporter) => {
+    // assert initial setup is as expected
+    expect(await getPackageVersion(config, '@some-scope/shared-dependency-x')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, '@some-scope/shared-dependency-y')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dependency-a')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dependency-b')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dependency-b/@some-scope/shared-dependency-x')).toEqual('1.5.0');
+    expect(await getPackageVersion(config, 'dependency-b/@some-scope/shared-dependency-y')).toEqual('2.0.0');
+
+    await add(config, reporter, {ignoreWorkspaceRootCheck: true}, [
+      'file:dependencyA/version2.0.0',
+      'file:dependencyB/version2.0.0',
+    ]);
+
+    expect(await getPackageVersion(config, '@some-scope/shared-dependency-x')).toEqual('2.0.0');
+    expect(await getPackageVersion(config, '@some-scope/shared-dependency-y')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dependency-a')).toEqual('2.0.0');
+    expect(await getPackageVersion(config, 'dependency-b')).toEqual('2.0.0');
+    expect(await isPackagePresent(config, 'dependency-b/@some-scope/shared-dependency-x')).toEqual(false);
+    expect(await getPackageVersion(config, 'dependency-b/@some-scope/shared-dependency-y')).toEqual('2.0.0');
+  });
+});

@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "dependency-a": "file:dependencyA/version1.0.0",
+    "dependency-b": "file:dependencyB/version1.0.0"
+  }
+}
