@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "dep-a": "file:dep-a/v1.0.0",
-    "dep-b": "file:dep-b/v1.0.0"
+    "a": "file:a/v1.0.0",
+    "b": "file:b/v1.0.0"
   }
 }
