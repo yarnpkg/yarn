@@ -1,6 +1,6 @@
 /* @flow */
 
-import {getPackageVersion, isPackagePresent, runInstall} from '../_helpers.js';
+import {getPackageVersion, isPackagePresent, runInstall, getPackageManifestPath} from '../_helpers.js';
 import {run as add} from '../../../src/cli/commands/add.js';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
@@ -76,6 +76,8 @@ test.concurrent('install hoister should remove newly hoisted dependencies from n
     expect(await getPackageVersion(config, 'b/@s/y')).toEqual('2.0.0');
 
     await add(config, reporter, {}, ['file:a/v2.0.0', 'file:b/v2.0.0']);
+
+    config.reporter.info(await getPackageManifestPath(config, '@s/x'));
 
     // assert "b/@s/x" has been removed
     expect(await getPackageVersion(config, '@s/x')).toEqual('2.0.0');
