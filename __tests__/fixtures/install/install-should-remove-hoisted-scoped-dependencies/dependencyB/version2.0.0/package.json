@@ -1,9 +1,0 @@
-{
-    "name": "dependency-b",
-    "version": "2.0.0",
-    "private": true,
-    "dependencies": {
-        "@some-scope/shared-dependency-x": "file:../../sharedDependencyX/version2.0.0",
-        "@some-scope/shared-dependency-y": "file:../../sharedDependencyY/version2.0.0"
-    }
-}

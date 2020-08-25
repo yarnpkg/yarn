@@ -58,33 +58,31 @@ test.concurrent('install hoister should remove newly hoisted dependencies from n
   void,
 > => {
   // Arrange (fixture):
-  //   /@some-scope/shared-dependency-x@1.0.0
-  //   /@some-scope/shared-dependency-y@1.0.0
-  //   /dependency-a@1.0.0
-  //   /dependency-b@1.0.0
-  //       /@some-scope/shared-dependency-x@1.5.0
-  //       /@some-scope/shared-dependency-y@2.0.0
+  //   /@scope/shared-dep-x@1.0.0
+  //   /@scope/shared-dep-y@1.0.0
+  //   /dep-a@1.0.0
+  //   /dep-b@1.0.0
+  //       /@scope/shared-dep-x@1.5.0
+  //       /@scope/shared-dep-y@2.0.0
   // Act: Update dep versions using add
   // Assert: newly hoisted dependencies are deleted from node_modules sub-trees
-  return runInstall({}, 'install-should-remove-hoisted-scoped-dependencies', async (config, reporter) => {
+  return runInstall({}, 'should-remove-newly-hoisted-@deps', async (config, reporter) => {
     // assert initial setup is as expected
-    expect(await getPackageVersion(config, '@some-scope/shared-dependency-x')).toEqual('1.0.0');
-    expect(await getPackageVersion(config, '@some-scope/shared-dependency-y')).toEqual('1.0.0');
-    expect(await getPackageVersion(config, 'dependency-a')).toEqual('1.0.0');
-    expect(await getPackageVersion(config, 'dependency-b')).toEqual('1.0.0');
-    expect(await getPackageVersion(config, 'dependency-b/@some-scope/shared-dependency-x')).toEqual('1.5.0');
-    expect(await getPackageVersion(config, 'dependency-b/@some-scope/shared-dependency-y')).toEqual('2.0.0');
+    expect(await getPackageVersion(config, '@scope/shared-dep-x')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, '@scope/shared-dep-y')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dep-a')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dep-b')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dep-b/@scope/shared-dep-x')).toEqual('1.5.0');
+    expect(await getPackageVersion(config, 'dep-b/@scope/shared-dep-y')).toEqual('2.0.0');
 
-    await add(config, reporter, {ignoreWorkspaceRootCheck: true}, [
-      'file:dependencyA/version2.0.0',
-      'file:dependencyB/version2.0.0',
-    ]);
+    await add(config, reporter, {ignoreWorkspaceRootCheck: true}, ['file:dep-a/v2.0.0', 'file:dep-b/v2.0.0']);
 
-    expect(await getPackageVersion(config, '@some-scope/shared-dependency-x')).toEqual('2.0.0');
-    expect(await getPackageVersion(config, '@some-scope/shared-dependency-y')).toEqual('1.0.0');
-    expect(await getPackageVersion(config, 'dependency-a')).toEqual('2.0.0');
-    expect(await getPackageVersion(config, 'dependency-b')).toEqual('2.0.0');
-    expect(await isPackagePresent(config, 'dependency-b/@some-scope/shared-dependency-x')).toEqual(false);
-    expect(await getPackageVersion(config, 'dependency-b/@some-scope/shared-dependency-y')).toEqual('2.0.0');
+    // assert "dep-b/@scope/shared-dep-x" has been removed
+    expect(await getPackageVersion(config, '@scope/shared-dep-x')).toEqual('2.0.0');
+    expect(await getPackageVersion(config, '@scope/shared-dep-y')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'dep-a')).toEqual('2.0.0');
+    expect(await getPackageVersion(config, 'dep-b')).toEqual('2.0.0');
+    expect(await isPackagePresent(config, 'dep-b/@scope/shared-dep-x')).toEqual(false);
+    expect(await getPackageVersion(config, 'dep-b/@scope/shared-dep-y')).toEqual('2.0.0');
   });
 });

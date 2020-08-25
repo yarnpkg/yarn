@@ -1,0 +1,9 @@
+{
+    "name": "dep-b",
+    "version": "1.0.0",
+    "private": true,
+    "dependencies": {
+        "@scope/shared-dep-x": "file:../../shared-dep-x/v1.5.0",
+        "@scope/shared-dep-y": "file:../../shared-dep-y/v2.0.0"
+    }
+}
