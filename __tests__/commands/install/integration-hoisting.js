@@ -75,7 +75,7 @@ test.concurrent('install hoister should remove newly hoisted dependencies from n
     expect(await getPackageVersion(config, 'b/@s/x')).toEqual('1.5.0');
     expect(await getPackageVersion(config, 'b/@s/y')).toEqual('2.0.0');
 
-    await add(config, reporter, {ignoreWorkspaceRootCheck: true}, ['file:a/v2.0.0', 'file:b/v2.0.0']);
+    await add(config, reporter, {}, ['file:a/v2.0.0', 'file:b/v2.0.0']);
 
     // assert "b/@s/x" has been removed
     expect(await getPackageVersion(config, '@s/x')).toEqual('2.0.0');
