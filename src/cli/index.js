@@ -264,7 +264,11 @@ export async function main({
 
   const config = new Config(reporter);
   const outputWrapperEnabled = boolifyWithDefault(process.env.YARN_WRAP_OUTPUT, true);
-  const shouldWrapOutput = outputWrapperEnabled && !commander.json && command.hasWrapper(commander, commander.args);
+  const shouldWrapOutput =
+    outputWrapperEnabled &&
+    !commander.json &&
+    command.hasWrapper(commander, commander.args) &&
+    !(commandName === 'init' && commander[`2`]);
 
   if (shouldWrapOutput) {
     reporter.header(commandName, {name: 'yarn', version});
