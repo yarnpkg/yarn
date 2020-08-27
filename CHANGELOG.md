@@ -2,19 +2,33 @@
 <!-- -->
 Please add one entry in this file for each change in Yarn's behavior. Use the same format for all entries, including the third-person verb. Make sure you don't add more than one line of text to keep it clean. Thanks!
 
-## 1.22.2
+## 1.22.5
+
+- Headers won't be printed when calling `yarn init` with the `-2` flag
+
+  [**Maël Nison**](https://twitter.com/arcanis)
+
+- Files with the `.cjs` extension will be spawned by `yarnPath` using `execPath
+
+  [#8144](https://github.com/yarnpkg/yarn/pull/8144) - [**bgotink**](https://github.com/bgotink)
+
+- Generates local yarn verions as `.cjs` files when calling `yarn set version`
+
+  [#8145](https://github.com/yarnpkg/yarn/pull/8145) - [**bgotink**](https://github.com/bgotink)
 
 - Sorts files when running `yarn pack` to produce identical layout on Windows and Unix systems
 
   [#8142](https://github.com/yarnpkg/yarn/pull/8142) - [**Merceyz**](https://github.com/merceyz)
 
+## 1.22.4 / 1.22.3
+
+Those versions didn't contain any changes and were just triggered by our infra while working on the tests.
+
+## 1.22.2
+
 - Ignores `.yarnrc.yml` by default when running `yarn pack`
 
   [#8142](https://github.com/yarnpkg/yarn/pull/8142) - [**Merceyz**](https://github.com/merceyz)
-
-- Generates local yarn verions as `.cjs` files when calling `yarn set version`
-
-  [#8145](https://github.com/yarnpkg/yarn/pull/8145) - [**bgotink**](https://github.com/bgotink)
 
 ## 1.22.1
 
