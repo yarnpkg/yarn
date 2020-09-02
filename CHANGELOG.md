@@ -2,6 +2,12 @@
 <!-- -->
 Please add one entry in this file for each change in Yarn's behavior. Use the same format for all entries, including the third-person verb. Make sure you don't add more than one line of text to keep it clean. Thanks!
 
+## Unreleased
+
+- Fetches git repository with `--force` option
+
+  [#8330](https://github.com/yarnpkg/yarn/pull/8330) - [**Yuku Kotani**](https://github.com/Monchi)
+
 ## 1.22.5
 
 - Headers won't be printed when calling `yarn init` with the `-2` flag
