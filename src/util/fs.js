@@ -513,20 +513,21 @@ export function copy(src: string, dest: string, reporter: Reporter): Promise<voi
   return copyBulk([{src, dest}], reporter);
 }
 
-export function spawnWorkers(): Worker[] {
-  const {Worker} = require('worker_threads');
+const { Worker } = require('worker_threads');
+function spawnWorker() {
+    return new Worker(require('path').join(__dirname, '..', 'worker.js'));
+}
+
+const numberOfWorkers = Math.ceil(os.cpus().length/ 2)
+
+export function createWorkers() {
   const workers = [];
-  const numberOfCores = os.cpus().length;
-  for (let i = 0; i < Math.ceil(numberOfCores / 2); i++) {
-    const worker = new Worker(require('path').join(__dirname, '..', 'worker.js'));
-    worker.setMaxListeners(1);
+
+  for (let i = 0; i < numberOfWorkers; i++) {
+    const worker = spawnWorker();
     workers.push(worker);
   }
   return workers;
-}
-
-function killWorkers(workers) {
-  workers.forEach(w => w.terminate());
 }
 
 export async function copyBulk(
@@ -548,12 +549,10 @@ export async function copyBulk(
     artifactFiles: (_events && _events.artifactFiles) || [],
   };
 
-  let next = 0;
-  const BIN_SIZE = 50;
-  const workers = spawnWorkers();
+  const workers = createWorkers();
 
   const actions: CopyActions = await buildActionsForCopy(queue, events, events.possibleExtraneous, reporter);
-  events.onStart(actions.file.length / BIN_SIZE + actions.symlink.length + actions.link.length);
+  events.onStart(actions.file.length + actions.symlink.length + actions.link.length);
 
   const fileActions: Array<CopyFileAction> = actions.file;
 
@@ -561,7 +560,7 @@ export async function copyBulk(
     const split = fileActions
       .reduce(
         (acc, curr) => {
-          if (acc[acc.length - 1].length < BIN_SIZE) {
+          if (acc[acc.length - 1].length < Math.ceil(fileActions.length / numberOfWorkers)) {
             acc[acc.length - 1].push(curr);
           } else {
             acc.push([curr]);
@@ -576,26 +575,32 @@ export async function copyBulk(
       resolve();
     }
 
-    let running = 0;
-    split.forEach(ac => {
-      const worker = workers[next % workers.length];
-      const {port1, port2} = new (require('worker_threads')).MessageChannel();
-      next += 1;
+    let running = split.length;
+    split.forEach((ac, i) => {
+      const worker = workers[i];
       const onError = err => {
+        worker.off('error', onError);
+        worker.off('close', onError);
+        worker.off('message', onMessage);
         reject(err.err);
       };
       const onMessage = () => {
-        events.onProgress(ac.dest);
+        worker.off('error', onError);
+        worker.off('close', onError);
+        worker.off('message', onMessage);
+        ac.forEach(a => events.onProgress(a.dest));
         running -= 1;
-        running === 0 && resolve();
+        if (running === 0) {
+          resolve();
+        }
       };
-      port1.on('error', onError);
-      port1.on('message', onMessage);
-      running += 1;
-      worker.postMessage({actions: ac.map(a => ({src: a.src, dest: a.dest})), port: port2}, [port2]);
+      worker.on('error', onError);
+      worker.on('close', onError);
+      worker.on('message', onMessage);
+      worker.postMessage({actions: ac.map(a => ({src: a.src, dest: a.dest}))});
     });
   })
-  .finally(() => killWorkers(workers));
+  .finally(() => workers.forEach(w => w.terminate()));
 
 
   // we need to copy symlinks last as they could reference files we were copying
