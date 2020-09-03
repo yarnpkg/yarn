@@ -549,10 +549,11 @@ export async function copyBulk(
   };
 
   let next = 0;
+  const BIN_SIZE = 50;
   const workers = spawnWorkers();
 
   const actions: CopyActions = await buildActionsForCopy(queue, events, events.possibleExtraneous, reporter);
-  events.onStart(actions.file.length + actions.symlink.length + actions.link.length);
+  events.onStart(actions.file.length / BIN_SIZE + actions.symlink.length + actions.link.length);
 
   const fileActions: Array<CopyFileAction> = actions.file;
 
@@ -560,7 +561,7 @@ export async function copyBulk(
     const split = fileActions
       .reduce(
         (acc, curr) => {
-          if (acc[acc.length - 1].length < 50) {
+          if (acc[acc.length - 1].length < BIN_SIZE) {
             acc[acc.length - 1].push(curr);
           } else {
             acc.push([curr]);
