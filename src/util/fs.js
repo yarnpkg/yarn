@@ -582,7 +582,7 @@ export async function copyBulk(
         worker.off('error', onError);
         worker.off('close', onError);
         worker.off('message', onMessage);
-        reject(err.err);
+        reject(err && err.err);
       };
       const onMessage = () => {
         worker.off('error', onError);
