@@ -151,7 +151,9 @@ export async function makeEnv(
   for (const [key, val] of cleaned) {
     const cleanKey = key.replace(/^_+/, '');
     const envKey = `npm_config_${cleanKey}`.replace(INVALID_CHAR_REGEX, '_');
-    env[envKey] = val;
+    // envKey is lowercase, but the env block can come with a non-lowercase version of the env key name
+    const existingKey = Object.keys(env).find(x => x.toLowerCase() === envKey);
+    env[existingKey ? existingKey : envKey] = val;
   }
   // add npm_package_config_*
   if (manifest && manifest.name) {
