@@ -585,6 +585,7 @@ export async function copyBulk(
         reject(err && err.err);
       };
       const onMessage = () => {
+        reporter.verbose(reporter.lang('verboseWorkerCompleted', i, split.length));
         worker.off('error', onError);
         worker.off('close', onError);
         worker.off('message', onMessage);
@@ -597,11 +598,15 @@ export async function copyBulk(
       worker.on('error', onError);
       worker.on('close', onError);
       worker.on('message', onMessage);
-      worker.postMessage({actions: ac.map(a => ({src: a.src, dest: a.dest}))});
+      const actions = ac.map(action => ({src: action.src, dest: action.dest}));
+      actions.forEach(action =>
+        reporter.verbose(
+          reporter.lang('verboseFileCopy', action.src, action.dest, `worker ${i}, total ${actions.length}`),
+        ),
+      );
+      worker.postMessage({actions});
     });
-  })
-  .finally(() => workers.forEach(w => w.terminate()));
-
+  }).finally(() => workers.forEach(w => w.terminate()));
 
   // we need to copy symlinks last as they could reference files we were copying
   const symlinkActions: Array<CopySymlinkAction> = actions.symlink;
