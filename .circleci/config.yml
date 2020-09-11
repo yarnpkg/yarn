@@ -199,7 +199,7 @@ jobs:
   test-macos-node6:
     <<: *macos_defaults
     macos:
-      xcode: "9.0"
+      xcode: "9.4.1"
     steps:
       - run:
           name: Install Node 6
