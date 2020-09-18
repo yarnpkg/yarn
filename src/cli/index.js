@@ -301,7 +301,7 @@ export async function main({
 
     return command.run(config, reporter, commander, commander.args).then(exitCode => {
       if (shouldWrapOutput) {
-        reporter.footer(false);
+        reporter.footer(true);
       }
       return exitCode;
     });

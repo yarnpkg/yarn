@@ -19,6 +19,7 @@
      "plugins": [
        ["array-includes"],
        ["transform-inline-imports-commonjs"],
+       ["transform-object-rest-spread"],
        ["transform-runtime", { "polyfill": true, "regenerator": false }],
        ["transform-builtin-extend", { "globals": ["Error"] }]
      ]
@@ -53,6 +54,7 @@
   ],
   "plugins": [
     ["babel-plugin-inline-import", { "extensions": [ ".tpl.js" ] }],
+    ["transform-object-rest-spread"],
     ["transform-inline-imports-commonjs"],
     ["transform-runtime", { "polyfill": false, "regenerator": true }]
   ]

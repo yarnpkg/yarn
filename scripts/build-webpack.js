@@ -78,7 +78,7 @@ const compiler = webpack({
     rules: [
       {
         test: /\.js$/,
-        exclude: /node_modules|Caches/,
+        exclude: /(node_modules[\\\/](?!mkdirp))|Caches/,
         loader: require.resolve('babel-loader')
       },
       {
@@ -130,7 +130,7 @@ const compilerLegacy = webpack({
     rules: [
       {
         test: /\.js$/,
-        exclude: /node_modules[\\\/](?!inquirer)/,
+        exclude: /node_modules[\\\/](?!inquirer|mkdirp)/,
         use: [
           {
             loader:'babel-loader',

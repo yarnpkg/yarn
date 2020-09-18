@@ -8,6 +8,7 @@ import fs from 'fs';
 import globModule from 'glob';
 import os from 'os';
 import path from 'path';
+import mkdirp from 'mkdirp';
 
 import BlockingQueue from './blocking-queue.js';
 import * as promise from './promise.js';
@@ -37,13 +38,12 @@ export const readdir: (path: string, opts: void) => Promise<Array<string>> = pro
 export const rename: (oldPath: string, newPath: string) => Promise<void> = promisify(fs.rename);
 export const access: (path: string, mode?: number) => Promise<void> = promisify(fs.access);
 export const stat: (path: string) => Promise<fs.Stats> = promisify(fs.stat);
-export const mkdirp: (path: string) => Promise<void> = promisify(require('mkdirp'));
 export const exists: (path: string) => Promise<boolean> = promisify(fs.exists, true);
 export const lstat: (path: string) => Promise<fs.Stats> = promisify(fs.lstat);
 export const chmod: (path: string, mode: number | string) => Promise<void> = promisify(fs.chmod);
 export const link: (src: string, dst: string) => Promise<fs.Stats> = promisify(fs.link);
 export const glob: (path: string, options?: Object) => Promise<Array<string>> = promisify(globModule);
-export {unlink};
+export {unlink, mkdirp};
 
 // fs.copyFile uses the native file copying instructions on the system, performing much better
 // than any JS-based solution and consumes fewer resources. Repeated testing to fine tune the
@@ -548,14 +548,12 @@ export async function copyBulk(
     ignoreBasenames: (_events && _events.ignoreBasenames) || [],
     artifactFiles: (_events && _events.artifactFiles) || [],
   };
-
-  const workers = createWorkers();
-
   const actions: CopyActions = await buildActionsForCopy(queue, events, events.possibleExtraneous, reporter);
   events.onStart(actions.file.length + actions.symlink.length + actions.link.length);
 
   const fileActions: Array<CopyFileAction> = actions.file;
 
+  const workers = createWorkers();
   await new Promise((resolve, reject) => {
     const split = fileActions
       .reduce(
