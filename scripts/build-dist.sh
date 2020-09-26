@@ -39,6 +39,7 @@ cp LICENSE dist/
 # with any Node >= 4 and still small in terms of size.
 cp artifacts/yarn-legacy-$version.js dist/lib/cli.js
 cp bin/{yarn.js,yarn,yarnpkg,*.cmd} dist/bin/
+cp scripts/preinstall.js dist/preinstall.js
 chmod +x dist/bin/*
 
 # We cannot bundle v8-compile-cache as it must be loaded separately to be effective.
