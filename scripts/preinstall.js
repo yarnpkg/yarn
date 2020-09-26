@@ -1,18 +1,18 @@
 // This file is a bit weird, so let me explain with some context: we're working
-// to implement a tool called "pmm" in Node. This tool will allow us to provide
-// a Yarn shim to everyone using Node, meaning that they won't need to run `npm
-// install -g yarn`.
+// to implement a tool called "Corepack" in Node. This tool will allow us to
+// provide a Yarn shim to everyone using Node, meaning that they won't need to
+// run `npm install -g yarn`.
 //
 // Still, we don't want to break the experience of people that already use `npm
 // install -g yarn`! And one annoying thing with npm is that they install their
 // binaries directly inside the Node bin/ folder. And Because of this, they
 // refuse to overwrite binaries when they detect they don't belong to npm. Which
-// means that, since the Yarn "pmm" symlink belongs to pmm and not npm, running
-// `npm install -g yarn` would crash by refusing to override the binary :/
+// means that, since the "yarn" Corepack symlink belongs to Corepack and not npm,
+// running `npm install -g yarn` would crash by refusing to override the binary :/
 //
 // And thus we have this preinstall script, which checks whether Yarn is being
 // installed as a global binary, and remove the existing symlink if it detects
-// it belongs to pmm. Since preinstall scripts run, in npm, before the global
+// it belongs to Corepack. Since preinstall scripts run, in npm, before the global
 // symlink is created, we bypass this way the ownership check.
 //
 // More info:
@@ -46,7 +46,7 @@ if (process.env.npm_config_global) {
                 return;
             }
 
-            if (binTarget.startsWith('../lib/node_modules/pmm/')) {
+            if (binTarget.startsWith('../lib/node_modules/corepack/')) {
                 try {
                     fs.unlinkSync(binPath);
                 } catch (err) {
