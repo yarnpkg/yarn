@@ -2,6 +2,16 @@
 <!-- -->
 Please add one entry in this file for each change in Yarn's behavior. Use the same format for all entries, including the third-person verb. Make sure you don't add more than one line of text to keep it clean. Thanks!
 
+## 1.22.7
+
+This release doesn't change anything and was caused by a publish issue.
+
+## 1.22.6
+
+- Running `yarn init` with the `-2` flag won't print the `set version` output anymore.
+
+- A new preinstall check will ensure that `npm install -g yarn` works even under [Corepack](https://github.com/arcanis/corepack). It doesn't have any effect on other setups.
+
 ## 1.22.5
 
 - Headers won't be printed when calling `yarn init` with the `-2` flag
