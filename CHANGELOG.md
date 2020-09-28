@@ -2,7 +2,7 @@
 <!-- -->
 Please add one entry in this file for each change in Yarn's behavior. Use the same format for all entries, including the third-person verb. Make sure you don't add more than one line of text to keep it clean. Thanks!
 
-## 1.22.8
+## 1.22.10 (and prior)
 
 - Tweak the preinstall check to not cause errors when Node is installed as root (as a downside, it won't run at all on Windows, which should be an acceptable tradeoff): https://github.com/yarnpkg/yarn/issues/8358
 
