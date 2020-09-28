@@ -41,10 +41,11 @@ const expectedKeys = [
   'license',
   'dist',
   'directories',
+  'scripts'
 ];
 
-// yarn now ships as built, single JS files so it has no dependencies and no scripts
-const unexpectedKeys = ['dependencies', 'devDependencies', 'scripts'];
+// yarn now ships as built, single JS files so it has no dependencies
+const unexpectedKeys = ['dependencies', 'devDependencies'];
 
 beforeEach(() => {
   // the mocked requests have stripped metadata, don't use it in the following tests
