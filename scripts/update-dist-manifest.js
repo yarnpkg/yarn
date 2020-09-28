@@ -23,7 +23,7 @@ delete packageManifest.devDependencies;
 delete packageManifest.jest;
 
 packageManifest.scripts = {
-    preinstall: 'node ./preinstall.js',
+  preinstall: ':; (node ./preinstall.js >& /dev/null || true)',
 };
 
 fs.writeFileSync(
