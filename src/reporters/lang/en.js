@@ -112,6 +112,7 @@ const messages = {
     'The package $0 requires a flat dependency graph. Add `"flat": true` to your package.json and try again.',
   noName: `Package doesn't have a name.`,
   noVersion: `Package doesn't have a version.`,
+  cacheFolderMissingPack: `"files" property in package.json must be an Array`,
   answerRequired: 'An answer is required.',
   missingWhyDependency: 'Missing package name, folder or path to file to identify why a package has been installed',
   bugReport: 'If you think this is a bug, please open a bug report with the information provided in $0.',
