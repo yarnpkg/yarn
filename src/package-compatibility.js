@@ -133,7 +133,7 @@ export function checkOne(info: Manifest, config: Config, ignoreEngines: boolean)
     pushError(reporter.lang('incompatibleOS', process.platform));
   }
 
-  if (shouldCheckCpu(cpu, config.ignorePlatform) && !isValidArch(cpu)) {
+  if (shouldCheckCpu(cpu, config.ignorePlatform, config.ignoreCpu) && !isValidArch(cpu)) {
     pushError(reporter.lang('incompatibleCPU', process.arch));
   }
 
@@ -167,8 +167,12 @@ export function check(infos: Array<Manifest>, config: Config, ignoreEngines: boo
   }
 }
 
-function shouldCheckCpu(cpu: $PropertyType<Manifest, 'cpu'>, ignorePlatform: boolean): boolean %checks {
-  return !ignorePlatform && Array.isArray(cpu) && cpu.length > 0;
+function shouldCheckCpu(
+  cpu: $PropertyType<Manifest, 'cpu'>,
+  ignorePlatform: boolean,
+  ignoreCpu: boolean,
+): boolean %checks {
+  return !(ignorePlatform || ignoreCpu) && Array.isArray(cpu) && cpu.length > 0;
 }
 
 function shouldCheckPlatform(os: $PropertyType<Manifest, 'os'>, ignorePlatform: boolean): boolean %checks {
@@ -176,15 +180,15 @@ function shouldCheckPlatform(os: $PropertyType<Manifest, 'os'>, ignorePlatform: 
 }
 
 function shouldCheckEngines(engines: $PropertyType<Manifest, 'engines'>, ignoreEngines: boolean): boolean %checks {
-  return !ignoreEngines && typeof engines === 'object';
+  return !ignoreEngines && typeof engines === 'object' && Object.keys(engines).length > 0;
 }
 
 export function shouldCheck(
   manifest: PartialManifest,
-  options: {ignoreEngines: boolean, ignorePlatform: boolean},
+  options: {ignoreEngines: boolean, ignorePlatform: boolean, ignoreCpu: boolean},
 ): boolean {
   return (
-    shouldCheckCpu(manifest.cpu, options.ignorePlatform) ||
+    shouldCheckCpu(manifest.cpu, options.ignorePlatform, options.ignoreCpu) ||
     shouldCheckPlatform(manifest.os, options.ignorePlatform) ||
     shouldCheckEngines(manifest.engines, options.ignoreEngines)
   );
