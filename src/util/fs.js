@@ -518,7 +518,7 @@ function spawnWorker() {
     return new Worker(require('path').join(__dirname, '..', 'worker.js'));
 }
 
-const numberOfWorkers = Math.ceil(os.cpus().length/ 2)
+const numberOfWorkers = process.env.WORKERS_LIMIT ? parseInt(process.env.WORKERS_LIMIT) : Math.ceil(os.cpus().length/ 2)
 
 export function createWorkers() {
   const workers = [];
