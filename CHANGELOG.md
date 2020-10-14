@@ -2,19 +2,47 @@
 <!-- -->
 Please add one entry in this file for each change in Yarn's behavior. Use the same format for all entries, including the third-person verb. Make sure you don't add more than one line of text to keep it clean. Thanks!
 
-## 1.22.2
+## 1.22.10 (and prior)
+
+- Tweak the preinstall check to not cause errors when Node is installed as root (as a downside, it won't run at all on Windows, which should be an acceptable tradeoff): https://github.com/yarnpkg/yarn/issues/8358
+
+## 1.22.7
+
+This release doesn't change anything and was caused by a publish issue.
+
+## 1.22.6
+
+- Running `yarn init` with the `-2` flag won't print the `set version` output anymore.
+
+- A new preinstall check will ensure that `npm install -g yarn` works even under [Corepack](https://github.com/arcanis/corepack). It doesn't have any effect on other setups.
+
+## 1.22.5
+
+- Headers won't be printed when calling `yarn init` with the `-2` flag
+
+  [**Maël Nison**](https://twitter.com/arcanis)
+
+- Files with the `.cjs` extension will be spawned by `yarnPath` using `execPath
+
+  [#8144](https://github.com/yarnpkg/yarn/pull/8144) - [**bgotink**](https://github.com/bgotink)
+
+- Generates local yarn verions as `.cjs` files when calling `yarn set version`
+
+  [#8145](https://github.com/yarnpkg/yarn/pull/8145) - [**bgotink**](https://github.com/bgotink)
 
 - Sorts files when running `yarn pack` to produce identical layout on Windows and Unix systems
 
   [#8142](https://github.com/yarnpkg/yarn/pull/8142) - [**Merceyz**](https://github.com/merceyz)
 
+## 1.22.4 / 1.22.3
+
+Those versions didn't contain any changes and were just triggered by our infra while working on the tests.
+
+## 1.22.2
+
 - Ignores `.yarnrc.yml` by default when running `yarn pack`
 
   [#8142](https://github.com/yarnpkg/yarn/pull/8142) - [**Merceyz**](https://github.com/merceyz)
-
-- Generates local yarn verions as `.cjs` files when calling `yarn set version`
-
-  [#8145](https://github.com/yarnpkg/yarn/pull/8145) - [**bgotink**](https://github.com/bgotink)
 
 ## 1.22.1
 
