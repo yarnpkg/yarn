@@ -265,7 +265,11 @@ export async function main({
 
   const config = new Config(reporter);
   const outputWrapperEnabled = boolifyWithDefault(process.env.YARN_WRAP_OUTPUT, true);
-  const shouldWrapOutput = outputWrapperEnabled && !commander.json && command.hasWrapper(commander, commander.args);
+  const shouldWrapOutput =
+    outputWrapperEnabled &&
+    !commander.json &&
+    command.hasWrapper(commander, commander.args) &&
+    !(commandName === 'init' && commander[`2`]);
 
   if (shouldWrapOutput) {
     reporter.header(commandName, {name: 'yarn', version});
@@ -637,7 +641,7 @@ async function start(): Promise<void> {
     });
 
     try {
-      if (yarnPath.endsWith(`.js`)) {
+      if (/\.[cm]?js$/.test(yarnPath)) {
         exitCode = await spawnp(process.execPath, [yarnPath, ...argv], opts);
       } else {
         exitCode = await spawnp(yarnPath, argv, opts);

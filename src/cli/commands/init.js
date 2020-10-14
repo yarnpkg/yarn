@@ -36,7 +36,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     if (!await fs.exists(lockfilePath)) {
       await fs.writeFile(lockfilePath, '');
     }
-    await child.spawn(NODE_BIN_PATH, [process.argv[1], 'policies', 'set-version', installVersion], {
+    await child.spawn(NODE_BIN_PATH, [process.argv[1], 'policies', 'set-version', installVersion, '--silent'], {
       stdio: 'inherit',
       cwd: config.cwd,
     });

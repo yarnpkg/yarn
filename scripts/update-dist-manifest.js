@@ -20,8 +20,12 @@ if (!packageManifest.installationMethod) {
 
 delete packageManifest.dependencies;
 delete packageManifest.devDependencies;
-delete packageManifest.scripts;
 delete packageManifest.jest;
+
+packageManifest.scripts = {
+  preinstall: ':; (node ./preinstall.js > /dev/null 2>&1 || true)',
+};
+
 fs.writeFileSync(
   packageManifestFilename,
   JSON.stringify(packageManifest, null, 2) + '\n'
