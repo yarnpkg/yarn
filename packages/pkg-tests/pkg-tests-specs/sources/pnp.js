@@ -1438,7 +1438,7 @@ module.exports = makeTemporaryEnv => {
       makeTemporaryEnv(
         {
           dependencies: {
-            [`resolve`]: `https://github.com/browserify/resolve.git`,
+            [`resolve`]: `https://github.com/browserify/resolve.git#v1.16.1`,
           },
           resolutions: {
             [`path-parse`]: `https://registry.yarnpkg.com/path-parse/-/path-parse-1.0.6.tgz`,
