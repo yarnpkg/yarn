@@ -130,7 +130,7 @@ jobs:
   test-pkg-tests-linux-node12:
     <<: *docker_defaults
     docker:
-      - image: node:12
+      - image: node:12.18.2
     <<: *pkg_tests
   test-pkg-tests-linux-node10:
     <<: *docker_defaults
