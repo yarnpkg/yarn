@@ -786,7 +786,13 @@ export async function writeFilePreservingEol(path: string, data: string): Promis
   if (eol !== '\n') {
     data = data.replace(/\n/g, eol);
   }
-  await writeFile(path, data);
+
+  if (os.platform() === 'win32' && await exists(path)) {
+    // Support modifying the file if has hidden attr
+    await writeFile(path, data, { w: "r+" });
+  } else {
+    await writeFile(path, data);
+  }
 }
 
 export async function hardlinksWork(dir: string): Promise<boolean> {
