@@ -27,7 +27,10 @@ export const constants =
 export const lockQueue = new BlockingQueue('fs lock');
 
 export const readFileBuffer = promisify(fs.readFile);
-export const open: (path: string, flags: string, mode?: number) => Promise<Array<string>> = promisify(fs.open);
+export const open: (path: string, flags: string, mode?: number) => Promise<number> = promisify(fs.open);
+export const close: (fd: number) => Promise<void> = promisify(fs.close);
+export const ftruncate: (fd: number) => Promise<void> = promisify(fs.ftruncate);
+export const write: (fd: number, data: string | Buffer) => Promise<void> = promisify(fs.write);
 export const writeFile: (path: string, data: string | Buffer, options?: Object) => Promise<void> = promisify(
   fs.writeFile,
 );
@@ -789,7 +792,10 @@ export async function writeFilePreservingEol(path: string, data: string): Promis
 
   if (os.platform() === 'win32' && await exists(path)) {
     // Support modifying the file if has hidden attr
-    await writeFile(path, data, { flag: "r+" });
+    const fd = await open(path, "r+");
+    await ftruncate(fd);
+    await write(fd, data);
+    await close(fd);
   } else {
     await writeFile(path, data);
   }
