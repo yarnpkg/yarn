@@ -77,7 +77,7 @@ async function getLinksToRegisteredPackages(config: Config, reporter: Reporter, 
     const folder = await getRegistryFolder(config, name);
     try {
       const stat = await fs.stat(path.join(folder, name));
-      if (stat.isDirectory()) {
+      if (stat.isSymbolicLink()) {
         linkedPackages.push(name);
       }
     } catch (err) {
@@ -92,14 +92,14 @@ async function getLinksToRegisteredPackages(config: Config, reporter: Reporter, 
 async function getRegisteredPackages(config: Config, reporter: Reporter): Promise<string[]> {
   let files = await fs.readdir(config.linkFolder);
   
-  let packages = []
+  let packages = [];
   for (const file of files) {
     if ((await fs.stat(path.join(config.linkFolder, file))).isDirectory()) {
-      packages.push(path.basename(file))
+      packages.push(path.basename(file));
     }
   }
 
-  return packages
+  return packages;
 }
 
 export async function getRegistryFolder(config: Config, name: string): Promise<string> {
@@ -123,7 +123,7 @@ export function setFlags(commander: Object) {
   commander.description('Symlink a package folder during development.');
   commander.option(
     '--list',
-    `List currently linked packages and all global package candidates`
+    `List currently linked packages and all globally registered link packages`
   );
 }
 
@@ -133,14 +133,18 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     const linkedPackages = await getLinksToRegisteredPackages(config, reporter, registeredPackages)
 
     if (linkedPackages.length > 0) {
-      reporter.info(`Packages currently linked (use 'yarn unlink [package]' to unlink):`)
+      reporter.info(`Packages currently linked and in use by this package:`);
       reporter.list('list', linkedPackages);
     } else {
-      reporter.info(`No packages currently linked (use 'yarn link [package]' to link)`)
+      reporter.info(`No packages currently linked here (use 'yarn link [package]' to link)`);
     }
 
-    reporter.info(`Packages registered and available to 'yarn link [package]':`)
-    reporter.list('list', registeredPackages);
+    if (registeredPackages.length > 0) {
+      reporter.info(`Registered packages available:`)
+      reporter.list('list', registeredPackages);
+    } else {
+      reporter.info(`No packages globally link-registered (use 'yarn link' to register)`)
+    }
   } else if (args.length) {
     for (const packageName of args) {
       await makeLinkToRegisteredPackage(packageName, config, reporter)
