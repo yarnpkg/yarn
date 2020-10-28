@@ -76,7 +76,7 @@ async function getLinksToRegisteredPackages(config: Config, reporter: Reporter, 
   for (const name of packageNames) {
     const folder = await getRegistryFolder(config, name);
     try {
-      const stat = await fs.stat(path.join(folder, name));
+      const stat = await fs.lstat(path.join(folder, name));
       if (stat.isSymbolicLink()) {
         linkedPackages.push(name);
       }
