@@ -372,7 +372,7 @@ export class Install {
           version: '1.0.0',
           _registry: 'npm',
           _loc: workspacesRoot,
-          dependencies: workspaceDependencies,
+          dependencies: {...workspaceDependencies, ...workspaceManifestJson.dependencies},
           devDependencies: {...workspaceManifestJson.devDependencies},
           optionalDependencies: {...workspaceManifestJson.optionalDependencies},
           private: workspaceManifestJson.private,
@@ -387,6 +387,10 @@ export class Install {
         stripExcluded(cwdIsRoot ? virtualDependencyManifest : workspaces[projectManifestJson.name].manifest);
 
         pushDeps('workspaces', {workspaces: virtualDep}, {hint: 'workspaces', optional: false}, true);
+
+        pushDeps('dependencies', virtualDependencyManifest, {hint: null, optional: false}, true);
+        pushDeps('devDependencies', virtualDependencyManifest, {hint: 'dev', optional: false}, !this.config.production);
+        pushDeps('optionalDependencies', virtualDependencyManifest, {hint: 'optional', optional: true}, true);
 
         const implicitWorkspaceDependencies = {...workspaceDependencies};
 
