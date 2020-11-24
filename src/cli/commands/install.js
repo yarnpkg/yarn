@@ -4,9 +4,10 @@ import objectPath from 'object-path';
 import type {InstallationMethod} from '../../util/yarn-version.js';
 import type {Reporter} from '../../reporters/index.js';
 import type {ReporterSelectOption} from '../../reporters/types.js';
-import type {Manifest, DependencyRequestPatterns} from '../../types.js';
+import type {Manifest, DependencyRequestPatterns, ResolvedPatterns} from '../../types.js';
 import type Config, {RootManifests} from '../../config.js';
 import type {RegistryNames} from '../../registries/index.js';
+import {implodeEntry} from '../../lockfile';
 import type {LockfileObject} from '../../lockfile';
 import {callThroughHook} from '../../util/hooks.js';
 import normalizeManifest from '../../util/normalize-manifest/index.js';
@@ -448,6 +449,28 @@ export class Install {
     return manifests;
   }
 
+  getFilteredResolvedPatterns(workspaceLayout: ?WorkspaceLayout): ResolvedPatterns {
+    const resolvedPatterns: ResolvedPatterns = {};
+    Object.keys(this.resolver.patterns).forEach(pattern => {
+      if (!workspaceLayout || !workspaceLayout.getManifestByPattern(pattern)) {
+        resolvedPatterns[pattern] = this.resolver.patterns[pattern];
+      }
+    });
+
+    return resolvedPatterns;
+  }
+
+  async compareOriginalVsResolvedLockfile(workspaceLayout: ?WorkspaceLayout): Promise<boolean> {
+    const resolvedPatterns = this.getFilteredResolvedPatterns(workspaceLayout);
+    const resolvedLockfile = new Lockfile().getLockfile(resolvedPatterns);
+
+    const originalLockfile = (await Lockfile.fromDirectory(this.config.lockfileFolder, this.reporter)).cache;
+    // the resolved lock file has "imploded" entries, need to do the same for the original
+    Object.keys(originalLockfile).forEach(key => (originalLockfile[key] = implodeEntry(key, originalLockfile[key])));
+
+    return deepEqual(originalLockfile, resolvedLockfile);
+  }
+
   async bailout(patterns: Array<string>, workspaceLayout: ?WorkspaceLayout): Promise<boolean> {
     // We don't want to skip the audit - it could yield important errors
     if (this.flags.audit) {
@@ -466,7 +489,13 @@ export class Install {
     }
     const lockfileClean = this.lockfile.parseResultType === 'success';
     const match = await this.integrityChecker.check(patterns, lockfileCache, this.flags, workspaceLayout);
-    if (this.flags.frozenLockfile && (!lockfileClean || match.missingPatterns.length > 0)) {
+
+    if (
+      this.flags.frozenLockfile &&
+      (!lockfileClean ||
+        match.missingPatterns.length > 0 ||
+        !await this.compareOriginalVsResolvedLockfile(workspaceLayout))
+    ) {
       throw new MessageError(this.reporter.lang('frozenLockfileError'));
     }
 
@@ -939,12 +968,7 @@ export class Install {
    */
 
   async saveLockfileAndIntegrity(patterns: Array<string>, workspaceLayout: ?WorkspaceLayout): Promise<void> {
-    const resolvedPatterns: {[packagePattern: string]: Manifest} = {};
-    Object.keys(this.resolver.patterns).forEach(pattern => {
-      if (!workspaceLayout || !workspaceLayout.getManifestByPattern(pattern)) {
-        resolvedPatterns[pattern] = this.resolver.patterns[pattern];
-      }
-    });
+    const resolvedPatterns = this.getFilteredResolvedPatterns(workspaceLayout);
 
     // TODO this code is duplicated in a few places, need a common way to filter out workspace patterns from lockfile
     patterns = patterns.filter(p => !workspaceLayout || !workspaceLayout.getManifestByPattern(p));

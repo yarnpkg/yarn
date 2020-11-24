@@ -1,6 +1,6 @@
 /* @flow */
 
-import type {Manifest, DependencyRequestPatterns, DependencyRequestPattern} from './types.js';
+import type {Manifest, DependencyRequestPatterns, DependencyRequestPattern, ResolvedPatterns} from './types.js';
 import type {RegistryNames} from './registries/index.js';
 import type PackageReference from './package-reference.js';
 import type {Reporter} from './reporters/index.js';
@@ -76,9 +76,7 @@ export default class PackageResolver {
   lockfile: Lockfile;
 
   // a map of dependency patterns to packages
-  patterns: {
-    [packagePattern: string]: Manifest,
-  };
+  patterns: ResolvedPatterns;
 
   // reporter instance, abstracts out display logic
   reporter: Reporter;

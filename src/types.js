@@ -199,3 +199,7 @@ export type Dependency = {
 export type WorkspacesManifestMap = {
   [string]: {loc: string, manifest: Manifest},
 };
+
+export type ResolvedPatterns = {
+  [packagePattern: string]: Manifest,
+};
