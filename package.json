@@ -40,7 +40,7 @@
     "proper-lockfile": "^2.0.0",
     "puka": "^1.0.0",
     "read": "^1.0.7",
-    "request": "^2.87.0",
+    "request": "https://github.com/request/request.git#3c0cddc7c8eb60b470e9519da85896ed7ee0081",
     "request-capture-har": "^1.2.2",
     "rimraf": "^2.5.0",
     "semver": "^5.1.0",
