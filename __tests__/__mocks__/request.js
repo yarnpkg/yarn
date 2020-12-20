@@ -47,7 +47,12 @@ class Request extends RealRequest {
   }
 }
 
-module.exports = function(params: Object): Request {
+module.exports = function(initialParams: Object, callback?: ?Function): Request {
+  const params = {
+    ...initialParams,
+    ...(callback ? {callback} : {}),
+  };
+
   return new Request(params);
 };
 

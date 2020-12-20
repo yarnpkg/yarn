@@ -223,7 +223,7 @@ export default class RequestManager {
   requestWithRacingRetry() {
     const request = require('request');
 
-    const decoratedRequest = params => {
+    const decoratedRequest = (...params) => {
       // Use a buffer stream to make sure the data does not overflow the various streams.
       const bufferStream = new BufferStream();
 
@@ -234,7 +234,7 @@ export default class RequestManager {
       let done = false;
       let aborted = false;
 
-      let req1 = request(params);
+      let req1 = request(...params);
       // We pause the stream so no response data flows out until we call .resume().
       req1.pause();
 
@@ -244,7 +244,7 @@ export default class RequestManager {
         if (done) {
           return;
         }
-        req2 = request(params);
+        req2 = request(...params);
         // We pause the stream so no response data flows out until we call .resume().
         req2.pause();
         req2.on('error', (...args) => {

@@ -742,7 +742,7 @@ export class Install {
     if (this.flags.har) {
       steps.push(async (curr: number, total: number) => {
         const formattedDate = new Date().toISOString().replace(/:/g, '-');
-        const filename = `yarn-install_${formattedDate}.har`;
+        const filename = path.join(this.config.cwd, `yarn-install_${formattedDate}.har`);
         this.reporter.step(
           curr,
           total,
