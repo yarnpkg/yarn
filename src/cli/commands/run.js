@@ -150,7 +150,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       let suggestion;
 
       for (const commandName of scripts.keys()) {
-        const steps = leven(commandName, action);
+        const steps = distance(commandName, action);
         if (steps < 2) {
           suggestion = commandName;
         }
