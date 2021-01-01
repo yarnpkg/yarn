@@ -22,9 +22,14 @@ about: Open an issue
     https://discord.com/invite/yarnpkg
     https://github.com/yarnpkg/berry/discussions
 
+  Finally, if you intend to open a bug on Yarn 2, the right tracker is here:
+  
+    https://github.com/yarnpkg/berry
+
   If you decide to stay on Yarn 1 regardless, please be aware that we don't plan to
-  merge pull requests or release future versions of Classic unless it's to solve an critical
-  vulnerability report (which is unlikely).
+  merge pull requests or release future versions of Classic unless it's to solve an
+  critical vulnerability report (which is unlikely). By contrast, the 2.x line is very
+  actively supported. 
   
   Thanks for your understanding!
 
