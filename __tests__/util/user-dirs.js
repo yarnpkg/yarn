@@ -17,8 +17,8 @@ describe('getDataDir', () => {
       delete process.env.LOCALAPPDATA;
     });
 
-    test('uses the config dir otherwise', () => {
-      expect(getDataDir()).toBe(path.join(userHome, '.config', 'yarn'));
+    test('uses AppData\\Local\\Data otherwise', () => {
+      expect(getDataDir()).toBe(path.join(userHome, 'AppData', 'Local', 'Yarn', 'Data'));
     });
   });
 
@@ -33,8 +33,8 @@ describe('getDataDir', () => {
       delete process.env.XDG_DATA_HOME;
     });
 
-    test('falls back to the config dir', () => {
-      expect(getDataDir()).toBe(path.join(userHome, '.config', 'yarn'));
+    test('falls back to .local/share/yarn', () => {
+      expect(getDataDir()).toBe(path.join(userHome, '.local', 'share', 'yarn'));
     });
   });
 });
@@ -95,14 +95,14 @@ describe('getConfigDir', () => {
       mockProcessPlatform('win32');
     });
 
-    test('uses Yarn\\Config within LOCALAPPDATA if it exists', () => {
-      process.env.LOCALAPPDATA = 'foo';
+    test('uses Yarn\\Config within APPDATA if it exists', () => {
+      process.env.APPDATA = 'foo';
       expect(getConfigDir()).toBe(path.join('foo', 'Yarn', 'Config'));
-      delete process.env.LOCALAPPDATA;
+      delete process.env.APPDATA;
     });
 
-    test('uses the config dir otherwise', () => {
-      expect(getConfigDir()).toBe(path.join(userHome, '.config', 'yarn'));
+    test('uses AppData\\Roaming\\Config otherwise', () => {
+      expect(getConfigDir()).toBe(path.join(userHome, 'AppData', 'Roaming', 'Yarn', 'Config'));
     });
   });
 
