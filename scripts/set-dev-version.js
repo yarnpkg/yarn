@@ -18,8 +18,9 @@ const formattedDate =
   leftPad(date.getUTCMonth() + 1) +
   leftPad(date.getUTCDate()) +
   '.' +
-  leftPad(date.getUTCHours()) +
-  leftPad(date.getUTCMinutes());
+  // Ensure valid semver (i.e. character following the `.` must not be `0`) by choosing a random "time" in the afternoon
+  Math.floor(12 + Math.random() * 12).toString() +
+  leftPad(Math.floor(Math.random() * 60).toString());
 
 // Remove any existing suffix before appending the date
 const version =
