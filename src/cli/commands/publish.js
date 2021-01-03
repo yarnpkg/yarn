@@ -28,14 +28,55 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 
-async function publish(config: Config, pkg: any, flags: Object, dir: string): Promise<void> {
-  let access = flags.access;
-
-  // if no access level is provided, check package.json for `publishConfig.access`
-  // see: https://docs.npmjs.com/files/package.json#publishconfig
-  if (!access && pkg && pkg.publishConfig && pkg.publishConfig.access) {
-    access = pkg.publishConfig.access;
+function getPublishConfigAccess(pkg: any, flags: Object): ?string {
+  if (typeof flags.access === 'string') {
+    return flags.access;
   }
+  if (pkg && pkg.publishConfig && typeof pkg.publishConfig.access === 'string') {
+    return pkg.publishConfig.access;
+  }
+  return undefined;
+}
+
+function getPublishConfigRegistry(config: Config, pkg: any, flags: Object): string {
+  // CLI flag has the highest priority.
+  if (typeof flags.registry === 'string') {
+    return flags.registry;
+  }
+  // if `publishConfig` exists, it overrides the default registry settings.
+  if (pkg && pkg.publishConfig) {
+    const publishConfig = pkg.publishConfig;
+    const scope = config.registries.npm.getScope(pkg.name);
+    // if the package is scoped, scoped registry in `publishConfig` has priority 2.
+    if (scope) {
+      const scopedRegistry = publishConfig[`${scope}:registry`];
+      if (typeof scopedRegistry === 'string') {
+        return scopedRegistry;
+      }
+    }
+    // use `publishConfig.registry` even if the package is scoped, as long as it doesn't have scoped registry
+    const unscopedRegistry = publishConfig.registry;
+    if (typeof unscopedRegistry === 'string') {
+      return unscopedRegistry;
+    }
+  }
+  return '';
+}
+
+function getPublishConfigTag(pkg: any, flags: Object): string {
+  if (typeof flags.tag === 'string') {
+    return flags.tag;
+  }
+  if (pkg && pkg.publishConfig && typeof pkg.publishConfig.tag === 'string') {
+    return pkg.publishConfig.tag;
+  }
+  return 'latest';
+}
+
+async function publish(config: Config, pkg: any, flags: Object, dir: string): Promise<void> {
+  // check package.json for `publishConfig.access`, override with `--access` flag
+  // see: https://docs.npmjs.com/files/package.json#publishconfig
+  const access = getPublishConfigAccess(pkg, flags);
 
   // validate access argument
   if (access && access !== 'public' && access !== 'restricted') {
@@ -74,7 +115,7 @@ async function publish(config: Config, pkg: any, flags: Object, dir: string): Pr
     }
   }
 
-  const tag = flags.tag || 'latest';
+  const tag = getPublishConfigTag(pkg, flags);
   const tbName = `${pkg.name}-${pkg.version}.tgz`;
   const tbURI = `${pkg.name}/-/${tbName}`;
 
@@ -111,7 +152,7 @@ async function publish(config: Config, pkg: any, flags: Object, dir: string): Pr
   // publish package
   try {
     await config.registries.npm.request(NpmRegistry.escapeName(pkg.name), {
-      registry: pkg && pkg.publishConfig && pkg.publishConfig.registry,
+      registry: getPublishConfigRegistry(config, pkg, flags),
       method: 'PUT',
       body: root,
     });
@@ -141,7 +182,6 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   }
 
   // validate package fields that are required for publishing
-  // $FlowFixMe
   const pkg = await config.readRootManifest();
   if (pkg.private) {
     throw new MessageError(reporter.lang('publishPrivate'));
@@ -150,18 +190,12 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     throw new MessageError(reporter.lang('noName'));
   }
 
-  let registry: string = '';
-
-  if (pkg && pkg.publishConfig && pkg.publishConfig.registry) {
-    registry = pkg.publishConfig.registry;
-  }
-
   reporter.step(1, 4, reporter.lang('bumpingVersion'));
   const commitVersion = await setVersion(config, reporter, flags, [], false);
 
   //
   reporter.step(2, 4, reporter.lang('loggingIn'));
-  const revoke = await getToken(config, reporter, pkg.name, flags, registry);
+  const revoke = await getToken(config, reporter, pkg.name, flags, getPublishConfigRegistry(config, pkg, flags));
 
   //
   reporter.step(3, 4, reporter.lang('publishing'));
