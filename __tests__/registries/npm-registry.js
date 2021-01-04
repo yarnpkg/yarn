@@ -1,6 +1,6 @@
 /* @flow */
 
-import {resolve, join as pathJoin} from 'path';
+import {resolve, join as pathJoin, sep as pathSep} from 'path';
 
 import NpmRegistry from '../../src/registries/npm-registry.js';
 import {BufferReporter} from '../../src/reporters/index.js';
@@ -835,6 +835,30 @@ describe('getPossibleConfigLocations', () => {
         expect.stringContaining(JSON.stringify(pathJoin(homeDir, '.npmrc'))),
       ]),
     );
+  });
+
+  test('aware of NPM_CONFIG_GLOBALCONFIG directory when present', async () => {
+    const customrc = pathSep + pathJoin('tmp', 'customrc');
+    try {
+      process.env.NPM_CONFIG_GLOBALCONFIG = customrc;
+      const testCwd = './project/subdirectory';
+      const {mockRequestManager, mockRegistries} = createMocks();
+      const reporter = new BufferReporter({verbose: true});
+      const npmRegistry = new NpmRegistry(testCwd, mockRegistries, mockRequestManager, reporter, true, []);
+      await npmRegistry.getPossibleConfigLocations('npmrc', reporter);
+
+      const logs = reporter.getBuffer().map(logItem => logItem.data);
+      expect(logs).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining(JSON.stringify(customrc)),
+          expect.stringContaining(JSON.stringify(pathJoin('project', 'subdirectory', '.npmrc'))),
+          expect.stringContaining(JSON.stringify(pathJoin('project', '.npmrc'))),
+          expect.stringContaining(JSON.stringify(pathJoin(homeDir, '.npmrc'))),
+        ]),
+      );
+    } finally {
+      delete process.env.NPM_GLOBAL_GLOBALCONFIG;
+    }
   });
 });
 
