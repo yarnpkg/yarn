@@ -162,11 +162,10 @@ test.concurrent('publish should respect publishConfig.registry ', () => {
   });
 });
 
-test.concurrent('publish with publishConfig.registry and --registry', () => {
-  const registry = 'https://registry.myorg.com/';
-  const registry2 = 'https://registry2.myorg.com/';
+test.concurrent('publish should allow `--registry` to override publishConfig.registry', () => {
+  const registry = 'https://registry2.myorg.com/';
 
-  return runPublish([], {registry: registry2}, 'publish-config-registry', config => {
+  return runPublish([], {registry}, 'publish-config-registry', config => {
     expect(config.registries.npm.request).toBeCalledWith(
       expect.any(String),
       expect.objectContaining({
