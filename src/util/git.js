@@ -417,7 +417,17 @@ export default class Git implements GitRefResolvingInterface {
     if (isLocal) {
       stdout = await spawnGit(['show-ref', '--tags', '--heads'], {cwd: this.gitUrl.repository});
     } else {
-      stdout = await spawnGit(['ls-remote', '--tags', '--heads', this.gitUrl.repository]);
+      try {
+        stdout = await spawnGit(['ls-remote', '--tags', '--heads', this.gitUrl.repository]);
+      } catch (e) {
+        if (e.EXIT_CODE === 128) {
+          e.message +=
+            '\n\nThis error might be due to your ssh-agent not configured properly.\n' +
+            'Please refer to https://help.github.com/en/enterprise/2.16/user/articles/' +
+            'generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent for more details\n';
+        }
+        throw e;
+      }
     }
 
     const refs = parseRefs(stdout);

@@ -170,6 +170,10 @@ Those versions didn't contain any changes and were just triggered by our infra w
 
   [#7393](https://github.com/yarnpkg/yarn/pull/7393) - [**Maël Nison**](https://twitter.com/arcanis)
 
+- Adds a useful error message to a git failure that might be due to misconfiguration
+
+  [#7344](https://github.com/yarnpkg/yarn/pull/7344) - [**Marton Meszaros**](https://github.com/meza)
+
 - Adds support for reading `yarnPath` from v2-produced `.yarnrc.yml` files.
 
   [#7350](https://github.com/yarnpkg/yarn/pull/7350) - [**Maël Nison**](https://twitter.com/arcanis)
