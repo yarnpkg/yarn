@@ -189,3 +189,17 @@ if (process.platform === 'darwin') {
     await expect(execCommand('test', 'script-segfault')).rejects.toBeDefined();
   });
 }
+
+if (process.platform === 'win32') {
+  test('should unique-ify npm_config variables', async () => {
+    const env = Object.assign({}, process.env);
+    env.NPM_CONFIG_CACHE = 'foo';
+
+    const stdout = await execCommand('test', 'npm_config_env_win32', env);
+
+    expect(stdout).toContain('NPM_CONFIG_CACHE=foo');
+    expect(stdout).not.toContain('npm_config_cache=foo');
+  },
+
+  )
+}
