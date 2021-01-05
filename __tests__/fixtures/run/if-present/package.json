@@ -1,0 +1,5 @@
+{
+    "scripts": {
+        "exists": "echo 'this entry exists'"
+    }
+}

@@ -204,6 +204,8 @@ export default class Config {
 
   autoAddIntegrity: boolean;
 
+  ifPresent: boolean;
+
   otp: ?string;
 
   /**
@@ -426,6 +428,7 @@ export default class Config {
     this.packBuiltPackages = Boolean(this.getOption('experimental-pack-script-packages-in-mirror'));
 
     this.autoAddIntegrity = !boolifyWithDefault(String(this.getOption('unsafe-disable-integrity-migration')), true);
+    this.ifPresent = Boolean(this.getOption('if-present'));
 
     //init & create cacheFolder, tempFolder
     this.cacheFolder = path.join(this._cacheRootFolder, 'v' + String(constants.CACHE_VERSION));
