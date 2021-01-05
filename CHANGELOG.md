@@ -226,6 +226,9 @@ Those versions didn't contain any changes and were just triggered by our infra w
 
   [#7210](https://github.com/yarnpkg/yarn/pull/7210) - [**Maël Nison**](https://twitter.com/arcanis)
 
+- Workspace patterns can end with a trailing slash
+  [#6738](https://github.com/yarnpkg/yarn/pull/6738) - [**David Vazquez**](https://github.com/davazp)
+
 ## 1.15.2
 
 The 1.15.1 doesn't exist due to a release hiccup.
