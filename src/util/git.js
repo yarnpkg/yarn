@@ -54,6 +54,15 @@ const SHORTHAND_SERVICES: {[key: string]: url.parse} = map({
     hostname: 'github.com',
     pathname: `/${parsedUrl.hostname}${parsedUrl.pathname}`,
   }),
+  'gitlab:': parsedUrl => ({
+    ...parsedUrl,
+    slashes: true,
+    auth: 'git',
+    protocol: SSH_PROTOCOL,
+    host: 'gitlab.com',
+    hostname: 'gitlab.com',
+    pathname: `/${parsedUrl.hostname}${parsedUrl.pathname}`,
+  }),
   'bitbucket:': parsedUrl => ({
     ...parsedUrl,
     slashes: true,
