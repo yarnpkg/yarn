@@ -116,8 +116,11 @@ export function fetch(pkgs: Array<Manifest>, config: Config): Promise<Array<Mani
     const dest = config.generateModuleCachePath(ref);
     const otherPkg = pkgsPerDest.get(dest);
     if (otherPkg) {
+      const uniqOtherPkgPatters = [];
+      otherPkg.patterns.forEach(p => !uniqOtherPkgPatters.includes(p) && uniqOtherPkgPatters.push(p))
+
       config.reporter.warn(
-        config.reporter.lang('multiplePackagesCantUnpackInSameDestination', ref.patterns, dest, otherPkg.patterns),
+        config.reporter.lang('multiplePackagesCantUnpackInSameDestination', ref.patterns, dest, uniqOtherPkgPatters),
       );
       return false;
     }
