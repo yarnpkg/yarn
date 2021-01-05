@@ -206,8 +206,18 @@ describe('request', () => {
           expect: {root: 'https://registry.npmjs.org', auth: false},
         },
         {
+          url: 'yarn',
+          pkg: 'npm:yarn',
+          expect: {root: 'https://registry.npmjs.org', auth: false},
+        },
+        {
           url: '@yarn%2fcore',
           pkg: '@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: 'scopedNpmAuthToken'},
+        },
+        {
+          url: '@yarn%2fcore',
+          pkg: 'npm:@yarn/core',
           expect: {root: 'https://registry.npmjs.org', auth: 'scopedNpmAuthToken'},
         },
         {
@@ -231,8 +241,18 @@ describe('request', () => {
           expect: {root: 'https://registry.npmjs.org', auth: 'scopedNpmAuthToken'},
         },
         {
+          url: 'https://registry.npmjs.org/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: 'npm:@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: 'scopedNpmAuthToken'},
+        },
+        {
           url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
           pkg: '@yarn/core',
+          expect: {root: 'https://registry.yarnpkg.com', auth: 'scopedNpmAuthToken'},
+        },
+        {
+          url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: 'npm:@yarn/core',
           expect: {root: 'https://registry.yarnpkg.com', auth: 'scopedNpmAuthToken'},
         },
         {
@@ -281,8 +301,18 @@ describe('request', () => {
           expect: {root: 'https://registry.npmjs.org', auth: false},
         },
         {
+          url: 'yarn',
+          pkg: 'npm:yarn',
+          expect: {root: 'https://registry.npmjs.org', auth: false},
+        },
+        {
           url: '@yarn%2fcore',
           pkg: '@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: 'scopedNpmAuthToken'},
+        },
+        {
+          url: '@yarn%2fcore',
+          pkg: 'npm:@yarn/core',
           expect: {root: 'https://registry.npmjs.org', auth: 'scopedNpmAuthToken'},
         },
         {
@@ -306,8 +336,18 @@ describe('request', () => {
           expect: {root: 'https://registry.npmjs.org', auth: 'scopedNpmAuthToken'},
         },
         {
+          url: 'https://registry.npmjs.org/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: 'npm:@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: 'scopedNpmAuthToken'},
+        },
+        {
           url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
           pkg: '@yarn/core',
+          expect: {root: 'https://registry.yarnpkg.com', auth: 'scopedNpmAuthToken'},
+        },
+        {
+          url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: 'npm:@yarn/core',
           expect: {root: 'https://registry.yarnpkg.com', auth: 'scopedNpmAuthToken'},
         },
         {
@@ -357,8 +397,18 @@ describe('request', () => {
           expect: {root: 'https://registry.npmjs.org', auth: 'npmAuthToken'},
         },
         {
+          url: 'yarn',
+          pkg: 'npm:yarn',
+          expect: {root: 'https://registry.npmjs.org', auth: 'npmAuthToken'},
+        },
+        {
           url: '@yarn%2fcore',
           pkg: '@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: 'npmAuthToken'},
+        },
+        {
+          url: '@yarn%2fcore',
+          pkg: 'npm:@yarn/core',
           expect: {root: 'https://registry.npmjs.org', auth: 'npmAuthToken'},
         },
         {
@@ -382,8 +432,18 @@ describe('request', () => {
           expect: {root: 'https://registry.npmjs.org', auth: 'npmAuthToken'},
         },
         {
+          url: 'https://registry.npmjs.org/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: 'npm:@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: 'npmAuthToken'},
+        },
+        {
           url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
           pkg: '@yarn/core',
+          expect: {root: 'https://registry.yarnpkg.com', auth: 'npmAuthToken'},
+        },
+        {
+          url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: 'npm:@yarn/core',
           expect: {root: 'https://registry.yarnpkg.com', auth: 'npmAuthToken'},
         },
         {
@@ -434,8 +494,18 @@ describe('request', () => {
           expect: {root: 'https://registry.myorg.com', auth: 'privateAuthToken'},
         },
         {
+          url: 'yarn',
+          pkg: 'npm:yarn',
+          expect: {root: 'https://registry.myorg.com', auth: 'privateAuthToken'},
+        },
+        {
           url: '@yarn%2fcore',
           pkg: '@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: 'scopedNpmAuthToken'},
+        },
+        {
+          url: '@yarn%2fcore',
+          pkg: 'npm:@yarn/core',
           expect: {root: 'https://registry.npmjs.org', auth: 'scopedNpmAuthToken'},
         },
         {
@@ -459,8 +529,18 @@ describe('request', () => {
           expect: {root: 'https://registry.npmjs.org', auth: 'scopedNpmAuthToken'},
         },
         {
+          url: 'https://registry.npmjs.org/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: 'npm:@yarn/core',
+          expect: {root: 'https://registry.npmjs.org', auth: 'scopedNpmAuthToken'},
+        },
+        {
           url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
           pkg: '@yarn/core',
+          expect: {root: 'https://registry.yarnpkg.com', auth: 'scopedNpmAuthToken'},
+        },
+        {
+          url: 'https://registry.yarnpkg.com/dist/-/@yarn-core-1.0.0.tgz',
+          pkg: 'npm:@yarn/core',
           expect: {root: 'https://registry.yarnpkg.com', auth: 'scopedNpmAuthToken'},
         },
         {
@@ -706,6 +786,8 @@ const packageIdents = [
   ['@scope%2fpkg%2fext', '@scope'],
   ['@scope%2fpkg?query=true', '@scope'],
   ['@scope%2fpkg%2f1.2.3', '@scope'],
+  ['npm:@scoped/notescaped', '@scoped'],
+  ['npm:@scope%2fpkg%2f1.2.3', '@scope'],
   ['http://foo.bar:80/normal', ''],
   ['http://foo.bar:80/@scopedNoPkg', ''],
   ['http://foo.bar:80/@scoped/notescaped', '@scoped'],
