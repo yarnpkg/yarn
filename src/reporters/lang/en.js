@@ -424,6 +424,7 @@ const messages = {
   auditRunning: 'Auditing packages',
   auditSummary: '$0 vulnerabilities found - Packages audited: $1',
   auditSummarySeverity: 'Severity:',
+  auditMute: '$0 vulnerabilities muted - Advisory ids: ($1)',
   auditCritical: '$0 Critical',
   auditHigh: '$0 High',
   auditModerate: '$0 Moderate',

@@ -19,6 +19,7 @@ const gzip = promisify(zlib.gzip);
 export type AuditOptions = {
   groups: Array<string>,
   level?: string,
+  muteIssues?: string[],
 };
 
 export type AuditNode = {
@@ -134,6 +135,11 @@ export function setFlags(commander: Object) {
     info|low|moderate|high|critical. Default: info`,
     'info',
   );
+  commander.option(
+    '--mute <advisory> [<advisory> ...]',
+    `Mute any of the specified advisory ids`,
+    muteIssues => muteIssues && muteIssues.split(','),
+  );
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
@@ -145,6 +151,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const audit = new Audit(config, reporter, {
     groups: flags.groups || OWNED_DEPENDENCY_TYPES,
     level: flags.level || DEFAULT_LOG_LEVEL,
+    muteIssues: flags.mute,
   });
   const lockfile = await Lockfile.fromDirectory(config.lockfileFolder, reporter);
   const install = new Install({}, config, reporter, lockfile);
@@ -260,8 +267,49 @@ export default class Audit {
     if (!responseJson.metadata) {
       throw new Error(`Unexpected audit response (Missing Metadata): ${JSON.stringify(responseJson, null, 2)}`);
     }
-    this.reporter.verbose(`Audit Response: ${JSON.stringify(responseJson, null, 2)}`);
-    return responseJson;
+
+    const filteredResponse = responseJson;
+
+    if (this.options.muteIssues && this.options.muteIssues.length) {
+      const newAdvisories = {};
+      const newActions = [];
+      const newMuted = [];
+      const newVulnerabilities = Object.assign({}, responseJson.metadata.vulnerabilities);
+
+      for (const [key, value] of Object.entries(responseJson.advisories)) {
+        if (this.options.muteIssues && this.options.muteIssues.includes(key)) {
+          newMuted.push(value);
+          responseJson.actions.forEach(action => {
+            const newResolves = action.resolves.filter(resolve => {
+              if (key == resolve.id.toString() && value && value.severity) {
+                newVulnerabilities[value.severity] -= 1;
+                return false;
+              }
+              return true;
+            });
+            if (newResolves.length) {
+              newActions.push({
+                action: action.action,
+                module: action.module,
+                resolves: newResolves,
+              });
+            }
+          });
+        } else {
+          newAdvisories[key] = value;
+        }
+      }
+
+      Object.assign(filteredResponse, responseJson, {
+        muted: newMuted,
+        advisories: newAdvisories,
+        actions: newActions,
+        metadata: Object.assign(responseJson.metadata, {vulnerabilities: newVulnerabilities}),
+      });
+    }
+    this.reporter.verbose(`Audit Response: ${JSON.stringify(filteredResponse, null, 2)}`);
+
+    return filteredResponse;
   }
 
   _insertWorkspacePackagesIntoManifest(manifest: Object, resolver: PackageResolver) {
@@ -304,11 +352,13 @@ export default class Audit {
     if (!this.auditData) {
       return;
     }
-
     const startLoggingAt: number = Math.max(0, this.severityLevels.indexOf(this.options.level));
 
     const reportAdvisory = (resolution: AuditResolution) => {
       const advisory = this.auditData.advisories[resolution.id.toString()];
+      if (!advisory) {
+        return;
+      }
 
       if (this.severityLevels.indexOf(advisory.severity) >= startLoggingAt) {
         this.reporter.auditAdvisory(resolution, advisory);
@@ -349,5 +399,6 @@ export default class Audit {
     }
 
     this.summary();
+    this.reporter.auditMute(this.auditData.muted);
   }
 }
