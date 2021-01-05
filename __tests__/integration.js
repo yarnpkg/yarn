@@ -593,3 +593,18 @@ test('--modules-folder option', async () => {
   const importantFile = await fs.readFile(`${projectFolder}/IMPORTANT_FILE.txt`);
   expect(importantFile).toBe(importantData);
 });
+
+test('`yarn` in a project with sibling dir `package.json/`', async () => {
+  const parent = await makeTemp();
+  const cwd = path.join(parent, 'sample-project');
+  await fs.mkdirp(cwd);
+  await fs.writeFile(`${cwd}/package.json`, '{}');
+  await fs.mkdirp(path.join(parent, 'package.json'));
+  let error = null;
+  try {
+    await runYarn([], {cwd});
+  } catch (e) {
+    error = e;
+  }
+  expect(error).toBeNull();
+});
