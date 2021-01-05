@@ -120,6 +120,24 @@ export default class YarnRegistry extends NpmRegistry {
     this.config = Object.assign({}, DEFAULTS, this.config);
   }
 
+  async saveConfig(newConfig: Object): Promise<void> {
+    const loc = `${this.cwd}/.yarnrc`;
+    let currentConfig = {};
+
+    if (await fs.exists(loc)) {
+      currentConfig = parse(await fs.readFile(loc)).object;
+    }
+
+    const nextConfig = {
+      ...currentConfig,
+      ...newConfig,
+    };
+
+    YarnRegistry.normalizeConfig(nextConfig);
+
+    await fs.writeFilePreservingEol(loc, `${stringify(nextConfig)}\n`);
+  }
+
   async saveHomeConfig(config: Object): Promise<void> {
     YarnRegistry.normalizeConfig(config);
 
