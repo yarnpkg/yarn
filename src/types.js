@@ -54,6 +54,7 @@ export type PackageRemote = {
   registry: RegistryNames,
   reference: string,
   resolved?: ?string,
+  resolvedFile?: ?string,
   hash: ?string,
   integrity?: ?string,
   cacheIntegrity?: ?string,

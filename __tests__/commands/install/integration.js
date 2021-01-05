@@ -385,6 +385,10 @@ test('root install with optional deps', () => runInstall({}, 'root-install-with-
 test('install file: protocol with relative paths', () =>
   runInstall({}, 'install-file-relative', async config => {
     expect(await fs.readFile(path.join(config.cwd, 'node_modules', 'root-a', 'index.js'))).toEqual('foobar;\n');
+    const lockFileContent = await fs.readFile(path.join(config.cwd, 'yarn.lock'));
+    const lockFileLines = explodeLockfile(lockFileContent);
+    expect(lockFileLines[5]).toMatch('"file:root-a"');
+    expect(lockFileLines[9]).toMatch('"file:root-b"');
   }));
 
 test('install file: protocol without force retains installed package', () =>
