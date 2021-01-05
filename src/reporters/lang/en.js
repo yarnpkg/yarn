@@ -435,6 +435,12 @@ const messages = {
     'Manual Review\nSome vulnerabilities require your attention to resolve\n\nVisit https://go.npm.me/audit-guide for additional guidance',
   auditRunAuditForDetails: 'Security audit found potential problems. Run "yarn audit" for additional details.',
   auditOffline: 'Skipping audit. Security audit cannot be performed in offline mode.',
+
+  supportInfoHeader: 'Please add the following information to any issue you create:\n',
+  supportInfo: '  * Yarn version: $0\n  * Node version: $1\n  * Operating System: $2',
+  supportInfoCopied: 'Full details (including potential package.json and yarn.lock) have been copied to your clipboard.',
+  supportYarnOutdated:
+    "Please update to the latest version of yarn before opening an issue. The latest version is $0, while you're on $1.",
 };
 
 export type LanguageKeys = $Keys<typeof messages>;
