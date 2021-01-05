@@ -168,9 +168,9 @@ const messages = {
     '$0 does not exist. Autoclean will delete files specified by $0. Run "autoclean --init" to create $0 with the default entries.',
 
   binLinkCollision:
-    "There's already a linked binary called $0 in your global Yarn bin. Could not link this package's $0 bin entry.",
+    "There's already a linked binary called $0 in your global Yarn bin pointing to $1. Could not link this package's $0 bin entry.",
   linkCollision:
-    "There's already a package called $0 registered. This command has had no effect. If this command was run in another folder with the same name, the other folder is still linked. Please run yarn unlink in the other folder if you want to register this folder.",
+    "There's already a package called $0 registered pointing to $1. This command has had no effect. Please run yarn unlink in the other folder if you want to register this folder.",
   linkMissing: 'No registered package found called $0.',
   linkRegistered: 'Registered $0.',
   linkRegisteredMessage:
