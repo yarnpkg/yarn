@@ -455,6 +455,12 @@ export default class Config {
     this.registries = map();
     this.cache = map();
 
+    if (opts.cwd !== undefined) {
+      if (!path.isAbsolute(String(opts.cwd))) {
+        this.reporter.warn(this.reporter.lang('yarnAddRelativePathDetected'));
+      }
+    }
+
     // Ensure the cwd is always an absolute path.
     this.cwd = path.resolve(opts.cwd || this.cwd || process.cwd());
 
