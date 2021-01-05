@@ -383,6 +383,13 @@ export default class Git implements GitRefResolvingInterface {
     try {
       return await spawnGit(['show', `${this.hash}:${filename}`], {
         cwd: this.cwd,
+        process(proc, update, reject, done) {
+          proc.on('error', reject);
+          proc.on('close', done);
+          // only take stdout
+          proc.stdout.on('data', update);
+          proc.on('error', reject);
+        },
       });
     } catch (err) {
       handleSpawnError(err);

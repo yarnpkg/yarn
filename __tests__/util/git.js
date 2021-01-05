@@ -1,7 +1,7 @@
 /* @flow */
 
 jest.mock('../../src/util/git/git-spawn.js', () => ({
-  spawn: jest.fn(([command]) => {
+  spawn: jest.fn(([command, ...rest], ...args) => {
     switch (command) {
       case 'ls-remote':
         return `Identity added: /Users/example/.ssh/id_dsa (/Users/example/.ssh/id_dsa)
@@ -11,8 +11,35 @@ ref: refs/heads/master  HEAD
         return Promise.resolve('7a053e2ca07d19b2e2eebeeb0c27edaacfd67904 Fix ...');
       case 'show-ref':
         return `7a053e2ca07d19b2e2eebeeb0c27edaacfd67904 refs/remotes/origin/HEAD`;
+      case 'show':
+        // pass through to the child_process mock
+        return jest.requireActual('../../src/util/git/git-spawn.js').spawn([command, ...rest], ...args);
     }
     return Promise.resolve('');
+  }),
+}));
+
+jest.mock('child_process', () => ({
+  spawn: jest.fn(() => {
+    return {
+      kill: jest.fn(),
+      once: jest.fn(),
+      on: (evt, cb) => {
+        if (evt === 'close') {
+          setTimeout(() => cb(0), 0);
+        }
+      },
+      stdout: {
+        on: (evt, cb) => {
+          cb('stdout');
+        },
+      },
+      stderr: {
+        on: (evt, cb) => {
+          cb('stderr');
+        },
+      },
+    };
   }),
 }));
 
@@ -248,4 +275,26 @@ test('resolveCommit', async () => {
   const lastCall = spawnGitMock.calls[spawnGitMock.calls.length - 1];
   expect(lastCall[0]).toContain('rev-list');
   expect(lastCall[0]).toContain('7a053e2');
+});
+
+describe('_getFileFromClone', () => {
+  /**
+   * Git pipes to stderr when GIT_TRACE=1
+   * We should not take this by default
+   */
+  test('should not contain from stderr', async () => {
+    const config = await Config.create();
+    const git = new Git(
+      config,
+      {
+        protocol: 'https',
+        hostname: 'example.com',
+        repository: 'foo',
+      },
+      'hash',
+    );
+    git.fetched = true;
+    const contents = await git._getFileFromClone('package.json');
+    expect(contents).toBe('stdout');
+  });
 });
