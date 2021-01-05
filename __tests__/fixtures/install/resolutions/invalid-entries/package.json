@@ -7,6 +7,7 @@
   "resolutions": {
     "c/**/left-pad": "1.0.0",
     "invalidname/": "1.0.0",
-    "**/left-pad": "wrongversion"
+    "**/left-pad": "wrongversion",
+    "left-pad": "1.0.0"
   }
 }
