@@ -1,6 +1,9 @@
 /* @flow */
 
-import {getPackageVersion, isPackagePresent, runInstall} from '../_helpers.js';
+import {getPackageVersion, isPackagePresent, runInstall, getPackageManifestPath} from '../_helpers.js';
+import {run as add} from '../../../src/cli/commands/add.js';
+import * as fs from '../../../src/util/fs.js';
+import path from 'path';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
 
@@ -52,3 +55,49 @@ test.concurrent(
     });
   },
 );
+
+test.concurrent('install hoister should remove newly hoisted dependencies from non-hoisted locations', (): Promise<
+  void,
+> => {
+  // Arrange (fixture):
+  //   /@s/x@1.0.0
+  //   /@s/y@1.0.0
+  //   /a@1.0.0
+  //   /b@1.0.0
+  //       /@s/x@1.5.0
+  //       /@s/y@2.0.0
+  // Act: Update dep versions using add
+  // Assert: newly hoisted dependencies are deleted from node_modules sub-trees
+  return runInstall({}, 'should-remove-newly-hoisted-@deps', async (config, reporter) => {
+    // assert initial setup is as expected
+    expect(await getPackageVersion(config, '@s/x')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, '@s/y')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'a')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'b')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'b/@s/x')).toEqual('1.5.0');
+    expect(await getPackageVersion(config, 'b/@s/y')).toEqual('2.0.0');
+
+    await add(config, reporter, {}, ['file:a/v2.0.0', 'file:b/v2.0.0']);
+
+    const getAllFilePaths = async currentPath => {
+      const lstat = await fs.lstat(currentPath);
+      if (lstat.isSymbolicLink() || lstat.isFile()) {
+        return [currentPath];
+      }
+
+      const files = await fs.readdir(currentPath);
+      const subFiles = files.map(file => getAllFilePaths(path.join(currentPath, file)));
+      return (await Promise.all(subFiles)).reduce((previous, current) => previous.concat(...current), []);
+    };
+    const allFilePathsInTestDirectory = await getAllFilePaths(config.cwd);
+    config.reporter.info(allFilePathsInTestDirectory.join('\n'));
+
+    // assert "b/@s/x" has been removed
+    expect(await getPackageVersion(config, '@s/x')).toEqual('2.0.0');
+    expect(await getPackageVersion(config, '@s/y')).toEqual('1.0.0');
+    expect(await getPackageVersion(config, 'a')).toEqual('2.0.0');
+    expect(await getPackageVersion(config, 'b')).toEqual('2.0.0');
+    expect(await isPackagePresent(config, 'b/@s/x')).toEqual(false);
+    expect(await getPackageVersion(config, 'b/@s/y')).toEqual('2.0.0');
+  });
+});
