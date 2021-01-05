@@ -124,6 +124,7 @@ export function cleanLockfile(
   deps: Array<Dependency>,
   packagePatterns: DependencyRequestPatterns,
   reporter: Reporter,
+  flags: Object,
 ) {
   function cleanDepFromLockfile(pattern: string, depth: number) {
     const lockManifest = lockfile.getLocked(pattern);
@@ -136,7 +137,9 @@ export function cleanLockfile(
     const depPatterns = Object.keys(dependencies).map(key => `${key}@${dependencies[key]}`);
     reporter.verbose(reporter.lang('verboseUpgradeUnlocking', pattern));
     lockfile.removePattern(pattern);
-    depPatterns.forEach(pattern => cleanDepFromLockfile(pattern, depth + 1));
+    if (!flags.preferLockedDependencies) {
+      depPatterns.forEach(pattern => cleanDepFromLockfile(pattern, depth + 1));
+    }
   }
 
   const patterns = deps.map(dep => dep.upgradeTo);
@@ -159,6 +162,10 @@ export function setFlags(commander: Object) {
     'install most recent release with the same major version. Only used when --latest is specified.',
   );
   commander.option('-A, --audit', 'Run vulnerability audit on installed packages');
+  commander.option(
+    '-D, --prefer-locked-dependencies',
+    'conservatively keep transitive dependencies at their locked version if possible.',
+  );
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
@@ -181,7 +188,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const {requests: packagePatterns} = await install.fetchRequestFromCwd();
 
   setUserRequestedPackageVersions(deps, args, flags.latest, packagePatterns, reporter);
-  cleanLockfile(lockfile, deps, packagePatterns, reporter);
+  cleanLockfile(lockfile, deps, packagePatterns, reporter, flags);
   addArgs = deps.map(dep => dep.upgradeTo);
 
   if (flags.scope && validScopeRegex.test(flags.scope)) {
