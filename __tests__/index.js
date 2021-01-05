@@ -16,7 +16,7 @@ const semver = require('semver');
 let ver = process.versions.node;
 ver = ver.split('-')[0];
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 90000;
 
 if (!existsSync(path.resolve(__dirname, '../lib'))) {
   throw new Error('These tests require `yarn build` to have been run first.');

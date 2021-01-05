@@ -24,6 +24,7 @@ type RegistryResponse = {
   name: string,
   versions: {[key: string]: Manifest},
   'dist-tags': {[key: string]: string},
+  time?: ?{[key: string]: ?string},
 };
 
 export default class NpmResolver extends RegistryResolver {
@@ -46,6 +47,25 @@ export default class NpmResolver extends RegistryResolver {
 
     if (range in body['dist-tags']) {
       range = body['dist-tags'][range];
+    }
+
+    // Only install package version that have release date before a specified one.
+    // That date string must match JSON format, e.g. 2020-08-14T04:47:38.210Z
+    if (config.packageDateLimit && body.time) {
+      const releaseDates = body.time;
+      let closestVersion = null;
+      (semver: Object).rsort(Object.keys(body.versions)).some(v => {
+        if (releaseDates[v] && semver.satisfies(v, range)) {
+          closestVersion = v;
+          if (releaseDates[v] < config.packageDateLimit) {
+            return true;
+          }
+        }
+        return false;
+      });
+      if (closestVersion) {
+        return body.versions[closestVersion];
+      }
     }
 
     // If the latest tag in the registry satisfies the requested range, then use that.
@@ -94,7 +114,7 @@ export default class NpmResolver extends RegistryResolver {
 
     const escapedName = NpmRegistry.escapeName(this.name);
     const desiredRange = desiredVersion || this.range;
-    const body = await this.config.registries.npm.request(escapedName);
+    const body = await this.config.registries.npm.request(escapedName, {unfiltered: !!this.config.packageDateLimit});
 
     if (body) {
       return NpmResolver.findVersionInRegistryResponse(this.config, escapedName, desiredRange, body, this.request);
