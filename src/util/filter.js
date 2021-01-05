@@ -2,7 +2,6 @@
 
 import type {WalkFiles} from './fs.js';
 import {removeSuffix} from './misc.js';
-
 const mm = require('micromatch');
 const path = require('path');
 
@@ -90,7 +89,6 @@ export function sortFilter(
       parts.pop();
     }
   }
-
   return {ignoreFiles, keepFiles};
 }
 
@@ -152,10 +150,11 @@ export function ignoreLinesToRegex(lines: Array<string>, base: string = '.'): Ar
 }
 
 export function filterOverridenGitignores(files: WalkFiles): WalkFiles {
-  const IGNORE_FILENAMES = ['.yarnignore', '.npmignore', '.gitignore'];
-  const GITIGNORE_NAME = IGNORE_FILENAMES[2];
+  const IGNORE_FILENAMES = ['.yarnignore', '.npmignore', '.gitignore', '.gitignore_global'];
+  const LOCAL_GIT_IGNORE = IGNORE_FILENAMES[2];
+  const GLOBAL_GITIGNORE = IGNORE_FILENAMES[3];
   return files.filter(file => IGNORE_FILENAMES.indexOf(file.basename) > -1).reduce((acc: WalkFiles, file) => {
-    if (file.basename !== GITIGNORE_NAME) {
+    if (file.basename !== LOCAL_GIT_IGNORE || file.basename !== GLOBAL_GITIGNORE) {
       return [...acc, file];
     } else {
       //don't include .gitignore if .npmignore or .yarnignore are present

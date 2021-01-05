@@ -3,6 +3,7 @@ import * as fs from '../../src/util/fs.js';
 import {run as pack} from '../../src/cli/commands/pack.js';
 import {ConsoleReporter} from '../../src/reporters/index.js';
 import {run as buildRun} from './_helpers.js';
+const rimraf = require('rimraf');
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
@@ -43,6 +44,30 @@ export async function getFilesFromArchive(source, destination): Promise<Array<st
   const files = (await fs.walk(destination)).map(({relative}) => relative);
   return files;
 }
+
+const mockGlobalGitIgnoreFolder = path.resolve(__dirname, '..', 'fixtures', 'pack', 'excluded-global-gitignore');
+
+const mockGlobalGitIgnoreFile = path.resolve(mockGlobalGitIgnoreFolder, '.gitignore_global');
+
+jest.mock('../../src/util/git/git-spawn.js', () => ({
+  spawn: jest.fn(async ([command]) => {
+    switch (command) {
+      case 'config':
+        return `${mockGlobalGitIgnoreFile}`;
+    }
+    const res = await Promise.resolve('');
+    return res;
+  }),
+}));
+
+beforeAll(() => {
+  fs2.mkdirSync(mockGlobalGitIgnoreFolder);
+  fs2.writeFileSync(mockGlobalGitIgnoreFile, 'c.js', 'utf-8');
+});
+
+afterAll(() => {
+  rimraf.sync(mockGlobalGitIgnoreFolder);
+});
 
 test.concurrent('pack should work with a minimal example', (): Promise<void> => {
   return runPack([], {}, 'minimal', async (config): Promise<void> => {
@@ -156,6 +181,41 @@ test.concurrent('pack should exclude all dotfiles if not in files and files not 
       path.join(cwd, 'files-exclude-dotfile-v1.0.0'),
     );
     expect(files.indexOf('.dotfile')).toEqual(-1);
+  });
+});
+
+test.concurrent('pack should exclude all files in global dotfiles', (): Promise<void> => {
+  return runPack([], {}, 'files-exclude-with-global-dotfile', async (config): Promise<void> => {
+    const {cwd} = config;
+    const files = await getFilesFromArchive(
+      path.join(cwd, 'files-exclude-with-global-dotfile-v1.0.0.tgz'),
+      path.join(cwd, 'files-exclude-with-global-dotfile-v1.0.0'),
+    );
+    expect(files.indexOf('c.js')).toEqual(-1);
+  });
+});
+
+test.concurrent('pack should not exclude non-existant files included in global dotfiles', (): Promise<void> => {
+  return runPack([], {}, 'non-existant-files-in-global-dotfile', async (config): Promise<void> => {
+    const {cwd} = config;
+    const files = await getFilesFromArchive(
+      path.join(cwd, 'non-existant-files-in-global-dotfile-v1.0.0.tgz'),
+      path.join(cwd, 'non-existant-files-in-global-dotfile-v1.0.0'),
+    );
+    const arr = ['.yarn-cache', '.yarn-global', '.yarn-link', 'a.js', 'b.js', 'd.js', 'index.js', 'package.json'];
+    expect(arr.every(f => files.indexOf(f) >= 0)).toBe(true);
+  });
+});
+
+test.concurrent('pack should remove files from both local and global dotfiles', (): Promise<void> => {
+  return runPack([], {}, 'files-exclude-with-local-and-global-dotfile', async (config): Promise<void> => {
+    const {cwd} = config;
+    const files = await getFilesFromArchive(
+      path.join(cwd, 'files-exclude-with-local-and-global-dotfile-v1.0.0.tgz'),
+      path.join(cwd, 'files-exclude-with-local-and-global-dotfile-v1.0.0'),
+    );
+    expect(files.indexOf('a.js')).toEqual(-1);
+    expect(files.indexOf('c.js')).toEqual(-1);
   });
 });
 
