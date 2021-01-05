@@ -20,6 +20,7 @@ const CONFIG_KEYS = [
   'linkFolder',
   'offline',
   'binLinks',
+  'ignoreCpu',
   'ignorePlatform',
   'ignoreScripts',
   'disablePrepublish',

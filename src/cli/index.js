@@ -86,7 +86,8 @@ export async function main({
   commander.option('--json', 'format Yarn log messages as lines of JSON (see jsonlines.org)');
   commander.option('--ignore-scripts', "don't run lifecycle scripts");
   commander.option('--har', 'save HAR output of network traffic');
-  commander.option('--ignore-platform', 'ignore platform checks');
+  commander.option('--ignore-cpu', 'ignore CPU check');
+  commander.option('--ignore-platform', 'ignore platform ("os" and "cpu") checks');
   commander.option('--ignore-engines', 'ignore engines check');
   commander.option('--ignore-optional', 'ignore optional dependencies');
   commander.option('--force', 'install and build packages even if they were built before, overwrite lockfile');
@@ -539,6 +540,7 @@ export async function main({
       binLinks: commander.binLinks,
       preferOffline: commander.preferOffline,
       captureHar: commander.har,
+      ignoreCpu: commander.ignoreCpu,
       ignorePlatform: commander.ignorePlatform,
       ignoreEngines: commander.ignoreEngines,
       ignoreScripts: commander.ignoreScripts,

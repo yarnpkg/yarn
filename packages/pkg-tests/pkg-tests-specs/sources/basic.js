@@ -406,6 +406,30 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
     );
 
     test(
+      `it should not fail if the environment does not satisfy the cpu architecture but ignore cpu is true`,
+      makeTemporaryEnv(
+        {
+          cpu: ['unicorn'],
+        },
+        async ({path, run, source}) => {
+          await run(`install`, '--ignore-cpu');
+        },
+      ),
+    );
+
+    test(
+      `it should not fail if the environment does not satisfy the cpu architecture but ignore platform is true`,
+      makeTemporaryEnv(
+        {
+          cpu: ['unicorn'],
+        },
+        async ({path, run, source}) => {
+          await run(`install`, '--ignore-platform');
+        },
+      ),
+    );
+
+    test(
       `it should fail if the environment does not satisfy the engine requirements`,
       makeTemporaryEnv(
         {
@@ -420,7 +444,7 @@ module.exports = (makeTemporaryEnv: PackageDriver) => {
     );
 
     test(
-      `it should not fail if the environment does not satisfy the os and cpu architecture but ignore platform is true`,
+      `it should not fail if the environment does not satisfy the os platform but ignore platform is true`,
       makeTemporaryEnv(
         {
           os: ['unicorn'],
