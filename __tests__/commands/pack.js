@@ -203,3 +203,10 @@ test.concurrent('pack should match dotfiles with globs', (): Promise<void> => {
     expect(files.sort()).toEqual(expected.sort());
   });
 });
+
+test.concurrent('pack should error if files is not an array', (): Promise<void> => {
+  return runPack([], {}, 'files-not-array', (config, reporter, stdout): void => {
+    expect(stdout).not.toMatch(/Wrote tarball to/);
+    expect(stdout).toMatch(/"files" property in package\.json must be an Array/);
+  });
+});
