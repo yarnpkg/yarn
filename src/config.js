@@ -70,6 +70,8 @@ export type ConfigOptions = {
   focus?: boolean,
 
   otp?: string,
+
+  cliConfig?: Array<string>,
 };
 
 type PackageMetadata = {
@@ -206,6 +208,8 @@ export default class Config {
 
   otp: ?string;
 
+  parsedCliConfig: Object;
+
   /**
    * Execute a promise produced by factory if it doesn't exist in our cache with
    * the associated key.
@@ -235,6 +239,39 @@ export default class Config {
     }
 
     return value;
+  }
+
+  /**
+   * Get a config option from parsed cli config.
+   */
+  getCliConfig(key: string): mixed {
+    return this.parsedCliConfig[key];
+  }
+
+  /**
+   * parse cli config key-value pairs (for exposing to process.env later).
+   */
+  parseCliConfig(config: Array<string>) {
+    config.forEach(conf => {
+      const firstEqualIndex = conf.indexOf('=');
+      let key, val;
+      if (firstEqualIndex === -1) {
+        key = conf;
+      } else {
+        key = conf.substring(0, firstEqualIndex);
+        val = conf.substring(firstEqualIndex + 1, conf.length);
+      }
+      if (!key) {
+        return;
+      }
+      if (/^no\-/i.test(key)) {
+        key = key.replace(/^no\-/i, '');
+        val = false;
+      } else if (!val) {
+        val = true;
+      }
+      this.parsedCliConfig[key] = val;
+    });
   }
 
   /**
@@ -446,6 +483,10 @@ export default class Config {
     if (this.workspaceRootFolder && !this.workspacesEnabled) {
       throw new MessageError(this.reporter.lang('workspacesDisabled'));
     }
+
+    if (opts.cliConfig && opts.cliConfig.length) {
+      this.parseCliConfig(opts.cliConfig);
+    }
   }
 
   _init(opts: ConfigOptions) {
@@ -491,6 +532,8 @@ export default class Config {
     this.focusedWorkspaceName = '';
 
     this.otp = opts.otp || '';
+
+    this.parsedCliConfig = {};
   }
 
   /**
