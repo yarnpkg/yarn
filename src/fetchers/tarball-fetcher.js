@@ -251,7 +251,11 @@ export default class TarballFetcher extends BaseFetcher {
 
     try {
       const headers = this.requestHeaders();
-      return await registry.request(
+
+      const tarballMirrorPath = this.getTarballMirrorPath();
+      const tarballCachePath = this.getTarballCachePath();
+
+      await registry.request(
         this.reference,
         {
           headers: {
@@ -260,31 +264,25 @@ export default class TarballFetcher extends BaseFetcher {
           },
           buffer: true,
           process: (req, resolve, reject) => {
-            // should we save this to the offline cache?
-            const tarballMirrorPath = this.getTarballMirrorPath();
-            const tarballCachePath = this.getTarballCachePath();
-
-            const {hashValidateStream, integrityValidateStream, extractorStream} = this.createExtractor(
-              resolve,
-              reject,
-            );
-
-            req.pipe(hashValidateStream);
-            hashValidateStream.pipe(integrityValidateStream);
-
-            if (tarballMirrorPath) {
-              integrityValidateStream.pipe(fs.createWriteStream(tarballMirrorPath)).on('error', reject);
-            }
-
-            if (tarballCachePath) {
-              integrityValidateStream.pipe(fs.createWriteStream(tarballCachePath)).on('error', reject);
-            }
-
-            integrityValidateStream.pipe(extractorStream).on('error', reject);
+            req.pipe(fs.createWriteStream(tarballCachePath)).on('error', reject).on('finish', resolve);
           },
         },
         this.packageName,
       );
+      return new Promise((resolve, reject) => {
+        const readStream = fs.createReadStream(tarballCachePath);
+
+        const {hashValidateStream, integrityValidateStream, extractorStream} = this.createExtractor(resolve, reject);
+
+        readStream.pipe(hashValidateStream);
+        hashValidateStream.pipe(integrityValidateStream);
+
+        if (tarballMirrorPath) {
+          integrityValidateStream.pipe(fs.createWriteStream(tarballMirrorPath)).on('error', reject);
+        }
+
+        integrityValidateStream.pipe(extractorStream).on('error', reject);
+      });
     } catch (err) {
       const tarballMirrorPath = this.getTarballMirrorPath();
       const tarballCachePath = this.getTarballCachePath();
