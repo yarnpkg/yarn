@@ -75,7 +75,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
             reporter.warn(reporter.lang('binLinkCollision', binName));
           } else {
             if (process.platform === 'win32') {
-              await cmdShim(binSrcLoc, binDestLoc, {createPwshFile: false});
+              await cmdShim(binSrcLoc, binDestLoc);
             } else {
               await fs.symlink(binSrcLoc, binDestLoc);
             }
