@@ -21,4 +21,4 @@ suppress_comment= \\(.\\|\n\\)*\\$FlowFixMe
 include_warnings=true
 
 [version]
-^0.66.0
+^0.86.0
