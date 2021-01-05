@@ -11,6 +11,8 @@ import mkdir from './_temp.js';
 import * as fs from '../src/util/fs.js';
 import {readdirSync} from 'fs';
 
+import {unlinkIgnoredFiles} from '../src/package-fetcher';
+
 const path = require('path');
 const ssri = require('ssri');
 
@@ -76,6 +78,27 @@ test('GitFetcher.fetch', async () => {
   await fetcher.fetch();
   const name = (await fs.readJson(path.join(dir, 'package.json'))).name;
   expect(name).toBe('beeper');
+});
+
+test.only('Use .npmignore file after install a module', async () => {
+  const dir = await mkdir('git-fetcher');
+  const fetcher = new GitFetcher(
+    dir,
+    {
+      type: 'git',
+      reference: 'https://github.com/facebook/flux',
+      hash: '4f0af648c2bdcca7088c4935898f51aeb2d9507f',
+      registry: 'npm',
+    },
+    await Config.create(),
+  );
+  await fetcher.fetch();
+  await unlinkIgnoredFiles(dir);
+  expect(await fs.exists(path.join(dir, 'src/'))).toBe(false);
+  expect(await fs.exists(path.join(dir, 'Makefile'))).toBe(false);
+  expect(await fs.exists(path.join(dir, 'Flux.js'))).toBe(false);
+  expect(await fs.exists(path.join(dir, 'CONTRIBUTING.md'))).toBe(false);
+  expect(await fs.exists(path.join(dir, '.flowconfig'))).toBe(false);
 });
 
 test('GitFetcher.getTarballMirrorPath without slashes in the repo path', async () => {

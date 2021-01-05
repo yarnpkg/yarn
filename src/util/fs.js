@@ -6,6 +6,7 @@ import type {CopyFileAction} from './fs-normalized.js';
 
 import fs from 'fs';
 import globModule from 'glob';
+import delModule from 'del';
 import os from 'os';
 import path from 'path';
 
@@ -43,6 +44,7 @@ export const lstat: (path: string) => Promise<fs.Stats> = promisify(fs.lstat);
 export const chmod: (path: string, mode: number | string) => Promise<void> = promisify(fs.chmod);
 export const link: (src: string, dst: string) => Promise<fs.Stats> = promisify(fs.link);
 export const glob: (path: string, options?: Object) => Promise<Array<string>> = promisify(globModule);
+export const del: (pathArray: Array<string>, options?: Object) => Promise<void> = delModule;
 export {unlink};
 
 // fs.copyFile uses the native file copying instructions on the system, performing much better
