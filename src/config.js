@@ -39,6 +39,7 @@ export type ConfigOptions = {
   linkFileDependencies?: boolean,
   captureHar?: boolean,
   ignoreScripts?: boolean,
+  interactiveScripts?: boolean,
   ignorePlatform?: boolean,
   ignoreEngines?: boolean,
   cafile?: ?string,
@@ -163,6 +164,8 @@ export default class Config {
 
   // Whether we should ignore executing lifecycle scripts
   ignoreScripts: boolean;
+
+  interactiveScripts: boolean;
 
   production: boolean;
 
@@ -476,6 +479,7 @@ export default class Config {
 
     this.ignorePlatform = !!opts.ignorePlatform;
     this.ignoreScripts = !!opts.ignoreScripts;
+    this.interactiveScripts = !!opts.interactiveScripts;
 
     this.disablePrepublish = !!opts.disablePrepublish;
 
