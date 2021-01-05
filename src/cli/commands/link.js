@@ -15,7 +15,7 @@ export async function getRegistryFolder(config: Config, name: string): Promise<s
     return config.modulesFolder;
   }
 
-  const src = path.join(config.linkFolder, name);
+  const src = path.join(await fs.realpath(config.linkFolder), name);
   const {_registry} = await config.readManifest(src);
   invariant(_registry, 'expected registry');
 
@@ -34,7 +34,7 @@ export function setFlags(commander: Object) {
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   if (args.length) {
     for (const name of args) {
-      const src = path.join(config.linkFolder, name);
+      const src = path.join(await fs.realpath(config.linkFolder), name);
 
       if (await fs.exists(src)) {
         const folder = await getRegistryFolder(config, name);
@@ -56,12 +56,14 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       throw new MessageError(reporter.lang('unknownPackageName'));
     }
 
-    const linkLoc = path.join(config.linkFolder, name);
-    if (await fs.exists(linkLoc)) {
+    const realCwd = await fs.realpath(process.cwd());
+    const realLinkFolder = await fs.realpath(config.linkFolder);
+    const realLinkLoc = path.join(realLinkFolder, name);
+    if (await fs.exists(realLinkLoc)) {
       reporter.warn(reporter.lang('linkCollision', name));
     } else {
-      await fs.mkdirp(path.dirname(linkLoc));
-      await fs.symlink(config.cwd, linkLoc);
+      await fs.mkdirp(path.dirname(realLinkLoc));
+      await fs.symlink(realCwd, realLinkLoc);
 
       // If there is a `bin` defined in the package.json,
       // link each bin to the global bin
@@ -69,7 +71,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
         const globalBinFolder = await getGlobalBinFolder(config, flags);
         for (const binName in manifest.bin) {
           const binSrc = manifest.bin[binName];
-          const binSrcLoc = path.join(linkLoc, binSrc);
+          const binSrcLoc = path.join(realLinkLoc, binSrc);
           const binDestLoc = path.join(globalBinFolder, binName);
           if (await fs.exists(binDestLoc)) {
             reporter.warn(reporter.lang('binLinkCollision', binName));
