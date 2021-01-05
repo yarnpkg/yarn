@@ -130,4 +130,18 @@ export const VERSION_COLOR_SCHEME: {[key: string]: VersionColor} = {
 
 export type VersionColor = 'red' | 'yellow' | 'green' | 'white';
 
+export const VERSION_SYMBOL_MAP: {[key: string]: VersionSymbol} = {
+  major: 'M',
+  premajor: 'M',
+  minor: 'm',
+  preminor: 'm',
+  patch: 'p',
+  prepatch: 'p',
+  prerelease: 'M',
+  unchanged: '-',
+  unknown: 'X',
+};
+
+export type VersionSymbol = 'M' | 'm' | 'p' | '-' | 'X';
+
 export type RequestHint = 'dev' | 'optional' | 'resolution' | 'workspaces';

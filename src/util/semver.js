@@ -113,3 +113,9 @@ export function diffWithUnstable(version1: string, version2: string): Release | 
 
   return null;
 }
+
+export function getVersionBump(version1: string, version2: string): string {
+  const validFrom = semver.valid(version1);
+  const validTo = semver.valid(version2);
+  return validFrom && validTo ? diffWithUnstable(validFrom, validTo) || 'unchanged' : 'unknown';
+}
