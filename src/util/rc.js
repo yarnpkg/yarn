@@ -1,6 +1,6 @@
 /* @flow */
 
-import {readFileSync} from 'fs';
+import {readFileSync, statSync} from 'fs';
 import * as path from 'path';
 import {CONFIG_DIRECTORY} from '../constants';
 
@@ -66,6 +66,9 @@ function parseRcPaths(paths: Array<string>, parser: Function): Object {
     {},
     ...paths.map(path => {
       try {
+        if (statSync(path).isDirectory()) {
+          return {};
+        }
         return parser(readFileSync(path).toString(), path);
       } catch (error) {
         if (error.code === 'ENOENT' || error.code === 'EISDIR') {
