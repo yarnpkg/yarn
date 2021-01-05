@@ -57,6 +57,7 @@ export async function info(config: Config, reporter: Reporter, flags: Object, ar
       location: path.relative(config.lockfileFolder, loc).replace(/\\/g, '/'),
       workspaceDependencies: Array.from(workspaceDependencies),
       mismatchedWorkspaceDependencies: Array.from(mismatchedWorkspaceDependencies),
+      private: manifest.private,
     };
   }
 
