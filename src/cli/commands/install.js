@@ -426,7 +426,7 @@ export class Install {
    * TODO description
    */
 
-  prepareRequests(requests: DependencyRequestPatterns): DependencyRequestPatterns {
+  prepareRequests(requests: DependencyRequestPatterns, manifest: Manifest): DependencyRequestPatterns {
     return requests;
   }
 
@@ -595,7 +595,7 @@ export class Install {
     steps.push((curr: number, total: number) =>
       callThroughHook('resolveStep', async () => {
         this.reporter.step(curr, total, this.reporter.lang('resolvingPackages'), emoji.get('mag'));
-        await this.resolver.init(this.prepareRequests(depRequests), {
+        await this.resolver.init(this.prepareRequests(depRequests, manifest), {
           isFlat: this.flags.flat,
           isFrozen: this.flags.frozenLockfile,
           workspaceLayout,
