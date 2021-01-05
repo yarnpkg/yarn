@@ -166,8 +166,12 @@ export default class NpmResolver extends RegistryResolver {
           const {_remote} = shrunk;
           if (_remote && (await fs.exists(filename))) {
             _remote.reference = `file:${filename}`;
+            const hashes = [_remote.hash];
             _remote.hash = prebuiltVariants[prebuiltName];
-            _remote.integrity = ssri.fromHex(_remote.hash, 'sha1').toString();
+            for (const prebuilt in prebuiltVariants) {
+              hashes.push(prebuiltVariants[prebuilt]);
+            }
+            _remote.integrity = hashes.map(hash => ssri.fromHex(hash, 'sha1').toString()).join(' ');
           }
         }
       }
