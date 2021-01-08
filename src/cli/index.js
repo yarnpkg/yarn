@@ -634,6 +634,8 @@ async function start(): Promise<void> {
       // innermost process, whose end will cause our own to exit.
     });
 
+    handleSignals();
+
     try {
       if (/\.[cm]?js$/.test(yarnPath)) {
         exitCode = await spawnp(process.execPath, [yarnPath, ...argv], opts);

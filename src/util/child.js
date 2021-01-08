@@ -16,8 +16,10 @@ let uid = 0;
 export const exec = promisify(child.exec);
 
 export function forkp(program: string, args: Array<string>, opts?: Object): Promise<number> {
+  const key = opts.cwd || String(++uid);
   return new Promise((resolve, reject) => {
     const proc = child.fork(program, args, opts);
+    spawnedProcesses[key] = proc;
 
     proc.on('error', error => {
       reject(error);
@@ -30,8 +32,10 @@ export function forkp(program: string, args: Array<string>, opts?: Object): Prom
 }
 
 export function spawnp(program: string, args: Array<string>, opts?: Object): Promise<number> {
+  const key = opts.cwd || String(++uid);
   return new Promise((resolve, reject) => {
     const proc = child.spawn(program, args, opts);
+    spawnedProcesses[key] = proc;
 
     proc.on('error', error => {
       reject(error);
