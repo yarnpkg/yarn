@@ -25,7 +25,7 @@ export const YARN_DOCS = 'https://yarnpkg.com/en/docs/cli/';
 export const YARN_INSTALLER_SH = 'https://yarnpkg.com/install.sh';
 export const YARN_INSTALLER_MSI = 'https://yarnpkg.com/latest.msi';
 
-export const SELF_UPDATE_VERSION_URL = 'https://yarnpkg.com/latest-version';
+export const SELF_UPDATE_VERSION_URL = process.env.SELF_UPDATE_VERSION_URL || 'https://yarnpkg.com/latest-version';
 
 // cache version, bump whenever we make backwards incompatible changes
 export const CACHE_VERSION = 6;
