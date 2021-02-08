@@ -122,34 +122,6 @@ jobs:
           root: ~/project
           paths:
             - yarn
-  test-pkg-tests-linux-node13:
-    <<: *docker_defaults
-    docker:
-      - image: node:13
-    <<: *pkg_tests
-  test-pkg-tests-linux-node12:
-    <<: *docker_defaults
-    docker:
-      - image: node:12
-    <<: *pkg_tests
-  test-pkg-tests-linux-node10:
-    <<: *docker_defaults
-    docker:
-      - image: node:10
-    <<: *pkg_tests
-  test-pkg-tests-linux-node8:
-    <<: *docker_defaults
-    <<: *pkg_tests
-#  test-linux-node13:
-#    <<: *docker_defaults
-#    docker:
-#      - image: node:13
-#    <<: *test_steps
-#  test-linux-node12:
-#    <<: *docker_defaults
-#    docker:
-#      - image: node:12
-#    <<: *test_steps
   test-linux-node10:
     <<: *docker_defaults
     docker:
