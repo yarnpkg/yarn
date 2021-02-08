@@ -252,10 +252,6 @@ workflows:
           filters: *default_filters
           requires:
             - install
-      - test-macos-node6:
-          filters: *default_filters
-          requires:
-            - install
       - build:
           filters: *default_filters
           requires:
@@ -272,6 +268,5 @@ workflows:
             - test-linux-node4
             - test-macos-node10
             - test-macos-node8
-            - test-macos-node6
             - lint
             - build
