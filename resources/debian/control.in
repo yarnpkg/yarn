@@ -1,6 +1,6 @@
 Package: yarn
 Version: $VERSION-1
-Recommends: nodejs
+Recommends: nodejs, yarn-archive-keyring
 Conflicts: nodejs (<< 4.0.0), cmdtest
 Section: devel
 Priority: optional
