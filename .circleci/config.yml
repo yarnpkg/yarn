@@ -168,21 +168,6 @@ jobs:
       - *attach_workspace
       - *test_build
       - *test_run
-  test-macos-node6:
-    <<: *macos_defaults
-    macos:
-      xcode: "9.0"
-    steps:
-      - run:
-          name: Install Node 6
-          command: |
-            brew uninstall --ignore-dependencies node
-            HOMEBREW_NO_AUTO_UPDATE=1 brew install node@6
-            brew link --overwrite --force node@6
-            [[ $(node --version) =~ ^v6\. ]]
-      - *attach_workspace
-      - *test_build
-      - *test_run
   test-e2e-ubuntu1604:
     <<: *docker_defaults
     docker:
