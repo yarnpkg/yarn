@@ -58,3 +58,9 @@ Yarn wouldn't exist if it wasn't for excellent prior art. Yarn has been inspired
 ## Credits
 
 Thanks to [Sam Holmes](https://github.com/samholmes) for donating the npm package name!
+
+## License
+
+[BSD 2-Clause](https://github.com/yarnpkg/yarn/blob/master/LICENSE)
+
+Copyright (c) 2016-present, Yarn Contributors. All rights reserved.
