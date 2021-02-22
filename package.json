@@ -69,7 +69,7 @@
     "babylon": "^6.5.0",
     "commitizen": "^2.9.6",
     "cz-conventional-changelog": "^2.0.0",
-    "eslint": "^4.3.0",
+    "eslint": "^4.18.2",
     "eslint-config-fb-strict": "^22.0.0",
     "eslint-plugin-babel": "^5.0.0",
     "eslint-plugin-flowtype": "^2.35.0",
