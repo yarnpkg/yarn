@@ -31,8 +31,8 @@ export async function getBinEntries(config: Config): Promise<Map<string, string>
 
   // Setup the node_modules/.bin folders for analysis
   for (const registryFolder of config.registryFolders) {
-    binFolders.add(path.resolve(config.cwd, registryFolder, '.bin'));
     binFolders.add(path.resolve(config.lockfileFolder, registryFolder, '.bin'));
+    binFolders.add(path.resolve(config.cwd, registryFolder, '.bin'));
   }
 
   // Same thing, but for the pnp dependencies, located inside the cache
