@@ -207,7 +207,7 @@ test('adds workspace root node_modules/.bin to path when in a workspace', (): Pr
     expect(envPaths).toContain(path.join(config.cwd, 'packages', 'pkg1', 'node_modules', '.bin'));
   }));
 
-test('adds cwd node_modules/.bin to path when in a workspace usig nohoist', (): Promise<void> =>
+test('adds cwd node_modules/.bin to path when in a workspace using nohoist', (): Promise<void> =>
   runRunInWorkspacePackage('packages/pkg1', ['env'], {}, 'nohoist-workspace', (config, reporter): ?Promise<void> => {
     const logEntry = reporter.getBuffer().find(entry => entry.type === 'log');
     const parsedLogData = JSON.parse(logEntry ? logEntry.data.toString() : '{}');
