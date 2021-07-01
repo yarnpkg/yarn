@@ -16,9 +16,8 @@ import {resolveVersion, isCommitSha, parseRefs} from './git/git-ref-resolver.js'
 import * as crypto from './crypto.js';
 import * as fs from './fs.js';
 import map from './map.js';
-import {removePrefix} from './misc.js';
 
-const GIT_PROTOCOL_PREFIX = 'git+';
+const GIT_PROTOCOL_FRAGMENT = /(git\+)|(\+git)/;
 const SSH_PROTOCOL = 'ssh:';
 const SCP_PATH_PREFIX = '/:';
 const FILE_PROTOCOL = 'file:';
@@ -87,11 +86,11 @@ export default class Git implements GitRefResolvingInterface {
   gitUrl: GitUrl;
 
   /**
-   * npm URLs contain a 'git+' scheme prefix, which is not understood by git.
+   * npm URLs contain a 'git+' scheme prefix or '+git' scheme suffix, which is not understood by git.
    * git "URLs" also allow an alternative scp-like syntax, so they're not standard URLs.
    */
   static npmUrlToGitUrl(npmUrl: string): GitUrl {
-    npmUrl = removePrefix(npmUrl, GIT_PROTOCOL_PREFIX);
+    npmUrl = npmUrl.replace(GIT_PROTOCOL_FRAGMENT, '');
 
     let parsed = url.parse(npmUrl);
     const expander = parsed.protocol && SHORTHAND_SERVICES[parsed.protocol];
