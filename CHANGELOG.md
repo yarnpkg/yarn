@@ -2,6 +2,10 @@
 <!-- -->
 Please add one entry in this file for each change in Yarn's behavior. Use the same format for all entries, including the third-person verb. Make sure you don't add more than one line of text to keep it clean. Thanks!
 
+- Protocols with +git (e.g. ssh+git) will be properly handled for npm urls
+
+  [#8657](https://github.com/yarnpkg/yarn/pull/8657) - [**Patryk Musiala**](https://github.com/pmusiala)
+
 ## 1.22.10 (and prior)
 
 - Tweak the preinstall check to not cause errors when Node is installed as root (as a downside, it won't run at all on Windows, which should be an acceptable tradeoff): https://github.com/yarnpkg/yarn/issues/8358
@@ -63,7 +67,7 @@ Those versions didn't contain any changes and were just triggered by our infra w
 - Allows some dots in binary names again
 
   [#7811](https://github.com/yarnpkg/yarn/pull/7811) - [**Valery Bugakov**](https://github.com/valerybugakov)
-  
+
 - Better error handling on `yarn set version`
 
   [#7848](https://github.com/yarnpkg/yarn/pull/7848) - [**Nick Olinger**](https://github.com/olingern)
@@ -71,7 +75,7 @@ Those versions didn't contain any changes and were just triggered by our infra w
 - Passes arguments following `--` when running a workspace script (`yarn workspace pkg run command -- arg`)
 
   [#7776](https://github.com/yarnpkg/yarn/pull/7776) - [**Jeff Valore**](https://twitter.com/rally25rs)
-  
+
 - Fixes an issue where the archive paths were incorrectly sanitized
 
   [#7831](https://github.com/yarnpkg/yarn/pull/7831) - [**Maël Nison**](https://twitter.com/arcanis)
@@ -93,7 +97,7 @@ Those versions didn't contain any changes and were just triggered by our infra w
 - Implements `yarn init --install <version>`
 
   [#7723](https://github.com/yarnpkg/yarn/pull/7723) - [**Maël Nison**](https://twitter.com/arcanis)
-  
+
 ## 1.19.2
 
 - Folders like `.cache` won't be pruned from the `node_modules` after each install.
