@@ -29,6 +29,11 @@ test('npmUrlToGitUrl', () => {
     hostname: 'github.com',
     repository: 'https://github.com/npm-opam/ocamlfind.git',
   });
+  expect(Git.npmUrlToGitUrl('https+git://github.com/npm-opam/ocamlfind.git')).toEqual({
+    protocol: 'https:',
+    hostname: 'github.com',
+    repository: 'https://github.com/npm-opam/ocamlfind.git',
+  });
   expect(Git.npmUrlToGitUrl('https://github.com/npm-opam/ocamlfind.git')).toEqual({
     protocol: 'https:',
     hostname: 'github.com',
@@ -44,7 +49,17 @@ test('npmUrlToGitUrl', () => {
     hostname: 'gitlab.mydomain.tld',
     repository: 'ssh://git@gitlab.mydomain.tld:10202/project-name/my-package.git',
   });
+  expect(Git.npmUrlToGitUrl('ssh+git://git@gitlab.mydomain.tld:10202/project-name/my-package.git')).toEqual({
+    protocol: 'ssh:',
+    hostname: 'gitlab.mydomain.tld',
+    repository: 'ssh://git@gitlab.mydomain.tld:10202/project-name/my-package.git',
+  });
   expect(Git.npmUrlToGitUrl('git+ssh://git@github.com/npm-opam/ocamlfind.git')).toEqual({
+    protocol: 'ssh:',
+    hostname: 'github.com',
+    repository: 'ssh://git@github.com/npm-opam/ocamlfind.git',
+  });
+  expect(Git.npmUrlToGitUrl('ssh+git://git@github.com/npm-opam/ocamlfind.git')).toEqual({
     protocol: 'ssh:',
     hostname: 'github.com',
     repository: 'ssh://git@github.com/npm-opam/ocamlfind.git',
@@ -54,7 +69,17 @@ test('npmUrlToGitUrl', () => {
     hostname: 'scp-host-nickname',
     repository: 'scp-host-nickname:npm-opam/ocamlfind.git',
   });
+  expect(Git.npmUrlToGitUrl('ssh+git://scp-host-nickname:npm-opam/ocamlfind.git')).toEqual({
+    protocol: 'ssh:',
+    hostname: 'scp-host-nickname',
+    repository: 'scp-host-nickname:npm-opam/ocamlfind.git',
+  });
   expect(Git.npmUrlToGitUrl('git+ssh://user@scp-host-nickname:npm-opam/ocamlfind.git')).toEqual({
+    protocol: 'ssh:',
+    hostname: 'scp-host-nickname',
+    repository: 'user@scp-host-nickname:npm-opam/ocamlfind.git',
+  });
+  expect(Git.npmUrlToGitUrl('ssh+git://user@scp-host-nickname:npm-opam/ocamlfind.git')).toEqual({
     protocol: 'ssh:',
     hostname: 'scp-host-nickname',
     repository: 'user@scp-host-nickname:npm-opam/ocamlfind.git',
@@ -84,7 +109,17 @@ test('npmUrlToGitUrl', () => {
     hostname: null,
     repository: '../ocalmfind.git',
   });
+  expect(Git.npmUrlToGitUrl('file+git:../ocalmfind.git')).toEqual({
+    protocol: 'file:',
+    hostname: null,
+    repository: '../ocalmfind.git',
+  });
   expect(Git.npmUrlToGitUrl('git+file:../ocalmfind')).toEqual({
+    protocol: 'file:',
+    hostname: null,
+    repository: '../ocalmfind',
+  });
+  expect(Git.npmUrlToGitUrl('file+git:../ocalmfind')).toEqual({
     protocol: 'file:',
     hostname: null,
     repository: '../ocalmfind',
@@ -147,7 +182,7 @@ describe('secureGitUrl()', function() {
         {
           type: 'warning',
           error: true,
-          data: reporter.lang(protocol == 'git:' ? 'downloadGitWithoutCommit' : 'downloadHTTPWithoutCommit', inputurl),
+          data: reporter.lang(protocol === 'git:' ? 'downloadGitWithoutCommit' : 'downloadHTTPWithoutCommit', inputurl),
         },
       ]);
     }
