@@ -155,19 +155,6 @@ jobs:
       - *attach_workspace
       - *test_build
       - *test_run
-  test-macos-node8:
-    <<: *macos_defaults
-    steps:
-      - run:
-          name: Install Node 8
-          command: |
-            brew uninstall --ignore-dependencies node
-            HOMEBREW_NO_AUTO_UPDATE=1 brew install node@8
-            brew link --overwrite --force node@8
-            [[ $(node --version) =~ ^v8\. ]]
-      - *attach_workspace
-      - *test_build
-      - *test_run
   test-e2e-ubuntu1604:
     <<: *docker_defaults
     docker:

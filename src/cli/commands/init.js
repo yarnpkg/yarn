@@ -39,6 +39,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
         [
           path.join(process.env.COREPACK_ROOT, 'dist/corepack.js'),
           `yarn@${flags.install || `stable`}`,
+          `yarn`,
           `init`,
           ...forwardedArgs,
           `--install=self`,
