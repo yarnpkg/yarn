@@ -329,8 +329,13 @@ export default class Config {
 
     this.networkTimeout = opts.networkTimeout || Number(this.getOption('network-timeout')) || constants.NETWORK_TIMEOUT;
 
-    const httpProxy = opts.httpProxy || this.getOption('proxy');
-    const httpsProxy = opts.httpsProxy || this.getOption('https-proxy');
+    // Since request library does not really handle socks proxy.
+    // We respect PROXY, HTTP_PROXY and HTTPS_PROXY environs in yarn.
+    const httpProxy = opts.httpProxy || this.getOption('proxy')
+        || process.env.HTTP_PROXY || process.env.http_proxy
+        || process.env.PROXY || process.env.proxy || '';
+    const httpsProxy = opts.httpsProxy || this.getOption('https-proxy')
+        || process.env.HTTPS_PROXY || process.env.https_proxy || '';
     this.requestManager.setOptions({
       userAgent: String(this.getOption('user-agent')),
       httpProxy: httpProxy === false ? false : String(httpProxy || ''),
