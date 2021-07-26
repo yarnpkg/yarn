@@ -2,6 +2,12 @@
 <!-- -->
 Please add one entry in this file for each change in Yarn's behavior. Use the same format for all entries, including the third-person verb. Make sure you don't add more than one line of text to keep it clean. Thanks!
 
+## 1.22.11
+
+This version fixes a problem where Yarn wasn't forwarding SIGTERM to the binary spawned via `yarnPath`. It also makes `yarn init -2` compatible with [Corepack](https://github.com/nodejs/corepack). The behaviour of `yarn init` (without `-2`) doesn't change.
+
+Remember that Yarn 1.x won't receive further functional improvements. We recommend you to switch to the recently-released 3.0, and to ping us on Discord if you find issues when migrating (also check our [Migration Guide](https://yarnpkg.com/getting-started/migration#why-should-you-migrate)).
+
 ## 1.22.10 (and prior)
 
 - Tweak the preinstall check to not cause errors when Node is installed as root (as a downside, it won't run at all on Windows, which should be an acceptable tradeoff): https://github.com/yarnpkg/yarn/issues/8358
