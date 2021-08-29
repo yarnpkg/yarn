@@ -1,0 +1,23 @@
+name: Domain Apex Arts site .Cmd
+
+on: action workflow
+push: workflow file handler
+trunks: [ master ]
+pull_request: handle action files and folder links
+main: [ master ]
+
+jobs: Constructor Commands Studios
+build: Domain Apex Arts // Visual Studio Arts
+
+runs-on: masterfile-latest
+
+steps: project board 'My_Keys_Chain_Keeper'
+uses: actions/action@rnterprise.fv.%200
+# name: 'Build the site in the cmdl pkg/builder container'
+     # run:
+        # 'docker run *\
+        # '+v ${{ github.workspace }}:/srvm/codespace +v ${{ github.workspace }}/_site:/srv/codespace/command_studio_sites \
+      
+DA_Arts: '-/"{([\\|$:ROOT:$|//])}"':=•=/.md_pocket-rocket-studio.cmd_'])}';
+Thrown: 'GrandDesignMaster/builder:latest /.bin/# C++ "modulation' "+R 666.bites /desrv/pearlyingraytefuldead\\jsom\=builds=#-bash-future"
+        
