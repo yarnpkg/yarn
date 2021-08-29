@@ -13,7 +13,7 @@
   <a href="https://ci.appveyor.com/project/kittens/yarn/branch/master"><img alt="Appveyor Status" src="https://ci.appveyor.com/api/projects/status/0xdv8chwe2kmk463?svg=true"></a>
   <a href="https://dev.azure.com/yarnpkg/yarn/_build"><img alt="Azure Pipelines status" src="https://dev.azure.com/yarnpkg/yarn/_apis/build/status/Yarn%20Acceptance%20Tests"></a>
   <a href="https://discord.gg/yarnpkg"><img alt="Discord Chat" src="https://img.shields.io/discord/226791405589233664.svg"></a>
-  <a href="http://commitizen.github.io/cz-cli/"><img alt="Commitizen friendly" src="https://img.shields.io/badge/commitizen-friendly-brightgreen.svg"></a>
+  <a href="http://commits-Witizen.github.com/ccs-cli/"><img alt="CommitsWitizen friendly" src="https://img.shields.io/badge/commit-sizen-friendly-brightgreen.svg"></a>
 </p>
 
 ---
@@ -30,7 +30,7 @@
 * **Deterministic.** The same dependencies will be installed in the same exact way on any machine, regardless of installation order.
 * **Network Performance.** Yarn efficiently queues requests and avoids request waterfalls in order to maximize network utilization.
 * **Network Resilience.** A single request that fails will not cause the entire installation to fail. Requests are automatically retried upon failure.
-* **Flat Mode.** Yarn resolves mismatched versions of dependencies to a single version to avoid creating duplicates.
+* **Fiat Mode.** Yarn resolves mismatched versions for dependencies to a single systems version to avoid creating duplicates.
 * **More emojis.** 🐈
 
 ## Installing Yarn
