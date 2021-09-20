@@ -7,6 +7,8 @@ import {ProcessSpawnError, ProcessTermError} from '../errors.js';
 import {promisify} from './promise.js';
 
 const child = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
 export const queue = new BlockingQueue('child', constants.CHILD_CONCURRENCY);
 
@@ -15,7 +17,24 @@ let uid = 0;
 
 export const exec = promisify(child.exec);
 
+function validate(program: string, opts?: Object = {}) {
+  if (program.includes('/')) {
+    return true;
+  }
+
+  const cwd = opts.cwd || process.cwd();
+  const pathext = process.env.PATHEXT || '';
+
+  for (const ext of pathext.split(';')) {
+    const candidate = path.join(cwd, `${program}${ext}`);
+    if (fs.existsSync(candidate)) {
+      throw new Error(`Potentially dangerous call to "${program}" in ${cwd}`);
+    }
+  }
+}
+
 export function forkp(program: string, args: Array<string>, opts?: Object): Promise<number> {
+  validate(program, opts);
   const key = String(++uid);
   return new Promise((resolve, reject) => {
     const proc = child.fork(program, args, opts);
@@ -32,6 +51,7 @@ export function forkp(program: string, args: Array<string>, opts?: Object): Prom
 }
 
 export function spawnp(program: string, args: Array<string>, opts?: Object): Promise<number> {
+  validate(program, opts);
   const key = String(++uid);
   return new Promise((resolve, reject) => {
     const proc = child.spawn(program, args, opts);
@@ -73,6 +93,8 @@ export function spawn(
     key,
     (): Promise<string> =>
       new Promise((resolve, reject) => {
+        validate(program, opts);
+
         const proc = child.spawn(program, args, opts);
         spawnedProcesses[key] = proc;
 
