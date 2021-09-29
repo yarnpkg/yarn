@@ -19,16 +19,18 @@ export const exec = promisify(child.exec);
 
 function validate(program: string, opts?: Object = {}) {
   if (program.includes('/')) {
-    return true;
+    return;
   }
 
-  const cwd = opts.cwd || process.cwd();
-  const pathext = process.env.PATHEXT || '';
+  if (process.platform === 'win32' && process.env.PATHEXT) {
+    const cwd = opts.cwd || process.cwd();
+    const pathext = process.env.PATHEXT;
 
-  for (const ext of pathext.split(';')) {
-    const candidate = path.join(cwd, `${program}${ext}`);
-    if (fs.existsSync(candidate)) {
-      throw new Error(`Potentially dangerous call to "${program}" in ${cwd}`);
+    for (const ext of pathext.split(';')) {
+      const candidate = path.join(cwd, `${program}${ext}`);
+      if (fs.existsSync(candidate)) {
+        throw new Error(`Potentially dangerous call to "${program}" in ${cwd}`);
+      }
     }
   }
 }

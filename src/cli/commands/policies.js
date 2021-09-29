@@ -1,4 +1,5 @@
 /* @flow */
+/* eslint-disable max-len */
 
 import type {Reporter} from '../../reporters/index.js';
 import type Config from '../../config.js';
