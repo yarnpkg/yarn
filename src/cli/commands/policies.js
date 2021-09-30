@@ -12,7 +12,7 @@ import {stringify} from '../../lockfile';
 import {satisfiesWithPrereleases} from '../../util/semver.js';
 import {NODE_BIN_PATH} from '../../constants';
 
-const V2_NAMES = ['stable', 'berry', 'stable', 'canary', 'v2', '2'];
+const V2_NAMES = ['berry', 'stable', 'canary', 'v2', '2'];
 
 const isLocalFile = (version: string) => version.match(/^\.{0,2}[\\/]/) || path.isAbsolute(version);
 const isV2Version = (version: string) => satisfiesWithPrereleases(version, '>=2.0.0');

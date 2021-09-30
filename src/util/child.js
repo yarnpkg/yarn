@@ -18,7 +18,7 @@ let uid = 0;
 export const exec = promisify(child.exec);
 
 function validate(program: string, opts?: Object = {}) {
-  if (program.includes('/')) {
+  if (program.match(/[\\\/]/)) {
     return;
   }
 
