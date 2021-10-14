@@ -20,6 +20,7 @@ import WorkspaceLayout from './workspace-layout.js';
 
 const invariant = require('invariant');
 const cmdShim = require('@zkochan/cmd-shim');
+const fixBin = require('bin-links/lib/fix-bin');
 const path = require('path');
 const semver = require('semver');
 // Concurrency for creating bin links disabled because of the issue #1961
@@ -41,7 +42,7 @@ export async function linkBin(src: string, dest: string): Promise<void> {
   } else {
     await fs.mkdirp(path.dirname(dest));
     await fs.symlink(src, dest);
-    await fs.chmod(dest, '755');
+    await fixBin(src, '755');
   }
 }
 
