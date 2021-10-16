@@ -116,7 +116,6 @@ export function checkOne(info: Manifest, config: Config, ignoreEngines: boolean)
       ref.ignore = true;
       ref.incompatible = true;
 
-      reporter.info(`${human}: ${msg}`);
       if (!didIgnore) {
         didIgnore = true;
       }
