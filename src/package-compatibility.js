@@ -118,7 +118,6 @@ export function checkOne(info: Manifest, config: Config, ignoreEngines: boolean)
 
       reporter.info(`${human}: ${msg}`);
       if (!didIgnore) {
-        reporter.info(reporter.lang('optionalCompatibilityExcluded', human));
         didIgnore = true;
       }
     } else {
