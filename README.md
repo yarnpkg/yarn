@@ -33,6 +33,23 @@
 * **Flat Mode.** Yarn resolves mismatched versions of dependencies to a single version to avoid creating duplicates.
 * **More emojis.** 🐈
 
+## Our supports
+
+### [Gold sponsors](https://opencollective.com/yarnpkg)
+
+<table width="100%">
+  <tr>
+    <td>
+      <a href="https://www.doppler.com/">
+        <img src="https://assets.website-files.com/5de9972f49103c5df3964004/5f0c1146992a5e9e4fa553e6_logo.svg" width="140"/>
+      </a>
+    </td>
+    <td>
+      <b>All your environment variables, in one place</b>. Stop struggling with scattered API keys, hacking together home-brewed tools, and avoiding access controls. Keep your team and servers in sync with <b><a href="https://www.doppler.com/">Doppler</a></b>.
+    </td>
+  </tr>
+</table>
+
 ## Installing Yarn
 
 Read the [Installation Guide](https://yarnpkg.com/en/docs/install) on our website for detailed instructions on how to install Yarn.
