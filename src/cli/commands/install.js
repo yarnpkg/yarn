@@ -55,6 +55,7 @@ export type InstallCwdRequest = {
 type Flags = {
   // install
   har: boolean,
+  ignoreCpu: boolean,
   ignorePlatform: boolean,
   ignoreEngines: boolean,
   ignoreOptional: boolean,
@@ -136,6 +137,7 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
   const flags = {
     // install
     har: !!rawFlags.har,
+    ignoreCpu: !!rawFlags.ignoreCpu,
     ignorePlatform: !!rawFlags.ignorePlatform,
     ignoreEngines: !!rawFlags.ignoreEngines,
     ignoreScripts: !!rawFlags.ignoreScripts,
@@ -168,6 +170,10 @@ function normalizeFlags(config: Config, rawFlags: Object): Flags {
 
   if (config.getOption('ignore-scripts')) {
     flags.ignoreScripts = true;
+  }
+
+  if (config.getOption('ignore-cpu')) {
+    flags.ignoreCpu = true;
   }
 
   if (config.getOption('ignore-platform')) {

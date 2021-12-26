@@ -38,6 +38,7 @@ export type ConfigOptions = {
   enableMetaFolder?: boolean,
   linkFileDependencies?: boolean,
   captureHar?: boolean,
+  ignoreCpu?: boolean,
   ignoreScripts?: boolean,
   ignorePlatform?: boolean,
   ignoreEngines?: boolean,
@@ -117,6 +118,7 @@ export default class Config {
   enableMetaFolder: boolean;
   enableLockfileVersions: boolean;
   linkFileDependencies: boolean;
+  ignoreCpu: boolean;
   ignorePlatform: boolean;
   binLinks: boolean;
   updateChecksums: boolean;
@@ -474,6 +476,7 @@ export default class Config {
     this.plugnplayUnplugged = [];
     this.plugnplayPurgeUnpluggedPackages = false;
 
+    this.ignoreCpu = !!opts.ignoreCpu;
     this.ignorePlatform = !!opts.ignorePlatform;
     this.ignoreScripts = !!opts.ignoreScripts;
 
