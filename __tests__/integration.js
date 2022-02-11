@@ -235,10 +235,11 @@ describe('--registry option', () => {
 
   test('--registry option with nonexistent registry and show an error', async () => {
     const cwd = await makeTemp();
-    const registry = 'https://example-registry-doesnt-exist.invalid'; // RFC 6761
+    // See https://datatracker.ietf.org/doc/html/rfc6761#section-6.4
+    const registry = 'https://example-registry-doesnt-exist.invalid';
 
     const yarnAdd = runYarn(['add', 'is-array', '--registry', registry, '--ignore-scripts'], {cwd});
-    await expect(yarnAdd).rejects.toThrow('getaddrinfo ENOTFOUND example-registry-doesnt-exist.invalid');
+    await expect(yarnAdd).rejects.toThrow(/getaddrinfo (ENOTFOUND|EAI_AGAIN) example-registry-doesnt-exist\.invalid/);
   });
 
   test('registry option from yarnrc', async () => {
