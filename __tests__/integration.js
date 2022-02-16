@@ -239,7 +239,7 @@ describe('--registry option', () => {
     const registry = 'https://example-registry-doesnt-exist.invalid';
 
     const yarnAdd = runYarn(['add', 'is-array', '--registry', registry, '--ignore-scripts'], {cwd});
-    await expect(yarnAdd).rejects.toThrow(/getaddrinfo (ENOTFOUND|EAI_AGAIN) example-registry-doesnt-exist\.invalid/);
+    await expect(yarnAdd).rejects.toThrow(/getaddrinfo .* example-registry-doesnt-exist\.invalid/);
   });
 
   test('registry option from yarnrc', async () => {
