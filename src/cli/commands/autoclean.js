@@ -10,7 +10,7 @@ import * as fs from '../../util/fs.js';
 const invariant = require('invariant');
 const path = require('path');
 
-export const requireLockfile = true;
+export const requireLockfile = false;
 export const noArguments = true;
 
 const DEFAULT_FILTER = `
