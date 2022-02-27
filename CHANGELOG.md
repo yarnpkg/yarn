@@ -4,9 +4,15 @@
 
 Please add one entry in this file for each change in Yarn's behavior. Use the same format for all entries, including the third-person verb. Make sure you don't add more than one line of text to keep it clean. Thanks!
 
-## 1.23.1
+## 1.22.12
 
 - Support modifying .yarnrc if has hidden attr: https://github.com/yarnpkg/yarn/issues/4306
+
+## 1.22.11
+
+This version fixes a problem where Yarn wasn't forwarding SIGTERM to the binary spawned via `yarnPath`. It also makes `yarn init -2` compatible with [Corepack](https://github.com/nodejs/corepack). The behaviour of `yarn init` (without `-2`) doesn't change.
+
+Remember that Yarn 1.x won't receive further functional improvements. We recommend you to switch to the recently-released 3.0, and to ping us on Discord if you find issues when migrating (also check our [Migration Guide](https://yarnpkg.com/getting-started/migration#why-should-you-migrate)).
 
 ## 1.22.10 (and prior)
 

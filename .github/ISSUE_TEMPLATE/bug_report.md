@@ -1,47 +1,36 @@
 ---
-name: Bug report
-about: Create a report
+name: Issue
+about: Open an issue
 ---
 
 <!-- 
 
-1. Please read our Rules of Conduct: https://github.com/yarnpkg/yarn/blob/master/CODE_OF_CONDUCT.md
+  Important note: This repository is about Yarn 1.x, also called "Classic". We released
+  Yarn 2 in January 2020, and multiple other minors since then (note that we slightly
+  changed how Yarn is installed, hence why `npm install -g yarn` doesn't show 2.x if
+  you run `--version`).
+  
+  If you get a problem with Yarn 1.x, it is *very* likely to have been fixed in higher
+  versions. We recommand that you migrate when you get the chance: the process has been
+  refined over the months and should be mostly painless - check here for details:
+  
+    https://yarnpkg.com/getting-started/migration#why-should-you-migrate
+  
+  If you hit blockers that aren't addressed in this guide, feel free to ask for help on
+  our Discord community server, or our GitHub discussion forum:
+  
+    https://discord.com/invite/yarnpkg
+    https://github.com/yarnpkg/berry/discussions
 
-2. Please search existing issues to avoid creating duplicates. Duplicates will be closed.
+  Finally, if you intend to open a bug on Yarn 2, the right tracker is here:
+  
+    https://github.com/yarnpkg/berry
 
-3. Currently, not accepting any new feature requests. Please head over to https://github.com/yarnpkg/berry for new feature requests.
+  If you decide to stay on Yarn 1 regardless, please be aware that we don't plan to
+  merge pull requests or release future versions of Classic unless it's to solve an
+  critical vulnerability report (which is unlikely). By contrast, the 2.x line is very
+  actively supported. 
+  
+  Thanks for your understanding!
 
 -->
-
-
-<!-- Please fill out all sections. Issues with this not compeleted will be closed. --->
-
-
-### Bug description
-<!-- Any context around the issue or bug is helpful. -->
-
-**Command**
-
-```sh
-yarn [your command]
-```
-
-**What is the current behavior?**
-<!-- Describe how yarn is currently functioning with respect to the bug. -->
-
-
-**What is the expected behavior?**
-<!-- Describe how you expect it to work -->
-
-
-**Steps to Reproduce**
-<!-- If you can, provide a link to a public repository which contains the files necessary to reproduce this. -->
-
-1. 
-2.
-
-**Environment**
-
-- Node Version: `x.x.x`
-- Yarn v1 Version: `1.x.x` 
-- OS and version: 

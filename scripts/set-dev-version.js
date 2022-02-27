@@ -6,6 +6,12 @@
 
 const fs = require('fs');
 
+// Leading `0` aren't valid semver, so we round it up to 10 to
+// avoid having to change the nightly version format.
+function roundToTen(value) {
+  return value < 10 ? 10 : value;
+}
+
 function leftPad(value) {
   return (value < 10 ? '0' : '') + value;
 }
@@ -18,7 +24,7 @@ const formattedDate =
   leftPad(date.getUTCMonth() + 1) +
   leftPad(date.getUTCDate()) +
   '.' +
-  leftPad(date.getUTCHours()) +
+  leftPad(roundToTen(date.getUTCHours())) +
   leftPad(date.getUTCMinutes());
 
 // Remove any existing suffix before appending the date
@@ -30,4 +36,5 @@ fs.writeFileSync(
   packageManifestFilename,
   JSON.stringify(packageManifest, null, 2) + '\n'
 );
+
 console.log('Updated version number to ' + version);
