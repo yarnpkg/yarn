@@ -6,6 +6,7 @@ import BlockingQueue from './blocking-queue.js';
 import {ProcessSpawnError, ProcessTermError} from '../errors.js';
 import {promisify} from './promise.js';
 
+const os = require('os');
 const child = require('child_process');
 
 export const queue = new BlockingQueue('child', constants.CHILD_CONCURRENCY);
@@ -23,8 +24,8 @@ export function forkp(program: string, args: Array<string>, opts?: Object): Prom
       reject(error);
     });
 
-    proc.on('close', exitCode => {
-      resolve(exitCode);
+    proc.on('close', (exitCode: number, signal: string) => {
+      resolve(exitCode ?? 128 + os.constants.signals[signal]);
     });
   });
 }
@@ -37,8 +38,8 @@ export function spawnp(program: string, args: Array<string>, opts?: Object): Pro
       reject(error);
     });
 
-    proc.on('close', exitCode => {
-      resolve(exitCode);
+    proc.on('close', (exitCode: number, signal: string) => {
+      resolve(exitCode ?? 128 + os.constants.signals[signal]);
     });
   });
 }
