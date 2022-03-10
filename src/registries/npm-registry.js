@@ -116,7 +116,7 @@ export default class NpmRegistry extends Registry {
     let resolved = pathname;
 
     if (!REGEX_REGISTRY_PREFIX.test(pathname)) {
-      resolved = url.resolve(addSuffix(registry, '/'), pathname);
+      resolved = url.resolve(addSuffix(registry, '/'), `./${pathname}`);
     }
 
     if (REGEX_REGISTRY_ENFORCED_HTTPS.test(resolved)) {
