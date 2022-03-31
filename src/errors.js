@@ -34,4 +34,11 @@ export class ResponseError extends Error {
   responseCode: number;
 }
 
-export class OneTimePasswordError extends Error {}
+export class OneTimePasswordError extends Error {
+  constructor(notice: string) {
+    super();
+    this.notice = notice;
+  }
+
+  notice: string;
+}
