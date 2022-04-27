@@ -82,7 +82,7 @@ function keyForRemote(remote: PackageRemote): ?string {
 
 function serializeIntegrity(integrity: Integrity): string {
   // We need this because `Integrity.toString()` does not use sorting to ensure a stable string output
-  // See https://git.io/vx2Hy
+  // See https://github.com/zkat/ssri/blob/b71ef1732a17a5e440d0c239351b346d72efa9fa/index.js#L74-L86
   return integrity.toString().split(' ').sort().join(' ');
 }
 

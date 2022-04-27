@@ -139,7 +139,7 @@ export const {run, examples} = buildSubCommands('licenses', {
     // (JSON output being the primary one). This command is only for text consumption
     // and you should just be dumping it to a TXT file. Using a reporter here has the
     // potential to mess up the output since it might print ansi escapes.
-    // @kittens - https://git.io/v7uts
+    // @kittens - https://github.com/yarnpkg/yarn/pull/4036#discussion_r130739083
 
     const manifests: Array<Manifest> = await getManifests(config, flags);
     const manifest = await config.readRootManifest();
