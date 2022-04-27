@@ -1202,7 +1202,7 @@ test.concurrent('installs "latest" instead of maxSatisfying if it satisfies requ
   // not `1.0.2` even though it is newer.
   // This is behavior defined by the NPM implementation. See:
   //  * https://github.com/yarnpkg/yarn/issues/3560
-  //  * https://git.io/vFmau
+  //  * https://github.com/npm/npm/blob/d46015256941ddfff1463338e3e2f8f77624a1ff/lib/utils/pick-manifest-from-registry-metadata.js#L11
   //
   // In this test, `ui-select` has a max version of `0.20.0` but a `latest:0.19.8`
   await runAdd(['ui-select@^0.X'], {}, 'latest-version-in-package', async (config, reporter, previousAdd) => {
