@@ -116,9 +116,7 @@ export function checkOne(info: Manifest, config: Config, ignoreEngines: boolean)
       ref.ignore = true;
       ref.incompatible = true;
 
-      reporter.info(`${human}: ${msg}`);
       if (!didIgnore) {
-        reporter.info(reporter.lang('optionalCompatibilityExcluded', human));
         didIgnore = true;
       }
     } else {

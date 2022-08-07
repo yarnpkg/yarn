@@ -440,9 +440,8 @@ export default class RequestManager {
 
         if (res.statusCode === 401 && res.headers['www-authenticate']) {
           const authMethods = res.headers['www-authenticate'].split(/,\s*/).map(s => s.toLowerCase());
-
           if (authMethods.indexOf('otp') !== -1) {
-            reject(new OneTimePasswordError());
+            reject(new OneTimePasswordError(res.headers['npm-notice']));
             return;
           }
         }

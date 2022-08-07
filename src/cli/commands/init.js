@@ -30,24 +30,38 @@ export const shouldRunInCurrentCwd = true;
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const installVersion = flags[`2`] ? `berry` : flags.install;
+  const forwardedArgs = process.argv.slice(process.argv.indexOf('init', 2) + 1);
 
   if (installVersion) {
-    const lockfilePath = path.resolve(config.cwd, 'yarn.lock');
-    if (!await fs.exists(lockfilePath)) {
-      await fs.writeFile(lockfilePath, '');
-    }
-    await child.spawn(NODE_BIN_PATH, [process.argv[1], 'policies', 'set-version', installVersion, '--silent'], {
-      stdio: 'inherit',
-      cwd: config.cwd,
-    });
-    await child.spawn(
-      NODE_BIN_PATH,
-      [process.argv[1], 'init', ...(flags.yes ? ['-y'] : []), ...(flags.private ? ['-p'] : [])],
-      {
+    if (flags[`2`] && process.env.COREPACK_ROOT) {
+      await child.spawn(
+        NODE_BIN_PATH,
+        [
+          path.join(process.env.COREPACK_ROOT, 'dist/corepack.js'),
+          `yarn@${flags.install || `stable`}`,
+          `init`,
+          ...forwardedArgs,
+          `--install=self`,
+        ],
+        {
+          stdio: 'inherit',
+          cwd: config.cwd,
+        },
+      );
+    } else {
+      const lockfilePath = path.resolve(config.cwd, 'yarn.lock');
+      if (!await fs.exists(lockfilePath)) {
+        await fs.writeFile(lockfilePath, '');
+      }
+      await child.spawn(NODE_BIN_PATH, [process.argv[1], 'policies', 'set-version', installVersion, '--silent'], {
         stdio: 'inherit',
         cwd: config.cwd,
-      },
-    );
+      });
+      await child.spawn(NODE_BIN_PATH, [process.argv[1], 'init', ...forwardedArgs], {
+        stdio: 'inherit',
+        cwd: config.cwd,
+      });
+    }
     return;
   }
 

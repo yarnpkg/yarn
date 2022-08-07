@@ -122,34 +122,6 @@ jobs:
           root: ~/project
           paths:
             - yarn
-  test-pkg-tests-linux-node13:
-    <<: *docker_defaults
-    docker:
-      - image: node:13
-    <<: *pkg_tests
-  test-pkg-tests-linux-node12:
-    <<: *docker_defaults
-    docker:
-      - image: node:12.18.2
-    <<: *pkg_tests
-  test-pkg-tests-linux-node10:
-    <<: *docker_defaults
-    docker:
-      - image: node:10
-    <<: *pkg_tests
-  test-pkg-tests-linux-node8:
-    <<: *docker_defaults
-    <<: *pkg_tests
-#  test-linux-node13:
-#    <<: *docker_defaults
-#    docker:
-#      - image: node:13
-#    <<: *test_steps
-#  test-linux-node12:
-#    <<: *docker_defaults
-#    docker:
-#      - image: node:12
-#    <<: *test_steps
   test-linux-node10:
     <<: *docker_defaults
     docker:
@@ -180,34 +152,6 @@ jobs:
             HOMEBREW_NO_AUTO_UPDATE=1 brew install node@10
             brew link --overwrite --force node@10
             [[ $(node --version) =~ ^v10\. ]]
-      - *attach_workspace
-      - *test_build
-      - *test_run
-  test-macos-node8:
-    <<: *macos_defaults
-    steps:
-      - run:
-          name: Install Node 8
-          command: |
-            brew uninstall --ignore-dependencies node
-            HOMEBREW_NO_AUTO_UPDATE=1 brew install node@8
-            brew link --overwrite --force node@8
-            [[ $(node --version) =~ ^v8\. ]]
-      - *attach_workspace
-      - *test_build
-      - *test_run
-  test-macos-node6:
-    <<: *macos_defaults
-    macos:
-      xcode: "9.0"
-    steps:
-      - run:
-          name: Install Node 6
-          command: |
-            brew uninstall --ignore-dependencies node
-            HOMEBREW_NO_AUTO_UPDATE=1 brew install node@6
-            brew link --overwrite --force node@6
-            [[ $(node --version) =~ ^v6\. ]]
       - *attach_workspace
       - *test_build
       - *test_run
@@ -271,30 +215,6 @@ workflows:
           filters: *default_filters
           requires:
             - install
-      - test-pkg-tests-linux-node13:
-          filters: *default_filters
-          requires:
-            - install
-      - test-pkg-tests-linux-node12:
-          filters: *default_filters
-          requires:
-            - install
-      - test-pkg-tests-linux-node10:
-          filters: *default_filters
-          requires:
-            - install
-      - test-pkg-tests-linux-node8:
-          filters: *default_filters
-          requires:
-            - install
-#      - test-linux-node13:
-#          filters: *default_filters
-#          requires:
-#            - install
-#      - test-linux-node12:
-#          filters: *default_filters
-#          requires:
-#            - install
       - test-linux-node10:
           filters: *default_filters
           requires:
@@ -315,14 +235,6 @@ workflows:
           filters: *default_filters
           requires:
             - install
-      - test-macos-node8:
-          filters: *default_filters
-          requires:
-            - install
-      - test-macos-node6:
-          filters: *default_filters
-          requires:
-            - install
       - build:
           filters: *default_filters
           requires:
@@ -333,18 +245,10 @@ workflows:
             branches:
               ignore: /.*/
           requires:
-            - test-pkg-tests-linux-node13
-            - test-pkg-tests-linux-node12
-            - test-pkg-tests-linux-node10
-            - test-pkg-tests-linux-node8
-#            - test-linux-node13
-#            - test-linux-node12
             - test-linux-node10
             - test-linux-node8
             - test-linux-node6
             - test-linux-node4
             - test-macos-node10
-            - test-macos-node8
-            - test-macos-node6
             - lint
             - build
