@@ -1,0 +1,11 @@
+Package: $PACKAGE_NAME
+Version: $VERSION
+Section: misc
+Priority: optional
+Architecture: all
+Installed-Size: $INSTALLED_SIZE
+Maintainer: Yarn Developers <yarn@dan.cx>
+Homepage: https://yarnpkg.com/
+Description: GnuPG keyring for Yarn archives
+ This package ensures that the signing keys used to verify the integrity of the
+ package archive are kept updated.
