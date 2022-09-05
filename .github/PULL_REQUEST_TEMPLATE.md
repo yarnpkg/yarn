@@ -5,7 +5,7 @@
   stable) codebase.
   
   If you get a problem with Yarn 1.x, it is *very* likely to have been fixed in recent
-  versions. We recommand that you migrate when you get the chance: the process has been
+  versions. We recommend that you migrate when you get the chance: the process has been
   refined over the years and should be mostly painless - check here for details:
   
     https://yarnpkg.com/getting-started/migration#why-should-you-migrate
