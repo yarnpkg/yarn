@@ -200,7 +200,7 @@ export default (async function(
   }
 
   // if there's a binding.gyp file and no install script then set it to `node-gyp rebuild`
-  if (!scripts.install && files.indexOf('binding.gyp') >= 0) {
+  if (!scripts.install && files.indexOf('binding.gyp') >= 0 && info.gypfile !== false) {
     scripts.install = 'node-gyp rebuild';
   }
 
