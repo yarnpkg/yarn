@@ -92,6 +92,10 @@ Those versions didn't contain any changes and were just triggered by our infra w
 
 ## 1.20 / 1.21
 
+- Adds `yarn global outdated`
+
+  [#6488](https://github.com/yarnpkg/yarn/pull/6485) - [**Matthias Winkelmann**](https://github.com/MatthiasWinkelmann)
+  
 - Prints workspace names with `yarn workspaces` (silence with `-s`)
 
   [#7722](https://github.com/yarnpkg/yarn/pull/7722) - [**Orta**](https://twitter.com/orta)
