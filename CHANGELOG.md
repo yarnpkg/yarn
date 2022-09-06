@@ -28,11 +28,11 @@ This release doesn't change anything and was caused by a publish issue.
 
   [**Maël Nison**](https://twitter.com/arcanis)
 
-- Files with the `.cjs` extension will be spawned by `yarnPath` using `execPath
+- Files with the `.cjs` extension will be spawned by `yarnPath` using `execPath`
 
   [#8144](https://github.com/yarnpkg/yarn/pull/8144) - [**bgotink**](https://github.com/bgotink)
 
-- Generates local yarn verions as `.cjs` files when calling `yarn set version`
+- Generates local yarn versions as `.cjs` files when calling `yarn set version`
 
   [#8145](https://github.com/yarnpkg/yarn/pull/8145) - [**bgotink**](https://github.com/bgotink)
 
@@ -110,7 +110,7 @@ Those versions didn't contain any changes and were just triggered by our infra w
 
   [#7289](https://github.com/yarnpkg/yarn/pull/7289) - [**Daniel Tschinder**](https://github.com/danez)
 
-- Makes running scripts with Plug'n Play possible on node 13.
+- Makes running scripts with Plug'n'Play possible on node 13.
 
   [#7650](https://github.com/yarnpkg/yarn/pull/7650) - [**Sander Verweij**](https://github.com/sverweij)
 
