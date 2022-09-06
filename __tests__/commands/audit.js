@@ -235,6 +235,14 @@ test('calls reporter auditAdvisory with correct data', () => {
   });
 });
 
+test('calls reporter auditAdvisory with non muted data', () => {
+  return runAudit([], {mute: ['119']}, 'multi-vulnerable-dep-installed', (config, reporter) => {
+    const apiResponse = getAuditResponse(config);
+    expect(reporter.auditAdvisory).toHaveBeenCalledTimes(1);
+    expect(reporter.auditAdvisory).toBeCalledWith(apiResponse.actions[1].resolves[0], apiResponse.advisories['120']);
+  });
+});
+
 // *** Test temporarily removed due to inability to correctly suggest actions to the user.
 // test('calls reporter auditAction with correct data', () => {
 //   return runAudit([], {}, 'single-vulnerable-dep-installed', (config, reporter) => {
