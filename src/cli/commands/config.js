@@ -46,6 +46,10 @@ export function hasWrapper(flags: Object, args: Array<string>): boolean {
 
 export function setFlags(commander: Object) {
   commander.description('Manages the yarn configuration files.');
+  commander.option(
+    '-g, --global',
+    'Use the global configuration file. By default, it will use the configuration file in your working directory.',
+  );
 }
 
 export const {run, examples} = buildSubCommands('config', {
@@ -55,7 +59,13 @@ export const {run, examples} = buildSubCommands('config', {
     }
     const [key, val = true] = args;
     const yarnConfig = config.registries.yarn;
-    await yarnConfig.saveHomeConfig({[key]: val});
+
+    if (flags.global) {
+      await yarnConfig.saveHomeConfig({[key]: val});
+    } else {
+      await yarnConfig.saveConfig({[key]: val});
+    }
+
     reporter.success(reporter.lang('configSet', key, val));
     return true;
   },
@@ -76,7 +86,13 @@ export const {run, examples} = buildSubCommands('config', {
 
     const key = args[0];
     const yarnConfig = config.registries.yarn;
-    await yarnConfig.saveHomeConfig({[key]: undefined});
+
+    if (flags.global) {
+      await yarnConfig.saveHomeConfig({[key]: undefined});
+    } else {
+      await yarnConfig.saveConfig({[key]: undefined});
+    }
+
     reporter.success(reporter.lang('configDelete', key));
     return true;
   },
