@@ -15,6 +15,7 @@ import {run as runUpgrade} from './upgrade.js';
 import {run as runUpgradeInteractive} from './upgrade-interactive.js';
 import {linkBin} from '../../package-linker.js';
 import {POSIX_GLOBAL_PREFIX, FALLBACK_GLOBAL_PREFIX} from '../../constants.js';
+import {entries} from '../../util/misc.js';
 import * as fs from '../../util/fs.js';
 
 class GlobalAdd extends Add {
@@ -160,18 +161,38 @@ async function initUpdateBins(config: Config, reporter: Reporter, flags: Object)
       }
     }
 
-    // add new bins
-    for (const src of afterBins) {
-      // insert new bin
-      const dest = path.join(binFolder, path.basename(src));
-      try {
-        await fs.unlink(dest);
-        await linkBin(src, dest);
-        if (process.platform === 'win32' && dest.indexOf('.cmd') !== -1) {
-          await fs.rename(dest + '.cmd', dest);
+    // We have to find all binaries so we can create proper global shims to them.
+    // "yarn global list" does exactly what we need, so we can simply borrow that
+    // logic here to determine the shims we need to create:
+    await updateCwd(config);
+    const lockfile = await Lockfile.fromDirectory(config.cwd);
+    const install = new Install({}, config, new NoopReporter(), lockfile);
+    const patterns = await install.getFlattenedDeps();
+
+    for (const pattern of patterns) {
+      const manifest = install.resolver.getStrictResolvedPattern(pattern);
+
+      if (manifest.bin) {
+        // found a global package with binaries; iterate through and create shims
+
+        for (const [binName, binLoc] of entries(manifest.bin)) {
+          // if afterBins doesn't contain a bin with this bin name, don't add it
+          if (![...afterBins.keys()].some(key => key.endsWith(binName))) {
+            continue;
+          }
+
+          // insert new bin
+          const pkgLoc = path.join(config.cwd, config.getFolder(manifest), manifest.name);
+          const src = path.join(pkgLoc, binLoc);
+          const dest = path.join(binFolder, binName);
+
+          try {
+            await fs.unlink(dest);
+            await linkBin(src, dest);
+          } catch (err) {
+            throwPermError(err, dest);
+          }
         }
-      } catch (err) {
-        throwPermError(err, dest);
       }
     }
   };
