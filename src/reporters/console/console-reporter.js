@@ -202,7 +202,7 @@ export default class ConsoleReporter extends BaseReporter {
   }
 
   command(command: string) {
-    this.log(this.format.dim(`$ ${command}`));
+    this.log(this.format.dim(command));
   }
 
   warn(msg: string) {
