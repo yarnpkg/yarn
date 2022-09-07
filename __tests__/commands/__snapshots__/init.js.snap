@@ -39,7 +39,7 @@ Object {
 }
 `;
 
-exports[`init using Github shorthand should resolve to full repository URL: init-github 1`] = `
+exports[`init using GitHub shorthand should resolve to full repository URL: init-github 1`] = `
 Object {
   "license": "MIT",
   "main": "index.js",
