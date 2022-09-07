@@ -1,0 +1,8 @@
+{
+  "name": "workspace-1",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "my_project_with_bin": "file:../../my_project_with_bin/v1"
+  }
+}
