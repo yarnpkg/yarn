@@ -1,0 +1,7 @@
+{
+    "name": "files-not-array",
+    "version": "1.0.0",
+    "main": "index.js",
+    "license": "MIT",
+    "files": {}
+  }
