@@ -679,7 +679,50 @@ export async function find(filename: string, dir: string): Promise<string | fals
 export async function symlink(src: string, dest: string): Promise<void> {
   if (process.platform !== 'win32') {
     // use relative paths otherwise which will be retained if the directory is moved
-    src = path.relative(path.dirname(dest), src);
+    // Relative symlinks are resolved against the real path of the link.
+    const realDestDir = await realpath(path.dirname(dest));
+    // However, there's no restriction on the source path, so try to find a
+    // version of src that gives us the "nicest" relative path by successively
+    // resolving parent directories.
+    // First, find a list of candidate paths we can use as the source. This is
+    // only necessary at symlink boundaries because it would otherwise yield
+    // duplicate entries.
+    const candidates = [];
+    let resolvable = src;
+    let verbatim = undefined;
+    while (true) {
+      let stats;
+      try {
+        stats = await lstat(resolvable);
+      } catch (err) {
+        // src (or any prefix) is not guaranteed to exist
+        if (err.code !== 'ENOENT') {
+          throw err;
+        }
+      }
+
+      if (stats && stats.isSymbolicLink()) {
+        const resolved = await realpath(resolvable);
+        candidates.push(verbatim ? path.join(resolved, verbatim) : resolved);
+      }
+
+      if (resolvable === path.sep) {
+        break;
+      }
+      const {dir, base} = path.parse(resolvable);
+      resolvable = dir;
+      verbatim = verbatim ? path.join(base, verbatim) : base;
+    }
+    candidates.push(src);
+
+    // Then, find the shortest one.
+    src = candidates.reduce((min, p) => {
+      const relativePath = path.relative(realDestDir, p);
+      if (min == null) {
+        return relativePath;
+      }
+      return relativePath.split(path.sep).length < min.split(path.sep).length ? relativePath : min;
+    }, undefined);
     // When path.relative returns an empty string for the current directory, we should instead use
     // '.', which is a valid fs.symlink target.
     src = src || '.';
