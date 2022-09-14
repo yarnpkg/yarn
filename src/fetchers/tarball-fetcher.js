@@ -69,12 +69,15 @@ export default class TarballFetcher extends BaseFetcher {
       return null;
     }
 
-    const match = pathname.match(RE_URL_NAME_MATCH);
+    let match = pathname.match(RE_URL_NAME_MATCH);
 
     let packageFilename;
     if (match) {
       const [, scope, tarballBasename] = match;
       packageFilename = scope ? `${scope}-${tarballBasename}` : tarballBasename;
+    } else if ((match = pathname.match(/\/download\/(@[^/]+)\/([^@/]+)\/([0-9.]+)\/[^/]+$/))) {
+      const [, scope, repository, version] = match;
+      packageFilename = `${scope}-${repository}-${version}.tgz`;
     } else {
       // fallback to base name
       packageFilename = path.basename(pathname);
