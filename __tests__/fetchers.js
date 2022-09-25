@@ -14,7 +14,7 @@ import {readdirSync} from 'fs';
 const path = require('path');
 const ssri = require('ssri');
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 80000;
 
 test('BaseFetcher.fetch', async () => {
   const dir = await mkdir('base-fetcher');

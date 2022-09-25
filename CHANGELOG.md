@@ -348,6 +348,10 @@ The 1.15.1 doesn't exist due to a release hiccup.
 
   [#6976](https://github.com/yarnpkg/yarn/pull/6976) - [**Micha Reiser**](https://github.com/MichaReiser)
 
+- Adds excluding files from packing by using a global gitignore.
+
+  [#7030](https://github.com/yarnpkg/yarn/pull/7030) - [**Lex Alexander**](https://github.com/cacheflow)
+
 ## 1.13.0
 
 - Implements a new `package.json` field: `peerDependenciesMeta`
