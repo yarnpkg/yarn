@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "array-union": "^1.0.1",
+    "strip-ansi": "^2.0.0"
+  }
+}
