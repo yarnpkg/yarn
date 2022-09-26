@@ -268,6 +268,17 @@ export async function executeLifecycleScript({
     cmd = fixCmdWinSlashes(cmd);
   }
 
+  if (!config.nonInteractive && config.interactiveScripts) {
+    const confirmedRun = await config.reporter.questionAffirm('Run ' + cmd + ' from ' + cwd + '? [y/n]');
+    if (!confirmedRun) {
+      return {
+        cwd: '',
+        command: '',
+        stdout: '',
+      };
+    }
+  }
+
   // By default (non-interactive), pipe everything to the terminal and run child process detached
   // as long as it's not Windows (since windows does not have /dev/tty)
   let stdio = ['ignore', 'pipe', 'pipe'];
