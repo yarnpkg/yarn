@@ -15,7 +15,7 @@ export function setFlags(commander: Object) {
 }
 
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
-  const binFolder = path.join(config.cwd, config.registryFolders[0], '.bin');
+  const binFolder = path.resolve(config.cwd, config.registryFolders[0], '.bin');
   if (args.length === 0) {
     reporter.log(binFolder, {force: true});
   } else {
