@@ -15,12 +15,17 @@ export default class JSONReporter extends BaseReporter {
   _activityId: number;
   _progressId: number;
 
-  _dump(type: string, data: mixed, error?: boolean) {
+  _write(string: string, error?: boolean) {
     let stdout = this.stdout;
     if (error) {
       stdout = this.stderr;
     }
-    stdout.write(`${JSON.stringify({type, data})}\n`);
+    stdout.write(string);
+    stdout.flush
+  }
+
+  _dump(type: string, data: mixed, error?: boolean) {
+    this._write(`${JSON.stringify({type, data})}\n`, error);
   }
 
   _verbose(msg: string) {
@@ -167,7 +172,24 @@ export default class JSONReporter extends BaseReporter {
   }
 
   auditAdvisory(resolution: AuditResolution, auditAdvisory: AuditAdvisory) {
-    this._dump('auditAdvisory', {resolution, advisory: auditAdvisory});
+    // Findings can be very large if a popular dependency gets flagged
+    // To keep our memory usage down we'll encode these separately with
+    // a streaming approach.
+
+    const outputWithoutFindings = `${JSON.stringify(
+      {type: 'auditAdvisory', data: {resolution, advisory: auditAdvisory}},
+      (key, value) => (key === 'findings' ? {tobe: 'replaced'} : value),
+    )}\n`;
+
+    const [before, after] = outputWithoutFindings.split('{"tobe":"replaced"}');
+
+    this._write(before);
+    this._write('[');
+    auditAdvisory.findings.forEach((finding, i) => {
+      this._write((i != 0 ? "\n," : '') + JSON.stringify(finding));
+    });
+    this._write(']');
+    this._write(after);
   }
 
   auditSummary(auditMetadata: AuditMetadata) {
