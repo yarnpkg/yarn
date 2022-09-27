@@ -12,7 +12,8 @@ export const requireLockfile = true;
 
 export function setFlags(commander: Object) {
   commander.description('Checks for outdated package dependencies.');
-  commander.usage('outdated [packages ...]');
+  commander.usage('outdated [flags] [packages ...]');
+  commander.option('--no-error-on-outdated', `Return exit code 0 even in case of outdated packages.`, false);
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
@@ -62,7 +63,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     }
     reporter.table(header, body);
 
-    return 1;
+    return flags.errorOnOutdated ? 1 : 0;
   }
   return 0;
 }
