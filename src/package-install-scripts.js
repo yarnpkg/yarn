@@ -14,6 +14,7 @@ import {packWithIgnoreAndHeaders} from './cli/commands/pack.js';
 const fs = require('fs');
 const invariant = require('invariant');
 const path = require('path');
+const ssri = require('ssri');
 
 const INSTALL_STAGES = ['preinstall', 'install', 'postinstall'];
 
@@ -347,6 +348,15 @@ export default class PackageInstallScripts {
               });
               pkg.prebuiltVariants = pkg.prebuiltVariants || {};
               pkg.prebuiltVariants[prebuiltFilename] = hash;
+
+              // Update integrity to include new prebuilt package
+              const {_remote} = pkg;
+              if (_remote) {
+                _remote.integrity = _remote.integrity
+                  ? _remote.integrity + ' ' + ssri.fromHex(hash, 'sha1').toString()
+                  : ssri.fromHex(hash, 'sha1').toString();
+                pkg._remote = _remote;
+              }
             }),
           );
         }
