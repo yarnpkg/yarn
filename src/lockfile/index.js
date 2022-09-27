@@ -222,6 +222,14 @@ export default class Lockfile {
     // ordering allows for consistency in lockfile when it is serialized
     const sortedPatternsKeys: Array<string> = Object.keys(patterns).sort(sortAlpha);
 
+    const filePatterns = {};
+    for (const pattern of sortedPatternsKeys) {
+      const pkg = patterns[pattern];
+      if (pkg._remote && pkg._remote.resolvedFile) {
+        filePatterns[pkg.name] = pkg._remote.resolvedFile;
+      }
+    }
+
     for (const pattern of sortedPatternsKeys) {
       const pkg = patterns[pattern];
       const {_remote: remote, _reference: ref} = pkg;
@@ -241,6 +249,16 @@ export default class Lockfile {
         }
         continue;
       }
+
+      const dependencies = Object.assign({}, pkg.dependencies);
+      if (dependencies) {
+        for (const name of Object.keys(dependencies)) {
+          if (filePatterns[name]) {
+            dependencies[name] = filePatterns[name];
+          }
+        }
+      }
+
       const obj = implodeEntry(pattern, {
         name: pkg.name,
         version: pkg.version,
@@ -248,7 +266,7 @@ export default class Lockfile {
         resolved: remote.resolved,
         integrity: remote.integrity,
         registry: remote.registry,
-        dependencies: pkg.dependencies,
+        dependencies,
         peerDependencies: pkg.peerDependencies,
         optionalDependencies: pkg.optionalDependencies,
         permissions: ref.permissions,
