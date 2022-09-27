@@ -748,14 +748,17 @@ export default class Config {
   async tryManifest(dir: string, registry: RegistryNames, isRoot: boolean): Promise<?Manifest> {
     const {filename} = registries[registry];
     const loc = path.join(dir, filename);
-    if (await fs.exists(loc)) {
-      const data = await this.readJson(loc);
-      data._registry = registry;
-      data._loc = loc;
-      return normalizeManifest(data, dir, this, isRoot);
-    } else {
+
+    let data;
+    try {
+      data = await this.readJson(loc);
+    } catch (e) {
       return null;
     }
+
+    data._registry = registry;
+    data._loc = loc;
+    return normalizeManifest(data, dir, this, isRoot);
   }
 
   async findManifest(dir: string, isRoot: boolean): Promise<?Manifest> {
