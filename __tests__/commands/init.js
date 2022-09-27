@@ -104,7 +104,7 @@ test('init should use init-* configs when defined', (): Promise<void> =>
     },
   ));
 
-test('init using Github shorthand should resolve to full repository URL', (): Promise<void> => {
+test('init using GitHub shorthand should resolve to full repository URL', (): Promise<void> => {
   const questionMap = Object.freeze({
     name: 'hi-github',
     version: '',
