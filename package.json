@@ -6,7 +6,7 @@
   "preferGlobal": true,
   "description": "📦🐈 Fast, reliable, and secure dependency management.",
   "dependencies": {
-    "@zkochan/cmd-shim": "^3.1.0",
+    "@akosm/cmd-shim": "^4.0.2",
     "babel-runtime": "^6.26.0",
     "bytes": "^3.0.0",
     "camelcase": "^4.0.0",
