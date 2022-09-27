@@ -116,7 +116,7 @@ export default class GitFetcher extends BaseFetcher {
           }
         })
         .on('error', function(err) {
-          reject(new MessageError(this.reporter.lang('fetchErrorCorrupt', err.message, tarballPath)));
+          reject(new MessageError(this.config.reporter.lang('fetchErrorCorrupt', err.message, tarballPath)));
         });
     });
   }
