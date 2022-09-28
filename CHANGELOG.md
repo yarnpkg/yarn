@@ -204,6 +204,10 @@ Those versions didn't contain any changes and were just triggered by our infra w
 
 ## 1.16.0
 
+- Don't capture `stderr` when getting the `package.json` of a git cloned dependecy
+
+[#7208](https://github.com/yarnpkg/yarn/pull/7208) - [**Ollie Relph**](https://github.com/BBB)
+
 - Retries downloading a package on `yarn install` when we get a ETIMEDOUT error.
 
   [#7163](https://github.com/yarnpkg/yarn/pull/7163) - [**Vincent Bailly**](https://github.com/VincentBailly)
