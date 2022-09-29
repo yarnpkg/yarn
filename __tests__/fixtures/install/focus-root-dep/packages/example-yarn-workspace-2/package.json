@@ -1,0 +1,9 @@
+{
+  "name": "example-yarn-workspace-2",
+  "version": "1.1.1",
+  "bin": "index.js",
+  "dependencies": {
+    "left-pad": "1.1.2"
+  },
+  "main": "index.js"
+}
