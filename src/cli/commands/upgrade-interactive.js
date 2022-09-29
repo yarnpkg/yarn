@@ -7,7 +7,7 @@ import inquirer from 'inquirer';
 import Lockfile from '../../lockfile';
 import {Add} from './add.js';
 import {getOutdated, cleanLockfile} from './upgrade.js';
-import colorForVersions from '../../util/color-for-versions';
+import {colorForVersions, symbolForVersions} from '../../util/info-for-versions.js';
 import colorizeDiff from '../../util/colorize-diff.js';
 import {Install} from './install.js';
 
@@ -53,6 +53,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const usesWorkspaces = !!config.workspaceRootFolder;
 
   const maxLengthArr = {
+    symbol: ' '.length,
     name: 'name'.length,
     current: 'from'.length,
     range: 'latest'.length,
@@ -88,6 +89,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
 
   const makeRow = dep => {
     const padding = addPadding(dep);
+    const symbol = symbolForVersions(dep.current, dep[outdatedFieldName]);
     const name = colorizeName(dep.current, dep[outdatedFieldName])(padding('name'));
     const current = reporter.format.blue(padding('current'));
     const latest = colorizeDiff(dep.current, padding(outdatedFieldName), reporter);
@@ -95,13 +97,14 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     const range = reporter.format.blue(flags.latest ? 'latest' : padding('range'));
     if (usesWorkspaces) {
       const workspace = padding('workspaceName');
-      return `${name}  ${range}  ${current}  ❯  ${latest}  ${workspace}  ${url}`;
+      return `  ${symbol}  ${name}  ${range}  ${current}  ❯  ${latest}  ${workspace}  ${url}`;
     } else {
-      return `${name}  ${range}  ${current}  ❯  ${latest}  ${url}`;
+      return `  ${symbol}  ${name}  ${range}  ${current}  ❯  ${latest}  ${url}`;
     }
   };
 
   const makeHeaderRow = () => {
+    const symbol = headerPadding(' ', 'symbol');
     const name = headerPadding('name', 'name');
     const range = headerPadding('range', 'range');
     const from = headerPadding('from', 'current');
@@ -109,9 +112,9 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     const url = reporter.format.bold.underline('url');
     if (usesWorkspaces) {
       const workspace = headerPadding('workspace', 'workspaceName');
-      return `  ${name}  ${range}  ${from}     ${to}  ${workspace}  ${url}`;
+      return `   ${symbol}   ${name}  ${range}  ${from}     ${to}  ${workspace}  ${url}`;
     } else {
-      return `  ${name}  ${range}  ${from}     ${to}  ${url}`;
+      return `   ${symbol}   ${name}  ${range}  ${from}     ${to}  ${url}`;
     }
   };
 
@@ -141,10 +144,10 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   );
 
   try {
-    const red = reporter.format.red('<red>');
-    const yellow = reporter.format.yellow('<yellow>');
-    const green = reporter.format.green('<green>');
-    reporter.info(reporter.lang('legendColorsForVersionUpdates', red, yellow, green));
+    const major = 'M ' + reporter.format.red('package-name');
+    const minor = 'm ' + reporter.format.yellow('package-name');
+    const patch = 'p ' + reporter.format.green('package-name');
+    reporter.info(reporter.lang('legendColorsForVersionUpdates', major, minor, patch));
 
     const answers: Array<Dependency> = await reporter.prompt('Choose which packages to update.', choices, {
       name: 'packages',
