@@ -2,7 +2,7 @@
 
 set -ex
 
-# Ensure all the tools we need are available
+# Ensure all  the tools we need are available
 ensureAvailable() {
   command -v "$1" >/dev/null 2>&1 || (echo "You need to install $1" && exit 2)
 }
