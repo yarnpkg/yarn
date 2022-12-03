@@ -1,8 +1,10 @@
-<p align="center">
-  <a href="https://yarnpkg.com/">
-    <img alt="Yarn" src="https://github.com/yarnpkg/assets/blob/master/yarn-kitten-full.png?raw=true" width="546">
-  </a>
-</p>
+> ## ℹ️ Important note
+> 
+> This repository holds the sources for Yarn 1.x (latest version at the time of this writing being 1.22). New releases (at this time the 3.2.3, although we're currently working on our next major) are tracked on the [yarnpkg/berry](https://github.com/yarnpkg/berry) repository, this one here being mostly kept for historical purposes and the occasional hotfix we publish to make the migration from 1.x to later releases easier.
+> 
+> If you hit bugs or issues with Yarn 1.x, we strongly suggest you [migrate](https://yarnpkg.com/getting-started/migration) to the latest release - at this point they have been maintained longer than 1.x, and many classes of problems have already been addressed there. By using the [`nodeLinker` setting](https://yarnpkg.com/configuration/yarnrc#nodeLinker) you'll also have the choice of how you want to install your packages: node_modules like npm, symlinks like pnpm, or manifest files via [Yarn PnP](https://yarnpkg.com/features/pnp).
+
+---
 
 <p align="center">
   Fast, reliable, and secure dependency management.
@@ -33,6 +35,39 @@
 * **Flat Mode.** Yarn resolves mismatched versions of dependencies to a single version to avoid creating duplicates.
 * **More emojis.** 🐈
 
+## Our supports
+
+### [Gold sponsors](https://opencollective.com/yarnpkg)
+
+<table width="100%">
+  <tr>
+    <td>
+      <a href="https://www.doppler.com/?utm_campaign=github_repo&utm_medium=referral&utm_content=yarn&utm_source=github#gh-light-mode-only">
+        <img src="https://assets.website-files.com/5de9972f49103c5df3964004/5f0c1146992a5e9e4fa553e6_logo.svg" width="140"/>
+      </a>
+      <a href="https://www.doppler.com/?utm_campaign=github_repo&utm_medium=referral&utm_content=yarn&utm_source=github#gh-dark-mode-only">
+        <img src="https://user-images.githubusercontent.com/1037931/151548177-308f0a41-fb0e-4311-9969-4a2455b08686.svg" width="140"/>
+      </a>
+    </td>
+    <td>
+      <b>All your environment variables, in one place</b>. Stop struggling with scattered API keys, hacking together home-brewed tools, and avoiding access controls. Keep your team and servers in sync with <b><a href="https://www.doppler.com/?utm_campaign=github_repo&utm_medium=referral&utm_content=yarn&utm_source=github">Doppler</a></b>.
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="https://workos.com/?utm_campaign=github_repo&utm_medium=referral&utm_content=berry&utm_source=github#gh-light-mode-only">
+        <img src="https://user-images.githubusercontent.com/1037931/151547094-7aa4a5cb-07e4-4b8a-ab8f-0a15fd63ab7d.svg" width="140"/>
+      </a>
+      <a href="https://workos.com/?utm_campaign=github_repo&utm_medium=referral&utm_content=berry&utm_source=github#gh-dark-mode-only">
+        <img src="https://user-images.githubusercontent.com/1037931/151547899-3655e0d3-3bdb-4351-bd75-af2bebd3ce92.svg" width="140"/>
+      </a>
+    </td>
+    <td>
+      <b>Your app, enterprise-ready</b>. Start selling to enterprise customers with just a few lines of code. Add Single Sign-On (and more) in minutes instead of months with <b><a href="https://workos.com/?utm_campaign=github_repo&utm_medium=referral&utm_content=berry&utm_source=github">WorkOS</a></b>.
+    </td>
+  </tr>
+</table>
+
 ## Installing Yarn
 
 Read the [Installation Guide](https://yarnpkg.com/en/docs/install) on our website for detailed instructions on how to install Yarn.
@@ -43,9 +78,7 @@ Read the [Usage Guide](https://yarnpkg.com/en/docs/usage) on our website for det
 
 ## Contributing to Yarn
 
-Contributions are always welcome, no matter how large or small. Substantial feature requests should be proposed as an [RFC](https://github.com/yarnpkg/rfcs). Before contributing, please read the [code of conduct](CODE_OF_CONDUCT.md).
-
-See [Contributing](https://yarnpkg.com/org/contributing/).
+The 1.x codebase is fairly old and will only accept security fixes. For new features or bugfixes, please see our new [repository](https://github.com/yarnpkg/berry) and its [contribution guide](https://yarnpkg.com/advanced/contributing).
 
 ## Prior art
 
