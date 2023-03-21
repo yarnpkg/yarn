@@ -1,8 +1,10 @@
-<p align="center">
-  <a href="https://yarnpkg.com/">
-    <img alt="Yarn" src="https://github.com/yarnpkg/assets/blob/master/yarn-kitten-full.png?raw=true" width="546">
-  </a>
-</p>
+> ## ℹ️ Important note
+> 
+> This repository holds the sources for Yarn 1.x (latest version at the time of this writing being 1.22). New releases (at this time the 3.2.3, although we're currently working on our next major) are tracked on the [yarnpkg/berry](https://github.com/yarnpkg/berry) repository, this one here being mostly kept for historical purposes and the occasional hotfix we publish to make the migration from 1.x to later releases easier.
+> 
+> If you hit bugs or issues with Yarn 1.x, we strongly suggest you [migrate](https://yarnpkg.com/getting-started/migration) to the latest release - at this point they have been maintained longer than 1.x, and many classes of problems have already been addressed there. By using the [`nodeLinker` setting](https://yarnpkg.com/configuration/yarnrc#nodeLinker) you'll also have the choice of how you want to install your packages: node_modules like npm, symlinks like pnpm, or manifest files via [Yarn PnP](https://yarnpkg.com/features/pnp).
+
+---
 
 <p align="center">
   Fast, reliable, and secure dependency management.
