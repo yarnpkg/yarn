@@ -149,6 +149,13 @@
       "packages/pkg-tests"
     ]
   },
+  "keywords": [
+    "yarn",
+    "packages",
+    "package-manager",
+    "npm",
+    "JavaScript"
+]
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
