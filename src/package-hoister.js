@@ -40,6 +40,7 @@ export class HoistManifest {
     this.parts = parts;
     this.originalKey = key;
     this.previousPaths = [];
+    this.previousPatterns = new Set();
 
     this.history = [];
     this.addHistory(`Start position = ${key}`);
@@ -58,6 +59,7 @@ export class HoistManifest {
   loc: string;
   parts: Parts;
   previousPaths: Array<string>;
+  previousPatterns: Set<string>;
   history: Array<string>;
   key: string;
   originalKey: string;
@@ -210,6 +212,11 @@ export default class PackageHoister {
     pattern: string,
     {isDirectRequire, parent}: {isDirectRequire: boolean, parent?: HoistManifest},
   ): ?HoistManifest {
+    // Detected a cyclic dependency, so break the cycle.
+    if (parent != null && parent.previousPatterns.has(pattern)) {
+      return null;
+    }
+
     //
     const pkg = this.resolver.getStrictResolvedPattern(pattern);
     const ref = pkg._reference;
@@ -240,6 +247,7 @@ export default class PackageHoister {
     const parts = parentParts.concat(pkg.name);
     const key: string = this.implodeKey(parts);
     const info: HoistManifest = new HoistManifest(key, parts, pkg, loc, isDirectRequire, isRequired, isIncompatible);
+    info.previousPatterns = new Set(parent == null ? [] : parent.previousPatterns).add(pattern);
 
     this.nohoistResolver.initNohoist(info, parent);
 
