@@ -2,6 +2,9 @@
 /* eslint max-len: 0 */
 
 const messages = {
+  checkCorepack:
+    'This command would have run $0 on a project configured to use $1. Is Corepack installed? If not, follow the instructions at https://yarnpkg.com/corepack.',
+
   upToDate: 'Already up-to-date.',
   folderInSync: 'Folder in sync.',
   nothingToInstall: 'Nothing to install.',

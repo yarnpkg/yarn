@@ -157,7 +157,7 @@ const {run, setFlags, examples} = buildSubCommands('policies', {
       bundleUrl = 'https://nightly.yarnpkg.com/latest.js';
       bundleVersion = 'nightly';
     } else if (V2_NAMES.includes(range) || isLocalFile(range) || isV2Version(range)) {
-      const normalizedRange = range === `canary` ? `canary` : `stable`;
+      const normalizedRange = isV2Version(range) ? range : range === `canary` ? `canary` : `stable`;
 
       if (process.env.COREPACK_ROOT) {
         await child.spawn(

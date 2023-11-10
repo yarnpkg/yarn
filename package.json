@@ -40,6 +40,7 @@
     "object-path": "^0.11.2",
     "proper-lockfile": "^2.0.0",
     "puka": "^1.0.0",
+    "punycode": "1.4.1",
     "read": "^1.0.7",
     "request": "^2.87.0",
     "request-capture-har": "^1.2.2",
