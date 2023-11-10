@@ -539,7 +539,7 @@ export async function main({
       focus: commander.focus,
       otp: commander.otp,
     })
-    .then(async () => {
+    .then(() => {
       // lockfile check must happen after config.init sets lockfileFolder
       if (command.requireLockfile && !fs.existsSync(path.join(config.lockfileFolder, constants.LOCKFILE_FILENAME))) {
         throw new MessageError(reporter.lang('noRequiredLockfile'));
