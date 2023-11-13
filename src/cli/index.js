@@ -283,7 +283,7 @@ export async function main({
         process.stderr.write(
           `Presence of the ${chalk.gray(
             `"packageManager"`,
-          )} field indicates that the project is meant to be used with Corepack, a tool included by default with all modern Node.js distributions.\n`,
+          )} field indicates that the project is meant to be used with Corepack, a tool included by default with all official Node.js distributions starting from 16.9 and 14.19.\n`,
         );
 
         process.stderr.write(

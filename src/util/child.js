@@ -48,7 +48,9 @@ export function forkp(program: string, args: Array<string>, opts?: Object): Prom
     });
 
     proc.on('close', (exitCode: number, signal: string) => {
-      resolve(exitCode ?? 128 + os.constants.signals[signal]);
+      const finalExitCode =
+        typeof exitCode !== `undefined` && exitCode !== null ? exitCode : 128 + os.constants.signals[signal];
+      resolve(finalExitCode);
     });
   });
 }
@@ -65,7 +67,9 @@ export function spawnp(program: string, args: Array<string>, opts?: Object): Pro
     });
 
     proc.on('close', (exitCode: number, signal: string) => {
-      resolve(exitCode ?? 128 + os.constants.signals[signal]);
+      const finalExitCode =
+        typeof exitCode !== `undefined` && exitCode !== null ? exitCode : 128 + os.constants.signals[signal];
+      resolve(finalExitCode);
     });
   });
 }
