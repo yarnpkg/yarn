@@ -26,6 +26,8 @@ import handleSignals from '../util/signal-handler.js';
 import {boolify, boolifyWithDefault} from '../util/conversion.js';
 import {ProcessTermError} from '../errors';
 
+const chalk = require('chalk');
+
 process.stdout.prependListener('error', err => {
   // swallow err only if downstream consumer process closed pipe early
   if (err.code === 'EPIPE' || err.code === 'ERR_STREAM_DESTROYED') {
@@ -263,6 +265,39 @@ export async function main({
   reporter.initPeakMemoryCounter();
 
   const config = new Config(reporter);
+
+  const projectRoot = findProjectRoot(commander.cwd);
+  const cwd = command.shouldRunInCurrentCwd ? commander.cwd : projectRoot;
+
+  if (!process.env.COREPACK_ROOT) {
+    const rootManifest = await config.readRootManifest(projectRoot);
+    if (typeof rootManifest.packageManager === `string`) {
+      if (!rootManifest.packageManager.match(/^yarn@[01]\./)) {
+        reporter.error(
+          `This project's package.json defines ${chalk.gray('"packageManager": "yarn@')}${chalk.yellow(
+            `${rootManifest.packageManager.replace(/^yarn@/, ``).replace(/\+.*/, ``)}`,
+          )}${chalk.gray(`"`)}. However the current global version of Yarn is ${chalk.yellow(version)}.`,
+        );
+
+        process.stderr.write(`\n`);
+        process.stderr.write(
+          `Presence of the ${chalk.gray(
+            `"packageManager"`,
+          )} field indicates that the project is meant to be used with Corepack, a tool included by default with all official Node.js distributions starting from 16.9 and 14.19.\n`,
+        );
+
+        process.stderr.write(
+          `Corepack must currently be enabled by running ${chalk.magenta(
+            `corepack enable`,
+          )} in your terminal. For more information, check out ${chalk.blueBright(`https://yarnpkg.com/corepack`)}.\n`,
+        );
+
+        exit(1);
+        return;
+      }
+    }
+  }
+
   const outputWrapperEnabled = boolifyWithDefault(process.env.YARN_WRAP_OUTPUT, true);
   const shouldWrapOutput =
     outputWrapperEnabled &&
@@ -466,61 +501,6 @@ export async function main({
     });
   };
 
-  function onUnexpectedError(err: Error) {
-    function indent(str: string): string {
-      return '\n  ' + str.trim().split('\n').join('\n  ');
-    }
-
-    const log = [];
-    log.push(`Arguments: ${indent(process.argv.join(' '))}`);
-    log.push(`PATH: ${indent(process.env.PATH || 'undefined')}`);
-    log.push(`Yarn version: ${indent(version)}`);
-    log.push(`Node version: ${indent(process.versions.node)}`);
-    log.push(`Platform: ${indent(process.platform + ' ' + process.arch)}`);
-
-    log.push(`Trace: ${indent(err.stack)}`);
-
-    // add manifests
-    for (const registryName of registryNames) {
-      const possibleLoc = path.join(config.cwd, registries[registryName].filename);
-      const manifest = fs.existsSync(possibleLoc) ? fs.readFileSync(possibleLoc, 'utf8') : 'No manifest';
-      log.push(`${registryName} manifest: ${indent(manifest)}`);
-    }
-
-    // lockfile
-    const lockLoc = path.join(
-      config.lockfileFolder || config.cwd, // lockfileFolder might not be set at this point
-      constants.LOCKFILE_FILENAME,
-    );
-    const lockfile = fs.existsSync(lockLoc) ? fs.readFileSync(lockLoc, 'utf8') : 'No lockfile';
-    log.push(`Lockfile: ${indent(lockfile)}`);
-
-    const errorReportLoc = writeErrorReport(log);
-
-    reporter.error(reporter.lang('unexpectedError', err.message));
-
-    if (errorReportLoc) {
-      reporter.info(reporter.lang('bugReport', errorReportLoc));
-    }
-  }
-
-  function writeErrorReport(log): ?string {
-    const errorReportLoc = config.enableMetaFolder
-      ? path.join(config.cwd, constants.META_FOLDER, 'yarn-error.log')
-      : path.join(config.cwd, 'yarn-error.log');
-
-    try {
-      fs.writeFileSync(errorReportLoc, log.join('\n\n') + '\n');
-    } catch (err) {
-      reporter.error(reporter.lang('fileWriteError', errorReportLoc, err.message));
-      return undefined;
-    }
-
-    return errorReportLoc;
-  }
-
-  const cwd = command.shouldRunInCurrentCwd ? commander.cwd : findProjectRoot(commander.cwd);
-
   const folderOptionKeys = ['linkFolder', 'globalFolder', 'preferredCacheFolder', 'cacheFolder', 'modulesFolder'];
 
   // Resolve all folder options relative to cwd
@@ -608,8 +588,6 @@ export async function main({
 
       if (err instanceof MessageError) {
         reporter.error(err.message);
-      } else {
-        onUnexpectedError(err);
       }
 
       if (command.getDocsInfo) {

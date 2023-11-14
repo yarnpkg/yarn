@@ -6,6 +6,7 @@ import BlockingQueue from './blocking-queue.js';
 import {ProcessSpawnError, ProcessTermError} from '../errors.js';
 import {promisify} from './promise.js';
 
+const os = require('os');
 const child = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -46,8 +47,10 @@ export function forkp(program: string, args: Array<string>, opts?: Object): Prom
       reject(error);
     });
 
-    proc.on('close', exitCode => {
-      resolve(exitCode);
+    proc.on('close', (exitCode: number, signal: string) => {
+      const finalExitCode =
+        typeof exitCode !== `undefined` && exitCode !== null ? exitCode : 128 + os.constants.signals[signal];
+      resolve(finalExitCode);
     });
   });
 }
@@ -63,8 +66,10 @@ export function spawnp(program: string, args: Array<string>, opts?: Object): Pro
       reject(error);
     });
 
-    proc.on('close', exitCode => {
-      resolve(exitCode);
+    proc.on('close', (exitCode: number, signal: string) => {
+      const finalExitCode =
+        typeof exitCode !== `undefined` && exitCode !== null ? exitCode : 128 + os.constants.signals[signal];
+      resolve(finalExitCode);
     });
   });
 }

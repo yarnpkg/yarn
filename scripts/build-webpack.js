@@ -7,6 +7,10 @@ const resolve = require('resolve');
 const util = require('util');
 const fs = require('fs');
 
+// Otherwise Webpack 4 will be "helpful" and automatically mark the `punycode` package as external,
+// despite us wanting to bundle it since it will be removed from future Node.js versions.
+delete process.binding("natives").punycode;
+
 const version = require('../package.json').version;
 const basedir = path.join(__dirname, '../');
 const babelRc = JSON.parse(fs.readFileSync(path.join(basedir, '.babelrc'), 'utf8'));
@@ -74,6 +78,11 @@ const compiler = webpack({
     [`artifacts/yarn-${version}.js`]: path.join(basedir, 'src/cli/index.js'),
     'packages/lockfile/index.js': path.join(basedir, 'src/lockfile/index.js'),
   },
+  resolve: {
+    alias: {
+      punycode: require.resolve(`punycode/`),
+    },
+  },
   module: {
     rules: [
       {
@@ -126,6 +135,11 @@ compiler.run((err, stats) => {
 const compilerLegacy = webpack({
   // devtool: 'inline-source-map',
   entry: path.join(basedir, 'src/cli/index.js'),
+  resolve: {
+    alias: {
+      punycode: require.resolve(`punycode/`),
+    },
+  },
   module: {
     rules: [
       {

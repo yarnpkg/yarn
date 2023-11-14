@@ -1,7 +1,7 @@
 {
   "name": "yarn",
   "installationMethod": "unknown",
-  "version": "1.22.19",
+  "version": "1.22.20",
   "packageManager": "yarn@1.22.17",
   "license": "BSD-2-Clause",
   "preferGlobal": true,
@@ -40,6 +40,7 @@
     "object-path": "^0.11.2",
     "proper-lockfile": "^2.0.0",
     "puka": "^1.0.0",
+    "punycode": "1.4.1",
     "read": "^1.0.7",
     "request": "^2.87.0",
     "request-capture-har": "^1.2.2",
