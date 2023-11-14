@@ -36,6 +36,29 @@ process.stdout.prependListener('error', err => {
   throw err;
 });
 
+function findPackageManager(base: string): ?string {
+  let prev = null;
+  let dir = base;
+
+  do {
+    const p = path.join(dir, constants.NODE_PACKAGE_JSON);
+
+    let data;
+    try {
+      data = JSON.parse(fs.readFileSync(p));
+    } catch (err) {}
+
+    if (data && typeof data.packageManager === `string`) {
+      return data.packageManager;
+    }
+
+    prev = dir;
+    dir = path.dirname(dir);
+  } while (dir !== prev);
+
+  return null;
+}
+
 function findProjectRoot(base: string): string {
   let prev = null;
   let dir = base;
@@ -266,16 +289,13 @@ export async function main({
 
   const config = new Config(reporter);
 
-  const projectRoot = findProjectRoot(commander.cwd);
-  const cwd = command.shouldRunInCurrentCwd ? commander.cwd : projectRoot;
-
-  if (!process.env.COREPACK_ROOT) {
-    const rootManifest = await config.readRootManifest(projectRoot);
-    if (typeof rootManifest.packageManager === `string`) {
-      if (!rootManifest.packageManager.match(/^yarn@[01]\./)) {
+  if (!process.env.COREPACK_ROOT && !process.env.SKIP_YARN_COREPACK_CHECK) {
+    const packageManager = findPackageManager(commander.cwd);
+    if (packageManager !== null) {
+      if (!packageManager.match(/^yarn@[01]\./)) {
         reporter.error(
           `This project's package.json defines ${chalk.gray('"packageManager": "yarn@')}${chalk.yellow(
-            `${rootManifest.packageManager.replace(/^yarn@/, ``).replace(/\+.*/, ``)}`,
+            `${packageManager.replace(/^yarn@/, ``).replace(/\+.*/, ``)}`,
           )}${chalk.gray(`"`)}. However the current global version of Yarn is ${chalk.yellow(version)}.`,
         );
 
@@ -501,6 +521,8 @@ export async function main({
     });
   };
 
+  const cwd = command.shouldRunInCurrentCwd ? commander.cwd : findProjectRoot(commander.cwd);
+
   const folderOptionKeys = ['linkFolder', 'globalFolder', 'preferredCacheFolder', 'cacheFolder', 'modulesFolder'];
 
   // Resolve all folder options relative to cwd
@@ -588,6 +610,8 @@ export async function main({
 
       if (err instanceof MessageError) {
         reporter.error(err.message);
+      } else {
+        reporter.error(err.stack);
       }
 
       if (command.getDocsInfo) {
