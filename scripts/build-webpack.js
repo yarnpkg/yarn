@@ -9,57 +9,20 @@ const fs = require('fs');
 
 // Otherwise Webpack 4 will be "helpful" and automatically mark the `punycode` package as external,
 // despite us wanting to bundle it since it will be removed from future Node.js versions.
-delete process.binding("natives").punycode;
+const binding = process.binding;
+process.binding = name => {
+  let ret = binding(name);
+
+  if (name === `natives`) {
+    delete ret.punycode;
+  }
+
+  return ret;
+};
 
 const version = require('../package.json').version;
 const basedir = path.join(__dirname, '../');
 const babelRc = JSON.parse(fs.readFileSync(path.join(basedir, '.babelrc'), 'utf8'));
-
-var PnpResolver = {
-  apply: function(resolver) {
-    resolver.plugin('resolve', function(request, callback) {
-      if (request.context.issuer === undefined) {
-        return callback();
-      }
-
-      let basedir;
-      let resolved;
-
-      if (!request.context.issuer) {
-        basedir = request.path;
-      } else if (request.context.issuer.startsWith('/')) {
-        basedir = path.dirname(request.context.issuer);
-      } else {
-        throw 42;
-      }
-
-      try {
-        resolved = resolve.sync(request.request, {basedir});
-      } catch (error) {
-        // TODO This is not good! But the `debug` package tries to require `supports-color` without declaring it in its
-        // package.json, and Webpack accepts this because it's in a try/catch, so we need to do it as well.
-        resolved = false;
-      }
-
-      this.doResolve(['resolved'], Object.assign({}, request, {
-        path: resolved,
-      }), '', callback);
-    });
-  }
-};
-
-const pnpOptions = fs.existsSync(`${__dirname}/../.pnp.js`) ? {
-  resolve: {
-    plugins: [
-      PnpResolver,
-    ]
-  },
-  resolveLoader: {
-    plugins: [
-      PnpResolver,
-    ]
-  }
-} : {};
 
 // Use the real node __dirname and __filename in order to get Yarn's source
 // files on the user's system. See constants.js
@@ -119,13 +82,12 @@ const compiler = webpack({
   },
   target: 'node',
   node: nodeOptions,
-  ... pnpOptions,
 });
 
 compiler.run((err, stats) => {
   const fileDependencies = stats.compilation.fileDependencies;
   const filenames = fileDependencies.map(x => x.replace(basedir, ''));
-  console.log(util.inspect(filenames, {maxArrayLength: null}));
+  //console.log(util.inspect(filenames, {maxArrayLength: null}));
 });
 
 //
@@ -171,7 +133,6 @@ const compilerLegacy = webpack({
   },
   target: 'node',
   node: nodeOptions,
-  ... pnpOptions,
 });
 
 compilerLegacy.run((err, stats) => {
