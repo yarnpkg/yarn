@@ -229,18 +229,16 @@ export default class Lockfile {
       invariant(remote, 'Package is missing a remote');
 
       const remoteKey = keyForRemote(remote);
-      const seenPattern = remoteKey && seen.get(remoteKey);
+
+      const seenKey = remoteKey && `${remoteKey}#${getName(pattern)}`;
+      const seenPattern = remoteKey && seen.get(seenKey);
+
       if (seenPattern) {
         // no point in duplicating it
         lockfile[pattern] = seenPattern;
-
-        // if we're relying on our name being inferred and two of the patterns have
-        // different inferred names then we need to set it
-        if (!seenPattern.name && getName(pattern) !== pkg.name) {
-          seenPattern.name = pkg.name;
-        }
         continue;
       }
+
       const obj = implodeEntry(pattern, {
         name: pkg.name,
         version: pkg.version,
@@ -257,8 +255,8 @@ export default class Lockfile {
 
       lockfile[pattern] = obj;
 
-      if (remoteKey) {
-        seen.set(remoteKey, obj);
+      if (seenKey) {
+        seen.set(seenKey, obj);
       }
     }
 
