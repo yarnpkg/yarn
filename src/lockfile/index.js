@@ -230,8 +230,8 @@ export default class Lockfile {
 
       const remoteKey = keyForRemote(remote);
 
-      const seenKey = remoteKey && `${remoteKey}#${getName(pattern)}`;
-      const seenPattern = remoteKey && seen.get(seenKey);
+      const seenKey = remoteKey ? `${remoteKey}#${getName(pattern)}` : null;
+      const seenPattern = seenKey ? seen.get(seenKey) : null;
 
       if (seenPattern) {
         // no point in duplicating it
