@@ -229,8 +229,9 @@ export default class Lockfile {
       invariant(remote, 'Package is missing a remote');
 
       const remoteKey = keyForRemote(remote);
+      const pkgName = getName(pattern);
 
-      const seenKey = remoteKey ? `${remoteKey}#${getName(pattern)}` : null;
+      const seenKey = remoteKey ? `${remoteKey}#${pkgName}` : null;
       const seenPattern = seenKey ? seen.get(seenKey) : null;
 
       if (seenPattern) {
@@ -240,7 +241,7 @@ export default class Lockfile {
       }
 
       const obj = implodeEntry(pattern, {
-        name: pkg.name,
+        name: pkgName,
         version: pkg.version,
         uid: pkg._uid,
         resolved: remote.resolved,
