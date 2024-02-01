@@ -105,7 +105,7 @@
   },
   "resolutions": {
     "sshpk": "^1.14.2",
-    "lodash": "4.17.21"
+    "lodash": "^4.17.21"
   },
   "engines": {
     "node": ">=4.0.0"
