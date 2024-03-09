@@ -473,9 +473,16 @@ export default class RequestManager {
     }
 
     if (proxy) {
-      // if no proxy is set, do not pass a proxy down to request.
-      // the request library will internally check the HTTP_PROXY and HTTPS_PROXY env vars.
       params.proxy = String(proxy);
+
+      if (params.proxy.startsWith('socks')) {
+        const SocksProxyAgent = require('socks-proxy-agent');
+        params.agent = new SocksProxyAgent(params.proxy);
+
+        // To satisfy request library. Request will override our params.agent object if we
+        // still pass a params.proxy field.
+        params.proxy = '';
+      }
     } else if (proxy === false) {
       // passing empty string prevents the underlying library from falling back to the env vars.
       // an explicit false in the yarn config should override the env var. See #4546.
