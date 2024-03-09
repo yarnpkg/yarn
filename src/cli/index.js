@@ -36,7 +36,7 @@ process.stdout.prependListener('error', err => {
   throw err;
 });
 
-function findPackageManager(base: string): ?string {
+function findPackageManager(base: string): string | null {
   let prev = null;
   let dir = base;
 
@@ -45,7 +45,7 @@ function findPackageManager(base: string): ?string {
 
     let data;
     try {
-      data = JSON.parse(fs.readFileSync(p));
+      data = JSON.parse(fs.readFileSync(p, `utf8`));
     } catch (err) {}
 
     if (data && typeof data.packageManager === `string`) {
@@ -303,12 +303,14 @@ export async function main({
         process.stderr.write(
           `Presence of the ${chalk.gray(
             `"packageManager"`,
+            // eslint-disable-next-line max-len
           )} field indicates that the project is meant to be used with Corepack, a tool included by default with all official Node.js distributions starting from 16.9 and 14.19.\n`,
         );
 
         process.stderr.write(
           `Corepack must currently be enabled by running ${chalk.magenta(
             `corepack enable`,
+            // $FlowIgnore
           )} in your terminal. For more information, check out ${chalk.blueBright(`https://yarnpkg.com/corepack`)}.\n`,
         );
 
