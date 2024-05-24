@@ -23,10 +23,16 @@ jobs:
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
       - name: Downloading the release
-        run: wget https://github.com/yarnpkg/yarn/releases/download/v${{ inputs.version }}/yarn-v${{ inputs.version }}.tar.gz
+        run: |
+          wget https://github.com/yarnpkg/yarn/releases/download/v${{ inputs.version }}/yarn-v${{ inputs.version }}.tar.gz
+          wget https://github.com/yarnpkg/yarn/releases/download/v${{ inputs.version }}/yarn-${{ inputs.version }}.js
+          wget https://github.com/yarnpkg/yarn/releases/download/v${{ inputs.version }}/yarn-legacy-${{ inputs.version }}.js
 
       - name: GPG sign file
-        run: gpg -u ${{ vars.GPG_RELEASE_KEY_ID }} --armor --output yarn-v${{ inputs.version }}.tar.gz.asc --detach-sign yarn-v${{ inputs.version }}.tar.gz
+        run: |
+          gpg -u ${{ vars.GPG_RELEASE_KEY_ID }} --armor --output yarn-v${{ inputs.version }}.tar.gz.asc --detach-sign yarn-v${{ inputs.version }}.tar.gz
+          gpg -u ${{ vars.GPG_RELEASE_KEY_ID }} --armor --output yarn-${{ inputs.version }}.js.asc --detach-sign yarn-${{ inputs.version }}.js
+          gpg -u ${{ vars.GPG_RELEASE_KEY_ID }} --armor --output yarn-legacy-${{ inputs.version }}.js.asc --detach-sign yarn-legacy-${{ inputs.version }}.js
 
       - name: Store signature as artifact
         uses: actions/upload-artifact@v3
@@ -35,3 +41,7 @@ jobs:
           path: |
             yarn-v${{ inputs.version }}.tar.gz
             yarn-v${{ inputs.version }}.tar.gz.asc
+            yarn-v${{ inputs.version }}.js
+            yarn-v${{ inputs.version }}.js.asc
+            yarn-legacy-${{ inputs.version }}.js
+            yarn-legacy-${{ inputs.version }}.js.asc
