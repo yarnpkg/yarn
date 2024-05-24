@@ -3,13 +3,17 @@ name: Release Signing
 on:
   workflow_dispatch:
     inputs:
+      environment:
+        required: true
+        type: environment
       version:
         required: true
 
 jobs:
   release-gpg-test:
     runs-on: ubuntu-latest
-    environment: Deploy
+    environment:
+      name: ${{ inputs.environment }}
     steps:
       - name: Import GPG
         id: import_gpg
