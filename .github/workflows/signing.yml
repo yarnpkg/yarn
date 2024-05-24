@@ -41,7 +41,7 @@ jobs:
           path: |
             yarn-v${{ inputs.version }}.tar.gz
             yarn-v${{ inputs.version }}.tar.gz.asc
-            yarn-v${{ inputs.version }}.js
-            yarn-v${{ inputs.version }}.js.asc
+            yarn-${{ inputs.version }}.js
+            yarn-${{ inputs.version }}.js.asc
             yarn-legacy-${{ inputs.version }}.js
             yarn-legacy-${{ inputs.version }}.js.asc
