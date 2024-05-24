@@ -1,0 +1,33 @@
+name: Release Signing
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        required: true
+
+jobs:
+  release-gpg-test:
+    runs-on: ubuntu-latest
+    environment: Deploy
+    steps:
+      - name: Import GPG
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@01dd5d3ca463c7f10f7f4f7b4f177225ac661ee4
+        with:
+          gpg_private_key: ${{ secrets.GPG_RELEASE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Downloading the release
+        run: wget https://github.com/yarnpkg/yarn/releases/download/v${{ inputs.version }}/yarn-v${{ inputs.version }}.tar.gz
+
+      - name: GPG sign file
+        run: gpg -u ${{ vars.GPG_RELEASE_KEY_ID }} --armor --output yarn-v${{ inputs.version }}.tar.gz.asc --detach-sign yarn-v${{ inputs.version }}.tar.gz
+
+      - name: Store signature as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: signed
+          path: |
+            yarn-v${{ inputs.version }}.tar.gz
+            yarn-v${{ inputs.version }}.tar.gz.asc
