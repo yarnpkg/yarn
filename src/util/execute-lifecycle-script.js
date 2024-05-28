@@ -129,11 +129,15 @@ export async function makeEnv(
   const keys: Set<string> = new Set([
     ...Object.keys(config.registries.yarn.config),
     ...Object.keys(config.registries.npm.config),
+    ...Object.keys(config.parsedCliConfig),
   ]);
   const cleaned = Array.from(keys)
     .filter(key => !key.match(/:_/) && IGNORE_CONFIG_KEYS.indexOf(key) === -1)
     .map(key => {
       let val = config.getOption(key);
+      if (typeof val === 'undefined') {
+        val = config.getCliConfig(key);
+      }
       if (!val) {
         val = '';
       } else if (typeof val === 'number') {
