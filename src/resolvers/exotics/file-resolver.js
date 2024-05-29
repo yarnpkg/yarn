@@ -19,9 +19,11 @@ export default class FileResolver extends ExoticResolver {
   constructor(request: PackageRequest, fragment: string) {
     super(request, fragment);
     this.loc = util.removePrefix(fragment, FILE_PROTOCOL_PREFIX);
+    this.resolvedFile = fragment;
   }
 
   loc: string;
+  resolvedFile: string;
 
   static protocol = 'file';
   static prefixMatcher = /^\.{1,2}\//;
@@ -75,6 +77,7 @@ export default class FileResolver extends ExoticResolver {
     manifest._remote = {
       type: 'copy',
       registry,
+      resolvedFile: this.resolvedFile,
       hash: `${uuid.v4()}-${new Date().getTime()}`,
       reference: loc,
     };
