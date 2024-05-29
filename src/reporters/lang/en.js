@@ -160,12 +160,12 @@ const messages = {
   cleaning: 'Cleaning modules',
   cleanCreatingFile: 'Creating $0',
   cleanCreatedFile:
-    'Created $0. Please review the contents of this file then run "yarn autoclean --force" to perform a clean.',
+    'Created $0. Please review the contents of this file then run "yarn autoclean --force" or "yarn autoclean -F" to perform a clean.',
   cleanAlreadyExists: '$0 already exists. To revert to the default file, delete $0 then rerun this command.',
   cleanRequiresForce:
-    'This command required the "--force" flag to perform the clean. This is a destructive operation. Files specified in $0 will be deleted.',
+    'This command required the "--force" or "-F" flag to perform the clean. This is a destructive operation. Files specified in $0 will be deleted.',
   cleanDoesNotExist:
-    '$0 does not exist. Autoclean will delete files specified by $0. Run "autoclean --init" to create $0 with the default entries.',
+    '$0 does not exist. Autoclean will delete files specified by $0. Run "yarn autoclean --init" to create $0 with the default entries.',
 
   binLinkCollision:
     "There's already a linked binary called $0 in your global Yarn bin. Could not link this package's $0 bin entry.",
