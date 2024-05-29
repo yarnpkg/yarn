@@ -19,7 +19,7 @@ import {satisfiesWithPrereleases} from './util/semver.js';
 import WorkspaceLayout from './workspace-layout.js';
 
 const invariant = require('invariant');
-const cmdShim = require('@zkochan/cmd-shim');
+const cmdShim = require('@akosm/cmd-shim');
 const path = require('path');
 const semver = require('semver');
 // Concurrency for creating bin links disabled because of the issue #1961
