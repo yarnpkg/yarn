@@ -10,6 +10,11 @@ const semver = require('semver');
 const stream = require('stream');
 const path = require('path');
 
+const NAME_COL = 1;
+const CURR_COL = 2;
+const WANT_COL = 3;
+const DEP_COL = 5;
+
 const fixturesLoc = path.join(__dirname, '..', 'fixtures', 'outdated');
 const runOutdated = buildRun.bind(
   null,
@@ -77,7 +82,7 @@ test.concurrent('works with single argument', (): Promise<void> => {
     const json: Object = JSON.parse(out);
 
     expect(json.data.body.length).toBe(1);
-    expect(json.data.body[0][0]).toBe('max-safe-integer');
+    expect(json.data.body[0][NAME_COL]).toBe('max-safe-integer');
     expect(reporter.format.green).toHaveBeenCalledWith('max-safe-integer');
   });
 });
@@ -89,8 +94,8 @@ test.concurrent('works with multiple arguments', (): Promise<void> => {
     const json: Object = JSON.parse(out);
 
     expect(json.data.body.length).toBe(2);
-    expect(json.data.body[0][0]).toBe('left-pad');
-    expect(json.data.body[1][0]).toBe('max-safe-integer');
+    expect(json.data.body[0][NAME_COL]).toBe('left-pad');
+    expect(json.data.body[1][NAME_COL]).toBe('max-safe-integer');
     expect(reporter.format.yellow).toHaveBeenCalledWith('left-pad');
     expect(reporter.format.green).toHaveBeenCalledWith('max-safe-integer');
   });
@@ -100,6 +105,7 @@ test.concurrent('works with exotic resolvers', (): Promise<void> => {
   return runOutdated([], {}, 'exotic-resolvers', (config, reporter, out): ?Promise<void> => {
     const json: Object = JSON.parse(out);
     const first = [
+      'X',
       'max-safe-integer',
       '1.0.1',
       'exotic',
@@ -107,7 +113,7 @@ test.concurrent('works with exotic resolvers', (): Promise<void> => {
       'dependencies',
       'https://github.com/sindresorhus/max-safe-integer.git',
     ];
-    const second = ['yarn', '0.16.2', 'exotic', 'exotic', 'dependencies', 'yarnpkg/yarn'];
+    const second = ['X', 'yarn', '0.16.2', 'exotic', 'exotic', 'dependencies', 'yarnpkg/yarn'];
 
     expect(json.data.body.length).toBe(2);
     expect(json.data.body[0]).toEqual(first);
@@ -128,8 +134,8 @@ test.concurrent('shows when wanted > current and current > latest', (): Promise<
     const json: Object = JSON.parse(out);
 
     expect(json.data.body.length).toBe(1);
-    expect(json.data.body[0][0]).toBe('webpack');
-    expect(semver.lt(json.data.body[0][1], json.data.body[0][2])).toBe(true);
+    expect(json.data.body[0][NAME_COL]).toBe('webpack');
+    expect(semver.lt(json.data.body[0][CURR_COL], json.data.body[0][WANT_COL])).toBe(true);
     expect(reporter.format.yellow).toHaveBeenCalledWith('webpack');
   });
 });
@@ -141,14 +147,14 @@ test.concurrent('displays correct dependency types', (): Promise<void> => {
 
     // peerDependencies aren't included in the output
     expect(json.data.body.length).toBe(3);
-    expect(body[0][0]).toBe('is-online');
-    expect(body[0][4]).toBe('optionalDependencies');
+    expect(body[0][NAME_COL]).toBe('is-online');
+    expect(body[0][DEP_COL]).toBe('optionalDependencies');
     expect(reporter.format.red).toHaveBeenCalledWith('is-online');
-    expect(body[1][0]).toBe('left-pad');
-    expect(body[1][4]).toBe('dependencies');
+    expect(body[1][NAME_COL]).toBe('left-pad');
+    expect(body[1][DEP_COL]).toBe('dependencies');
     expect(reporter.format.yellow).toHaveBeenCalledWith('left-pad');
-    expect(body[2][0]).toBe('max-safe-integer');
-    expect(body[2][4]).toBe('devDependencies');
+    expect(body[2][NAME_COL]).toBe('max-safe-integer');
+    expect(body[2][DEP_COL]).toBe('devDependencies');
     expect(reporter.format.green).toHaveBeenCalledWith('max-safe-integer');
   });
 });
@@ -158,12 +164,12 @@ test.concurrent('shows dependencies from entire workspace', async (): Promise<vo
     const json: Object = JSON.parse(out);
 
     expect(json.data.body).toHaveLength(4);
-    expect(json.data.body[0][0]).toBe('left-pad');
-    expect(json.data.body[0][1]).toBe('1.0.0');
-    expect(json.data.body[1][0]).toBe('left-pad');
-    expect(json.data.body[1][1]).toBe('1.0.1');
-    expect(json.data.body[2][0]).toBe('max-safe-integer');
-    expect(json.data.body[3][0]).toBe('right-pad');
+    expect(json.data.body[0][NAME_COL]).toBe('left-pad');
+    expect(json.data.body[0][CURR_COL]).toBe('1.0.0');
+    expect(json.data.body[1][NAME_COL]).toBe('left-pad');
+    expect(json.data.body[1][CURR_COL]).toBe('1.0.1');
+    expect(json.data.body[2][NAME_COL]).toBe('max-safe-integer');
+    expect(json.data.body[3][NAME_COL]).toBe('right-pad');
   });
 
   const childFixture = {source: 'workspaces', cwd: 'child-a'};
@@ -171,11 +177,11 @@ test.concurrent('shows dependencies from entire workspace', async (): Promise<vo
     const json: Object = JSON.parse(out);
 
     expect(json.data.body).toHaveLength(4);
-    expect(json.data.body[0][0]).toBe('left-pad');
-    expect(json.data.body[0][1]).toBe('1.0.0');
-    expect(json.data.body[1][0]).toBe('left-pad');
-    expect(json.data.body[1][1]).toBe('1.0.1');
-    expect(json.data.body[2][0]).toBe('max-safe-integer');
-    expect(json.data.body[3][0]).toBe('right-pad');
+    expect(json.data.body[0][NAME_COL]).toBe('left-pad');
+    expect(json.data.body[0][CURR_COL]).toBe('1.0.0');
+    expect(json.data.body[1][NAME_COL]).toBe('left-pad');
+    expect(json.data.body[1][CURR_COL]).toBe('1.0.1');
+    expect(json.data.body[2][NAME_COL]).toBe('max-safe-integer');
+    expect(json.data.body[3][NAME_COL]).toBe('right-pad');
   });
 });
