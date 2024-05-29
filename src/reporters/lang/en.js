@@ -305,7 +305,7 @@ const messages = {
   uninstallRegenerate: 'Regenerating lockfile and installing missing dependencies',
 
   cleanRemovedFiles: 'Removed $0 files',
-  cleanSavedSize: 'Saved $0 MB.',
+  cleanSavedSize: 'Saved $0 MiB.',
 
   configFileFound: 'Found configuration file $0.',
   configPossibleFile: 'Checking for configuration file $0.',

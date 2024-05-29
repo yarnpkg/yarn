@@ -32,14 +32,14 @@ Object {
 exports[`ConsoleReporter.footer 1`] = `
 Object {
   "stderr": "",
-  "stdout": "[2K[1G✨  Done in 0.00s.",
+  "stdout": "[2K[1G✨  Done in 0.00 s.",
 }
 `;
 
 exports[`ConsoleReporter.footer 2`] = `
 Object {
   "stderr": "",
-  "stdout": "[2K[1G✨  Done in 0.00s. Peak memory usage 0.00MB.",
+  "stdout": "[2K[1G✨  Done in 0.00 s. Peak memory usage 0.00 MiB.",
 }
 `;
 
