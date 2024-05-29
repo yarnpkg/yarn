@@ -19,6 +19,7 @@ untyped-type-import=warn
 [options]
 suppress_comment= \\(.\\|\n\\)*\\$FlowFixMe
 include_warnings=true
+module.ignore_non_literal_requires=true
 
 [version]
 ^0.66.0
