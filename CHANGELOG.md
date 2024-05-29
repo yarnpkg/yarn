@@ -215,6 +215,10 @@ Those versions didn't contain any changes and were just triggered by our infra w
 - Implements `yarn audit --groups group_name [group_name ...]`.
 
   [#6724](https://github.com/yarnpkg/yarn/pull/6724) - [**Tom Milligan**](https://github.com/tommilligan)
+  
+- Adds package.json private fields to JSON output of `yarn workspaces info`.
+  
+  [#7133](https://github.com/yarnpkg/yarn/pull/7133) - [**Ryan Tsao**](https://github.com/rtsao)
 
 - Exposes the script environment variables to `yarn create` spawned processes.
 
