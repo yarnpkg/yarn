@@ -1340,6 +1340,28 @@ module.exports = makeTemporaryEnv => {
     );
 
     test(
+      `it should allow to execute an unplugged dependencies binaries`,
+      makeTemporaryEnv(
+        {
+          dependencies: {
+            [`has-bin-entries`]: `1.0.0`,
+          },
+        },
+        {plugNPlay: true},
+        async ({path, run, source}) => {
+          await run(`install`);
+          await run(`unplug`, `has-bin-entries`);
+
+          await expect(
+            run(`run`, `has-bin-entries`, `success`),
+          ).resolves.toMatchObject({
+            stdout: `success\n`,
+          });
+        },
+      ),
+    );
+
+    test(
       `it should not cache the postinstall artifacts`,
       makeTemporaryEnv(
         {
