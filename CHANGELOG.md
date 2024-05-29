@@ -176,6 +176,10 @@ Those versions didn't contain any changes and were just triggered by our infra w
 
   [#7393](https://github.com/yarnpkg/yarn/pull/7393) - [**Maël Nison**](https://twitter.com/arcanis)
 
+- Respect registry authorization when fetching non-scoped packages
+
+  [#7314](https://github.com/yarnpkg/yarn/pull/7314) - [**Laurens Stötzel**](https://github.com/buffcode)
+
 - Adds support for reading `yarnPath` from v2-produced `.yarnrc.yml` files.
 
   [#7350](https://github.com/yarnpkg/yarn/pull/7350) - [**Maël Nison**](https://twitter.com/arcanis)
@@ -193,6 +197,7 @@ Those versions didn't contain any changes and were just triggered by our infra w
 - Adds support for the `--offline` flag to `yarn global add`
 
   [#7330](https://github.com/yarnpkg/yarn/pull/7330) - [**Francis Crick**](https://guthub.com/fcrick)
+
 
 - Yarn will tolerate Yaml at parse time. Full support isn't ready yet and will only come at the next major.
 
