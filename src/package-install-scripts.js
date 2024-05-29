@@ -209,54 +209,50 @@ export default class PackageInstallScripts {
     await this.install(cmds, pkg, spinner);
   }
 
-  // detect if there is a circularDependency in the dependency tree
-  detectCircularDependencies(root: Manifest, seenManifests: Set<Manifest>, pkg: Manifest): boolean {
-    const ref = pkg._reference;
+  // return the package itself if it's ready to install, a dependency if not, or null if installation is blocked
+  choosePackageToInstall(
+    startingPkg: Manifest,
+    beingInstalled: Set<Manifest>,
+    blocked: Set<Manifest>,
+    installed: Set<Manifest>,
+    seenManifests: Set<Manifest>,
+  ): ?Manifest {
+    const ref = startingPkg._reference;
     invariant(ref, 'expected reference');
-
     const deps = ref.dependencies;
+
+    seenManifests.add(startingPkg);
+
     for (const dep of deps) {
       const pkgDep = this.resolver.getStrictResolvedPattern(dep);
-      if (seenManifests.has(pkgDep)) {
-        // there is a cycle but not with the root
-        continue;
+      if (beingInstalled.has(pkgDep) || blocked.has(pkgDep)) {
+        blocked.add(startingPkg);
+        return null;
       }
-      seenManifests.add(pkgDep);
-      // found a dependency pointing to root
-      if (pkgDep == root) {
-        return true;
-      }
-      if (this.detectCircularDependencies(root, seenManifests, pkgDep)) {
-        return true;
+      if (!installed.has(pkgDep) && !seenManifests.has(pkgDep)) {
+        return this.choosePackageToInstall(pkgDep, beingInstalled, blocked, installed, seenManifests);
       }
     }
-    return false;
+
+    return startingPkg;
   }
 
   // find the next package to be installed
-  findInstallablePackage(workQueue: Set<Manifest>, installed: Set<Manifest>): ?Manifest {
+  findInstallablePackage(
+    workQueue: Set<Manifest>,
+    beingInstalled: Set<Manifest>,
+    blocked: Set<Manifest>,
+    installed: Set<Manifest>,
+  ): ?Manifest {
     for (const pkg of workQueue) {
-      const ref = pkg._reference;
-      invariant(ref, 'expected reference');
-      const deps = ref.dependencies;
+      if (!blocked.has(pkg)) {
+        const pkgToInstall = this.choosePackageToInstall(pkg, beingInstalled, blocked, installed, new Set());
 
-      let dependenciesFulfilled = true;
-      for (const dep of deps) {
-        const pkgDep = this.resolver.getStrictResolvedPattern(dep);
-        if (!installed.has(pkgDep)) {
-          dependenciesFulfilled = false;
-          break;
+        if (pkgToInstall == null) {
+          blocked.add(pkg);
+        } else {
+          return pkgToInstall;
         }
-      }
-
-      // all dependencies are installed
-      if (dependenciesFulfilled) {
-        return pkg;
-      }
-
-      // detect circular dependency, mark this pkg as installable to break the circle
-      if (this.detectCircularDependencies(pkg, new Set(), pkg)) {
-        return pkg;
       }
     }
     return null;
@@ -265,12 +261,14 @@ export default class PackageInstallScripts {
   async worker(
     spinner: ReporterSetSpinner,
     workQueue: Set<Manifest>,
+    beingInstalled: Set<Manifest>,
+    blocked: Set<Manifest>,
     installed: Set<Manifest>,
     waitQueue: Set<() => void>,
   ): Promise<void> {
     while (workQueue.size > 0) {
       // find a installable package
-      const pkg = this.findInstallablePackage(workQueue, installed);
+      const pkg = this.findInstallablePackage(workQueue, beingInstalled, blocked, installed);
 
       // can't find a package to install, register into waitQueue
       if (pkg == null) {
@@ -282,7 +280,10 @@ export default class PackageInstallScripts {
       // found a package to install
       workQueue.delete(pkg);
       if (this.packageCanBeInstalled(pkg)) {
+        beingInstalled.add(pkg);
         await this.runCommand(spinner, pkg);
+        beingInstalled.delete(pkg);
+        blocked.clear();
       }
       installed.add(pkg);
       for (const workerResolve of waitQueue) {
@@ -294,6 +295,8 @@ export default class PackageInstallScripts {
 
   async init(seedPatterns: Array<string>): Promise<void> {
     const workQueue = new Set();
+    const beingInstalled = new Set();
+    const blocked = new Set();
     const installed = new Set();
     const pkgs = this.resolver.getTopologicalManifests(seedPatterns);
     let installablePkgs = 0;
@@ -318,7 +321,9 @@ export default class PackageInstallScripts {
     // waitQueue acts like a semaphore to allow workers to register to be notified
     // when there are more work added to the work queue
     const waitQueue = new Set();
-    await Promise.all(set.spinners.map(spinner => this.worker(spinner, workQueue, installed, waitQueue)));
+    await Promise.all(
+      set.spinners.map(spinner => this.worker(spinner, workQueue, beingInstalled, blocked, installed, waitQueue)),
+    );
     // generate built package as prebuilt one for offline mirror
     const offlineMirrorPath = this.config.getOfflineMirrorPath();
     if (this.config.packBuiltPackages && offlineMirrorPath) {
