@@ -13,6 +13,7 @@ export const requireLockfile = true;
 export function setFlags(commander: Object) {
   commander.description('Checks for outdated package dependencies.');
   commander.usage('outdated [packages ...]');
+  commander.option('--no-legend', "don't show the legend");
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
@@ -51,10 +52,12 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       return row;
     });
 
-    const red = reporter.format.red('<red>');
-    const yellow = reporter.format.yellow('<yellow>');
-    const green = reporter.format.green('<green>');
-    reporter.info(reporter.lang('legendColorsForVersionUpdates', red, yellow, green));
+    if (flags.legend) {
+      const red = reporter.format.red('<red>');
+      const yellow = reporter.format.yellow('<yellow>');
+      const green = reporter.format.green('<green>');
+      reporter.info(reporter.lang('legendColorsForVersionUpdates', red, yellow, green));
+    }
 
     const header = ['Package', 'Current', 'Wanted', 'Latest', 'Workspace', 'Package Type', 'URL'];
     if (!usesWorkspaces) {
