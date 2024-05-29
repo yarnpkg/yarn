@@ -232,6 +232,10 @@ Those versions didn't contain any changes and were just triggered by our infra w
 
   [#7210](https://github.com/yarnpkg/yarn/pull/7210) - [**Maël Nison**](https://twitter.com/arcanis)
 
+- Changes the method used to generate global binary shims on Windows so that PowerShell shims do not break (fixes [#6902](https://github.com/yarnpkg/yarn/issues/6902), [#6958](https://github.com/yarnpkg/yarn/issues/6958))
+
+  [#6959](https://github.com/yarnpkg/yarn/pull/6959) - [**Brian Ricketts**](https://github.com/briman0094)
+
 ## 1.15.2
 
 The 1.15.1 doesn't exist due to a release hiccup.
