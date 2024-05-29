@@ -333,7 +333,11 @@ export default class TarballFetcher extends BaseFetcher {
       return this.fetchFromLocal(this.reference);
     }
 
-    return this.fetchFromLocal().catch(err => this.fetchFromExternal());
+    return this.fetchFromLocal().catch(err => {
+      this.reporter.verbose(this.reporter.lang('errorFetchingFromLocal', err.message));
+      this.reporter.verbose(err.message);
+      return this.fetchFromExternal();
+    });
   }
 
   _findIntegrity({hashOnly}: {hashOnly: boolean}): ?Object {
