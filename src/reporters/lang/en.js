@@ -352,7 +352,7 @@ const messages = {
   fetchBadHashCache:
     'Incorrect hash when fetching from the cache for $0. Cache has $1 and remote has $2. Run `yarn cache clean` to fix the problem',
   fetchBadHashWithPath: "Integrity check failed for $0 (computed integrity doesn't match our records, got $2)",
-  fetchBadIntegrityAlgorithm: 'Integrity checked failed for $0 (none of the specified algorithms are supported)',
+  fetchBadIntegrityAlgorithm: 'Integrity check failed for $0 (none of the specified algorithms are supported)',
   fetchErrorCorrupt:
     '$0. Mirror tarball appears to be corrupt. You can resolve this by running:\n\n  rm -rf $1\n  yarn install',
   errorExtractingTarball: 'Extracting tar content of $1 failed, the file appears to be corrupt: $0',
