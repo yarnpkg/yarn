@@ -1,0 +1,13 @@
+{
+  "name": "c",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "prepublish": "echo running workspace c prepublish hook",
+    "prepare": "echo running workspace c prepare hook",
+    "preinstall": "echo running workspace c preinstall hook",
+    "install": "echo running workspace c install hook",
+    "postinstall": "echo running workspace c postinstall hook"
+  }
+}

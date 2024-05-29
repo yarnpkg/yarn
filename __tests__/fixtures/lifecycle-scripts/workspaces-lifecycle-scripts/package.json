@@ -1,0 +1,15 @@
+{
+  "name": "lifecycle-scripts",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "prepublish": "echo running the main prepublish hook",
+    "prepare": "echo running the main prepare hook",
+    "preinstall": "echo running the main preinstall hook",
+    "install": "echo running the main install hook",
+    "postinstall": "echo running the main postinstall hook"
+  },
+  "workspaces": ["packages/*"],
+  "private": true
+}
