@@ -224,6 +224,30 @@ test.concurrent('focus works correctly when focusing on a scoped package', (): P
   });
 });
 
+test.concurrent('focus work even when the workspace root also depends on other workspaces', (): Promise<void> => {
+  return runInstall(
+    {focus: true},
+    {source: 'focus-root-dep', cwd: '/packages/example-yarn-workspace-1'},
+    async (config, reporter) => {
+      const existAndIsMaterialized = async moduleDir => {
+        expect(await fs.exists(path.join(moduleDir, 'package.json'))).toBeTruthy();
+        const stat = await fs.lstat(moduleDir);
+        expect(stat.isSymbolicLink()).toEqual(false);
+      };
+
+      // The one in the root must exist, and must be materialized (since we're focusing on example-yarn-workspace-1)
+      await existAndIsMaterialized(path.join(config.cwd, '..', '..', 'node_modules', 'example-yarn-workspace-2'));
+
+      // If there's one in example-yarn-workspace-1, it also has to be materialized
+      if (await fs.exists(path.join(config.cwd, 'node_modules', 'example-yarn-workspace-2'))) {
+        expect(
+          await existAndIsMaterialized(path.join(config.cwd, 'node_modules', 'example-yarn-workspace-2')),
+        ).toBeTruthy();
+      }
+    },
+  );
+});
+
 describe('nohoist', () => {
   test.concurrent('focus installs nohoist dependencies shallowly', (): Promise<void> => {
     return runInstall(
