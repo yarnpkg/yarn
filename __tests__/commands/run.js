@@ -217,6 +217,62 @@ test('adds cwd node_modules/.bin to path when in a workspace usig nohoist', (): 
     expect(envPaths).toContain(path.join(config.cwd, 'packages', 'pkg1', 'node_modules', '.bin'));
   }));
 
+// Regression test for https://github.com/yarnpkg/yarn/issues/8590
+test('uses transitive script from workspace root', (): Promise<void> =>
+  runRun(
+    ['eslint'],
+    {},
+    'issue-8590',
+    (config): ?Promise<void> => {
+      expect(execCommand).toBeCalledWith({
+        stage: 'eslint',
+        config,
+        cmd: `${config.cwd}/node_modules/.bin/eslint`,
+        cwd: config.cwd,
+        isInteractive: true,
+        customShell: undefined,
+      });
+    },
+  ));
+
+// Regression test for https://github.com/yarnpkg/yarn/issues/8590
+test('uses transitive script from workspace package A', (): Promise<void> =>
+  runRunInWorkspacePackage(
+    'packages/workspace-a',
+    ['eslint'],
+    {},
+    'issue-8590',
+    (config): ?Promise<void> => {
+      expect(execCommand).toBeCalledWith({
+        stage: 'eslint',
+        config,
+        cmd: `${config.cwd}/packages/workspace-a/node_modules/.bin/eslint`,
+        cwd: `${config.cwd}/packages/workspace-a`,
+        isInteractive: true,
+        customShell: undefined,
+      });
+    },
+  ));
+
+// Regression test for https://github.com/yarnpkg/yarn/issues/8590
+test('uses transitive script from workspace package B', (): Promise<void> =>
+  runRunInWorkspacePackage(
+    'packages/workspace-b',
+    ['eslint'],
+    {},
+    'issue-8590',
+    (config): ?Promise<void> => {
+      expect(execCommand).toBeCalledWith({
+        stage: 'eslint',
+        config,
+        cmd: `${config.cwd}/packages/workspace-b/node_modules/.bin/eslint`,
+        cwd: `${config.cwd}/packages/workspace-b`,
+        isInteractive: true,
+        customShell: undefined,
+      });
+    },
+  ));
+
 test('runs script with custom script-shell', (): Promise<void> =>
   runRunWithCustomShell('/usr/bin/dummy', ['start'], {}, 'script-shell', async (config): ?Promise<void> => {
     const pkg = await fs.readJson(path.join(config.cwd, 'package.json'));

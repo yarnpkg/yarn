@@ -62,6 +62,21 @@ Array [
 ]
 `;
 
+exports[`should add package with no-lockfile option 2`] = `
+Array [
+  "info No lockfile found.",
+  "[1/4] Resolving packages...",
+  "[2/4] Fetching packages...",
+  "[3/4] Linking dependencies...",
+  "[4/4] Building fresh packages...",
+  "success Saved 1 new dependency.",
+  "info Direct dependencies",
+  "└─ repeating@3.0.0",
+  "info All dependencies",
+  "└─ repeating@3.0.0",
+]
+`;
+
 exports[`should add package with no-lockfile option in front 1`] = `
 Array [
   "info No lockfile found.",

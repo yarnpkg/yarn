@@ -55,7 +55,11 @@ export async function getBinEntries(config: Config): Promise<Map<string, string>
   for (const binFolder of binFolders) {
     if (await fs.exists(binFolder)) {
       for (const name of await fs.readdir(binFolder)) {
-        binEntries.set(name, path.join(binFolder, name));
+        const existingDepth = binEntries.get(name) ? binEntries.get(name).split(path.sep).length : 0;
+        const newDepth = binFolder.split(path.sep).length;
+        if (newDepth >= existingDepth) {
+          binEntries.set(name, path.join(binFolder, name));
+        }
       }
     }
   }
