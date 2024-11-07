@@ -9,6 +9,7 @@ import {MessageError} from '../../errors.js';
 import {checkOne as checkCompatibility} from '../../package-compatibility.js';
 import * as fs from '../../util/fs.js';
 import * as constants from '../../constants.js';
+import {preventSigintKill} from '../../util/prevent-sigint-kill';
 
 const invariant = require('invariant');
 const leven = require('leven');
@@ -120,6 +121,8 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       invariant(script, 'Script must exist');
       cmds.push([action, script]);
     }
+
+    preventSigintKill();
 
     if (cmds.length) {
       const ignoreEngines = !!(flags.ignoreEngines || config.getOption('ignore-engines'));

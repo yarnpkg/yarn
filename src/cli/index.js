@@ -25,6 +25,7 @@ import {version} from '../util/yarn-version.js';
 import handleSignals from '../util/signal-handler.js';
 import {boolify, boolifyWithDefault} from '../util/conversion.js';
 import {ProcessTermError} from '../errors';
+import {preventSigintKill} from '../util/prevent-sigint-kill';
 
 process.stdout.prependListener('error', err => {
   // swallow err only if downstream consumer process closed pipe early
@@ -629,10 +630,7 @@ async function start(): Promise<void> {
     const opts = {stdio: 'inherit', env: Object.assign({}, process.env, {YARN_IGNORE_PATH: 1})};
     let exitCode = 0;
 
-    process.on(`SIGINT`, () => {
-      // We don't want SIGINT to kill our process; we want it to kill the
-      // innermost process, whose end will cause our own to exit.
-    });
+    preventSigintKill();
 
     try {
       if (/\.[cm]?js$/.test(yarnPath)) {
