@@ -28,3 +28,13 @@ const reporter = new reporters.NoopReporter({});
     expect(explodeHostedGitFragment(fragment, reporter).hash).toEqual(hash);
   });
 });
+describe('explodeHostedGitFragment DOS vulnerability test', () => {
+  const MAX_MS = 200;
+  test('long fragment without # should finish quickly and throw', () => {
+    const longFragment = '' + '\u0000'.repeat(100000) + '\u0000';
+    const start = Date.now();
+    expect(() => explodeHostedGitFragment(longFragment, reporter)).toThrow();
+    const duration = Date.now() - start;
+    expect(duration).toBeLessThan(MAX_MS);
+  });
+});
