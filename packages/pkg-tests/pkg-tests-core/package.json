@@ -8,7 +8,7 @@
         "minimatch": "^3.0.4",
         "semver": "^5.5.0",
         "super-resolve": "^1.0.0",
-        "tar-fs": "^1.16.0",
+        "tar-fs": "^3.0.0",
         "tmp": "^0.0.33"
     }
 }
