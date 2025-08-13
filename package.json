@@ -31,7 +31,7 @@
     "js-yaml": "^3.13.1",
     "leven": "^2.0.0",
     "loud-rejection": "^1.2.0",
-    "micromatch": "^2.3.11",
+    "micromatch": "^4.0.0",
     "mkdirp": "^0.5.1",
     "node-emoji": "^1.6.1",
     "normalize-url": "^2.0.0",
