@@ -54,12 +54,12 @@ export function parsePerson(person: mixed): any {
     }
   }
 
-  const email = person.match(/<([^>]+)>/);
+  const email = person.match(/<([^<>]+)>/);
   if (email) {
     obj.email = email[1];
   }
 
-  const url = person.match(/\(([^\)]+)\)/);
+  const url = person.match(/\(([^\(\)]+)\)/);
   if (url) {
     obj.url = url[1];
   }
