@@ -29,23 +29,21 @@ test('resolves scoped yarn: package', () => {
   expect(resolver.name).toEqual('@org/foo');
 });
 
-test('Regex Dos', () => {
-  const nativeFs = require('fs');
-  const os = require('os');
+describe('RegistryResolver DOS regression test', () => {
+  const MAX_MS = 200;
 
-  const bundle = '' + '-----BEGIN '.repeat(50000) + '\r';
-  const tmp = path.join(os.tmpdir(), `cafile-${Date.now()}.pem`);
-  nativeFs.writeFileSync(tmp, bundle, 'utf8');
+  test('long fragment without # should finish quickly and throw', () => {
+    const fragment = '\u0000' + '\u0000:'.repeat(100000) + '\n1\n';
+    const reqWithReporter: any = {
+      reporter: {lang: (_key, frag) => `invalidFragment: ${String(frag).slice(0, 16)}...`},
+    };
 
-  const rm = new RequestManager((new Reporter(): any));
+    const start = Date.now();
+    expect(() => {
+      new RegistryResolver((reqWithReporter: any), fragment);
+    }).toThrow(MessageError);
+    const duration = Date.now() - start;
 
-  const start = Date.now();
-  rm.setOptions({userAgent: 'ua/1.0', strictSSL: false, cafile: tmp});
-  const duration = Date.now() - start;
-
-  expect(duration).toBeLessThan(3000);
-
-  try {
-    nativeFs.unlinkSync(tmp);
-  } catch (_) {}
+    expect(duration).toBeLessThan(MAX_MS);
+  });
 });
