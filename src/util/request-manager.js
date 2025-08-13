@@ -184,7 +184,7 @@ export default class RequestManager {
         const bundle = fs.readFileSync(opts.cafile).toString();
         const hasPemPrefix = block => block.startsWith('-----BEGIN ');
         // opts.cafile overrides opts.ca, this matches with npm behavior
-        this.ca = bundle.split(/(-----BEGIN .*\r?\n[^-]+\r?\n--.*)/).filter(hasPemPrefix);
+        this.ca = bundle.split(/(-----BEGIN (?:(?!-).)*\r?\n[^-]+\r?\n--.*)/).filter(hasPemPrefix);
       } catch (err) {
         this.reporter.error(`Could not open cafile: ${err.message}`);
       }
