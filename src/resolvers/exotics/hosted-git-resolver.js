@@ -30,9 +30,8 @@ export function explodeHostedGitFragment(fragment: string, reporter: Reporter): 
   }
 
   const parts = fragment
-    .split('#', 1)[0]
-    .split(':')
-    .pop()
+    .replace(/(.*?)#.*/, '$1') // Strip hash
+    .replace(/.*:(.*)/, '$1') // Strip prefixed protocols
     .replace(/.git$/, '') // Strip the .git suffix
     .split('/');
 
