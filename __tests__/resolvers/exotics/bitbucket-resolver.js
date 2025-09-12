@@ -5,7 +5,7 @@ import type {ExplodedFragment} from '../../../src/resolvers/exotics/hosted-git-r
 import Git from '../../../src/util/git.js';
 import * as reporters from '../../../src/reporters/index.js';
 
-const url = require('url');
+const url = require('url/');
 const _bitBucketBase = 'https://bitbucket.org/';
 const reporter = new reporters.NoopReporter({});
 

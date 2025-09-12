@@ -1,6 +1,6 @@
 /* @flow */
 
-import url from 'url';
+import url from 'url/';
 
 function cleanup(name: string): string {
   name = name.replace(/-\d+\.\d+\.\d+/, '');

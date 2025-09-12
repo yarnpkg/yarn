@@ -11,7 +11,7 @@ import normalizeUrl from 'normalize-url';
 const crypto = require('crypto');
 const path = require('path');
 const tarFs = require('tar-fs');
-const url = require('url');
+const url = require('url/');
 const fs = require('fs');
 const stream = require('stream');
 const gunzip = require('gunzip-maybe');

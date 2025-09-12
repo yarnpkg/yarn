@@ -4,7 +4,7 @@ import GitHubResolver from '../../../src/resolvers/exotics/github-resolver.js';
 import type {ExplodedFragment} from '../../../src/resolvers/exotics/hosted-git-resolver.js';
 import Git from '../../../src/util/git.js';
 
-const url = require('url');
+const url = require('url/');
 
 test('getGitSSHUrl with hash', () => {
   const gitSSHUrl = GitHubResolver.getGitSSHUrl({

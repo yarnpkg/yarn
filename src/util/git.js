@@ -4,7 +4,7 @@ import invariant from 'invariant';
 import {StringDecoder} from 'string_decoder';
 import tarFs from 'tar-fs';
 import tarStream from 'tar-stream';
-import url from 'url';
+import url from 'url/';
 import {createWriteStream} from 'fs';
 
 import type Config from '../config.js';

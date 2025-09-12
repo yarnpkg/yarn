@@ -2,7 +2,7 @@
 
 import fs from 'fs';
 import http from 'http';
-import url from 'url';
+import url from 'url/';
 import dnscache from 'dnscache';
 import invariant from 'invariant';
 import RequestCaptureHar from 'request-capture-har';

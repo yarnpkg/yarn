@@ -10,7 +10,7 @@ import {registries} from '../../registries/index.js';
 import ExoticResolver from './exotic-resolver.js';
 import Git from '../../util/git.js';
 
-const urlParse = require('url').parse;
+const urlParse = require('url/').parse;
 
 const GIT_HOSTS = ['github.com', 'gitlab.com', 'bitbucket.com', 'bitbucket.org'];
 
