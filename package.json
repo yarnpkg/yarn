@@ -98,16 +98,19 @@
     "prettier": "^1.5.2",
     "string-replace-loader": "^2.1.1",
     "temp": "^0.8.3",
+    "vite": "6.3.5",
+    "vitest": "0.34.6",
     "webpack": "^2.1.0-beta.25",
     "yargs": "^6.3.0"
   },
   "resolutions": {
-    "sshpk": "^1.14.2"
+    "sshpk": "^1.14.2",
+    "vite": "6.3.5"
   },
   "engines": {
     "node": ">=4.0.0"
   },
-  "repository": "yarnpkg/yarn",
+  "repository": "https://github.com/yarnpkg/yarn",
   "bin": {
     "yarn": "./bin/yarn.js",
     "yarnpkg": "./bin/yarn.js"
@@ -125,12 +128,13 @@
     "pkg-tests": "yarn --cwd packages/pkg-tests jest yarn.test.js",
     "prettier": "eslint src __tests__ --fix",
     "release-branch": "./scripts/release-branch.sh",
-    "test": "yarn lint && yarn test-only",
+    "test": "vitest",
     "test-only": "node --max_old_space_size=4096 node_modules/jest/bin/jest.js --verbose",
     "test-only-debug": "node --inspect-brk --max_old_space_size=4096 node_modules/jest/bin/jest.js --runInBand --verbose",
     "test-coverage": "node --max_old_space_size=4096 node_modules/jest/bin/jest.js --coverage --verbose",
     "watch": "gulp watch",
-    "commit": "git-cz"
+    "commit": "git-cz",
+    "dev": "vite --host"
   },
   "jest": {
     "collectCoverageFrom": [
@@ -153,5 +157,7 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
-  }
+  },
+  "main": "index.js",
+  "author": "SUNDER SINGH <139661242+SunderSingh27@users.noreply.github.com>"
 }
