@@ -18,7 +18,7 @@
     "deep-equal": "^1.0.1",
     "detect-indent": "^5.0.0",
     "dnscache": "^1.0.1",
-    "glob": "^7.1.1",
+    "glob": "^11.0.0",
     "gunzip-maybe": "^1.4.0",
     "hash-for-dep": "^1.2.3",
     "imports-loader": "^0.8.0",
