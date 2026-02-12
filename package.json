@@ -43,7 +43,7 @@
     "request": "^2.87.0",
     "request-capture-har": "^1.2.2",
     "rimraf": "^2.5.0",
-    "semver": "^5.1.0",
+    "semver": "^7.0.0",
     "ssri": "^5.3.0",
     "strip-ansi": "^4.0.0",
     "strip-bom": "^3.0.0",
