@@ -3466,13 +3466,13 @@ growly@^1.3.0:
   resolved "https://registry.yarnpkg.com/growly/-/growly-1.3.0.tgz#f10748cbe76af964b7c96c93c6bcc28af120c081"
   integrity sha1-8QdIy+dq+WS3yWyTxrzCivEgwIE=
 
-gulp-babel@^7.0.0:
-  version "7.0.1"
-  resolved "https://registry.yarnpkg.com/gulp-babel/-/gulp-babel-7.0.1.tgz#b9c8e29fa376b36c57989db820fc1c1715bb47cb"
-  integrity sha512-UqHS3AdxZyJCRxqnAX603Dj3k/Wx6hzcgmav3QcxvsIFq3Y8ZkU7iXd0O+JwD5ivqCc6o0r1S7tCB/xxLnuSNw==
+gulp-babel@^8.0.0:
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/gulp-babel/-/gulp-babel-8.0.0.tgz#e0da96f4f2ec4a88dd3a3030f476e38ab2126d87"
+  integrity sha512-oomaIqDXxFkg7lbpBou/gnUkX51/Y/M2ZfSjL2hdqXTAlSWZcgZtd2o0cOH0r/eE8LWD0+Q/PsLsr2DKOoqToQ==
   dependencies:
     plugin-error "^1.0.1"
-    replace-ext "0.0.1"
+    replace-ext "^1.0.0"
     through2 "^2.0.0"
     vinyl-sourcemaps-apply "^0.2.0"
 
@@ -6367,11 +6367,6 @@ repeating@^2.0.0:
   integrity sha1-UhTFOpJtNVJwdSf7q0FdvAjQbdo=
   dependencies:
     is-finite "^1.0.0"
-
-replace-ext@0.0.1:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/replace-ext/-/replace-ext-0.0.1.tgz#29bbd92078a739f0bcce2b4ee41e837953522924"
-  integrity sha1-KbvZIHinOfC8zitO5B6DeVNSKSQ=
 
 replace-ext@^1.0.0:
   version "1.0.0"
