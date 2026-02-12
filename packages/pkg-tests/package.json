@@ -11,7 +11,7 @@
         "babel-preset-flow": "^6.23.0",
         "flow-bin": "^0.66.0",
         "jest": "^23.0.0",
-        "jest-junit": "^5.2.0",
+        "jest-junit": "^16.0.0",
         "prettier": "^1.10.2"
     },
     "scripts": {
