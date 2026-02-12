@@ -65,6 +65,7 @@ export async function getBinEntries(config: Config): Promise<Map<string, string>
 
 export function setFlags(commander: Object) {
   commander.description('Runs a defined package script.');
+  commander.option('--if-present', `Return exit code 0 if the package script is not defiend`);
 }
 
 export function hasWrapper(commander: Object, args: Array<string>): boolean {
@@ -160,7 +161,12 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       if (suggestion) {
         msg += ` Did you mean ${JSON.stringify(suggestion)}?`;
       }
-      throw new MessageError(msg);
+
+      if (flags.ifPresent) {
+        reporter.warn(msg);
+      } else {
+        throw new MessageError(msg);
+      }
     }
   }
 
