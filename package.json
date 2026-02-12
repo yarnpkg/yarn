@@ -90,7 +90,7 @@
     "gulp-if": "^2.0.1",
     "gulp-newer": "^1.0.0",
     "gulp-plumber": "^1.0.1",
-    "gulp-sourcemaps": "^2.2.0",
+    "gulp-sourcemaps": "^3.0.0",
     "jest": "^22.4.4",
     "jsinspect": "^0.12.6",
     "minimatch": "^3.0.4",
