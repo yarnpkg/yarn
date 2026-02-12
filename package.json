@@ -94,7 +94,7 @@
     "jest": "^22.4.4",
     "jsinspect": "^0.12.6",
     "minimatch": "^3.0.4",
-    "mock-stdin": "^0.3.0",
+    "mock-stdin": "^1.0.0",
     "prettier": "^1.5.2",
     "string-replace-loader": "^2.1.1",
     "temp": "^0.8.3",
