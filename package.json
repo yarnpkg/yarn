@@ -87,7 +87,7 @@
     "git-release-notes": "^3.0.0",
     "gulp": "^4.0.0",
     "gulp-babel": "^7.0.0",
-    "gulp-if": "^2.0.1",
+    "gulp-if": "^3.0.0",
     "gulp-newer": "^1.0.0",
     "gulp-plumber": "^1.0.1",
     "gulp-sourcemaps": "^2.2.0",
