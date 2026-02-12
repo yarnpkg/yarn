@@ -1,0 +1,8 @@
+{
+  "name": "@scope/test",
+  "version": "0.0.0",
+  "publishConfig": {
+    "@scope:registry": "https://registry-publish.myorg.com/",
+    "registry": "https://registry.npmjs.org/"
+  }
+}

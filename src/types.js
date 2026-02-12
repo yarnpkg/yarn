@@ -169,6 +169,12 @@ export type Manifest = {
   fresh?: boolean,
 
   prebuiltVariants?: {[filename: string]: string},
+
+  publishConfig?: {
+    access?: string,
+    registry?: string,
+    tag?: string,
+  },
 };
 
 //
