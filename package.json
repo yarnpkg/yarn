@@ -33,7 +33,7 @@
     "loud-rejection": "^1.2.0",
     "micromatch": "^2.3.11",
     "mkdirp": "^0.5.1",
-    "node-emoji": "^1.6.1",
+    "node-emoji": "^2.0.0",
     "normalize-url": "^2.0.0",
     "npm-logical-tree": "^1.2.1",
     "object-path": "^0.11.2",
