@@ -4,7 +4,7 @@
     "main": "./sources/index.js",
     "dependencies": {
         "fs-extra": "^7.0.0",
-        "klaw": "^2.1.1",
+        "klaw": "^4.0.0",
         "minimatch": "^3.0.4",
         "semver": "^5.5.0",
         "super-resolve": "^1.0.0",
