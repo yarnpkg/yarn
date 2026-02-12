@@ -14,7 +14,7 @@
     "cli-table3": "^0.4.0",
     "commander": "^2.9.0",
     "death": "^1.0.0",
-    "debug": "^3.0.0",
+    "debug": "^4.0.0",
     "deep-equal": "^1.0.1",
     "detect-indent": "^5.0.0",
     "dnscache": "^1.0.1",
