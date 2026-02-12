@@ -32,7 +32,7 @@
     "leven": "^2.0.0",
     "loud-rejection": "^1.2.0",
     "micromatch": "^2.3.11",
-    "mkdirp": "^0.5.1",
+    "mkdirp": "^3.0.0",
     "node-emoji": "^1.6.1",
     "normalize-url": "^2.0.0",
     "npm-logical-tree": "^1.2.1",
