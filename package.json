@@ -52,7 +52,7 @@
     "uuid": "^3.0.1",
     "v8-compile-cache": "^2.0.0",
     "validate-npm-package-license": "^3.0.4",
-    "yn": "^2.0.0"
+    "yn": "^5.0.0"
   },
   "devDependencies": {
     "babel-core": "^6.26.0",
