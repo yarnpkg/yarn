@@ -29,7 +29,7 @@
     "is-ci": "^1.0.10",
     "is-webpack-bundle": "^1.0.0",
     "js-yaml": "^3.13.1",
-    "leven": "^2.0.0",
+    "leven": "^4.0.0",
     "loud-rejection": "^1.2.0",
     "micromatch": "^2.3.11",
     "mkdirp": "^0.5.1",
