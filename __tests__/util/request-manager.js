@@ -308,3 +308,24 @@ test('RequestManager.saveHar no captureHar error message', async () => {
     expect(err.message).toBe('RequestManager was not setup to capture HAR files');
   }
 });
+
+test('Regex Dos', () => {
+  const nativeFs = require('fs');
+  const os = require('os');
+
+  const bundle = '' + '-----BEGIN '.repeat(50000) + '\r';
+  const tmp = path.join(os.tmpdir(), `cafile-${Date.now()}.pem`);
+  nativeFs.writeFileSync(tmp, bundle, 'utf8');
+
+  const rm = new RequestManager((new Reporter(): any));
+
+  const start = Date.now();
+  rm.setOptions({userAgent: 'ua/1.0', strictSSL: false, cafile: tmp});
+  const duration = Date.now() - start;
+
+  expect(duration).toBeLessThan(3000);
+
+  try {
+    nativeFs.unlinkSync(tmp);
+  } catch (_) {}
+});
