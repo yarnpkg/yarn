@@ -84,7 +84,7 @@
     "execa": "^0.11.0",
     "fancy-log": "^1.3.2",
     "flow-bin": "^0.66.0",
-    "git-release-notes": "^3.0.0",
+    "git-release-notes": "^5.0.0",
     "gulp": "^4.0.0",
     "gulp-babel": "^7.0.0",
     "gulp-if": "^2.0.1",
