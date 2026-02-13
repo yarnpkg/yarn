@@ -183,3 +183,25 @@ function normalizePathDict(paths: mixed): ?{[key: string]: mixed} {
 
   return out;
 }
+
+describe('util DOS regression', () => {
+  const MAX_MS = 500;
+
+  test('dos1', () => {
+    const person = '' + '<'.repeat(100000) + '\u0000';
+    const start = Date.now();
+    const parsed = util.parsePerson(person);
+    const duration = Date.now() - start;
+    expect(parsed).toEqual({});
+    expect(duration).toBeLessThan(MAX_MS);
+  });
+
+  test('dos2', () => {
+    const person = '' + '('.repeat(100000) + '\u0000';
+    const start = Date.now();
+    const parsed = util.parsePerson(person);
+    const duration = Date.now() - start;
+    expect(parsed).toEqual({});
+    expect(duration).toBeLessThan(MAX_MS);
+  });
+});
