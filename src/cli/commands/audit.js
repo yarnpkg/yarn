@@ -11,7 +11,7 @@ import {buildTree as hoistedTreeBuilder} from '../../hoisted-tree-builder';
 import {getTransitiveDevDependencies} from '../../util/get-transitive-dev-dependencies';
 import {Install} from './install.js';
 import Lockfile from '../../lockfile';
-import {OWNED_DEPENDENCY_TYPES, YARN_REGISTRY} from '../../constants';
+import {OWNED_DEPENDENCY_TYPES} from '../../constants';
 
 const zlib = require('zlib');
 const gzip = promisify(zlib.gzip);
@@ -238,7 +238,7 @@ export default class Audit {
 
   async _fetchAudit(auditTree: AuditTree): Object {
     let responseJson;
-    const registry = YARN_REGISTRY;
+    const registry = String(this.config.getOption('registry'));
     this.reporter.verbose(`Audit Request: ${JSON.stringify(auditTree, null, 2)}`);
     const requestBody = await gzip(JSON.stringify(auditTree));
     const response = await this.config.requestManager.request({
@@ -251,6 +251,10 @@ export default class Audit {
         Accept: 'application/json',
       },
     });
+
+    if (!response) {
+      throw new Error(`Your configured registry ${registry} does not support audit requests.`);
+    }
 
     try {
       responseJson = JSON.parse(response);
