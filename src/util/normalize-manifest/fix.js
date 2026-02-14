@@ -10,7 +10,7 @@ import * as fs from '../fs.js';
 
 const semver = require('semver');
 const path = require('path');
-const url = require('url');
+const url = require('url/');
 
 const VALID_BIN_KEYS = /^(?!\.{0,2}$)[a-z0-9._-]+$/i;
 

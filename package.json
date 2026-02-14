@@ -50,6 +50,7 @@
     "tar-fs": "^1.16.0",
     "tar-stream": "^1.6.1",
     "uuid": "^3.0.1",
+    "url": "^0.11.4",
     "v8-compile-cache": "^2.0.0",
     "validate-npm-package-license": "^3.0.4",
     "yn": "^2.0.0"

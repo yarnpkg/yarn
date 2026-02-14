@@ -16,7 +16,7 @@ const mkdirp = require('mkdirp');
 const https = require('https');
 const http = require('http');
 const path = require('path');
-const url = require('url');
+const url = require('url/');
 const fs = require('fs');
 
 const CACHE_DIR = path.join(__dirname, '..', 'fixtures', 'request-cache');

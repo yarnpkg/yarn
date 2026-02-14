@@ -12,7 +12,7 @@ import path from 'path';
 
 const invariant = require('invariant');
 const crypto = require('crypto');
-const url = require('url');
+const url = require('url/');
 const fs2 = require('fs');
 const ssri = require('ssri');
 

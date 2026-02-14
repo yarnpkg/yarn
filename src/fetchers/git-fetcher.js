@@ -13,7 +13,7 @@ import Config from '../config.js';
 import {packTarball} from '../cli/commands/pack.js';
 
 const tarFs = require('tar-fs');
-const url = require('url');
+const url = require('url/');
 const path = require('path');
 const fs = require('fs');
 

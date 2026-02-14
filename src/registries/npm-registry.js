@@ -18,7 +18,7 @@ import {default as userHome, home} from '../util/user-home-dir';
 import {MessageError, OneTimePasswordError} from '../errors.js';
 import {getOneTimePassword} from '../cli/commands/login.js';
 import path from 'path';
-import url from 'url';
+import url from 'url/';
 import ini from 'ini';
 
 const DEFAULT_REGISTRY = 'https://registry.npmjs.org/';
