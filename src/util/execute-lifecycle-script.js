@@ -195,7 +195,12 @@ export async function makeEnv(
       pathParts.unshift(path.join(config.workspaceRootFolder, binFolder));
     }
     pathParts.unshift(path.join(config.linkFolder, binFolder));
-    pathParts.unshift(path.join(cwd, binFolder));
+
+    let realBinFolder = path.join(cwd, binFolder);
+    if (await fs.exists(realBinFolder)) {
+      realBinFolder = await fs.realpath(realBinFolder);
+    }
+    pathParts.unshift(realBinFolder);
   }
 
   let pnpFile;
