@@ -67,7 +67,7 @@
     "babel-preset-flow": "^6.23.0",
     "babel-preset-stage-0": "^6.0.0",
     "babylon": "^6.5.0",
-    "commitizen": "^2.9.6",
+    "commitizen": "^4.0.0",
     "cz-conventional-changelog": "^2.0.0",
     "eslint": "^4.3.0",
     "eslint-config-fb-strict": "^22.0.0",
