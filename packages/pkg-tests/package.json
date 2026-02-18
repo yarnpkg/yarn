@@ -27,6 +27,9 @@
     "jest": {
         "modulePathIgnorePatterns": [
             "<rootDir>/pkg-tests-fixtures/packages/"
+        ],
+        "transformIgnorePatterns": [
+            "<rootDir>/node_modules/(?!pkg-tests-)"
         ]
     }
 }

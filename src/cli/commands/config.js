@@ -38,6 +38,7 @@ const CONFIG_KEYS = [
   'cacheFolder',
   'tempFolder',
   'production',
+  'packageDateLimit',
 ];
 
 export function hasWrapper(flags: Object, args: Array<string>): boolean {

@@ -44,7 +44,7 @@ const expectedKeys = [
 ];
 
 // yarn now ships as built, single JS files so it has no dependencies and no scripts
-const unexpectedKeys = ['dependencies', 'devDependencies', 'scripts'];
+const unexpectedKeys = ['dependencies', 'devDependencies']; // 'scripts' removed from v1.23
 
 beforeEach(() => {
   // the mocked requests have stripped metadata, don't use it in the following tests
