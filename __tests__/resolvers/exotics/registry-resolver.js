@@ -28,3 +28,22 @@ test('resolves scoped yarn: package', () => {
 
   expect(resolver.name).toEqual('@org/foo');
 });
+
+describe('RegistryResolver DOS regression test', () => {
+  const MAX_MS = 200;
+
+  test('long fragment without # should finish quickly and throw', () => {
+    const fragment = '\u0000' + '\u0000:'.repeat(100000) + '\n1\n';
+    const reqWithReporter: any = {
+      reporter: {lang: (_key, frag) => `invalidFragment: ${String(frag).slice(0, 16)}...`},
+    };
+
+    const start = Date.now();
+    expect(() => {
+      new RegistryResolver((reqWithReporter: any), fragment);
+    }).toThrow(MessageError);
+    const duration = Date.now() - start;
+
+    expect(duration).toBeLessThan(MAX_MS);
+  });
+});
