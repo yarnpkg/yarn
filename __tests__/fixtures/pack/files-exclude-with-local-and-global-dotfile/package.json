@@ -1,0 +1,6 @@
+{
+  "name": "files-exclude-with-local-and-global-dotfile",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT"
+}

@@ -6,6 +6,8 @@ import type {IgnoreFilter} from '../../util/filter.js';
 import * as fs from '../../util/fs.js';
 import {sortFilter, ignoreLinesToRegex, filterOverridenGitignores} from '../../util/filter.js';
 import {MessageError} from '../../errors.js';
+import {spawn as spawnGit} from '../../util/git/git-spawn.js';
+import {lstat} from '../../util/fs';
 
 const zlib = require('zlib');
 const path = require('path');
@@ -39,6 +41,7 @@ const DEFAULT_IGNORE = ignoreLinesToRegex([
   '.yarnrc.yml',
   '.npmignore',
   '.gitignore',
+  '.gitignore_global',
   '.DS_Store',
 ]);
 
@@ -56,7 +59,15 @@ export async function packTarball(
 ): Promise<stream$Duplex> {
   const pkg = await config.readRootManifest();
   const {bundleDependencies, main, files: onlyFiles} = pkg;
-
+  let globalGitIgnoreFile;
+  try {
+    globalGitIgnoreFile = await spawnGit(['config', '--global', 'core.excludesfile'], {
+      cwd: config.cwd,
+      stdio: 'inherit',
+    });
+  } catch (err) {
+    //swallow the error
+  }
   // include required files
   let filters: Array<IgnoreFilter> = NEVER_IGNORE.slice();
   // include default filters unless `files` is used
@@ -65,6 +76,10 @@ export async function packTarball(
   }
   if (main) {
     filters = filters.concat(ignoreLinesToRegex(['!/' + main]));
+  }
+
+  if (globalGitIgnoreFile) {
+    filters = filters.concat(ignoreLinesToRegex([globalGitIgnoreFile]));
   }
 
   // include bundleDependencies
@@ -94,13 +109,25 @@ export async function packTarball(
   }
 
   const files = await fs.walk(config.cwd, null, new Set(FOLDERS_IGNORE));
+
+  if (globalGitIgnoreFile) {
+    const stat = await lstat(globalGitIgnoreFile);
+    const loc = path.resolve(globalGitIgnoreFile);
+    const basename = path.basename(globalGitIgnoreFile);
+    files.push({
+      relative: basename,
+      basename,
+      absolute: loc,
+      mtime: +stat.mtime,
+    });
+  }
+
   const dotIgnoreFiles = filterOverridenGitignores(files);
 
   // create ignores
   for (const file of dotIgnoreFiles) {
     const raw = await fs.readFile(file.absolute);
     const lines = raw.split('\n');
-
     const regexes = ignoreLinesToRegex(lines, path.dirname(file.relative));
     filters = filters.concat(regexes);
   }
