@@ -18,7 +18,7 @@ Object {
 exports[`ConsoleReporter.command 1`] = `
 Object {
   "stderr": "",
-  "stdout": "[2K[1G[2m$ foobar[22m",
+  "stdout": "[2K[1G[2mfoobar[22m",
 }
 `;
 
