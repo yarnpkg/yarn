@@ -240,6 +240,9 @@ export default class BaseReporter {
   // summary for security audit report
   auditSummary(auditMetadata: AuditMetadata) {}
 
+  // muted advisories for security audit report
+  auditMute(mutedAdvisories: AuditAdvisory[]) {}
+
   // render an activity spinner and return a function that will trigger an update
   activity(): ReporterSpinner {
     return {
