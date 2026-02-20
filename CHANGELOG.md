@@ -134,6 +134,10 @@ Those versions didn't contain any changes and were just triggered by our infra w
 
   [#7592](https://github.com/yarnpkg/yarn/pull/7592) - [**Maël Nison**](https://twitter.com/arcanis)
 
+- Recognizes version ranges as valid `flat` resolutions
+
+  [#7531](https://github.com/yarnpkg/yarn/pull/7531) - [**artoria2e5**](https://github.com/Artoria2e5)
+
 ## 1.19.0
 
 **Important:** This release contains a cache bump. It will cause the very first install following the upgrade to take slightly more time, especially if you don't use the [Offline Mirror](https://yarnpkg.com/blog/2016/11/24/offline-mirror/) feature. After that everything will be back to normal.

@@ -803,7 +803,10 @@ export class Install {
   }
 
   /**
-   * TODO
+   * Reduce a possibly redundant array of package-version patterns to a
+   * flatter one selection-per-pattern array. Asks for human intervention
+   * when the resolver gives more than one version for a dependency in the
+   * graph (common with flat deps).
    */
 
   async flatten(patterns: Array<string>): Promise<Array<string>> {
@@ -841,13 +844,17 @@ export class Install {
           value: info.version,
         };
       });
-      const versions = infos.map((info): string => info.version);
+      // reverse sort to prioritize the newest possible match; @see PackageResolver.optimizeResolutions
+      const versions = infos.map((info): string => info.version).sort(semver.rcompare);
       let version: ?string;
 
-      const resolutionVersion = this.resolutions[name];
-      if (resolutionVersion && versions.indexOf(resolutionVersion) >= 0) {
-        // use json `resolution` version
-        version = resolutionVersion;
+      const resolutionRange = this.resolutions[name];
+      const resolvedVersionIndex = resolutionRange
+        ? versions.findIndex(version => semver.satisfies(version, resolutionRange))
+        : -1;
+      if (resolvedVersionIndex >= 0) {
+        // use json `resolutions` match
+        version = versions[resolvedVersionIndex];
       } else {
         version = await this.reporter.select(
           this.reporter.lang('manualVersionResolution', name),
