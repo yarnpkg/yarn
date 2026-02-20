@@ -92,6 +92,7 @@ export const CLEAN_FILENAME = '.yarnclean';
 
 export const NPM_LOCK_FILENAME = 'package-lock.json';
 export const NPM_SHRINKWRAP_FILENAME = 'npm-shrinkwrap.json';
+export const NPM_IGNORE_FILENAME = '.npmignore';
 
 export const DEFAULT_INDENT = '  ';
 export const SINGLE_INSTANCE_PORT = 31997;
