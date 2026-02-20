@@ -253,6 +253,10 @@ export default class NpmRegistry extends Registry {
   async getPossibleConfigLocations(filename: string, reporter: Reporter): Promise<Array<[boolean, string, string]>> {
     let possibles = [];
 
+    if (process.env.NPM_CONFIG_GLOBALCONFIG) {
+      possibles.push([false, process.env.NPM_CONFIG_GLOBALCONFIG]);
+    }
+
     for (const rcFile of this.extraneousRcFiles.slice().reverse()) {
       possibles.push([false, path.resolve(process.cwd(), rcFile)]);
     }
