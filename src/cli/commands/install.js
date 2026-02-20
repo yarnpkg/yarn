@@ -910,6 +910,11 @@ export class Install {
       const resolved = lockfile[dependency].resolved;
       if (resolved) {
         const basename = path.basename(resolved.split('#')[0]);
+        const match = resolved.match(/.*\/download\/(@[^/]+)\/([^@/]+)\/([0-9.]+)\/[^/]+$/);
+        if (match) {
+          const [, scope, repository, version] = match;
+          requiredTarballs.add(`${scope}-${repository}-${version}.tgz`);
+        }
         if (dependency[0] === '@' && basename[0] !== '@') {
           requiredTarballs.add(`${dependency.split('/')[0]}-${basename}`);
         }
