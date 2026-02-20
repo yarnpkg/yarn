@@ -425,7 +425,7 @@ export default class RequestManager {
         this.reporter.verbose(this.reporter.lang('verboseRequestFinish', params.url, res.statusCode));
 
         if (res.statusCode === 408 || res.statusCode >= 500) {
-          const description = `${res.statusCode} ${http.STATUS_CODES[res.statusCode]}`;
+          const description = `${res.statusCode} ${res.statusMessage || http.STATUS_CODES[res.statusCode]}`;
           if (!queueForRetry(this.reporter.lang('internalServerErrorRetrying', description))) {
             throw new ResponseError(this.reporter.lang('requestFailed', description), res.statusCode);
           } else {
@@ -517,7 +517,7 @@ export default class RequestManager {
           return;
         }
 
-        const description = `${res.statusCode} ${http.STATUS_CODES[res.statusCode]}`;
+        const description = `${res.statusCode} ${res.statusMessage || http.STATUS_CODES[res.statusCode]}`;
         reject(new ResponseError(this.reporter.lang('requestFailed', description), res.statusCode));
 
         req.abort();
