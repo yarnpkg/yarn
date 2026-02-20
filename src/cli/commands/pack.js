@@ -82,6 +82,10 @@ export async function packTarball(
 
   // `files` field
   if (onlyFiles) {
+    if (!(onlyFiles instanceof Array)) {
+      throw new MessageError(config.reporter.lang('cacheFolderMissingPack'));
+    }
+
     let lines = [
       '*', // ignore all files except those that are explicitly included with a negation filter
     ];
