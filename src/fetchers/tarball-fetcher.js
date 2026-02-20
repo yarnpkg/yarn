@@ -136,7 +136,9 @@ export default class TarballFetcher extends BaseFetcher {
       chown: false, // don't chown. just leave as it is
       map: header => {
         header.mtime = now;
-        if (header.linkname) {
+        if (header.linkname && this.config.ignoreScripts) {
+          // Allow users to opt-in to CVE-2020-8131 mitigation (https://github.com/yarnpkg/yarn/pull/7831)
+          // This can break links (see https://github.com/yarnpkg/yarn/issues/7890)
           const basePath = path.posix.dirname(path.join('/', header.name));
           const jailPath = path.posix.join(basePath, header.linkname);
           header.linkname = path.posix.relative('/', jailPath);
