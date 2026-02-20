@@ -1,0 +1,8 @@
+{
+    "name": "b",
+    "version": "2.0.0",
+    "dependencies": {
+        "@s/x": "file:../../x/v2.0.0",
+        "@s/y": "file:../../y/v2.0.0"
+    }
+}
