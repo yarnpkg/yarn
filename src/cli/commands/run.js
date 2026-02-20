@@ -11,7 +11,7 @@ import * as fs from '../../util/fs.js';
 import * as constants from '../../constants.js';
 
 const invariant = require('invariant');
-const leven = require('leven');
+const { distance } = require('fastest-levenshtein');
 const path = require('path');
 const {quoteForShell, sh, unquoted} = require('puka');
 
@@ -150,7 +150,7 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
       let suggestion;
 
       for (const commandName of scripts.keys()) {
-        const steps = leven(commandName, action);
+        const steps = distance(commandName, action);
         if (steps < 2) {
           suggestion = commandName;
         }
