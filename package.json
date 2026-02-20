@@ -107,7 +107,10 @@
   "engines": {
     "node": ">=4.0.0"
   },
-  "repository": "yarnpkg/yarn",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yarnpkg/yarn.git"
+  },
   "bin": {
     "yarn": "./bin/yarn.js",
     "yarnpkg": "./bin/yarn.js"
