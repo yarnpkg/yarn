@@ -118,6 +118,10 @@ Those versions didn't contain any changes and were just triggered by our infra w
 
   [#7151](https://github.com/yarnpkg/yarn/pull/7151) - [**Jeff Valore**](https://twitter.com/codingwithspike)
 
+- Add support for `install --json`
+
+[#7615](https://github.com/yarnpkg/yarn/pull/7615) - [**GongT**](https://github.com/GongT)
+
 ## 1.19.1
 
 **Important:** This release contains a cache bump. It will cause the very first install following the upgrade to take slightly more time, especially if you don't use the [Offline Mirror](https://yarnpkg.com/blog/2016/11/24/offline-mirror/) feature. After that everything will be back to normal.
