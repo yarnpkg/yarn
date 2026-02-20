@@ -233,16 +233,13 @@ describe('--registry option', () => {
     expect(lockfile[2]).toContain(registry);
   });
 
-  test('--registry option with non-exiting registry and show an error', async () => {
+  test('--registry option with nonexistent registry and show an error', async () => {
     const cwd = await makeTemp();
-    const registry = 'https://example-registry-doesnt-exist.com';
+    // See https://datatracker.ietf.org/doc/html/rfc6761#section-6.4
+    const registry = 'https://example-registry-doesnt-exist.invalid';
 
-    try {
-      await runYarn(['add', 'is-array', '--registry', registry], {cwd});
-    } catch (err) {
-      const stdoutOutput = err.message;
-      expect(stdoutOutput.toString()).toMatch(/getaddrinfo ENOTFOUND example-registry-doesnt-exist\.com/g);
-    }
+    const yarnAdd = runYarn(['add', 'is-array', '--registry', registry, '--ignore-scripts'], {cwd});
+    await expect(yarnAdd).rejects.toThrow(/getaddrinfo .* example-registry-doesnt-exist\.invalid/);
   });
 
   test('registry option from yarnrc', async () => {
