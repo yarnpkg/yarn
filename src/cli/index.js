@@ -85,6 +85,7 @@ export async function main({
   commander.option('--strict-semver');
   commander.option('--json', 'format Yarn log messages as lines of JSON (see jsonlines.org)');
   commander.option('--ignore-scripts', "don't run lifecycle scripts");
+  commander.option('--interactive-scripts', 'ask before running lifecycle scripts');
   commander.option('--har', 'save HAR output of network traffic');
   commander.option('--ignore-platform', 'ignore platform checks');
   commander.option('--ignore-engines', 'ignore engines check');
@@ -542,6 +543,7 @@ export async function main({
       ignorePlatform: commander.ignorePlatform,
       ignoreEngines: commander.ignoreEngines,
       ignoreScripts: commander.ignoreScripts,
+      interactiveScripts: commander.interactiveScripts,
       offline: commander.preferOffline || commander.offline,
       looseSemver: !commander.strictSemver,
       production: commander.production,
