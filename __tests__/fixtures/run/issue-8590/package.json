@@ -1,0 +1,13 @@
+{
+  "name": "yarn-issue-8590",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "yarn",
+  "license": "MIT",
+  "private": true,
+  "workspaces": {
+    "packages": [
+      "packages/*"
+    ]
+  }
+}

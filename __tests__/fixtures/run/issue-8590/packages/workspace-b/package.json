@@ -1,0 +1,7 @@
+{
+  "name": "workspace-b",
+  "version": "1.0.0",
+  "dependencies": {
+    "eslint": "1.0.0"
+  }
+}
