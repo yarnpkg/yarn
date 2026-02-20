@@ -350,4 +350,12 @@ export default (async function(
       }
     }
   }
+
+  // Sanitize workspaces patterns
+  if (info.workspaces) {
+    // Workspaces will not match if the pattern starts with ./ or ends with /
+    const sanitizedWorkspaces = info.workspaces.map((workspace): string =>
+      workspace.replace(/\/$/, '').replace(/^.\//, ''));
+    info.workspaces = sanitizedWorkspaces;
+  }
 });
