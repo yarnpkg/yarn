@@ -192,10 +192,10 @@ export async function makeEnv(
   for (const registryFolder of config.registryFolders) {
     const binFolder = path.join(registryFolder, '.bin');
     if (config.workspacesEnabled && config.workspaceRootFolder) {
-      pathParts.unshift(path.join(config.workspaceRootFolder, binFolder));
+      pathParts.unshift(path.resolve(config.workspaceRootFolder, binFolder));
     }
-    pathParts.unshift(path.join(config.linkFolder, binFolder));
-    pathParts.unshift(path.join(cwd, binFolder));
+    pathParts.unshift(path.resolve(config.linkFolder, binFolder));
+    pathParts.unshift(path.resolve(cwd, binFolder));
   }
 
   let pnpFile;
