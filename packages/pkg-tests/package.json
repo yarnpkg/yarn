@@ -1,32 +1,36 @@
 {
-    "private": true,
-    "workspaces": [
-        "pkg-tests-core",
-        "pkg-tests-fixtures",
-        "pkg-tests-pnp",
-        "pkg-tests-specs"
-    ],
-    "dependencies": {
-        "babel-preset-env": "^1.6.1",
-        "babel-preset-flow": "^6.23.0",
-        "flow-bin": "^0.66.0",
-        "jest": "^23.0.0",
-        "jest-junit": "^5.2.0",
-        "prettier": "^1.10.2"
-    },
-    "scripts": {
-        "prettier": "prettier --write '**/*.js'"
-    },
-    "prettier": {
-        "singleQuote": true,
-        "trailingComma": "all",
-        "bracketSpacing": false,
-        "printWidth": 120,
-        "parser": "flow"
-    },
-    "jest": {
-        "modulePathIgnorePatterns": [
-            "<rootDir>/pkg-tests-fixtures/packages/"
-        ]
-    }
+  "private": true,
+  "workspaces": [
+    "pkg-tests-core",
+    "pkg-tests-fixtures",
+    "pkg-tests-pnp",
+    "pkg-tests-specs"
+  ],
+  "dependencies": {
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-flow": "^6.23.0",
+    "flow-bin": "^0.66.0",
+    "jest": "^24.0.0",
+    "jest-junit": "^6.2.0",
+    "prettier": "^1.10.2",
+    "snyk": "^1.427.0"
+  },
+  "scripts": {
+    "prettier": "prettier --write '**/*.js'",
+    "snyk-protect": "snyk protect",
+    "prepare": "yarn run snyk-protect"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "trailingComma": "all",
+    "bracketSpacing": false,
+    "printWidth": 120,
+    "parser": "flow"
+  },
+  "jest": {
+    "modulePathIgnorePatterns": [
+      "<rootDir>/pkg-tests-fixtures/packages/"
+    ]
+  },
+  "snyk": true
 }
