@@ -53,7 +53,7 @@ test('install should hoist nested bin scripts', (): Promise<void> => {
     const binScripts = await fs.walk(path.join(config.cwd, 'node_modules', '.bin'));
     // need to triple the amount as windows makes 3 entries for each dependency
     // so for below, there would be an entry for eslint, eslint.cmd and eslint.ps1 on win32
-    const amount = process.platform === 'win32' ? 20 : 10;
+    const amount = process.platform === 'win32' ? 30 : 10;
     expect(binScripts).toHaveLength(amount);
 
     expect(await linkAt(config, 'node_modules', '.bin', 'standard')).toEqual('../standard/bin/cmd.js');
@@ -178,7 +178,7 @@ test('can use link protocol to install a package that would not be found via nod
 test('empty bin string does not create a link', (): Promise<void> => {
   return runInstall({binLinks: true}, 'install-empty-bin', async config => {
     const binScripts = await fs.walk(path.join(config.cwd, 'node_modules', '.bin'));
-    const linkCount = process.platform === 'win32' ? 2 : 1;
+    const linkCount = process.platform === 'win32' ? 3 : 1;
     expect(binScripts).toHaveLength(linkCount);
 
     expect(await linkAt(config, 'node_modules', '.bin', 'depB')).toEqual('../depB/depb.js');
