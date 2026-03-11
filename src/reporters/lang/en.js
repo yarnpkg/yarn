@@ -7,6 +7,7 @@ const messages = {
   nothingToInstall: 'Nothing to install.',
   resolvingPackages: 'Resolving packages',
   checkingManifest: 'Validating package.json',
+  errorFetchingFromLocal: 'Error fetching package from local disk cache:',
   fetchingPackages: 'Fetching packages',
   linkingDependencies: 'Linking dependencies',
   rebuildingPackages: 'Rebuilding all packages',
