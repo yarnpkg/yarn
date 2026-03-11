@@ -26,7 +26,7 @@ export class Add extends Install {
   constructor(args: Array<string>, flags: Object, config: Config, reporter: Reporter, lockfile: Lockfile) {
     const workspaceRootIsCwd = config.cwd === config.lockfileFolder;
     const _flags = flags ? {...flags, workspaceRootIsCwd} : {workspaceRootIsCwd};
-    super(_flags, config, reporter, lockfile);
+    super({..._flags, includeWorkspaceDeps: true}, config, reporter, lockfile);
     this.args = args;
     // only one flag is supported, so we can figure out which one was passed to `yarn add`
     this.flagToOrigin = [
