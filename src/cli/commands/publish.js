@@ -156,12 +156,13 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
     registry = pkg.publishConfig.registry;
   }
 
-  reporter.step(1, 4, reporter.lang('bumpingVersion'));
-  const commitVersion = await setVersion(config, reporter, flags, [], false);
+  //
+  reporter.step(1, 4, reporter.lang('loggingIn'));
+  const revoke = await getToken(config, reporter, pkg.name, flags, registry);
 
   //
-  reporter.step(2, 4, reporter.lang('loggingIn'));
-  const revoke = await getToken(config, reporter, pkg.name, flags, registry);
+  reporter.step(2, 4, reporter.lang('bumpingVersion'));
+  const commitVersion = await setVersion(config, reporter, flags, [], false);
 
   //
   reporter.step(3, 4, reporter.lang('publishing'));
