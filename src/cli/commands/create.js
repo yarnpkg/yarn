@@ -7,6 +7,7 @@ import * as child from '../../util/child.js';
 import {makeEnv} from '../../util/execute-lifecycle-script';
 import * as fs from '../../util/fs.js';
 import {run as runGlobal, getBinFolder} from './global.js';
+import {normalizePattern} from '../../util/normalize-pattern';
 
 const path = require('path');
 
@@ -42,9 +43,14 @@ export function parsePackageName(str: string): Object {
 export function coerceCreatePackageName(str: string): Object {
   const pkgNameObj = parsePackageName(str);
   const coercedName = pkgNameObj.name !== '' ? `create-${pkgNameObj.name}` : `create`;
+
+  // some packages are installed with a version
+  // e.g. `yarn create-hops-app@next`
+  // we need to remove the version so that the correct binary is used
+  const {name} = normalizePattern(coercedName);
   const coercedPkgNameObj = {
     ...pkgNameObj,
-    name: coercedName,
+    name,
     fullName: [pkgNameObj.scope, coercedName].filter(Boolean).join('/'),
     full: [pkgNameObj.scope, coercedName, pkgNameObj.path].filter(Boolean).join('/'),
   };

@@ -94,6 +94,30 @@ describe(`coerceCreatePackageName`, () => {
     });
   });
 
+  test('with version', () => {
+    expect(coerceCreatePackageName('name@next')).toEqual({
+      fullName: 'create-name@next',
+      name: 'create-name',
+      scope: '',
+      path: '',
+      full: 'create-name@next',
+    });
+    expect(coerceCreatePackageName('name@2.0.0')).toEqual({
+      fullName: 'create-name@2.0.0',
+      name: 'create-name',
+      scope: '',
+      path: '',
+      full: 'create-name@2.0.0',
+    });
+    expect(coerceCreatePackageName('@scope/name@next')).toEqual({
+      fullName: '@scope/create-name@next',
+      name: 'create-name',
+      scope: '@scope',
+      path: '',
+      full: '@scope/create-name@next',
+    });
+  });
+
   test('not postfixing with "-" if name is emptu', () => {
     expect(coerceCreatePackageName('@scope/').fullName).toEqual('@scope/create');
     expect(coerceCreatePackageName('@scope').fullName).toEqual('@scope/create');
