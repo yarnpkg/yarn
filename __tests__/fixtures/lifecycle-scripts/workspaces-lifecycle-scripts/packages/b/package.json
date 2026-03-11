@@ -1,0 +1,16 @@
+{
+  "name": "b",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "prepublish": "echo running workspace b prepublish hook",
+    "prepare": "echo running workspace b prepare hook",
+    "preinstall": "echo running workspace b preinstall hook",
+    "install": "echo running workspace b install hook",
+    "postinstall": "echo running workspace b postinstall hook"
+  },
+  "dependencies": {
+    "a": "1.0.0"
+  }
+}
