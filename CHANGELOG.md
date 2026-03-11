@@ -202,6 +202,10 @@ Those versions didn't contain any changes and were just triggered by our infra w
 
   [#7337](https://github.com/yarnpkg/yarn/pull/7337) - [**Maël Nison**](https://twitter.com/arcanis)
 
+- Added a --no-legend flag to the outdated command, to allow not showing the legend.
+
+  [#7275](https://github.com/yarnpkg/yarn/pull/7275) - [**Rohan Talip**](https://github.com/RohanTalip)
+
 ## 1.16.0
 
 - Retries downloading a package on `yarn install` when we get a ETIMEDOUT error.

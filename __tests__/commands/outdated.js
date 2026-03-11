@@ -64,10 +64,25 @@ test.concurrent('no output when current matches latest', (): Promise<void> => {
 });
 
 test.concurrent('works with no arguments', (): Promise<void> => {
-  return runOutdated([], {}, 'no-args', (config, reporter, out): ?Promise<void> => {
+  return runOutdated([], {legend: true}, 'no-args', (config, reporter, out): ?Promise<void> => {
     const json: Object = JSON.parse(out);
 
     expect(json.data.body.length).toBe(1);
+    expect(reporter.format.red).toHaveBeenCalledWith('<red>');
+    expect(reporter.format.yellow).toHaveBeenCalledWith('<yellow>');
+    expect(reporter.format.green).toHaveBeenCalledWith('<green>');
+    expect(reporter.format.green).toHaveBeenCalledWith('left-pad');
+  });
+});
+
+test.concurrent('works with no arguments and --no-legend', (): Promise<void> => {
+  return runOutdated([], {legend: false}, 'no-args', (config, reporter, out): ?Promise<void> => {
+    const json: Object = JSON.parse(out);
+
+    expect(json.data.body.length).toBe(1);
+    expect(reporter.format.red).not.toHaveBeenCalledWith('<red>');
+    expect(reporter.format.yellow).not.toHaveBeenCalledWith('<yellow>');
+    expect(reporter.format.green).not.toHaveBeenCalledWith('<green>');
     expect(reporter.format.green).toHaveBeenCalledWith('left-pad');
   });
 });
