@@ -238,7 +238,7 @@ export default class Audit {
 
   async _fetchAudit(auditTree: AuditTree): Object {
     let responseJson;
-    const registry = YARN_REGISTRY;
+    const registry = this.config.registries.npm.getRegistry('');
     this.reporter.verbose(`Audit Request: ${JSON.stringify(auditTree, null, 2)}`);
     const requestBody = await gzip(JSON.stringify(auditTree));
     const response = await this.config.requestManager.request({
