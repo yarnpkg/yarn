@@ -127,13 +127,6 @@ export async function setVersion(
       newVersion = oldVersion;
     }
 
-    if (!required && !newVersion) {
-      reporter.info(`${reporter.lang('noVersionOnPublish')}: ${oldVersion}`);
-      return function(): Promise<void> {
-        return Promise.resolve();
-      };
-    }
-
     if (isValidNewVersion(oldVersion, newVersion, config.looseSemver, identifier)) {
       break;
     } else {
@@ -141,12 +134,16 @@ export async function setVersion(
       reporter.error(reporter.lang('invalidSemver'));
     }
   }
+
   if (newVersion) {
     newVersion = semver.inc(oldVersion, newVersion, config.looseSemver, identifier) || newVersion;
   }
   invariant(newVersion, 'expected new version');
 
   if (newVersion === pkg.version) {
+    if (!required) {
+      reporter.info(`${reporter.lang('noVersionOnPublish')}: ${newVersion}`);
+    }
     return function(): Promise<void> {
       return Promise.resolve();
     };
