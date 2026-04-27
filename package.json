@@ -44,7 +44,7 @@
     "request-capture-har": "^1.2.2",
     "rimraf": "^2.5.0",
     "semver": "^5.1.0",
-    "ssri": "^5.3.0",
+    "ssri": "^6.0.0",
     "strip-ansi": "^4.0.0",
     "strip-bom": "^3.0.0",
     "tar-fs": "^1.16.0",
