@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "main": "./sources/index.js",
     "dependencies": {
-        "fs-extra": "^7.0.0",
+        "fs-extra": "^11.0.0",
         "klaw": "^2.1.1",
         "minimatch": "^3.0.4",
         "semver": "^5.5.0",
