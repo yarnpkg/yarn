@@ -1433,13 +1433,14 @@ fragment-cache@^0.2.1:
   dependencies:
     map-cache "^0.2.2"
 
-fs-extra@^7.0.0:
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-7.0.0.tgz#8cc3f47ce07ef7b3593a11b9fb245f7e34c041d6"
+fs-extra@^11.0.0:
+  version "11.3.5"
+  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-11.3.5.tgz#07a44eff40bea53e719909a532f91a23bf0769ff"
+  integrity sha512-eKpRKAovdpZtR1WopLHxlBWvAgPny3c4gX1G5Jhwmmw4XJj0ifSD5qB5TOo8hmA0wlRKDAOAhEE1yVPgs6Fgcg==
   dependencies:
-    graceful-fs "^4.1.2"
-    jsonfile "^4.0.0"
-    universalify "^0.1.0"
+    graceful-fs "^4.2.0"
+    jsonfile "^6.0.1"
+    universalify "^2.0.0"
 
 fs.realpath@^1.0.0:
   version "1.0.0"
@@ -1535,6 +1536,11 @@ globals@^9.18.0:
 graceful-fs@^4.1.11, graceful-fs@^4.1.2, graceful-fs@^4.1.6, graceful-fs@^4.1.9:
   version "4.1.11"
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.1.11.tgz#0e8bdfe4d1ddb8854d64e04ea7c00e2a026e5658"
+
+graceful-fs@^4.2.0:
+  version "4.2.11"
+  resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.11.tgz#4183e4e8bf08bb6e05bbb2f7d2e0c8f712ca40e3"
+  integrity sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==
 
 growly@^1.3.0:
   version "1.3.0"
@@ -2513,9 +2519,12 @@ json5@^0.5.1:
   version "0.5.1"
   resolved "https://registry.yarnpkg.com/json5/-/json5-0.5.1.tgz#1eade7acc012034ad84e2396767ead9fa5495821"
 
-jsonfile@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/jsonfile/-/jsonfile-4.0.0.tgz#8771aae0799b64076b76640fca058f9c10e33ecb"
+jsonfile@^6.0.1:
+  version "6.2.1"
+  resolved "https://registry.yarnpkg.com/jsonfile/-/jsonfile-6.2.1.tgz#b6e31717f22cc37330b081ce0051ed5de53af2f6"
+  integrity sha512-zwOTdL3rFQ/lRdBnntKVOX6k5cKJwEc1HdilT71BWEu7J41gXIB2MRp+vxduPSwZJPWBxEzv4yH1wYLJGUHX4Q==
+  dependencies:
+    universalify "^2.0.0"
   optionalDependencies:
     graceful-fs "^4.1.6"
 
@@ -3785,9 +3794,10 @@ union-value@^1.0.0:
     is-extendable "^0.1.1"
     set-value "^0.4.3"
 
-universalify@^0.1.0:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/universalify/-/universalify-0.1.1.tgz#fa71badd4437af4c148841e3b3b165f9e9e590b7"
+universalify@^2.0.0:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/universalify/-/universalify-2.0.1.tgz#168efc2180964e6386d061e094df61afe239b18d"
+  integrity sha512-gptHNQghINnc/vTGIk0SOFGFNXw7JVrlRUtConJRlvaw6DuX0wO5Jeko9sWrMBhh+PsYAZ7oXAiOnf/UKogyiw==
 
 unset-value@^1.0.0:
   version "1.0.0"
