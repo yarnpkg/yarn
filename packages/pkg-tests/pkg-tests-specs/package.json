@@ -5,6 +5,6 @@
     "dependencies": {
         "fs-extra": "^7.0.0",
         "pkg-tests-core": "1.0.0",
-        "semver": "^5.6.0"
+        "semver": "^7.0.0"
     }
 }
